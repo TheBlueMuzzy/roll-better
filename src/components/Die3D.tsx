@@ -1,6 +1,18 @@
 import { RoundedBox } from '@react-three/drei';
 import { CircleGeometry, MeshPhysicalMaterial } from 'three';
 
+// --- Player color constants ---
+export const PLAYER_COLORS = {
+  red: '#c0392b',
+  blue: '#2980b9',
+  green: '#27ae60',
+  purple: '#8e44ad',
+  orange: '#d35400',
+  yellow: '#f39c12',
+  teal: '#16a085',
+  pink: '#e84393',
+} as const;
+
 // --- Shared geometry & material for all pip dots (created once) ---
 const pipGeometry = new CircleGeometry(0.08, 16);
 const pipMaterial = new MeshPhysicalMaterial({
@@ -93,9 +105,10 @@ for (const face of faces) {
 // --- Component ---
 interface Die3DProps {
   position?: [number, number, number];
+  color?: string;
 }
 
-export function Die3D({ position = [0, 0, 0] }: Die3DProps) {
+export function Die3D({ position = [0, 0, 0], color = '#e8e0d4' }: Die3DProps) {
   return (
     <group position={position}>
       {/* Die body */}
@@ -106,7 +119,7 @@ export function Die3D({ position = [0, 0, 0] }: Die3DProps) {
         castShadow
       >
         <meshPhysicalMaterial
-          color="#e8e0d4"
+          color={color}
           clearcoat={1.0}
           clearcoatRoughness={0.1}
           metalness={0}

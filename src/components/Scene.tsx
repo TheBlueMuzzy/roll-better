@@ -1,6 +1,6 @@
 import { OrbitControls, Environment } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
-import { Die3D } from './Die3D';
+import { Die3D, PLAYER_COLORS } from './Die3D';
 
 export function Scene() {
   return (
@@ -44,7 +44,7 @@ export function Scene() {
         {/* Die — drops from height */}
         <RigidBody type="dynamic" position={[0, 5, 0]} ccd restitution={0.5}>
           <CuboidCollider args={[0.5, 0.5, 0.5]} restitution={0.5} />
-          <Die3D />
+          <Die3D color={PLAYER_COLORS.red} />
         </RigidBody>
       </Physics>
     </group>
