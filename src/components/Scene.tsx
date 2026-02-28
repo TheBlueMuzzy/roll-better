@@ -5,6 +5,7 @@ import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea } from './RollingArea';
+import { GoalRow } from './GoalRow';
 
 export function Scene() {
   const dicePoolRef = useRef<DicePoolHandle>(null);
@@ -64,6 +65,9 @@ export function Scene() {
           bias={0.001}
         />
       </AccumulativeShadows>
+
+      {/* Goal row — static dice at top of screen (outside Physics) */}
+      <GoalRow values={[1, 2, 3, 4, 5, 6, 1, 2]} />
 
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
