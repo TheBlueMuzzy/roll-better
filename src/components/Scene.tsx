@@ -14,13 +14,21 @@ export function Scene() {
       />
 
       {/* Lighting */}
-      <ambientLight intensity={0.4} />
-      <directionalLight
-        position={[5, 10, 5]}
-        intensity={1.0}
+      <ambientLight intensity={0.3} color="#ffeedd" />
+      <spotLight
+        position={[2, 8, 2]}
+        intensity={0.8}
+        color="#efdfd5"
+        angle={Math.PI / 4}
+        penumbra={0.5}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
+      />
+      <pointLight
+        position={[-3, 6, -2]}
+        intensity={0.2}
+        color="#b4c7e0"
       />
 
       {/* HDRI environment for reflections */}
