@@ -4,7 +4,11 @@ import './App.css';
 
 function App() {
   return (
-    <Canvas camera={{ position: [0, 5, 8], fov: 50 }}>
+    <Canvas
+      shadows
+      camera={{ position: [0, 5, 8], fov: 50 }}
+      gl={{ antialias: true }}
+    >
       <Scene />
     </Canvas>
   );
