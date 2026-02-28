@@ -1,5 +1,6 @@
 import { OrbitControls, Environment } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
+import { Die3D } from './Die3D';
 
 export function Scene() {
   return (
@@ -40,13 +41,10 @@ export function Scene() {
           </mesh>
         </RigidBody>
 
-        {/* Test cube — drops and bounces on the floor */}
-        <RigidBody type="dynamic" position={[0, 5, 0]} ccd restitution={0.5}>
+        {/* Die — sits on the floor */}
+        <RigidBody type="dynamic" position={[0, 0.5, 0]} ccd restitution={0.5}>
           <CuboidCollider args={[0.5, 0.5, 0.5]} restitution={0.5} />
-          <mesh castShadow>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="#e74c3c" />
-          </mesh>
+          <Die3D />
         </RigidBody>
       </Physics>
     </group>
