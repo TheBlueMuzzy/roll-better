@@ -5,10 +5,20 @@
 }
 
 html,
-body,
-#root {
+body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
+  background: #000;
+}
+
+#root {
+  /* 9:16 portrait aspect ratio, centered */
+  width: min(100vw, calc(100dvh * 9 / 16));
+  height: min(100dvh, calc(100vw * 16 / 9));
+  margin: auto;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
