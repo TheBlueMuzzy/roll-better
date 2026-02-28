@@ -11,7 +11,7 @@ None (no expertise skill files available)
 ## Phases
 
 - [x] **Phase 1: Foundation** *(Complete — 2026-02-28)* — Scaffold Vite + React + R3F + Rapier + Zustand, basic 3D scene
-- [ ] **Phase 2: Premium Die** *(In progress)* — Single premium 3D die with materials, lighting, shadows
+- [x] **Phase 2: Premium Die** *(Complete — 2026-02-28)* — Single premium 3D die with materials, lighting, shadows
 - [ ] **Phase 3: Dice Rolling** — Multi-dice physics rolling, settling, face detection, collision sounds
 - [ ] **Phase 4: Game Board Layout** — Goal row, player row, dice pool, HUD, portrait responsive
 - [ ] **Phase 5: Core Game Logic** — Goal gen, match detection, auto-lock, scoring, handicap, session state
@@ -45,7 +45,7 @@ Plans:
 Plans:
 - [x] 02-01: Die geometry (RoundedBoxGeometry with bevel 0.07, face numbers/pips)
 - [x] 02-02: Die materials (MeshPhysicalMaterial, clearcoat, HDRI environment, player color tinting)
-- [ ] 02-03: Scene lighting and shadows (warm spotlight, AccumulativeShadows, dark wood surface)
+- [x] 02-03: Scene lighting and shadows (warm spotlight, AccumulativeShadows, dark wood surface)
 
 ### Phase 3: Dice Rolling
 **Goal**: Roll multiple dice with realistic physics, detect face-up results, basic collision audio
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-28 |
-| 2. Premium Die | 2/3 | In progress | - |
+| 2. Premium Die | 3/3 | Complete | 2026-02-28 |
 | 3. Dice Rolling | 0/3 | Not started | - |
 | 4. Game Board Layout | 0/3 | Not started | - |
 | 5. Core Game Logic | 0/4 | Not started | - |

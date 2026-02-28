@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 2 in progress. Die materials with clearcoat and player color tinting complete (Plan 2 of 3).
+Phase 2 complete. Premium die with warm lighting, soft shadows, and dark wood surface. Ready for Phase 3.
 
 ## Version
 0.1.0.0
@@ -9,19 +9,18 @@ Phase 2 in progress. Die materials with clearcoat and player color tinting compl
 ## Current Position
 
 Phase: 2 of 12 (Premium Die)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-28 — Completed 02-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-28 — Completed 02-03-PLAN.md
 
-Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 12%
+Progress: █████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 15%
 
 ## Last Session
-2026-02-28 — Executed 02-02-PLAN.md (Die Materials):
-- MeshPhysicalMaterial with clearcoat 1.0 on die body, 0.8 on pips
-- HDRI reflections from apartment environment preset
-- Player color tinting via color prop (8 colors exported)
-- JSX material for body (prop-driven), module-level for pips (static)
-- Build version overlay repositioned inside game viewport
+2026-02-28 — Executed 02-03-PLAN.md (Scene Lighting & Shadows):
+- Warm spotlight key light (#efdfd5) + cool blue fill (#b4c7e0)
+- AccumulativeShadows with RandomizedLight for soft grounding
+- Dark walnut floor (#3d2517) with roughness 0.7
+- Spotlight repositioned to [2, 10, -3] for 45-degree overhead feel (user feedback)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -48,14 +47,16 @@ Progress: ████░░░░░░░░░░░░░░░░░░░�
 - Build version overlay: non-negotiable for all development checkpoints
 - JSX meshPhysicalMaterial for die body (prop-driven color), module-level constant for pip material (static)
 - Build version overlay: position:absolute (inside game viewport), not position:fixed
+- Spotlight at [2, 10, -3] for 45-degree overhead feel (not from bottom of screen)
+- AccumulativeShadows outside Physics component (visual-only, not physics)
 
 ## Known Issues
 None yet.
 
 ## Session Continuity
 Last session: 2026-02-28
-Stopped at: Completed 02-02-PLAN.md — Plan 2 of 3 in Phase 2
+Stopped at: Completed 02-03-PLAN.md — Phase 2 complete
 Resume file: None
 
 ## Next Steps
-- `/gsd:execute-plan .planning/phases/02-premium-die/02-03-PLAN.md` — Plan 02-03: Scene lighting and shadows (warm spotlight, AccumulativeShadows, dark wood surface)
+- `/gsd:plan-phase 3` — Phase 3: Dice Rolling (multi-dice physics, settling, face detection)
