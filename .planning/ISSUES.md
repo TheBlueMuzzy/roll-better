@@ -17,7 +17,7 @@ Enhancements discovered during execution. Not critical - address in future phase
 
 - **Discovered:** Phase 4 Task 3 checkpoint (2026-02-28)
 - **Type:** Physics edge case
-- **Description:** A rolled die can end up leaning against the back wall at an angle, unable to settle flat. Face detection can't determine the result because no face clearly points up. Options: (a) detect stuck/canted dice and give them a physics nudge, (b) add a timeout that re-rolls stuck dice, (c) add angled "kickout" colliders at wall bases to prevent leaning.
+- **Description:** A rolled die can end up leaning against the back wall OR against another die at an angle, unable to settle flat. Face detection can't determine the result because no face clearly points up. Options: (a) detect stuck/canted dice and give them a physics nudge, (b) add a timeout that re-rolls stuck dice, (c) add angled "kickout" colliders at wall bases to prevent leaning.
 - **Impact:** Medium (blocks result detection for that die)
 - **Effort:** Medium
 - **Suggested phase:** Phase 6 (animation/polish) or dedicated fix
