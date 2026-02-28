@@ -16,7 +16,7 @@ export function Scene() {
       {/* Lighting */}
       <ambientLight intensity={0.3} color="#ffeedd" />
       <spotLight
-        position={[2, 8, 2]}
+        position={[2, 10, -3]}
         intensity={0.8}
         color="#efdfd5"
         angle={Math.PI / 4}
@@ -47,7 +47,7 @@ export function Scene() {
           radius={4}
           ambient={0.5}
           intensity={1}
-          position={[2, 8, 2]}
+          position={[2, 10, -3]}
           bias={0.001}
         />
       </AccumulativeShadows>
