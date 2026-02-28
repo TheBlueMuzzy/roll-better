@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
+import { getFaceUp } from '../utils/diceUtils';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
@@ -13,6 +14,8 @@ export interface PhysicsDieHandle {
   roll(): void;
   /** True when the die has stopped moving after a roll */
   get isSettled(): boolean;
+  /** Returns the last settled face value, or null if no roll completed yet */
+  getLastResult(): number | null;
 }
 
 // --- Props ---
@@ -24,9 +27,10 @@ interface PhysicsDieProps {
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult: _onResult }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
+    const lastResult = useRef<number | null>(null);
 
     useImperativeHandle(ref, () => ({
       roll() {
@@ -71,6 +75,10 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       get isSettled() {
         return !isRolling.current;
       },
+
+      getLastResult() {
+        return lastResult.current;
+      },
     }));
 
     return (
@@ -86,6 +94,17 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         onSleep={() => {
           if (isRolling.current) {
             isRolling.current = false;
+
+            // Read which face is pointing up
+            const body = bodyRef.current;
+            if (body) {
+              const rotation = body.rotation();
+              const threeQuat = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+              const faceValue = getFaceUp(threeQuat);
+              lastResult.current = faceValue;
+              onResult?.(faceValue);
+            }
+
             onSettle?.();
           }
         }}

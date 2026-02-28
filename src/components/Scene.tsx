@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
+import { useRef, useState } from 'react';
+import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight, Html } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
 import { PhysicsDie } from './PhysicsDie';
@@ -7,6 +7,7 @@ import type { PhysicsDieHandle } from './PhysicsDie';
 
 export function Scene() {
   const physicsDieRef = useRef<PhysicsDieHandle>(null);
+  const [dieResult, setDieResult] = useState<number | null>(null);
 
   return (
     <group>
@@ -66,7 +67,10 @@ export function Scene() {
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, 0, 0]}
             receiveShadow
-            onClick={() => physicsDieRef.current?.roll()}
+            onClick={() => {
+              setDieResult(null);
+              physicsDieRef.current?.roll();
+            }}
           >
             <planeGeometry args={[10, 10]} />
             <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
@@ -78,8 +82,27 @@ export function Scene() {
           ref={physicsDieRef}
           color={PLAYER_COLORS.red}
           position={[0, 1, 0]}
+          onResult={setDieResult}
         />
       </Physics>
+
+      {/* Result display — shown above die after settle */}
+      {dieResult !== null && (
+        <Html position={[0, 3, 0]} center>
+          <div
+            style={{
+              fontSize: '48px',
+              fontWeight: 'bold',
+              color: 'white',
+              textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            {dieResult}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
