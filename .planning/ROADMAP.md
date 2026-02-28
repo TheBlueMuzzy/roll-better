@@ -44,7 +44,7 @@ Plans:
 
 Plans:
 - [x] 02-01: Die geometry (RoundedBoxGeometry with bevel 0.07, face numbers/pips)
-- [ ] 02-02: Die materials (MeshPhysicalMaterial, clearcoat, HDRI environment, player color tinting)
+- [x] 02-02: Die materials (MeshPhysicalMaterial, clearcoat, HDRI environment, player color tinting)
 - [ ] 02-03: Scene lighting and shadows (warm spotlight, AccumulativeShadows, dark wood surface)
 
 ### Phase 3: Dice Rolling
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-28 |
-| 2. Premium Die | 1/3 | In progress | - |
+| 2. Premium Die | 2/3 | In progress | - |
 | 3. Dice Rolling | 0/3 | Not started | - |
 | 4. Game Board Layout | 0/3 | Not started | - |
 | 5. Core Game Logic | 0/4 | Not started | - |

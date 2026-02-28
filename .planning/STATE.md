@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 2 in progress. Die3D component with geometry and pips complete (Plan 1 of 3).
+Phase 2 in progress. Die materials with clearcoat and player color tinting complete (Plan 2 of 3).
 
 ## Version
 0.1.0.0
@@ -9,19 +9,19 @@ Phase 2 in progress. Die3D component with geometry and pips complete (Plan 1 of 
 ## Current Position
 
 Phase: 2 of 12 (Premium Die)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-28 — Completed 02-01-PLAN.md
+Last activity: 2026-02-28 — Completed 02-02-PLAN.md
 
-Progress: ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 9%
+Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 12%
 
 ## Last Session
-2026-02-28 — Executed 02-01-PLAN.md (Die Geometry):
-- Die3D component with RoundedBox (0.07 bevel, cream color)
-- 21 pip dots across 6 faces, standard Western d6 layout
-- Near-black pips (#1a1a1a) for visibility on cream surface
-- Build version overlay (vX.Y.Z.B) in lower-left corner
-- Shared geometry/material at module level for performance
+2026-02-28 — Executed 02-02-PLAN.md (Die Materials):
+- MeshPhysicalMaterial with clearcoat 1.0 on die body, 0.8 on pips
+- HDRI reflections from apartment environment preset
+- Player color tinting via color prop (8 colors exported)
+- JSX material for body (prop-driven), module-level for pips (static)
+- Build version overlay repositioned inside game viewport
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -46,14 +46,16 @@ Progress: ███░░░░░░░░░░░░░░░░░░░░�
 - Viewport: 9:16 portrait aspect ratio (mobile-first)
 - Pip color: near-black (#1a1a1a) on cream — user direction for visibility
 - Build version overlay: non-negotiable for all development checkpoints
+- JSX meshPhysicalMaterial for die body (prop-driven color), module-level constant for pip material (static)
+- Build version overlay: position:absolute (inside game viewport), not position:fixed
 
 ## Known Issues
 None yet.
 
 ## Session Continuity
 Last session: 2026-02-28
-Stopped at: Completed 02-01-PLAN.md — Plan 1 of 3 in Phase 2
+Stopped at: Completed 02-02-PLAN.md — Plan 2 of 3 in Phase 2
 Resume file: None
 
 ## Next Steps
-- `/gsd:execute-plan .planning/phases/02-premium-die/02-02-PLAN.md` — Plan 02-02: Die materials (MeshPhysicalMaterial, clearcoat, HDRI, player color tinting)
+- `/gsd:execute-plan .planning/phases/02-premium-die/02-03-PLAN.md` — Plan 02-03: Scene lighting and shadows (warm spotlight, AccumulativeShadows, dark wood surface)
