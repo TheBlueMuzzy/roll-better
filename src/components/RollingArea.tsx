@@ -1,5 +1,4 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
-import { ThreeEvent } from '@react-three/fiber';
 
 // --- Arena bounds (exported for DicePool spawn positioning) ---
 // Camera at y=12, fov=50, looking down at floor (y=0)
@@ -14,7 +13,7 @@ const WALL_THICKNESS = 0.1;
 const WALL_HEIGHT = 3; // tall enough to catch bouncing dice (rarely go above y=2-3)
 
 interface RollingAreaProps {
-  onFloorClick?: (e: ThreeEvent<MouseEvent>) => void;
+  onFloorClick?: () => void;
 }
 
 export function RollingArea({ onFloorClick }: RollingAreaProps) {
