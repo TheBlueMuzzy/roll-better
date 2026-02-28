@@ -41,8 +41,8 @@ export function Scene() {
           </mesh>
         </RigidBody>
 
-        {/* Die — sits on the floor */}
-        <RigidBody type="dynamic" position={[0, 0.5, 0]} ccd restitution={0.5}>
+        {/* Die — drops from height */}
+        <RigidBody type="dynamic" position={[0, 5, 0]} ccd restitution={0.5}>
           <CuboidCollider args={[0.5, 0.5, 0.5]} restitution={0.5} />
           <Die3D />
         </RigidBody>

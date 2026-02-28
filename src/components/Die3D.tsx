@@ -3,7 +3,7 @@ import { CircleGeometry, MeshStandardMaterial } from 'three';
 
 // --- Shared geometry & material for all pip dots (created once) ---
 const pipGeometry = new CircleGeometry(0.08, 16);
-const pipMaterial = new MeshStandardMaterial({ color: '#ffffff' });
+const pipMaterial = new MeshStandardMaterial({ color: '#1a1a1a' });
 
 // --- Pip 2D layouts (offset from face center, spacing 0.22) ---
 const pipLayouts: [number, number][][] = [
