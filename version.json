@@ -1,12 +1,22 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 33,
+  "build": 35,
   "history": [
     {
       "version": "0.1.0",
       "date": "2026-02-27",
       "summary": "Project created"
+    },
+    {
+      "version": "0.1.0.34",
+      "date": "2026-02-28",
+      "summary": "Added invisible boundary walls around rolling area"
+    },
+    {
+      "version": "0.1.0.35",
+      "date": "2026-02-28",
+      "summary": "Created DicePool with multi-dice spawning and rollAll"
     }
   ]
 }
