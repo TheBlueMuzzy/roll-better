@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight, Html } from '@react-three/drei';
+import { useRef } from 'react';
+import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
@@ -9,12 +9,10 @@ import { GoalRow } from './GoalRow';
 
 export function Scene() {
   const dicePoolRef = useRef<DicePoolHandle>(null);
-  const [diceResults, setDiceResults] = useState<number[] | null>(null);
 
   function handleAllSettled(results: number[]) {
     const sorted = [...results].sort((a, b) => a - b);
     console.log('All dice settled:', sorted);
-    setDiceResults(sorted);
   }
 
   return (
@@ -74,7 +72,6 @@ export function Scene() {
         {/* Rolling area: floor + invisible boundary walls */}
         <RollingArea
           onFloorClick={() => {
-            setDiceResults(null);
             dicePoolRef.current?.rollAll();
           }}
         />
@@ -87,25 +84,6 @@ export function Scene() {
           onAllSettled={handleAllSettled}
         />
       </Physics>
-
-      {/* Result display — shown after all dice settle */}
-      {diceResults !== null && (
-        <Html position={[0, 3, 0]} center>
-          <div
-            style={{
-              fontSize: '36px',
-              fontWeight: 'bold',
-              color: 'white',
-              textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-              pointerEvents: 'none',
-              userSelect: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Results: {diceResults.join(', ')}
-          </div>
-        </Html>
-      )}
     </group>
   );
 }

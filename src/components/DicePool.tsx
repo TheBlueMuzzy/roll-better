@@ -1,7 +1,10 @@
 import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
-import { DIE_SIZE } from './RollingArea';
+import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
+
+// Center of the rolling zone — spawn grid is offset to this Z
+const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
 
 // --- Public API exposed via ref ---
 export interface DicePoolHandle {
@@ -26,11 +29,11 @@ export function getSpawnPositions(count: number): [number, number, number][] {
     const col = i % columns;
     const row = Math.floor(i / columns);
 
-    // Center the grid at origin
+    // Center the grid at the rolling zone center
     const totalCols = columns;
     const totalRows = Math.ceil(count / columns);
     const x = (col - (totalCols - 1) / 2) * spacing;
-    const z = (row - (totalRows - 1) / 2) * spacing;
+    const z = (row - (totalRows - 1) / 2) * spacing + ROLLING_Z_CENTER;
 
     // Add small random offset for visual variety
     const jitterX = (Math.random() - 0.5) * 0.2; // ±0.1

@@ -6,7 +6,20 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 // Portrait 9:16 → horizontal: 5.6 * (9/16) ≈ 3.15
 // Tightened slightly so dice don't scrape edges
 export const ARENA_HALF_X = 2.8;
+
+// DEPRECATED: rolling zone is now asymmetric (ROLLING_Z_MIN / ROLLING_Z_MAX).
+// Kept for backward compatibility — DicePool may still reference it.
 export const ARENA_HALF_Z = 4.5;
+
+// --- Asymmetric rolling zone bounds ---
+// Back wall sits at Z = -0.8 (boundary between player/goal zone and rolling zone)
+// Front wall stays at Z = 4.5 (bottom of screen)
+export const ROLLING_Z_MIN = -0.8;
+export const ROLLING_Z_MAX = 4.5;
+
+// Derived: center and half-extent of the rolling zone
+const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 1.85
+const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 2.65
 
 // Die size: 8.5 dice must fit across the arena width
 export const DIE_SIZE = (ARENA_HALF_X * 2) / 8.5; // ≈ 0.659
@@ -22,9 +35,12 @@ interface RollingAreaProps {
 export function RollingArea({ onFloorClick }: RollingAreaProps) {
   return (
     <group>
-      {/* Floor — static rigid body */}
+      {/* Floor — static rigid body, sized to rolling zone only */}
       <RigidBody type="fixed" restitution={0.5}>
-        <CuboidCollider args={[5, 0.1, 5]} position={[0, -0.1, 0]} />
+        <CuboidCollider
+          args={[ARENA_HALF_X, 0.1, ROLLING_Z_HALF]}
+          position={[0, -0.1, ROLLING_Z_CENTER]}
+        />
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, 0, 0]}
@@ -36,35 +52,35 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
         </mesh>
       </RigidBody>
 
-      {/* Left wall */}
+      {/* Left wall — spans rolling zone only */}
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
-          args={[WALL_THICKNESS, WALL_HEIGHT, ARENA_HALF_Z]}
-          position={[-ARENA_HALF_X, WALL_HEIGHT, 0]}
+          args={[WALL_THICKNESS, WALL_HEIGHT, ROLLING_Z_HALF]}
+          position={[-ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
         />
       </RigidBody>
 
-      {/* Right wall */}
+      {/* Right wall — spans rolling zone only */}
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
-          args={[WALL_THICKNESS, WALL_HEIGHT, ARENA_HALF_Z]}
-          position={[ARENA_HALF_X, WALL_HEIGHT, 0]}
+          args={[WALL_THICKNESS, WALL_HEIGHT, ROLLING_Z_HALF]}
+          position={[ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
         />
       </RigidBody>
 
-      {/* Front wall (positive Z) */}
+      {/* Front wall (positive Z / bottom of screen) */}
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[ARENA_HALF_X, WALL_HEIGHT, WALL_THICKNESS]}
-          position={[0, WALL_HEIGHT, ARENA_HALF_Z]}
+          position={[0, WALL_HEIGHT, ROLLING_Z_MAX]}
         />
       </RigidBody>
 
-      {/* Back wall (negative Z) */}
+      {/* Back wall (negative Z / boundary with player/goal zone) */}
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[ARENA_HALF_X, WALL_HEIGHT, WALL_THICKNESS]}
-          position={[0, WALL_HEIGHT, -ARENA_HALF_Z]}
+          position={[0, WALL_HEIGHT, ROLLING_Z_MIN]}
         />
       </RigidBody>
     </group>
