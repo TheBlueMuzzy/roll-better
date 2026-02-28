@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 1 complete. Foundation scaffold and 3D scene with physics fully operational.
+Phase 2 in progress. Die3D component with geometry and pips complete (Plan 1 of 3).
 
 ## Version
 0.1.0.0
 
 ## Current Position
 
-Phase: 1 of 12 (Foundation)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-28 — Completed 01-02-PLAN.md
+Phase: 2 of 12 (Premium Die)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-28 — Completed 02-01-PLAN.md
 
-Progress: ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 6%
+Progress: ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 9%
 
 ## Last Session
-2026-02-28 — Executed 01-02-PLAN.md (Basic 3D Scene):
-- 3D scene with ambient + directional lighting, HDRI environment, shadow mapping
-- Rapier physics world (gravity -50) with floor and test cube
-- Camera locked top-down perspective
-- Viewport constrained to 9:16 portrait aspect ratio
-- CCD enabled, explicit CuboidColliders for reliable physics
+2026-02-28 — Executed 02-01-PLAN.md (Die Geometry):
+- Die3D component with RoundedBox (0.07 bevel, cream color)
+- 21 pip dots across 6 faces, standard Western d6 layout
+- Near-black pips (#1a1a1a) for visibility on cream surface
+- Build version overlay (vX.Y.Z.B) in lower-left corner
+- Shared geometry/material at module level for performance
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -44,14 +44,16 @@ Progress: ██░░░░░░░░░░░░░░░░░░░░░�
 - Explicit CuboidColliders over auto-colliders for reliable high-gravity physics
 - CCD on dynamic bodies to prevent tunneling
 - Viewport: 9:16 portrait aspect ratio (mobile-first)
+- Pip color: near-black (#1a1a1a) on cream — user direction for visibility
+- Build version overlay: non-negotiable for all development checkpoints
 
 ## Known Issues
 None yet.
 
 ## Session Continuity
 Last session: 2026-02-28
-Stopped at: Completed 01-02-PLAN.md — Phase 1 complete
+Stopped at: Completed 02-01-PLAN.md — Plan 1 of 3 in Phase 2
 Resume file: None
 
 ## Next Steps
-- `/gsd:plan-phase 2` — Phase 2: Premium Die (single die with MeshPhysicalMaterial, clearcoat, HDRI, AccumulativeShadows)
+- `/gsd:execute-plan .planning/phases/02-premium-die/02-02-PLAN.md` — Plan 02-02: Die materials (MeshPhysicalMaterial, clearcoat, HDRI, player color tinting)
