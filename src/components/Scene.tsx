@@ -4,7 +4,7 @@ import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, ARENA_HALF_X, ROLLING_Z_MIN } from './RollingArea';
+import { RollingArea, ROLLING_Z_MIN } from './RollingArea';
 import { GoalRow } from './GoalRow';
 
 export function Scene() {
@@ -64,13 +64,13 @@ export function Scene() {
         />
       </AccumulativeShadows>
 
-      {/* Placement zone floor — different color to indicate no-roll area */}
+      {/* Placement zone floor — different color, edge-to-edge horizontally */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.001, (-5.6 + ROLLING_Z_MIN) / 2]}
         receiveShadow
       >
-        <planeGeometry args={[ARENA_HALF_X * 2, ROLLING_Z_MIN - (-5.6)]} />
+        <planeGeometry args={[10, ROLLING_Z_MIN - (-5.6)]} />
         <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
       </mesh>
 
