@@ -12,9 +12,10 @@ export const ARENA_HALF_X = 2.8;
 export const ARENA_HALF_Z = 4.5;
 
 // --- Asymmetric rolling zone bounds ---
-// Back wall sits at Z = -0.8 (boundary between player/goal zone and rolling zone)
+// Back wall sits 3 rows below Goal row (goal at Z=-3.8, 3 × 0.7 spacing = 2.1)
+// Leaves room for player rows between Goal and rolling zone
 // Front wall stays at Z = 4.5 (bottom of screen)
-export const ROLLING_Z_MIN = -0.8;
+export const ROLLING_Z_MIN = -1.7;
 export const ROLLING_Z_MAX = 4.5;
 
 // Derived: center and half-extent of the rolling zone

@@ -4,7 +4,7 @@ import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea } from './RollingArea';
+import { RollingArea, ARENA_HALF_X, ROLLING_Z_MIN } from './RollingArea';
 import { GoalRow } from './GoalRow';
 
 export function Scene() {
@@ -63,6 +63,16 @@ export function Scene() {
           bias={0.001}
         />
       </AccumulativeShadows>
+
+      {/* Placement zone floor — different color to indicate no-roll area */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.001, (-5.6 + ROLLING_Z_MIN) / 2]}
+        receiveShadow
+      >
+        <planeGeometry args={[ARENA_HALF_X * 2, ROLLING_Z_MIN - (-5.6)]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
+      </mesh>
 
       {/* Goal row — static dice at top of screen (outside Physics) */}
       <GoalRow values={[1, 2, 3, 4, 5, 6, 1, 2]} />

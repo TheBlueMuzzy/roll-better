@@ -23,10 +23,10 @@ export function getRotationForFace(value: number): [number, number, number] {
   switch (value) {
     case 1: return [0, 0, 0];                        // already +Y up
     case 6: return [Math.PI, 0, 0];                  // flip upside-down
-    case 2: return [0, 0, Math.PI / 2];              // roll -X to top
-    case 5: return [0, 0, -Math.PI / 2];             // roll +X to top
-    case 3: return [Math.PI / 2, 0, 0];              // tilt +Z to top
-    case 4: return [-Math.PI / 2, 0, 0];             // tilt -Z to top
+    case 2: return [0, 0, -Math.PI / 2];             // roll -X to top
+    case 5: return [0, 0, Math.PI / 2];              // roll +X to top
+    case 3: return [-Math.PI / 2, 0, 0];             // tilt +Z to top
+    case 4: return [Math.PI / 2, 0, 0];              // tilt -Z to top
     default: return [0, 0, 0];
   }
 }
