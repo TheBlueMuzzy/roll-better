@@ -22,3 +22,14 @@ body {
   inset: 0;
   overflow: hidden;
 }
+
+.build-version {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  z-index: 1000;
+}
