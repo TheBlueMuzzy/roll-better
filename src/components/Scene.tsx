@@ -1,4 +1,4 @@
-import { OrbitControls, Environment } from '@react-three/drei';
+import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 import { Die3D, PLAYER_COLORS } from './Die3D';
 
@@ -34,6 +34,24 @@ export function Scene() {
       {/* HDRI environment for reflections */}
       <Environment preset="apartment" />
 
+      {/* Soft grounding shadows (visual-only, outside Physics) */}
+      <AccumulativeShadows
+        temporal
+        frames={100}
+        scale={10}
+        position={[0, 0.01, 0]}
+        opacity={0.25}
+      >
+        <RandomizedLight
+          amount={8}
+          radius={4}
+          ambient={0.5}
+          intensity={1}
+          position={[2, 8, 2]}
+          bias={0.001}
+        />
+      </AccumulativeShadows>
+
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
         {/* Floor — static rigid body */}
@@ -45,7 +63,7 @@ export function Scene() {
             receiveShadow
           >
             <planeGeometry args={[10, 10]} />
-            <meshStandardMaterial color="#5c3a1e" />
+            <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
           </mesh>
         </RigidBody>
 
