@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
+import { DIE_SIZE } from './RollingArea';
 
 // --- Public API exposed via ref ---
 export interface DicePoolHandle {
@@ -18,7 +19,7 @@ interface DicePoolProps {
 // Lays dice out in a centered grid slightly above the floor
 export function getSpawnPositions(count: number): [number, number, number][] {
   const columns = Math.ceil(Math.sqrt(count));
-  const spacing = 1.3; // die is 1x1, leave 0.3 gap
+  const spacing = DIE_SIZE + 0.3; // die width + gap
   const positions: [number, number, number][] = [];
 
   for (let i = 0; i < count; i++) {
@@ -35,7 +36,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
     const jitterX = (Math.random() - 0.5) * 0.2; // ±0.1
     const jitterZ = (Math.random() - 0.5) * 0.2;
 
-    positions.push([x + jitterX, 0.6, z + jitterZ]);
+    positions.push([x + jitterX, DIE_SIZE / 2 + 0.1, z + jitterZ]);
   }
 
   return positions;
@@ -48,11 +49,12 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       Array.from({ length: count }, () => null),
     );
 
-    // Settle tracking (refs, not state — per-frame concern)
-    const settledCount = useRef(0);
+    // Settle tracking — per-die booleans (handles dice bumping each other)
+    const settled = useRef<boolean[]>(Array.from({ length: count }, () => false));
     const results = useRef<(number | null)[]>(
       Array.from({ length: count }, () => null),
     );
+    const hasFired = useRef(false);
 
     // Spawn positions (computed once per render)
     const spawnPositions = useRef(getSpawnPositions(count));
@@ -65,25 +67,35 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       [],
     );
 
-    // Result callback factory — tracks each die's result
+    // Result callback factory — marks die as settled, checks if ALL settled
     const handleDieResult = useCallback(
       (index: number) => (value: number) => {
         results.current[index] = value;
-        settledCount.current += 1;
+        settled.current[index] = true;
 
-        if (settledCount.current === count) {
+        if (!hasFired.current && settled.current.every(Boolean)) {
+          hasFired.current = true;
           onAllSettled?.(results.current as number[]);
-          settledCount.current = 0;
         }
       },
-      [count, onAllSettled],
+      [onAllSettled],
+    );
+
+    // Unsettled callback — die got bumped after settling
+    const handleDieUnsettled = useCallback(
+      (index: number) => () => {
+        settled.current[index] = false;
+        hasFired.current = false;
+      },
+      [],
     );
 
     useImperativeHandle(ref, () => ({
       rollAll() {
         // Reset settled tracking
-        settledCount.current = 0;
+        settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
+        hasFired.current = false;
 
         // Regenerate spawn positions for fresh jitter
         spawnPositions.current = getSpawnPositions(count);
@@ -104,6 +116,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
             color={color}
             position={pos}
             onResult={handleDieResult(i)}
+            onUnsettled={handleDieUnsettled(i)}
           />
         ))}
       </group>

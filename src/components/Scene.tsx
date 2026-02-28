@@ -11,8 +11,9 @@ export function Scene() {
   const [diceResults, setDiceResults] = useState<number[] | null>(null);
 
   function handleAllSettled(results: number[]) {
-    console.log('All dice settled:', results);
-    setDiceResults(results);
+    const sorted = [...results].sort((a, b) => a - b);
+    console.log('All dice settled:', sorted);
+    setDiceResults(sorted);
   }
 
   return (

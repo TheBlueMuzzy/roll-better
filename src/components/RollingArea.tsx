@@ -8,9 +8,12 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 export const ARENA_HALF_X = 2.8;
 export const ARENA_HALF_Z = 4.5;
 
+// Die size: 8.5 dice must fit across the arena width
+export const DIE_SIZE = (ARENA_HALF_X * 2) / 8.5; // ≈ 0.659
+
 // Wall thickness and height
-const WALL_THICKNESS = 0.1;
-const WALL_HEIGHT = 3; // tall enough to catch bouncing dice (rarely go above y=2-3)
+const WALL_THICKNESS = 0.25;
+const WALL_HEIGHT = 8; // tall enough to catch dice at peak of roll arc
 
 interface RollingAreaProps {
   onFloorClick?: () => void;

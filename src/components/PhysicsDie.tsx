@@ -3,6 +3,7 @@ import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier'
 import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
 import { getFaceUp } from '../utils/diceUtils';
+import { DIE_SIZE } from './RollingArea';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
@@ -24,10 +25,11 @@ interface PhysicsDieProps {
   position?: [number, number, number];
   onSettle?: () => void;
   onResult?: (value: number) => void;
+  onUnsettled?: () => void;
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult, onUnsettled }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
     const lastResult = useRef<number | null>(null);
@@ -60,14 +62,15 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         body.wakeUp();
 
         // Apply upward impulse with random horizontal offset for natural tumbling
+        // (scaled for DIE_SIZE ≈ 0.66 → mass ≈ 0.29 — gives ~1s air time)
         body.applyImpulse(
-          { x: randRange(-3, 3), y: randRange(15, 25), z: randRange(-3, 3) },
+          { x: randRange(-1, 1), y: randRange(6, 9), z: randRange(-1, 1) },
           true,
         );
 
         // Apply random torque impulse for spin variety
         body.applyTorqueImpulse(
-          { x: randRange(-5, 5), y: randRange(-5, 5), z: randRange(-5, 5) },
+          { x: randRange(-2, 2), y: randRange(-2, 2), z: randRange(-2, 2) },
           true,
         );
       },
@@ -111,11 +114,16 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         onWake={() => {
           // If the die wakes back up (e.g., bumped), mark as rolling again
           // to prevent false settle signals
-          isRolling.current = true;
+          if (!isRolling.current) {
+            isRolling.current = true;
+            onUnsettled?.();
+          }
         }}
       >
-        <CuboidCollider args={[0.5, 0.5, 0.5]} />
-        <Die3D color={color} />
+        <CuboidCollider args={[DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2]} />
+        <group scale={DIE_SIZE}>
+          <Die3D color={color} />
+        </group>
       </RigidBody>
     );
   },
