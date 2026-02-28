@@ -4,8 +4,13 @@ import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 export function Scene() {
   return (
     <group>
-      {/* Dev camera controls — will be removed/locked later */}
-      <OrbitControls target={[0, 0, 0]} />
+      {/* Locked top-down camera */}
+      <OrbitControls
+        target={[0, 0, 0]}
+        enableRotate={false}
+        enableZoom={false}
+        enablePan={false}
+      />
 
       {/* Lighting */}
       <ambientLight intensity={0.4} />
@@ -23,8 +28,8 @@ export function Scene() {
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
         {/* Floor — static rigid body */}
-        <RigidBody type="fixed">
-          <CuboidCollider args={[5, 0.05, 5]} position={[0, -0.05, 0]} />
+        <RigidBody type="fixed" restitution={0.5}>
+          <CuboidCollider args={[5, 0.1, 5]} position={[0, -0.1, 0]} />
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, 0, 0]}
@@ -36,7 +41,8 @@ export function Scene() {
         </RigidBody>
 
         {/* Test cube — drops and bounces on the floor */}
-        <RigidBody type="dynamic" position={[0, 5, 0]} restitution={0.3}>
+        <RigidBody type="dynamic" position={[0, 5, 0]} ccd restitution={0.5}>
+          <CuboidCollider args={[0.5, 0.5, 0.5]} restitution={0.5} />
           <mesh castShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color="#e74c3c" />

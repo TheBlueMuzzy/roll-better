@@ -6,7 +6,7 @@ function App() {
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 5, 8], fov: 50 }}
+      camera={{ position: [0, 12, 0.01], fov: 50 }}
       gl={{ antialias: true }}
     >
       <Scene />
