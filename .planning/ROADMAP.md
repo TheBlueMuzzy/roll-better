@@ -56,7 +56,7 @@ Plans:
 
 Plans:
 - [x] 03-01: Single die rolling physics (impulse at offset, random initial rotation, settle detection)
-- [ ] 03-02: Multi-dice rolling (spawn N dice, roll simultaneously, avoid overlap, read all results)
+- [x] 03-02: Face-up detection (dot product algorithm, result reading, onResult callback)
 - [ ] 03-03: Face-up detection (dot product algorithm, result reading, rolling area bounds/bumpers)
 
 ### Phase 4: Game Board Layout
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-28 |
 | 2. Premium Die | 3/3 | Complete | 2026-02-28 |
-| 3. Dice Rolling | 1/3 | In progress | - |
+| 3. Dice Rolling | 2/3 | In progress | - |
 | 4. Game Board Layout | 0/3 | Not started | - |
 | 5. Core Game Logic | 0/4 | Not started | - |
 | 6. Lerp & Animation | 0/3 | Not started | - |

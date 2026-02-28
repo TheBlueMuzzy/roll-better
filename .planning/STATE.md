@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 3 in progress. PhysicsDie component created with roll API and settle detection. Click floor to roll.
+Phase 3 in progress. Face-up detection complete — die reads result on settle, displays above die. Settle speed logged as ISS-001.
 
 ## Version
-0.1.0.0
+0.1.0.33
 
 ## Current Position
 
 Phase: 3 of 12 (Dice Rolling)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-28 — Completed 03-01-PLAN.md
+Last activity: 2026-02-28 — Completed 03-02-PLAN.md
 
-Progress: ██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 18%
+Progress: ███████░░░░░░░░░░░░░░░░░░░░░░░░░░░ 21%
 
 ## Last Session
-2026-02-28 — Executed 03-01-PLAN.md (PhysicsDie Component with Roll API):
-- Created PhysicsDie component wrapping Die3D with RigidBody + CuboidCollider
-- roll() method: reset position, random rotation, impulse + torque for natural tumble
-- Settle detection via onSleep/onWake with ref-based isRolling state
-- Scene.tsx updated: click floor to roll, replaced drop-from-height demo
-- PhysicsDieHandle interface: roll() + isSettled getter
+2026-02-28 — Executed 03-02-PLAN.md (Face-Up Detection):
+- Created getFaceUp utility (dot product algorithm, zero-allocation)
+- PhysicsDie reads face on settle via onResult callback
+- Html overlay shows result number above die
+- Checkpoint verified: results match visible top face
+- ISS-001 logged: settle detection feels slow
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -52,14 +52,17 @@ Progress: ██████░░░░░░░░░░░░░░░░░�
 - Build version overlay: position:absolute (inside game viewport), not position:fixed
 - Spotlight at [2, 10, -3] for 45-degree overhead feel (not from bottom of screen)
 - AccumulativeShadows outside Physics component (visual-only, not physics)
+- Face-up detection: dot product of rotated face normals vs world up, highest wins
+- getFaceUp uses pre-allocated scratch Vector3 (no per-call GC)
+- Result display: Html overlay from drei at [0, 3, 0], white 48px bold text
 
 ## Known Issues
-None yet.
+- ISS-001: Settle detection feels slow (number delay after die stops moving)
 
 ## Session Continuity
 Last session: 2026-02-28
-Stopped at: Completed 03-01-PLAN.md — PhysicsDie with roll API + settle detection
+Stopped at: Completed 03-02-PLAN.md — face-up detection + result display
 Resume file: None
 
 ## Next Steps
-- Next plan in Phase 3 (face-up detection, multi-dice, etc.)
+- Execute 03-03-PLAN.md (next plan in Phase 3)
