@@ -75,7 +75,7 @@ export function Scene() {
       </mesh>
 
       {/* Goal row — static dice at top of screen (outside Physics) */}
-      <GoalRow values={[1, 2, 3, 4, 5, 6, 1, 2]} />
+      <GoalRow values={[1, 1, 2, 2, 3, 4, 5, 6]} />
 
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
