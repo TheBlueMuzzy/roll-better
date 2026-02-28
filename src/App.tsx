@@ -1,11 +1,13 @@
-import './App.css'
+import { Canvas } from '@react-three/fiber';
+import { Scene } from './components/Scene';
+import './App.css';
 
 function App() {
   return (
-    <div>
-      <h1>Roll Better</h1>
-    </div>
-  )
+    <Canvas camera={{ position: [0, 5, 8], fov: 50 }}>
+      <Scene />
+    </Canvas>
+  );
 }
 
-export default App
+export default App;
