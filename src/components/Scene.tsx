@@ -1,8 +1,13 @@
+import { useRef } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
-import { Die3D, PLAYER_COLORS } from './Die3D';
+import { PLAYER_COLORS } from './Die3D';
+import { PhysicsDie } from './PhysicsDie';
+import type { PhysicsDieHandle } from './PhysicsDie';
 
 export function Scene() {
+  const physicsDieRef = useRef<PhysicsDieHandle>(null);
+
   return (
     <group>
       {/* Locked top-down camera */}
@@ -54,24 +59,26 @@ export function Scene() {
 
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
-        {/* Floor — static rigid body */}
+        {/* Floor — static rigid body, click to roll */}
         <RigidBody type="fixed" restitution={0.5}>
           <CuboidCollider args={[5, 0.1, 5]} position={[0, -0.1, 0]} />
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, 0, 0]}
             receiveShadow
+            onClick={() => physicsDieRef.current?.roll()}
           >
             <planeGeometry args={[10, 10]} />
             <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
           </mesh>
         </RigidBody>
 
-        {/* Die — drops from height */}
-        <RigidBody type="dynamic" position={[0, 5, 0]} ccd restitution={0.5}>
-          <CuboidCollider args={[0.5, 0.5, 0.5]} restitution={0.5} />
-          <Die3D color={PLAYER_COLORS.red} />
-        </RigidBody>
+        {/* Die — click floor to roll */}
+        <PhysicsDie
+          ref={physicsDieRef}
+          color={PLAYER_COLORS.red}
+          position={[0, 1, 0]}
+        />
       </Physics>
     </group>
   );
