@@ -10,7 +10,7 @@ None (no expertise skill files available)
 
 ## Phases
 
-- [ ] **Phase 1: Foundation** — Scaffold Vite + React + R3F + Rapier + Zustand, basic 3D scene
+- [ ] **Phase 1: Foundation** *(In progress)* — Scaffold Vite + React + R3F + Rapier + Zustand, basic 3D scene
 - [ ] **Phase 2: Premium Die** — Single premium 3D die with materials, lighting, shadows
 - [ ] **Phase 3: Dice Rolling** — Multi-dice physics rolling, settling, face detection, collision sounds
 - [ ] **Phase 4: Game Board Layout** — Goal row, player row, dice pool, HUD, portrait responsive
@@ -32,7 +32,7 @@ None (no expertise skill files available)
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Scaffold Vite + React + TS + R3F + Rapier + Zustand + drei
+- [x] 01-01: Scaffold Vite + React + TS + R3F + Rapier + Zustand + drei
 - [ ] 01-02: Basic 3D scene (camera, lighting, floor plane, test cube with physics)
 
 ### Phase 2: Premium Die
@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 1. Foundation | 0/2 | Not started | - |
+| 1. Foundation | 1/2 | In progress | - |
 | 2. Premium Die | 0/3 | Not started | - |
 | 3. Dice Rolling | 0/3 | Not started | - |
 | 4. Game Board Layout | 0/3 | Not started | - |
