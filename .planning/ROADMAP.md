@@ -12,7 +12,7 @@ None (no expertise skill files available)
 
 - [x] **Phase 1: Foundation** *(Complete — 2026-02-28)* — Scaffold Vite + React + R3F + Rapier + Zustand, basic 3D scene
 - [x] **Phase 2: Premium Die** *(Complete — 2026-02-28)* — Single premium 3D die with materials, lighting, shadows
-- [ ] **Phase 3: Dice Rolling** — Multi-dice physics rolling, settling, face detection, collision sounds
+- [ ] **Phase 3: Dice Rolling** *(In progress)* — Multi-dice physics rolling, settling, face detection, collision sounds
 - [ ] **Phase 4: Game Board Layout** — Goal row, player row, dice pool, HUD, portrait responsive
 - [ ] **Phase 5: Core Game Logic** — Goal gen, match detection, auto-lock, scoring, handicap, session state
 - [ ] **Phase 6: Lerp & Animation** — Lock/unlock lerps, bonus spawn, score counting, round transitions
@@ -55,7 +55,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Single die rolling physics (impulse at offset, random initial rotation, settle detection)
+- [x] 03-01: Single die rolling physics (impulse at offset, random initial rotation, settle detection)
 - [ ] 03-02: Multi-dice rolling (spawn N dice, roll simultaneously, avoid overlap, read all results)
 - [ ] 03-03: Face-up detection (dot product algorithm, result reading, rolling area bounds/bumpers)
 
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|---------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-02-28 |
 | 2. Premium Die | 3/3 | Complete | 2026-02-28 |
-| 3. Dice Rolling | 0/3 | Not started | - |
+| 3. Dice Rolling | 1/3 | In progress | - |
 | 4. Game Board Layout | 0/3 | Not started | - |
 | 5. Core Game Logic | 0/4 | Not started | - |
 | 6. Lerp & Animation | 0/3 | Not started | - |
