@@ -2,13 +2,18 @@ import { useRef, useState } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight, Html } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
-import { PhysicsDie } from './PhysicsDie';
-import type { PhysicsDieHandle } from './PhysicsDie';
+import { DicePool } from './DicePool';
+import type { DicePoolHandle } from './DicePool';
 import { RollingArea } from './RollingArea';
 
 export function Scene() {
-  const physicsDieRef = useRef<PhysicsDieHandle>(null);
-  const [dieResult, setDieResult] = useState<number | null>(null);
+  const dicePoolRef = useRef<DicePoolHandle>(null);
+  const [diceResults, setDiceResults] = useState<number[] | null>(null);
+
+  function handleAllSettled(results: number[]) {
+    console.log('All dice settled:', results);
+    setDiceResults(results);
+  }
 
   return (
     <group>
@@ -64,34 +69,35 @@ export function Scene() {
         {/* Rolling area: floor + invisible boundary walls */}
         <RollingArea
           onFloorClick={() => {
-            setDieResult(null);
-            physicsDieRef.current?.roll();
+            setDiceResults(null);
+            dicePoolRef.current?.rollAll();
           }}
         />
 
-        {/* Die — click floor to roll */}
-        <PhysicsDie
-          ref={physicsDieRef}
+        {/* Dice pool — 5 dice for testing */}
+        <DicePool
+          ref={dicePoolRef}
+          count={5}
           color={PLAYER_COLORS.red}
-          position={[0, 1, 0]}
-          onResult={setDieResult}
+          onAllSettled={handleAllSettled}
         />
       </Physics>
 
-      {/* Result display — shown above die after settle */}
-      {dieResult !== null && (
+      {/* Result display — shown after all dice settle */}
+      {diceResults !== null && (
         <Html position={[0, 3, 0]} center>
           <div
             style={{
-              fontSize: '48px',
+              fontSize: '36px',
               fontWeight: 'bold',
               color: 'white',
               textShadow: '0 2px 4px rgba(0,0,0,0.5)',
               pointerEvents: 'none',
               userSelect: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
-            {dieResult}
+            Results: {diceResults.join(', ')}
           </div>
         </Html>
       )}
