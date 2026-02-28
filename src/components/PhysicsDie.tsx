@@ -11,6 +11,8 @@ function randRange(min: number, max: number): number {
 // --- Public API exposed via ref ---
 export interface PhysicsDieHandle {
   roll(): void;
+  /** True when the die has stopped moving after a roll */
+  get isSettled(): boolean;
 }
 
 // --- Props ---
@@ -22,13 +24,17 @@ interface PhysicsDieProps {
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle: _onSettle, onResult: _onResult }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult: _onResult }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
+    const isRolling = useRef(false);
 
     useImperativeHandle(ref, () => ({
       roll() {
         const body = bodyRef.current;
         if (!body) return;
+
+        // Mark as rolling
+        isRolling.current = true;
 
         // Reset to spawn position
         body.setTranslation({ x: position[0], y: position[1], z: position[2] }, true);
@@ -61,6 +67,10 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           true,
         );
       },
+
+      get isSettled() {
+        return !isRolling.current;
+      },
     }));
 
     return (
@@ -73,6 +83,17 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         friction={0.5}
         angularDamping={0.3}
         linearDamping={0.1}
+        onSleep={() => {
+          if (isRolling.current) {
+            isRolling.current = false;
+            onSettle?.();
+          }
+        }}
+        onWake={() => {
+          // If the die wakes back up (e.g., bumped), mark as rolling again
+          // to prevent false settle signals
+          isRolling.current = true;
+        }}
       >
         <CuboidCollider args={[0.5, 0.5, 0.5]} />
         <Die3D color={color} />
