@@ -24,7 +24,7 @@ body {
 }
 
 .build-version {
-  position: fixed;
+  position: absolute;
   bottom: 8px;
   left: 8px;
   font-family: monospace;
