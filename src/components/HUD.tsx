@@ -4,9 +4,10 @@ import { useGameStore } from '../store/gameStore';
 interface HUDProps {
   onRoll: () => void;
   onConfirmUnlock: () => void;
+  onOpenSettings: () => void;
 }
 
-export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
+export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -145,6 +146,11 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
         )}
 
       </div>
+
+      {/* Settings gear button — bottom-right */}
+      <button className="settings-gear" onClick={onOpenSettings}>
+        &#x2699;
+      </button>
     </div>
   );
 }

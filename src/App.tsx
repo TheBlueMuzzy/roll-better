@@ -1,8 +1,9 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
+import { Settings } from './components/Settings';
 import { useGameStore } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
@@ -14,6 +15,7 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const phase = useGameStore((s) => s.phase);
   const setPhase = useGameStore((s) => s.setPhase);
@@ -206,7 +208,8 @@ function App() {
           onRoll={handleRoll}
         />
       </Canvas>
-      <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} />
+      <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <div className="build-version">{version}</div>
     </>
   );
