@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { findAutoLocks } from './matchDetection';
+import type { LockedDie } from '../types/game';
 
 describe('findAutoLocks', () => {
   // Case 1 — Basic matching, no existing locks
   it('matches rolled dice to available goal slots', () => {
     const goal = [1, 1, 2, 2, 3, 4, 5, 6];
     const rolled = [1, 3, 5];
-    const locks = [];
+    const locks: LockedDie[] = [];
 
     const result = findAutoLocks(goal, rolled, locks);
 
@@ -21,7 +22,7 @@ describe('findAutoLocks', () => {
   it('fills multiple slots left-to-right when duplicates rolled', () => {
     const goal = [1, 1, 2, 2, 3, 4, 5, 6];
     const rolled = [2, 2, 2];
-    const locks = [];
+    const locks: LockedDie[] = [];
 
     const result = findAutoLocks(goal, rolled, locks);
 
@@ -79,8 +80,8 @@ describe('findAutoLocks', () => {
   // Case 6 — Empty roll
   it('returns empty array for empty roll', () => {
     const goal = [1, 1, 2, 2, 3, 4, 5, 6];
-    const rolled = [];
-    const locks = [];
+    const rolled: number[] = [];
+    const locks: LockedDie[] = [];
 
     const result = findAutoLocks(goal, rolled, locks);
 

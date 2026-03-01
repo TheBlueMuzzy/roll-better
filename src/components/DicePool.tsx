@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useCallback, useMemo } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
