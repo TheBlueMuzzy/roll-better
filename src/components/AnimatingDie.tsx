@@ -34,8 +34,10 @@ export function AnimatingDie({
     elapsedRef.current += delta;
     const t = Math.min(elapsedRef.current / duration, 1);
 
-    // Ease-out cubic: decelerates as it arrives
-    const eased = 1 - Math.pow(1 - t, 3);
+    // Ease-in-out cubic: accelerates then decelerates
+    const eased = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     // Interpolate X and Z linearly with easing
     const x = fromPos[0] + (toPos[0] - fromPos[0]) * eased;
