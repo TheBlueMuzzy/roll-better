@@ -1,28 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 6 in progress. Plan 2 of 3 complete (Pool Persistence + Mitosis Unlock). Pool dice stay at physical positions after locking. Unlock animation: lift → lerp → 3-axis shake → mitosis split into two dice.
+Phase 6 complete. All 3 plans done (Lock Lerps, Pool Persistence + Mitosis, Score + Round Transitions). Full animation system in place for game loop.
 
 ## Version
-0.1.0.63
+0.1.0.66
 
 ## Current Position
 
 Phase: 6 of 12 (Lerp & Animation)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-01 — Completed 06-02-PLAN.md (Pool Persistence + Mitosis Unlock)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-01 — Completed 06-03-PLAN.md (Score + Round Transitions)
 
-Progress: ██████████████████░░░░░░░░░░░░░░░░░ 50%
+Progress: ███████████████████░░░░░░░░░░░░░░░░ 53%
 
 ## Last Session
-2026-03-01 — Completed 06-02-PLAN.md (Pool Persistence + Mitosis Unlock):
-- Pool dice persist at physical positions after locking (remainingDicePositions)
-- Selected unlock dice lift up instead of shrinking
-- MitosisDie: 3-phase animation (lerp → 3-axis shake → split)
-- Clear-spot algorithm prefers center, moves outward if occupied
-- Shake ramps direction changes 15→60/sec, random all axes
-- Original plan reverted after checkpoint feedback, re-planned with mitosis vision
+2026-03-01 — Completed 06-03-PLAN.md (Score + Round Transitions):
+- Score counting animation (RAF-based, 1.5s cubic ease-out, scale pulse at end)
+- Handicap Z scale-pop (useFrame, sin curve, 0.4s)
+- Goal row exit/enter staggered roll animations (500ms each)
+- initRound skipPhase parameter for staged round transitions
+- roundScore added to roundState for clean delta access
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -72,12 +71,14 @@ Progress: ██████████████████░░░░░�
 - Ease-in-out cubic easing for lock lerp (user feedback: much better than ease-out only)
 - AnimatingDie renders outside Physics group (visual-only, no physics body)
 - animatingSlotIndices hides PlayerRow dice during flight to prevent overlap
-- 0.6s animation within existing 1s locking delay — no timing changes needed
 - Mitosis split over departure+spawn — communicates "1 die → 2 dice" intuitively
 - Pool dice persist at physical positions — generation key still bumps but uses saved positions
 - Lift-to-select instead of shrink — feels like picking the die up
 - Center-preferring clear-spot placement with minimum clearance
 - 3-axis random shake with ramping direction change rate (15→60/sec)
+- Score counting via RAF in HTML overlay (not useFrame — HUD is outside Canvas)
+- initRound({ skipPhase: true }) for staged round transitions
+- Goal transition: 500ms exit + 500ms enter within 1500ms roundEnd window
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -87,5 +88,5 @@ Progress: ██████████████████░░░░░�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 06-02-PLAN.md — ready for 06-03
+Stopped at: Phase 6 complete — ready for Phase 7
 Resume file: None

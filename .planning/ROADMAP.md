@@ -15,7 +15,7 @@ None (no expertise skill files available)
 - [x] **Phase 3: Dice Rolling** *(Complete — 2026-02-28)* — Multi-dice physics rolling, settling, face detection, collision sounds
 - [x] **Phase 4: Game Board Layout** *(Complete — 2026-03-01)* — Goal row, player row, dice pool, HUD, portrait responsive
 - [x] **Phase 5: Core Game Logic** *(Complete — 2026-03-01)* — Goal gen, match detection, auto-lock, scoring, handicap, session state
-- [ ] **Phase 6: Lerp & Animation** *(In progress)* — Lock/unlock lerps, bonus spawn, score counting, round transitions
+- [x] **Phase 6: Lerp & Animation** *(Complete — 2026-03-01)* — Lock/unlock lerps, bonus spawn, score counting, round transitions
 - [ ] **Phase 7: Unlock Interaction** — Drag-to-unlock, tap mode, bonus die spawn visual
 - [ ] **Phase 8: AI Opponents** — Easy/Medium/Hard heuristics, multi-player with AI
 - [ ] **Phase 9: Multi-Player Display** — Multiple player rows, icons, Goal indicators
@@ -91,7 +91,7 @@ Plans:
 Plans:
 - [x] 06-01: Dice lock lerps (matched dice lerp from pool to player row slots, ease-in-out timing)
 - [x] 06-02: Pool persistence + mitosis unlock (pool dice stay at physics positions, mitosis split animation)
-- [ ] 06-03: Score + round animations (point tokens lerp to score, Z scale-pop, Goal roll-in/roll-out transitions)
+- [x] 06-03: Score + round animations (point tokens lerp to score, Z scale-pop, Goal roll-in/roll-out transitions)
 
 ### Phase 7: Unlock Interaction
 **Goal**: Player can drag (or tap) locked dice to unlock them, triggering bonus die spawn
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
-| 6. Lerp & Animation | 2/3 | In progress | - |
+| 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
 | 7. Unlock Interaction | 0/2 | Not started | - |
 | 8. AI Opponents | 0/2 | Not started | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |
