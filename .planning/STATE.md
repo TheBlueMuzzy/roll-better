@@ -1,27 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 4 in progress. PlayerRow and PlayerIcon created, Goal/Player rows positioned at top of viewport. 2 of 3 plans complete, 1 plan remains.
+Phase 4 complete. Full game board layout established — Goal row, Player row, rolling area, HUD with tap-to-roll. Ready for Phase 5: Core Game Logic.
 
 ## Version
-0.1.0.35
+0.1.0.39
 
 ## Current Position
 
 Phase: 4 of 12 (Game Board Layout)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-01 — Completed 04-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-01 — Completed 04-03-PLAN.md
 
-Progress: ███████████░░░░░░░░░░░░░░░░░░░░░░░░ 32%
+Progress: ████████████████░░░░░░░░░░░░░░░░░░░ 35%
 
 ## Last Session
-2026-03-01 — Executed 04-02-PLAN.md (Player Row + Player Icon):
-- Created PlayerRow with 8 slot markers, locked die rendering
-- Created PlayerIcon drei Html overlay (name, color dot, score, X/Y/Z stats)
-- Repositioned GoalRow Z=-4.67, PlayerRow Z=-3.77 (top of viewport, half-die margin)
-- PlayerIcon at lower-left of rolling area
-- Commits: b26d8c3, 7844f00, 2e91ac0, 65540bd
+2026-03-01 — Executed 04-03-PLAN.md (HUD + Final Layout):
+- Created HUD overlay (HTML sibling to Canvas) with tap-to-roll text, score, round
+- Scene wrapped in forwardRef exposing rollAll for external triggering
+- Lifted isRolling/diceResults state to App
+- Added zone divider at ROLLING_Z_MIN boundary
+- Organized test data as labeled constants for Phase 5
+- Simplified HUD from button to tap-text per user direction
+- Commits: 8b6c756, da1426d, c4f83e7
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -56,6 +58,8 @@ Progress: ███████████░░░░░░░░░░░░�
 - Goal test values sorted ascending [1,1,2,2,3,4,5,6]
 - GoalRow Z = -4.67, PlayerRow Z = -3.77 — top of viewport with half-die margin
 - PlayerIcon at lower-left of rolling area (not over black border)
+- HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
+- Tap-text instead of button — "Tap To Roll" → "Rolling" → results (user direction)
 
 ## Known Issues
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
@@ -63,8 +67,8 @@ Progress: ███████████░░░░░░░░░░░░�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 04-03-PLAN.md — Phase 4 complete
 Resume file: None
 
 ## Next Steps
-- Execute Plan 04-03: Dice pool area + HUD (score display, X/Y/Z overlay, roll prompt)
+- Plan Phase 5: Core Game Logic — game state machine, goal generation, match detection, scoring
