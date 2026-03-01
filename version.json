@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 35,
+  "build": 39,
   "history": [
     {
       "version": "0.1.0",
@@ -17,6 +17,11 @@
       "version": "0.1.0.35",
       "date": "2026-02-28",
       "summary": "Created DicePool with multi-dice spawning and rollAll"
+    },
+    {
+      "version": "0.1.0.39",
+      "date": "2026-03-01",
+      "summary": "PlayerRow + PlayerIcon, Goal/Player rows at top of viewport"
     }
   ]
 }

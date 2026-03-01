@@ -67,7 +67,7 @@ Plans:
 
 Plans:
 - [x] 04-01: Goal row (8 white dice positioned horizontally, sorted display)
-- [ ] 04-02: Player row (8 slots aligned under Goal, player icon with score + X/Y/Z)
+- [x] 04-02: Player row (8 slots aligned under Goal, player icon with score + X/Y/Z)
 - [ ] 04-03: Dice pool area + HUD (bottom rolling area, score display, X/Y/Z overlay, roll prompt)
 
 ### Phase 5: Core Game Logic
@@ -169,7 +169,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation | 2/2 | Complete | 2026-02-28 |
 | 2. Premium Die | 3/3 | Complete | 2026-02-28 |
 | 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
-| 4. Game Board Layout | 1/3 | In progress | - |
+| 4. Game Board Layout | 2/3 | In progress | - |
 | 5. Core Game Logic | 0/4 | Not started | - |
 | 6. Lerp & Animation | 0/3 | Not started | - |
 | 7. Unlock Interaction | 0/2 | Not started | - |
