@@ -51,6 +51,7 @@ const initialRoundState = {
   rollResults: null,
   rollNumber: 0,
   lastLockCount: 0,
+  roundScore: 0,
   pendingNewDice: [] as number[],
   pendingNewDicePositions: [] as [number, number, number][],
   pendingNewDiceRotations: [] as [number, number, number][],
@@ -112,6 +113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollResults: null,
         rollNumber: 0,
         lastLockCount: 0,
+        roundScore: 0,
         pendingNewDice: [],
         pendingNewDicePositions: [],
         pendingNewDiceRotations: [],
@@ -407,18 +409,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   scoreRound: () => {
     const state = get();
+    let computedRoundScore = 0;
     const players = state.players.map((p) => {
       // Only score players who completed the goal (all 8 slots locked)
       if (p.lockedDice.length === 8) {
         // poolSize = remaining unlocked dice at time of win
         // Fewer remaining = better score (8 is perfect, 0+ extra dice penalize)
-        const roundScore = Math.max(0, 8 - p.poolSize * 2);
-        return { ...p, score: p.score + roundScore };
+        computedRoundScore = Math.max(0, 8 - p.poolSize * 2);
+        return { ...p, score: p.score + computedRoundScore };
       }
       return p;
     });
 
-    set({ players, phase: 'scoring' });
+    set({
+      players,
+      phase: 'scoring',
+      roundState: {
+        ...state.roundState,
+        roundScore: computedRoundScore,
+      },
+    });
   },
 
   applyHandicap: () => {

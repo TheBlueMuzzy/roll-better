@@ -1,3 +1,4 @@
+import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 interface HUDProps {
@@ -10,6 +11,7 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
   const lastLockCount = useGameStore((s) => s.roundState.lastLockCount);
+  const roundScore = useGameStore((s) => s.roundState.roundScore);
   const players = useGameStore((s) => s.players);
 
   const player = players[0];
@@ -22,13 +24,57 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const maxUnlocks = Math.floor((12 - poolSize) / 2);
   const atUnlockCap = selectedCount >= maxUnlocks && maxUnlocks > 0;
 
+  // --- Score counting animation ---
+  const scoreRef = useRef<HTMLSpanElement>(null);
+  const rafRef = useRef<number>(0);
+
+  const animateScore = useCallback((startScore: number, targetScore: number) => {
+    if (startScore === targetScore || !scoreRef.current) return;
+
+    const duration = 1500; // 1.5s
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease-out: 1 - (1-t)^3  (cubic deceleration)
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = Math.round(startScore + (targetScore - startScore) * eased);
+
+      if (scoreRef.current) {
+        scoreRef.current.textContent = `${current} / ${sessionTargetScore}`;
+
+        // Brief scale pulse when reaching final value
+        if (t >= 1) {
+          scoreRef.current.style.transform = 'scale(1.15)';
+          setTimeout(() => {
+            if (scoreRef.current) scoreRef.current.style.transform = 'scale(1)';
+          }, 150);
+        }
+      }
+
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, [sessionTargetScore]);
+
+  // Trigger counting animation when scoring phase starts
+  useEffect(() => {
+    if (phase === 'scoring' && roundScore > 0) {
+      const startScore = score - roundScore;
+      animateScore(startScore, score);
+    }
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [phase, score, roundScore, animateScore]);
+
   const handleTapRoll = () => {
     if (phase === 'idle') onRoll();
   };
-
-  // Compute round score for display during scoring phase
-  // Same formula as store: max(0, 8 - poolSize * 2)
-  const roundScore = Math.max(0, 8 - poolSize * 2);
 
   // Status text based on phase
   let statusText: string;
@@ -65,7 +111,11 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
       {/* Top bar — round + score */}
       <div className="hud-top">
         <span className="hud-round">Round {currentRound}</span>
-        <span className="hud-score">
+        <span
+          ref={scoreRef}
+          className="hud-score"
+          style={{ transition: 'transform 0.15s ease-out' }}
+        >
           {score} / {sessionTargetScore}
         </span>
       </div>

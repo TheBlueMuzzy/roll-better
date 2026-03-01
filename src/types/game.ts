@@ -40,6 +40,7 @@ export interface RoundState {
   rollResults: number[] | null;
   rollNumber: number;
   lastLockCount: number;
+  roundScore: number;
   pendingNewDice: number[];
   pendingNewDicePositions: [number, number, number][];
   pendingNewDiceRotations: [number, number, number][];

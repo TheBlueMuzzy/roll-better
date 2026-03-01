@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 
 interface PlayerIconProps {
@@ -19,6 +21,30 @@ export function PlayerIcon({
   startingDice,
   position,
 }: PlayerIconProps) {
+  // --- Handicap (Z) scale-pop animation ---
+  const prevStartingDice = useRef(startingDice);
+  const popTimer = useRef(0);
+  const zBadgeRef = useRef<HTMLSpanElement>(null);
+
+  useFrame((_, delta) => {
+    // Detect startingDice change → trigger pop
+    if (startingDice !== prevStartingDice.current) {
+      prevStartingDice.current = startingDice;
+      popTimer.current = 0.4; // 0.4s pop duration
+    }
+
+    // Animate pop
+    if (popTimer.current > 0) {
+      popTimer.current = Math.max(0, popTimer.current - delta);
+      // Scale curve: peaks at 1.4 at midpoint (t=0.2), returns to 1.0 at t=0
+      const t = popTimer.current / 0.4; // 1→0 over duration
+      const scale = 1.0 + 0.4 * Math.sin(Math.PI * t);
+      if (zBadgeRef.current) {
+        zBadgeRef.current.style.transform = `scale(${scale})`;
+      }
+    }
+  });
+
   return (
     <Html
       position={position}
@@ -87,7 +113,6 @@ export function PlayerIcon({
           {[
             { label: 'Pool', value: poolSize },
             { label: 'Locked', value: matches },
-            { label: 'Start', value: startingDice },
           ].map((stat) => (
             <span
               key={stat.label}
@@ -99,6 +124,18 @@ export function PlayerIcon({
               {stat.label}:{stat.value}
             </span>
           ))}
+          {/* Start (Z) badge — separate for pop animation */}
+          <span
+            ref={zBadgeRef}
+            style={{
+              fontSize: 10,
+              color: 'rgba(255, 255, 255, 0.5)',
+              display: 'inline-block',
+              transformOrigin: 'center',
+            }}
+          >
+            Start:{startingDice}
+          </span>
         </div>
       </div>
     </Html>
