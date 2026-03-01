@@ -1,27 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 5 in progress. Match detection algorithm built via TDD — findAutoLocks() matches rolled dice to goal slots with 7 test cases passing. Vitest test framework established.
+Phase 5 in progress. Round loop fully wired — auto-lock, scoring (8 - poolSize*2), handicap, session-to-20. 3 of 4 plans complete.
 
 ## Version
-0.1.0.44
+0.1.0.46
 
 ## Current Position
 
 Phase: 5 of 12 (Core Game Logic)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-01 — Completed 05-02-PLAN.md
+Last activity: 2026-03-01 — Completed 05-03-PLAN.md
 
-Progress: ██████████████████░░░░░░░░░░░░░░░░░ 38%
+Progress: █████████████████████░░░░░░░░░░░░░░ 41%
 
 ## Last Session
-2026-03-01 — Executed 05-02-PLAN.md (Match Detection TDD):
-- Installed Vitest, configured test script
-- RED: 7 failing test cases for findAutoLocks()
-- GREEN: 36-line implementation using Set + Map slot matching
-- All 7 tests pass in 2ms
-- Commits: eb52ea7, 0e14f5b, 1b0a032
+2026-03-01 — Executed 05-03-PLAN.md (Scoring + Round Loop):
+- Wired findAutoLocks into setRollResults for auto-locking
+- Phase transition chain: locking → scoring → roundEnd → idle via useEffect timers
+- Scoring: max(0, 8 - poolSize * 2), handicap ±1 startingDice
+- HUD: round count, score/target, pool stats, phase status text
+- Session ends at 20 points
+- Commits: 4771c04, 1551780
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -31,7 +32,7 @@ Progress: ██████████████████░░░░░�
 
 ## Key Decisions
 - Auto-lock then choose to unlock
-- Scoring: -2 per die beyond 8
+- Scoring: max(0, 8 - poolSize * 2) where poolSize = remaining unlocked dice at win
 - Handicap every round (floor 1, ceiling 12)
 - 2-8 players, 20-point sessions
 - Phase 1: local AI, Phase 2: WebSocket rooms (##X## codes)
@@ -56,11 +57,12 @@ Progress: ██████████████████░░░░░�
 - PlayerIcon at lower-left of rolling area (not over black border)
 - HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
 - Tap-text instead of button — "Tap To Roll" → "Rolling" → results (user direction)
-- Phase flow: idle → rolling → locking → idle (auto-transition after 1.5s)
+- Phase flow: idle → rolling → locking → scoring → roundEnd → idle (chained useEffect timers, 1500ms each)
 - PLAYER_COLORS in store file (avoids circular dep with Die3D)
 - initGame must reset currentRound for StrictMode safety
 - Vitest for testing (Vite-native, zero config)
 - findAutoLocks: pure function, left-to-right slot filling, returns only new locks
+- Phase transitions via chained useEffect timers with cleanup (StrictMode-safe)
 
 ## Known Issues
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
@@ -68,8 +70,8 @@ Progress: ██████████████████░░░░░�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 05-02-PLAN.md
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ## Next Steps
-- Execute 05-03-PLAN.md: Scoring + handicap
+- Execute 05-04-PLAN.md: Auto-lock logic refinements
