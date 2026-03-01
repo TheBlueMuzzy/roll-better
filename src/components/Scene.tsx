@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, forwardRef, useImperativeHandle } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
@@ -9,110 +9,133 @@ import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
 
-export function Scene() {
-  const dicePoolRef = useRef<DicePoolHandle>(null);
-
-  function handleAllSettled(results: number[]) {
-    const sorted = [...results].sort((a, b) => a - b);
-    console.log('All dice settled:', sorted);
-  }
-
-  return (
-    <group>
-      {/* Locked top-down camera */}
-      <OrbitControls
-        target={[0, 0, 0]}
-        enableRotate={false}
-        enableZoom={false}
-        enablePan={false}
-      />
-
-      {/* Lighting */}
-      <ambientLight intensity={0.3} color="#ffeedd" />
-      <spotLight
-        position={[2, 10, -3]}
-        intensity={0.8}
-        color="#efdfd5"
-        angle={Math.PI / 4}
-        penumbra={0.5}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-      />
-      <pointLight
-        position={[-3, 6, -2]}
-        intensity={0.2}
-        color="#b4c7e0"
-      />
-
-      {/* HDRI environment for reflections */}
-      <Environment preset="apartment" />
-
-      {/* Soft grounding shadows (visual-only, outside Physics) */}
-      <AccumulativeShadows
-        temporal
-        frames={100}
-        scale={10}
-        position={[0, 0.01, 0]}
-        opacity={0.25}
-      >
-        <RandomizedLight
-          amount={8}
-          radius={4}
-          ambient={0.5}
-          intensity={1}
-          position={[2, 10, -3]}
-          bias={0.001}
-        />
-      </AccumulativeShadows>
-
-      {/* Placement zone floor — different color, edge-to-edge horizontally */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.001, (-5.6 + ROLLING_Z_MIN) / 2]}
-        receiveShadow
-      >
-        <planeGeometry args={[10, ROLLING_Z_MIN - (-5.6)]} />
-        <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
-      </mesh>
-
-      {/* Goal row — static dice at top of screen (outside Physics) */}
-      <GoalRow values={[1, 1, 2, 2, 3, 4, 5, 6]} />
-
-      {/* Player row — slot markers + locked dice (outside Physics) */}
-      <PlayerRow
-        color={PLAYER_COLORS.red}
-        lockedValues={[null, null, null, null, 3, null, 5, null]}
-      />
-
-      {/* Player icon — name, color, score, stats (outside Physics) */}
-      <PlayerIcon
-        name="You"
-        color={PLAYER_COLORS.red}
-        score={0}
-        poolSize={5}
-        matches={2}
-        handicap={8}
-        position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
-      />
-
-      {/* Physics world */}
-      <Physics gravity={[0, -50, 0]}>
-        {/* Rolling area: floor + invisible boundary walls */}
-        <RollingArea
-          onFloorClick={() => {
-            dicePoolRef.current?.rollAll();
-          }}
-        />
-
-        {/* Dice pool — 5 dice for testing */}
-        <DicePool
-          ref={dicePoolRef}
-          count={5}
-          color={PLAYER_COLORS.red}
-          onAllSettled={handleAllSettled}
-        />
-      </Physics>
-    </group>
-  );
+// --- Public API exposed via ref ---
+export interface SceneHandle {
+  rollAll(): void;
 }
+
+// --- Props ---
+interface SceneProps {
+  onRollStart?: () => void;
+  onResults?: (results: number[]) => void;
+}
+
+export const Scene = forwardRef<SceneHandle, SceneProps>(
+  function Scene({ onRollStart, onResults }, ref) {
+    const dicePoolRef = useRef<DicePoolHandle>(null);
+
+    // Expose rollAll to parent (App) via ref
+    useImperativeHandle(ref, () => ({
+      rollAll() {
+        onRollStart?.();
+        dicePoolRef.current?.rollAll();
+      },
+    }));
+
+    function handleAllSettled(results: number[]) {
+      const sorted = [...results].sort((a, b) => a - b);
+      console.log('All dice settled:', sorted);
+      onResults?.(sorted);
+    }
+
+    function handleFloorClick() {
+      onRollStart?.();
+      dicePoolRef.current?.rollAll();
+    }
+
+    return (
+      <group>
+        {/* Locked top-down camera */}
+        <OrbitControls
+          target={[0, 0, 0]}
+          enableRotate={false}
+          enableZoom={false}
+          enablePan={false}
+        />
+
+        {/* Lighting */}
+        <ambientLight intensity={0.3} color="#ffeedd" />
+        <spotLight
+          position={[2, 10, -3]}
+          intensity={0.8}
+          color="#efdfd5"
+          angle={Math.PI / 4}
+          penumbra={0.5}
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+        />
+        <pointLight
+          position={[-3, 6, -2]}
+          intensity={0.2}
+          color="#b4c7e0"
+        />
+
+        {/* HDRI environment for reflections */}
+        <Environment preset="apartment" />
+
+        {/* Soft grounding shadows (visual-only, outside Physics) */}
+        <AccumulativeShadows
+          temporal
+          frames={100}
+          scale={10}
+          position={[0, 0.01, 0]}
+          opacity={0.25}
+        >
+          <RandomizedLight
+            amount={8}
+            radius={4}
+            ambient={0.5}
+            intensity={1}
+            position={[2, 10, -3]}
+            bias={0.001}
+          />
+        </AccumulativeShadows>
+
+        {/* Placement zone floor — different color, edge-to-edge horizontally */}
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.001, (-5.6 + ROLLING_Z_MIN) / 2]}
+          receiveShadow
+        >
+          <planeGeometry args={[10, ROLLING_Z_MIN - (-5.6)]} />
+          <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
+        </mesh>
+
+        {/* Goal row — static dice at top of screen (outside Physics) */}
+        <GoalRow values={[1, 1, 2, 2, 3, 4, 5, 6]} />
+
+        {/* Player row — slot markers + locked dice (outside Physics) */}
+        <PlayerRow
+          color={PLAYER_COLORS.red}
+          lockedValues={[null, null, null, null, 3, null, 5, null]}
+        />
+
+        {/* Player icon — name, color, score, stats (outside Physics) */}
+        <PlayerIcon
+          name="You"
+          color={PLAYER_COLORS.red}
+          score={0}
+          poolSize={5}
+          matches={2}
+          handicap={8}
+          position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
+        />
+
+        {/* Physics world */}
+        <Physics gravity={[0, -50, 0]}>
+          {/* Rolling area: floor + invisible boundary walls */}
+          <RollingArea onFloorClick={handleFloorClick} />
+
+          {/* Dice pool — 5 dice for testing */}
+          <DicePool
+            ref={dicePoolRef}
+            count={5}
+            color={PLAYER_COLORS.red}
+            onAllSettled={handleAllSettled}
+          />
+        </Physics>
+      </group>
+    );
+  },
+);

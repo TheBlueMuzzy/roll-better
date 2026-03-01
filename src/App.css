@@ -23,6 +23,78 @@ body {
   overflow: hidden;
 }
 
+/* --- HUD overlay (HTML over Canvas) --- */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: system-ui, sans-serif;
+  user-select: none;
+}
+
+.hud-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.hud-round {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.hud-score {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.hud-bottom {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-results {
+  font-size: 14px;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.roll-button {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 12px 48px;
+  border-radius: 30px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  letter-spacing: 2px;
+  transition: opacity 0.2s;
+}
+
+.roll-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- Build version overlay --- */
+
 .build-version {
   position: absolute;
   bottom: 8px;
