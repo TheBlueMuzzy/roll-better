@@ -1,19 +1,13 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
-import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, ROLLING_Z_MIN, ROLLING_Z_MAX, ARENA_HALF_X } from './RollingArea';
 import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
-
-// --- TEST DATA (replaced by game logic in Phase 5) ---
-const TEST_GOAL_VALUES = [1, 1, 2, 2, 3, 4, 5, 6];
-const TEST_LOCKED_VALUES: (number | null)[] = [null, null, null, null, 3, null, 5, null];
-const TEST_PLAYER = { name: 'You', color: PLAYER_COLORS.red, score: 0, poolSize: 5, matches: 2, handicap: 8 };
-const TEST_DICE_COUNT = 5;
+import { useGameStore } from '../store/gameStore';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -29,6 +23,22 @@ interface SceneProps {
 export const Scene = forwardRef<SceneHandle, SceneProps>(
   function Scene({ onRollStart, onResults }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
+
+    // Read store values
+    const roundState = useGameStore((s) => s.roundState);
+    const players = useGameStore((s) => s.players);
+
+    const player = players[0];
+
+    // Compute locked values array (8 slots, null if empty, value if locked)
+    const lockedValues = useMemo(() => {
+      if (!player) return Array(8).fill(null) as (number | null)[];
+      const slots: (number | null)[] = Array(8).fill(null);
+      for (const ld of player.lockedDice) {
+        slots[ld.goalSlotIndex] = ld.value;
+      }
+      return slots;
+    }, [player]);
 
     // Expose rollAll to parent (App) via ref
     useImperativeHandle(ref, () => ({
@@ -47,6 +57,22 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     function handleFloorClick() {
       onRollStart?.();
       dicePoolRef.current?.rollAll();
+    }
+
+    // Safety: if store not initialized yet, render just lighting/environment
+    if (!player || roundState.goalValues.length === 0) {
+      return (
+        <group>
+          <OrbitControls
+            target={[0, 0, 0]}
+            enableRotate={false}
+            enableZoom={false}
+            enablePan={false}
+          />
+          <ambientLight intensity={0.3} color="#ffeedd" />
+          <Environment preset="apartment" />
+        </group>
+      );
     }
 
     return (
@@ -109,22 +135,22 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         </mesh>
 
         {/* Goal row — static dice at top of screen (outside Physics) */}
-        <GoalRow values={TEST_GOAL_VALUES} />
+        <GoalRow values={roundState.goalValues} />
 
         {/* Player row — slot markers + locked dice (outside Physics) */}
         <PlayerRow
-          color={TEST_PLAYER.color}
-          lockedValues={TEST_LOCKED_VALUES}
+          color={player.color}
+          lockedValues={lockedValues}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}
         <PlayerIcon
-          name={TEST_PLAYER.name}
-          color={TEST_PLAYER.color}
-          score={TEST_PLAYER.score}
-          poolSize={TEST_PLAYER.poolSize}
-          matches={TEST_PLAYER.matches}
-          handicap={TEST_PLAYER.handicap}
+          name={player.name}
+          color={player.color}
+          score={player.score}
+          poolSize={player.poolSize}
+          matches={player.lockedDice.length}
+          startingDice={player.startingDice}
           position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
         />
 
@@ -150,8 +176,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           {/* Dice pool */}
           <DicePool
             ref={dicePoolRef}
-            count={TEST_DICE_COUNT}
-            color={TEST_PLAYER.color}
+            count={player.poolSize}
+            color={player.color}
             onAllSettled={handleAllSettled}
           />
         </Physics>

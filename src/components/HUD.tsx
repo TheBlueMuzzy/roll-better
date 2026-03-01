@@ -1,41 +1,44 @@
+import { useGameStore } from '../store/gameStore';
+
 interface HUDProps {
-  score: number;
-  targetScore: number;
-  round: number;
   onRoll: () => void;
-  isRolling: boolean;
-  diceResults: number[] | null;
 }
 
-export function HUD({
-  score,
-  targetScore,
-  round,
-  onRoll,
-  isRolling,
-  diceResults,
-}: HUDProps) {
+export function HUD({ onRoll }: HUDProps) {
+  const phase = useGameStore((s) => s.phase);
+  const currentRound = useGameStore((s) => s.currentRound);
+  const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
+  const rollResults = useGameStore((s) => s.roundState.rollResults);
+  const players = useGameStore((s) => s.players);
+
+  const score = players[0]?.score ?? 0;
+  const isRolling = phase === 'rolling';
+
   const handleTap = () => {
-    if (!isRolling) onRoll();
+    if (phase === 'idle') onRoll();
   };
 
-  // Three states: idle → rolling → results
+  // Status text based on phase
   let statusText: string;
-  if (isRolling) {
+  if (phase === 'rolling') {
     statusText = 'Rolling';
-  } else if (diceResults) {
-    statusText = diceResults.join(',');
-  } else {
+  } else if (phase === 'locking' && rollResults) {
+    statusText = rollResults.join(', ');
+  } else if (phase === 'idle') {
     statusText = 'Tap To Roll';
+  } else if (phase === 'lobby') {
+    statusText = 'Starting...';
+  } else {
+    statusText = '';
   }
 
   return (
     <div className="hud">
       {/* Top bar — round + score */}
       <div className="hud-top">
-        <span className="hud-round">Round {round}</span>
+        <span className="hud-round">Round {currentRound}</span>
         <span className="hud-score">
-          {score} / {targetScore}
+          {score} / {sessionTargetScore}
         </span>
       </div>
 

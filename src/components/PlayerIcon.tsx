@@ -6,7 +6,7 @@ interface PlayerIconProps {
   score: number;
   poolSize: number;
   matches: number;
-  handicap: number;
+  startingDice: number;
   position: [number, number, number];
 }
 
@@ -16,7 +16,7 @@ export function PlayerIcon({
   score,
   poolSize,
   matches,
-  handicap,
+  startingDice,
   position,
 }: PlayerIconProps) {
   return (
@@ -85,9 +85,9 @@ export function PlayerIcon({
           }}
         >
           {[
-            { label: 'X', value: poolSize },
-            { label: 'Y', value: matches },
-            { label: 'Z', value: handicap },
+            { label: 'Pool', value: poolSize },
+            { label: 'Locked', value: matches },
+            { label: 'Start', value: startingDice },
           ].map((stat) => (
             <span
               key={stat.label}
