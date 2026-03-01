@@ -14,7 +14,7 @@ None (no expertise skill files available)
 - [x] **Phase 2: Premium Die** *(Complete — 2026-02-28)* — Single premium 3D die with materials, lighting, shadows
 - [x] **Phase 3: Dice Rolling** *(Complete — 2026-02-28)* — Multi-dice physics rolling, settling, face detection, collision sounds
 - [x] **Phase 4: Game Board Layout** *(Complete — 2026-03-01)* — Goal row, player row, dice pool, HUD, portrait responsive
-- [ ] **Phase 5: Core Game Logic** — Goal gen, match detection, auto-lock, scoring, handicap, session state
+- [x] **Phase 5: Core Game Logic** *(Complete — 2026-03-01)* — Goal gen, match detection, auto-lock, scoring, handicap, session state
 - [ ] **Phase 6: Lerp & Animation** — Lock/unlock lerps, bonus spawn, score counting, round transitions
 - [ ] **Phase 7: Unlock Interaction** — Drag-to-unlock, tap mode, bonus die spawn visual
 - [ ] **Phase 8: AI Opponents** — Easy/Medium/Hard heuristics, multi-player with AI
@@ -80,7 +80,7 @@ Plans:
 - [x] 05-01: Game state machine (phase transitions: rolling → locking → winner-check → unlocking → scoring → round-end)
 - [x] 05-02: Goal generation + match detection (roll 8, sort, identify which player dice match which Goal slots)
 - [x] 05-03: Scoring + handicap (points formula, pool penalty, Z adjustment per round, session to 20)
-- [ ] 05-04: Auto-lock logic (matching dice assigned to Goal slots, lock limits per number, optional skip)
+- [x] 05-04: UI integration (store-driven components, phase-aware HUD, unlock flow, must-unlock/12-die-cap guards)
 
 ### Phase 6: Lerp & Animation
 **Goal**: All dice movement animated with lerps — lock-in, unlock + bonus spawn, score counting, handicap pop, round transitions
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Premium Die | 3/3 | Complete | 2026-02-28 |
 | 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
-| 5. Core Game Logic | 3/4 | In progress | - |
+| 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
 | 6. Lerp & Animation | 0/3 | Not started | - |
 | 7. Unlock Interaction | 0/2 | Not started | - |
 | 8. AI Opponents | 0/2 | Not started | - |
