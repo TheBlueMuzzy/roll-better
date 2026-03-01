@@ -15,7 +15,6 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const player = players[0];
   const score = player?.score ?? 0;
   const poolSize = player?.poolSize ?? 0;
-  const startingDice = player?.startingDice ?? 2;
   const isRolling = phase === 'rolling';
   const selectedCount = player?.selectedForUnlock?.length ?? 0;
   const lockedCount = player?.lockedDice?.length ?? 0;
@@ -95,11 +94,6 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
           </span>
         )}
 
-        {phase !== 'sessionEnd' && phase !== 'lobby' && (
-          <span className="hud-pool-stats">
-            {poolSize}/12 dice &middot; Start: {startingDice}
-          </span>
-        )}
       </div>
     </div>
   );

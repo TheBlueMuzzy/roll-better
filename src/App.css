@@ -105,11 +105,6 @@ body {
   cursor: not-allowed;
 }
 
-.hud-pool-stats {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 1px;
-}
 
 /* --- Build version overlay --- */
 
