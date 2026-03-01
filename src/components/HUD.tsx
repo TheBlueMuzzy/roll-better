@@ -20,6 +20,8 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const selectedCount = player?.selectedForUnlock?.length ?? 0;
   const lockedCount = player?.lockedDice?.length ?? 0;
   const mustUnlock = poolSize === 0 && lockedCount < 8;
+  const maxUnlocks = Math.floor((12 - poolSize) / 2);
+  const atUnlockCap = selectedCount >= maxUnlocks && maxUnlocks > 0;
 
   const handleTapRoll = () => {
     if (phase === 'idle') onRoll();
@@ -42,6 +44,8 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   } else if (phase === 'unlocking') {
     if (mustUnlock && selectedCount === 0) {
       statusText = 'No dice left — unlock 1+';
+    } else if (atUnlockCap) {
+      statusText = `${selectedCount} selected (max 12 dice)`;
     } else if (selectedCount > 0) {
       statusText = `${selectedCount} selected`;
     } else {
