@@ -4,8 +4,8 @@ import { Physics } from '@react-three/rapier';
 import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, ROLLING_Z_MIN } from './RollingArea';
-import { GoalRow, getSlotX } from './GoalRow';
+import { RollingArea, ROLLING_Z_MIN, ROLLING_Z_MAX, ARENA_HALF_X } from './RollingArea';
+import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
 
@@ -82,7 +82,7 @@ export function Scene() {
       {/* Player row — slot markers + locked dice (outside Physics) */}
       <PlayerRow
         color={PLAYER_COLORS.red}
-        lockedValues={[null, 3, null, null, 5, null, null, null]}
+        lockedValues={[null, null, null, null, 3, null, 5, null]}
       />
 
       {/* Player icon — name, color, score, stats (outside Physics) */}
@@ -93,7 +93,7 @@ export function Scene() {
         poolSize={5}
         matches={2}
         handicap={8}
-        position={[getSlotX(0), 0, -2.7]}
+        position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
       />
 
       {/* Physics world */}
