@@ -22,6 +22,14 @@ Context: Raised during Phase 5 planning. Implemented in 05-04 (pulled forward fr
 Current unlock highlight uses a white ring on the floor under the die. Muzzy wants actual dice outlines instead — an outline effect ON the die itself (e.g., Edges from drei, or a slightly scaled-up wireframe mesh behind the die). The ring is a placeholder.
 Context: Raised during 05-04 checkpoint verification. Relevant to visual polish pass.
 
+### 2026-03-01 — Unlock Animation: Mitosis Split Vision
+Selected locked dice translate UP slightly (lifted off position) instead of shrinking — looks like they're being picked up. On UNLOCK tap, selected dice lerp from player row to a clear spot in the pool area (avoiding other dice), shake with increasing intensity, then "split" mitosis-style into two dice of the same value. The split needs to account for surrounding dice so the two halves don't overlap with existing pool dice.
+Context: Raised during 06-02 checkpoint. Original departure+spawn animation felt disconnected. Mitosis communicates "your die returns + bonus" much better.
+
+### 2026-03-01 — Pool Dice Should Stay Where They Land
+After a roll settles and matching dice lock (lerp to player row), the remaining non-locked dice should stay at their physical resting positions — NOT snap to the center. Keeping it messy makes it feel more real. Currently the generation-key remount (BUG-001 fix) causes all surviving dice to reset to centered spawn positions.
+Context: Raised during 06-02 checkpoint. User noticed dice "sort of disappear and snap to the center" after locking.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.
