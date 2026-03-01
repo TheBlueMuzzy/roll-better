@@ -56,7 +56,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         const wouldBePool = p.poolSize + (p.selectedForUnlock.length + 1) * 2;
         if (wouldBePool > 12) {
           setShakingSlot(slotIndex);
-          setTimeout(() => setShakingSlot(null), 400);
+          setTimeout(() => setShakingSlot(null), 150);
           return;
         }
       }

@@ -22,9 +22,9 @@ const SELECTED_SCALE = 0.75; // shrink 25% when selected
 const PULSE_SPEED = 3; // scale pulse frequency
 const PULSE_AMOUNT = 0.03; // subtle pulse amplitude
 
-const SHAKE_DURATION = 0.4; // seconds
+const SHAKE_DURATION = 0.15; // seconds
 const SHAKE_INTENSITY = 0.08; // world units
-const SHAKE_FREQ = 30; // oscillations per second
+const SHAKE_FREQ = 90; // oscillations per second
 
 /** Animated wrapper for locked dice during unlock phase */
 function UnlockableDie({
