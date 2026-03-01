@@ -67,30 +67,19 @@ body {
   gap: 10px;
 }
 
-.hud-results {
-  font-size: 14px;
+.hud-status {
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
   color: #ffffff;
+  letter-spacing: 2px;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
-.roll-button {
-  pointer-events: auto;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  padding: 12px 48px;
-  border-radius: 30px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  letter-spacing: 2px;
-  transition: opacity 0.2s;
-}
-
-.roll-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.hud-status--rolling {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 /* --- Build version overlay --- */

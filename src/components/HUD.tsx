@@ -15,6 +15,20 @@ export function HUD({
   isRolling,
   diceResults,
 }: HUDProps) {
+  const handleTap = () => {
+    if (!isRolling) onRoll();
+  };
+
+  // Three states: idle → rolling → results
+  let statusText: string;
+  if (isRolling) {
+    statusText = 'Rolling';
+  } else if (diceResults) {
+    statusText = diceResults.join(',');
+  } else {
+    statusText = 'Tap To Roll';
+  }
+
   return (
     <div className="hud">
       {/* Top bar — round + score */}
@@ -25,20 +39,14 @@ export function HUD({
         </span>
       </div>
 
-      {/* Bottom area — results + roll button */}
+      {/* Bottom area — tap-to-roll text */}
       <div className="hud-bottom">
-        {diceResults && (
-          <div className="hud-results">
-            Results: {diceResults.join(', ')}
-          </div>
-        )}
-        <button
-          className="roll-button"
-          onClick={onRoll}
-          disabled={isRolling}
+        <span
+          className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
+          onClick={handleTap}
         >
-          {isRolling ? 'ROLLING...' : 'ROLL'}
-        </button>
+          {statusText}
+        </span>
       </div>
     </div>
   );
