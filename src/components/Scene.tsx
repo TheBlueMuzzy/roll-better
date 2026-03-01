@@ -9,6 +9,12 @@ import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
 
+// --- TEST DATA (replaced by game logic in Phase 5) ---
+const TEST_GOAL_VALUES = [1, 1, 2, 2, 3, 4, 5, 6];
+const TEST_LOCKED_VALUES: (number | null)[] = [null, null, null, null, 3, null, 5, null];
+const TEST_PLAYER = { name: 'You', color: PLAYER_COLORS.red, score: 0, poolSize: 5, matches: 2, handicap: 8 };
+const TEST_DICE_COUNT = 5;
+
 // --- Public API exposed via ref ---
 export interface SceneHandle {
   rollAll(): void;
@@ -103,35 +109,49 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         </mesh>
 
         {/* Goal row — static dice at top of screen (outside Physics) */}
-        <GoalRow values={[1, 1, 2, 2, 3, 4, 5, 6]} />
+        <GoalRow values={TEST_GOAL_VALUES} />
 
         {/* Player row — slot markers + locked dice (outside Physics) */}
         <PlayerRow
-          color={PLAYER_COLORS.red}
-          lockedValues={[null, null, null, null, 3, null, 5, null]}
+          color={TEST_PLAYER.color}
+          lockedValues={TEST_LOCKED_VALUES}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}
         <PlayerIcon
-          name="You"
-          color={PLAYER_COLORS.red}
-          score={0}
-          poolSize={5}
-          matches={2}
-          handicap={8}
+          name={TEST_PLAYER.name}
+          color={TEST_PLAYER.color}
+          score={TEST_PLAYER.score}
+          poolSize={TEST_PLAYER.poolSize}
+          matches={TEST_PLAYER.matches}
+          handicap={TEST_PLAYER.handicap}
           position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
         />
+
+        {/* Subtle divider between player row and rolling area */}
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.01, ROLLING_Z_MIN]}
+        >
+          <planeGeometry args={[ARENA_HALF_X * 2, 0.02]} />
+          <meshBasicMaterial
+            color="#ffffff"
+            transparent
+            opacity={0.12}
+            depthWrite={false}
+          />
+        </mesh>
 
         {/* Physics world */}
         <Physics gravity={[0, -50, 0]}>
           {/* Rolling area: floor + invisible boundary walls */}
           <RollingArea onFloorClick={handleFloorClick} />
 
-          {/* Dice pool — 5 dice for testing */}
+          {/* Dice pool */}
           <DicePool
             ref={dicePoolRef}
-            count={5}
-            color={PLAYER_COLORS.red}
+            count={TEST_DICE_COUNT}
+            color={TEST_PLAYER.color}
             onAllSettled={handleAllSettled}
           />
         </Physics>
