@@ -19,7 +19,7 @@ interface PlayerRowProps {
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
 const OUTLINE_SIZE = DIE_SIZE * 1.15; // slightly larger than die for outline effect
-const SELECTED_SCALE = 0.75; // shrink 25% when selected
+const LIFT_HEIGHT = 0.3; // Y offset when selected ("picked up")
 const PULSE_SPEED = 3; // scale pulse frequency
 const PULSE_AMOUNT = 0.03; // subtle pulse amplitude
 
@@ -45,6 +45,7 @@ function UnlockableDie({
 }) {
   const groupRef = useRef<Group>(null);
   const shakeStartRef = useRef<number | null>(null);
+  const liftRef = useRef(0); // current lift amount, lerps toward target
 
   // Track shake start time
   if (shaking && shakeStartRef.current === null) {
@@ -53,7 +54,6 @@ function UnlockableDie({
     shakeStartRef.current = null;
   }
 
-  // Subtle scale pulse on unlockable dice (not selected ones — they shrink static)
   useFrame((_, delta) => {
     if (!groupRef.current) return;
 
@@ -73,16 +73,18 @@ function UnlockableDie({
       groupRef.current.position.x = baseX;
     }
 
-    const targetScale = isSelected ? SELECTED_SCALE : 1;
+    // Lift: translate Y up when selected, back down when deselected
+    const liftTarget = isSelected ? LIFT_HEIGHT : 0;
+    liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * 10);
+    groupRef.current.position.y = DIE_SIZE / 2 + liftRef.current;
+
+    // Pulse: gentle scale pulse on unselected dice (shows interactivity)
     if (!isSelected) {
-      // Gentle pulse to show they're interactive
       const pulse = 1 + Math.sin(Date.now() * 0.001 * PULSE_SPEED) * PULSE_AMOUNT;
       groupRef.current.scale.setScalar(DIE_SIZE * pulse);
     } else {
-      // Lerp to shrunk size
-      const current = groupRef.current.scale.x / DIE_SIZE;
-      const next = current + (targetScale - current) * Math.min(1, delta * 10);
-      groupRef.current.scale.setScalar(DIE_SIZE * next);
+      // Selected dice stay at base scale (no pulse, no shrink)
+      groupRef.current.scale.setScalar(DIE_SIZE);
     }
   });
 
