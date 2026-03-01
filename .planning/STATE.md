@@ -1,28 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 5 in progress. Zustand store expanded with full game types and 10 actions. App/Scene/HUD wired to store, replacing all test data. Roll cycle working: idle → rolling → locking → idle.
+Phase 5 in progress. Match detection algorithm built via TDD — findAutoLocks() matches rolled dice to goal slots with 7 test cases passing. Vitest test framework established.
 
 ## Version
-0.1.0.42
+0.1.0.44
 
 ## Current Position
 
 Phase: 5 of 12 (Core Game Logic)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-01 — Completed 05-01-PLAN.md
+Last activity: 2026-03-01 — Completed 05-02-PLAN.md
 
-Progress: ████████████████░░░░░░░░░░░░░░░░░░░ 35%
+Progress: ██████████████████░░░░░░░░░░░░░░░░░ 38%
 
 ## Last Session
-2026-03-01 — Executed 05-01-PLAN.md (Game State Machine):
-- Expanded types: idle phase, LockedDie, RoundState, reshaped Player/GameState
-- 10 store actions: initGame, initRound, setRollResults, lockDice, unlock, score, handicap
-- App/Scene/HUD migrated from local state to Zustand store
-- Random goal generation, store-driven roll cycle
-- Fixed StrictMode double-fire bug on currentRound
-- Commits: eabcc1c, cfa2452, 9d8f8e8
+2026-03-01 — Executed 05-02-PLAN.md (Match Detection TDD):
+- Installed Vitest, configured test script
+- RED: 7 failing test cases for findAutoLocks()
+- GREEN: 36-line implementation using Set + Map slot matching
+- All 7 tests pass in 2ms
+- Commits: eb52ea7, 0e14f5b, 1b0a032
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -60,6 +59,8 @@ Progress: ████████████████░░░░░░░�
 - Phase flow: idle → rolling → locking → idle (auto-transition after 1.5s)
 - PLAYER_COLORS in store file (avoids circular dep with Die3D)
 - initGame must reset currentRound for StrictMode safety
+- Vitest for testing (Vite-native, zero config)
+- findAutoLocks: pure function, left-to-right slot filling, returns only new locks
 
 ## Known Issues
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
@@ -67,8 +68,8 @@ Progress: ████████████████░░░░░░░�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 05-01-PLAN.md
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 
 ## Next Steps
-- Execute 05-02-PLAN.md: Goal generation + match detection
+- Execute 05-03-PLAN.md: Scoring + handicap

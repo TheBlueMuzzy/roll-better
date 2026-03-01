@@ -78,7 +78,7 @@ Plans:
 
 Plans:
 - [x] 05-01: Game state machine (phase transitions: rolling → locking → winner-check → unlocking → scoring → round-end)
-- [ ] 05-02: Goal generation + match detection (roll 8, sort, identify which player dice match which Goal slots)
+- [x] 05-02: Goal generation + match detection (roll 8, sort, identify which player dice match which Goal slots)
 - [ ] 05-03: Scoring + handicap (points formula, pool penalty, Z adjustment per round, session to 20)
 - [ ] 05-04: Auto-lock logic (matching dice assigned to Goal slots, lock limits per number, optional skip)
 
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Premium Die | 3/3 | Complete | 2026-02-28 |
 | 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
-| 5. Core Game Logic | 1/4 | In progress | - |
+| 5. Core Game Logic | 2/4 | In progress | - |
 | 6. Lerp & Animation | 0/3 | Not started | - |
 | 7. Unlock Interaction | 0/2 | Not started | - |
 | 8. AI Opponents | 0/2 | Not started | - |
