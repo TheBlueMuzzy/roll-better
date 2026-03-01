@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation } from '../types/game';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getSlotX } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
@@ -30,6 +30,10 @@ interface GameStore extends GameState {
   lockDice: (playerIndex: number, locks: LockedDie[]) => void;
   clearLockAnimations: () => void;
 
+  // Unlock animations
+  setUnlockAnimations: (anims: UnlockAnimation[]) => void;
+  clearUnlockAnimations: () => void;
+
   // Unlocking
   toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => void;
   confirmUnlock: (playerIndex: number) => void;
@@ -51,6 +55,7 @@ const initialRoundState = {
   remainingDiceValues: [] as number[],
   lockAnimations: [] as LockAnimation[],
   animatingSlotIndices: [] as number[],
+  unlockAnimations: [] as UnlockAnimation[],
 };
 
 const initialState: GameState = {
@@ -107,6 +112,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         remainingDiceValues: [],
         lockAnimations: [],
         animatingSlotIndices: [],
+        unlockAnimations: [],
       },
       currentRound: state.currentRound + 1,
       phase: 'idle',
@@ -250,6 +256,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...state.roundState,
         lockAnimations: [],
         animatingSlotIndices: [],
+      },
+    });
+  },
+
+  setUnlockAnimations: (anims: UnlockAnimation[]) => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        unlockAnimations: anims,
+      },
+    });
+  },
+
+  clearUnlockAnimations: () => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        unlockAnimations: [],
       },
     });
   },

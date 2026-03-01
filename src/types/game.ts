@@ -11,6 +11,14 @@ export interface LockAnimation {
   value: number;                       // face value for correct rotation
 }
 
+export interface UnlockAnimation {
+  type: 'departure' | 'spawn';
+  fromPos: [number, number, number];
+  toPos: [number, number, number];
+  value: number;
+  duration: number;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -32,6 +40,7 @@ export interface RoundState {
   remainingDiceValues: number[];
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
+  unlockAnimations: UnlockAnimation[];
 }
 
 export interface Die {
