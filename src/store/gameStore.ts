@@ -104,6 +104,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setRollResults: (results: number[]) => {
     const state = get();
+
+    // Guard: ignore if already processing (double-fire from settle detection)
+    if (state.phase !== 'rolling') {
+      console.warn('[setRollResults] IGNORED — phase is', state.phase, 'not rolling');
+      return;
+    }
+
     const player = state.players[0];
 
     // Find new auto-locks from rolled results
@@ -112,6 +119,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       results,
       player.lockedDice,
     );
+
+    console.log('[setRollResults]', {
+      goal: state.roundState.goalValues,
+      rolled: results,
+      existingLocks: player.lockedDice.length,
+      newLocks: newLocks.length,
+      newLockDetails: newLocks,
+      poolBefore: player.poolSize,
+      poolAfter: player.poolSize - newLocks.length,
+    });
 
     // Apply new locks to player
     const players = [...state.players];
