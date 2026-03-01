@@ -5,6 +5,12 @@ export interface LockedDie {
   value: number;
 }
 
+export interface LockAnimation {
+  fromPos: [number, number, number];  // die's settled position in pool
+  toPos: [number, number, number];    // target slot in player row
+  value: number;                       // face value for correct rotation
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -24,6 +30,8 @@ export interface RoundState {
   lastLockCount: number;
   pendingNewDice: number[];
   remainingDiceValues: number[];
+  lockAnimations: LockAnimation[];
+  animatingSlotIndices: number[];
 }
 
 export interface Die {

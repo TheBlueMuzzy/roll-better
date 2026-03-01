@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation } from '../types/game';
 import { findAutoLocks } from '../utils/matchDetection';
+import { getSlotX } from '../components/GoalRow';
+import { DIE_SIZE } from '../components/RollingArea';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 const PLAYER_COLORS = [
@@ -24,8 +26,9 @@ interface GameStore extends GameState {
   initRound: () => void;
 
   // Rolling & locking
-  setRollResults: (results: number[]) => void;
+  setRollResults: (results: number[], positions?: [number, number, number][]) => void;
   lockDice: (playerIndex: number, locks: LockedDie[]) => void;
+  clearLockAnimations: () => void;
 
   // Unlocking
   toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => void;
@@ -46,6 +49,8 @@ const initialRoundState = {
   lastLockCount: 0,
   pendingNewDice: [] as number[],
   remainingDiceValues: [] as number[],
+  lockAnimations: [] as LockAnimation[],
+  animatingSlotIndices: [] as number[],
 };
 
 const initialState: GameState = {
@@ -100,13 +105,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lastLockCount: 0,
         pendingNewDice: [],
         remainingDiceValues: [],
+        lockAnimations: [],
+        animatingSlotIndices: [],
       },
       currentRound: state.currentRound + 1,
       phase: 'idle',
     });
   },
 
-  setRollResults: (results: number[]) => {
+  setRollResults: (results: number[], positions?: [number, number, number][]) => {
     const state = get();
 
     // Guard: ignore if already processing (double-fire from settle detection)
@@ -176,6 +183,42 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    // Compute lock animations when positions are available and there are new locks
+    let lockAnimations: LockAnimation[] = [];
+    let animatingSlotIndices: number[] = [];
+
+    if (positions && newLocks.length > 0) {
+      // Map each lock back to its source position in the sorted results array.
+      // findAutoLocks iterates rolledValues (sorted) in order and consumes matches
+      // left-to-right from goal slots. We replicate that consumption order to pair
+      // each lock with the correct source position.
+      const locksByValue = new Map<number, number[]>();
+      for (const lock of newLocks) {
+        if (!locksByValue.has(lock.value)) locksByValue.set(lock.value, []);
+        locksByValue.get(lock.value)!.push(lock.goalSlotIndex);
+      }
+
+      for (let i = 0; i < results.length; i++) {
+        const v = results[i];
+        const slots = locksByValue.get(v);
+        if (slots && slots.length > 0) {
+          const goalSlotIndex = slots.shift()!;
+          lockAnimations.push({
+            fromPos: positions[i],
+            toPos: [getSlotX(goalSlotIndex), DIE_SIZE / 2, -3.77],
+            value: v,
+          });
+        }
+      }
+
+      animatingSlotIndices = newLocks.map((l) => l.goalSlotIndex);
+
+      console.log(
+        `[setRollResults] lockAnimations: ${lockAnimations.length}`,
+        lockAnimations.map((a) => `val${a.value} from[${a.fromPos.map(n => n.toFixed(2))}] to[${a.toPos.map(n => n.toFixed(2))}]`),
+      );
+    }
+
     // Apply new locks to player
     const players = [...state.players];
     const updatedPlayer = { ...player };
@@ -193,8 +236,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lastLockCount: newLocks.length,
         pendingNewDice: [],
         remainingDiceValues,
+        lockAnimations,
+        animatingSlotIndices,
       },
       phase: 'locking',
+    });
+  },
+
+  clearLockAnimations: () => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        lockAnimations: [],
+        animatingSlotIndices: [],
+      },
     });
   },
 

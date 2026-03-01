@@ -25,7 +25,7 @@ interface PhysicsDieProps {
   position?: [number, number, number];
   initialFace?: number;
   onSettle?: () => void;
-  onResult?: (value: number) => void;
+  onResult?: (value: number, position: [number, number, number]) => void;
   onUnsettled?: () => void;
 }
 
@@ -110,7 +110,8 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
               const threeQuat = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
               const faceValue = getFaceUp(threeQuat);
               lastResult.current = faceValue;
-              onResult?.(faceValue);
+              const t = body.translation();
+              onResult?.(faceValue, [t.x, t.y, t.z]);
             }
 
             onSettle?.();

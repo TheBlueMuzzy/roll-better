@@ -17,7 +17,7 @@ interface DicePoolProps {
   color: string;
   newDiceValues?: number[];
   remainingDiceValues?: number[];
-  onAllSettled?: (results: number[]) => void;
+  onAllSettled?: (values: number[], positions: [number, number, number][]) => void;
 }
 
 // --- Spawn position calculator (exported for reuse) ---
@@ -59,6 +59,9 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     const results = useRef<(number | null)[]>(
       Array.from({ length: count }, () => null),
     );
+    const positions = useRef<([number, number, number] | null)[]>(
+      Array.from({ length: count }, () => null),
+    );
     const hasFired = useRef(false);
 
     // Generation counter — bumped when pool shrinks after locking to force remount
@@ -85,6 +88,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         dieRefs.current = [...dieRefs.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
         settled.current = [...settled.current.slice(0, oldCount), ...Array(count - oldCount).fill(false)];
         results.current = [...results.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
+        positions.current = [...positions.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
         // Set initialFace for new dice (from unlock)
         if (newDiceValues) {
           for (let i = 0; i < newDiceValues.length; i++) {
@@ -99,6 +103,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         dieRefs.current = Array.from({ length: count }, () => null);
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
+        positions.current = Array.from({ length: count }, () => null);
         // Set initialFace for remaining dice so they show the correct (non-locked) values
         if (remainingDiceValues) {
           for (let i = 0; i < remainingDiceValues.length; i++) {
@@ -119,15 +124,26 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
 
     // Result callback factory — marks die as settled, checks if ALL settled
     const handleDieResult = useCallback(
-      (index: number) => (value: number) => {
+      (index: number) => (value: number, position: [number, number, number]) => {
         console.log(`[DicePool] Die ${index} settled → face ${value}  (settled: ${settled.current.map((s, j) => j === index ? 'TRUE' : s).join(',')})`);
         results.current[index] = value;
+        positions.current[index] = position;
         settled.current[index] = true;
 
         if (!hasFired.current && settled.current.every(Boolean)) {
           hasFired.current = true;
           console.log('[DicePool] ALL SETTLED → results:', [...results.current], 'count:', count);
-          onAllSettled?.(results.current as number[]);
+
+          // Sort values and positions together so indices stay aligned
+          const paired = results.current.map((v, i) => ({
+            value: v!,
+            position: positions.current[i]!,
+          }));
+          paired.sort((a, b) => a.value - b.value);
+          const sortedValues = paired.map((p) => p.value);
+          const sortedPositions = paired.map((p) => p.position);
+
+          onAllSettled?.(sortedValues, sortedPositions);
         }
       },
       [onAllSettled, count],
@@ -148,6 +164,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         // Reset settled tracking
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
+        positions.current = Array.from({ length: count }, () => null);
         hasFired.current = false;
         initialFaces.current = new Map();
 
