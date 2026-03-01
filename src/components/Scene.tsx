@@ -5,7 +5,9 @@ import { PLAYER_COLORS } from './Die3D';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, ROLLING_Z_MIN } from './RollingArea';
-import { GoalRow } from './GoalRow';
+import { GoalRow, getSlotX } from './GoalRow';
+import { PlayerRow } from './PlayerRow';
+import { PlayerIcon } from './PlayerIcon';
 
 export function Scene() {
   const dicePoolRef = useRef<DicePoolHandle>(null);
@@ -76,6 +78,23 @@ export function Scene() {
 
       {/* Goal row — static dice at top of screen (outside Physics) */}
       <GoalRow values={[1, 1, 2, 2, 3, 4, 5, 6]} />
+
+      {/* Player row — slot markers + locked dice (outside Physics) */}
+      <PlayerRow
+        color={PLAYER_COLORS.red}
+        lockedValues={[null, 3, null, null, 5, null, null, null]}
+      />
+
+      {/* Player icon — name, color, score, stats (outside Physics) */}
+      <PlayerIcon
+        name="You"
+        color={PLAYER_COLORS.red}
+        score={0}
+        poolSize={5}
+        matches={2}
+        handicap={8}
+        position={[getSlotX(0), 0, -2.7]}
+      />
 
       {/* Physics world */}
       <Physics gravity={[0, -50, 0]}>
