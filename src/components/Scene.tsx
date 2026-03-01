@@ -62,10 +62,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     }
 
     function handleFloorClick() {
-      // Route through App's handleRoll for proper unlock processing
-      if (phase === 'idle' || phase === 'unlocking') {
-        onRoll?.();
-      }
+      // Only allow rolling when in idle phase
+      // During unlocking, player uses UNLOCK button in HUD
+      if (phase !== 'idle') return;
+      onRoll?.();
     }
 
     // Safety: if store not initialized yet, render just lighting/environment

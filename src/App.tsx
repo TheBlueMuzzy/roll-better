@@ -68,32 +68,24 @@ function App() {
     }
   }, [phase, checkSessionEnd, setPhase, initRound]);
 
-  const handleRoll = useCallback(() => {
+  // UNLOCK button: process unlocks, then go to idle (ready to roll)
+  const handleConfirmUnlock = useCallback(() => {
     const state = useGameStore.getState();
+    if (state.phase !== 'unlocking') return;
 
-    if (state.phase === 'unlocking') {
-      const player = state.players[0];
-      const hasUnlocks = player.selectedForUnlock.length > 0;
-
-      if (hasUnlocks) {
-        // Process unlocks — pool size will increase
-        useGameStore.getState().confirmUnlock(0);
-      }
-
-      setPhase('rolling');
-
-      if (hasUnlocks) {
-        // Pool changed — wait for DicePool to re-render with new count
-        requestAnimationFrame(() => {
-          sceneRef.current?.rollAll();
-        });
-      } else {
-        sceneRef.current?.rollAll();
-      }
-      return;
+    const player = state.players[0];
+    if (player.selectedForUnlock.length > 0) {
+      useGameStore.getState().confirmUnlock(0);
+    } else {
+      useGameStore.getState().skipUnlock(0);
     }
 
-    if (state.phase !== 'idle') return;
+    setPhase('idle');
+  }, [setPhase]);
+
+  // Tap to Roll: only works during idle
+  const handleRoll = useCallback(() => {
+    if (useGameStore.getState().phase !== 'idle') return;
 
     setPhase('rolling');
     sceneRef.current?.rollAll();
@@ -124,7 +116,7 @@ function App() {
           onRoll={handleRoll}
         />
       </Canvas>
-      <HUD onRoll={handleRoll} />
+      <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} />
       <div className="build-version">{version}</div>
     </>
   );

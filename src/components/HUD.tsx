@@ -2,9 +2,10 @@ import { useGameStore } from '../store/gameStore';
 
 interface HUDProps {
   onRoll: () => void;
+  onConfirmUnlock: () => void;
 }
 
-export function HUD({ onRoll }: HUDProps) {
+export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -16,11 +17,10 @@ export function HUD({ onRoll }: HUDProps) {
   const poolSize = player?.poolSize ?? 0;
   const startingDice = player?.startingDice ?? 2;
   const isRolling = phase === 'rolling';
-
   const selectedCount = player?.selectedForUnlock?.length ?? 0;
 
-  const handleTap = () => {
-    if (phase === 'idle' || phase === 'unlocking') onRoll();
+  const handleTapRoll = () => {
+    if (phase === 'idle') onRoll();
   };
 
   // Compute round score for display during scoring phase
@@ -39,8 +39,8 @@ export function HUD({ onRoll }: HUDProps) {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
     statusText = selectedCount > 0
-      ? `Unlock ${selectedCount} — Tap To Roll`
-      : 'Tap dice to unlock, or Roll';
+      ? `${selectedCount} selected`
+      : 'Tap dice to unlock';
   } else if (phase === 'scoring') {
     statusText = `Round Complete! +${roundScore}pts`;
   } else if (phase === 'roundEnd') {
@@ -61,14 +61,29 @@ export function HUD({ onRoll }: HUDProps) {
         </span>
       </div>
 
-      {/* Bottom area — status text + pool stats */}
+      {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
-        <span
-          className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
-          onClick={handleTap}
-        >
-          {statusText}
-        </span>
+        {/* During unlocking: status text + UNLOCK button */}
+        {phase === 'unlocking' ? (
+          <>
+            <span className="hud-status">{statusText}</span>
+            <button
+              className="hud-unlock-btn"
+              onClick={onConfirmUnlock}
+            >
+              {selectedCount > 0 ? `UNLOCK ${selectedCount}` : 'SKIP'}
+            </button>
+          </>
+        ) : (
+          /* All other phases: tappable status text */
+          <span
+            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
+            onClick={handleTapRoll}
+          >
+            {statusText}
+          </span>
+        )}
+
         {phase !== 'sessionEnd' && phase !== 'lobby' && (
           <span className="hud-pool-stats">
             {poolSize}/12 dice &middot; Start: {startingDice}

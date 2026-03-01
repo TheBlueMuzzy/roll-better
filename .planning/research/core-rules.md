@@ -100,12 +100,18 @@
 - Dice roll across the entire screen except the Goal row
 - After settling, dice lerp to their result positions
 
-### Unlocking
-- **Drag** locked dice to bottom area to return them
-- OR **tap** (if enabled in settings)
-- Dragging: die lerps to pool, then bonus die lerps from Goal die to pool
-- Tapping: die lerps to pool, then bonus die lerps to pool
-- Visual effect: Goal dice appear to "spawn" new dice of your color
+### Unlocking (Interaction Flow)
+- On entering unlock phase, **all locked dice** show white outline + slight scale pulse to indicate they're unlockable
+- **Tap** a locked die to toggle selection: selected = **shrinks 25%**, tap again = scales back to full size
+- An **"UNLOCK" button** (in HUD) confirms the selection
+- Player can forego unlocking by confirming with nothing selected (just taps UNLOCK with no dice selected → proceeds to roll)
+- **ANY locked die** can be unlocked, even from previous turns
+- Each unlocked die returns to pool **+1 bonus die** from the Goal slot it was under (pool grows by 2 per unlock)
+
+### Unlocking (Animation — Phase 6)
+- Unlocked die **lerps** from player row back to dice pool area
+- Bonus die **lerps FROM the Goal die** it was under **TO the pool** (Goal dice appear to "spawn" new dice of your color)
+- **Drag** as alternative to tap (drag locked die down to bottom area to return it)
 
 ---
 
