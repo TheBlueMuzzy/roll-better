@@ -2,8 +2,8 @@ import { DIE_SIZE } from '../components/RollingArea';
 
 /**
  * Finds a clear landing spot in the pool area for a mitosis unlock animation.
- * Generates candidate positions on a grid within the safe rolling area,
- * then picks the one furthest from all occupied positions.
+ * Picks the candidate closest to the rolling area center that has enough
+ * clearance from all occupied positions (at least MIN_CLEARANCE away).
  *
  * Returns the target position and two split positions (horizontal split).
  */
@@ -20,6 +20,9 @@ export function findClearSpot(
   const Z_MIN = 0.0;
   const Z_MAX = 3.5;
   const GRID_SPACING = 0.8;
+  const CENTER_X = 0;
+  const CENTER_Z = 1.75; // center of safe zone
+  const MIN_CLEARANCE = dieSize * 1.5; // must be this far from any occupied die
 
   // Generate candidate grid positions
   const candidates: [number, number, number][] = [];
@@ -29,30 +32,32 @@ export function findClearSpot(
     }
   }
 
-  // For each candidate, compute minimum distance to any occupied position
-  let bestCandidate = candidates[0];
-  let bestMinDist = -1;
+  // Sort candidates by distance to center (closest first)
+  candidates.sort((a, b) => {
+    const distA = (a[0] - CENTER_X) ** 2 + (a[2] - CENTER_Z) ** 2;
+    const distB = (b[0] - CENTER_X) ** 2 + (b[2] - CENTER_Z) ** 2;
+    return distA - distB;
+  });
 
-  for (const candidate of candidates) {
-    let minDist = Infinity;
+  // Pick the closest-to-center candidate that has enough clearance
+  let bestCandidate = candidates[0]; // fallback: center-most
 
-    for (const occupied of occupiedPositions) {
-      const dx = candidate[0] - occupied[0];
-      const dz = candidate[2] - occupied[2];
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      if (dist < minDist) {
-        minDist = dist;
+  if (occupiedPositions.length === 0) {
+    // No dice to avoid — just pick center
+    bestCandidate = candidates[0];
+  } else {
+    for (const candidate of candidates) {
+      let minDist = Infinity;
+      for (const occupied of occupiedPositions) {
+        const dx = candidate[0] - occupied[0];
+        const dz = candidate[2] - occupied[2];
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < minDist) minDist = dist;
       }
-    }
-
-    // If no occupied positions, all candidates are equally good — pick center
-    if (occupiedPositions.length === 0) {
-      minDist = 0;
-    }
-
-    if (minDist > bestMinDist) {
-      bestMinDist = minDist;
-      bestCandidate = candidate;
+      if (minDist >= MIN_CLEARANCE) {
+        bestCandidate = candidate;
+        break; // first valid = closest to center
+      }
     }
   }
 

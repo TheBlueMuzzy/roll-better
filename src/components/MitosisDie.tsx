@@ -16,8 +16,8 @@ interface MitosisDieProps {
 
 // Phase timing (seconds)
 const LERP_END = 0.5;
-const SHAKE_END = 0.9;
-const SPLIT_END = 1.3;
+const SHAKE_END = 1.3;
+const SPLIT_END = 1.7;
 
 export function MitosisDie({
   fromPos,
@@ -74,12 +74,22 @@ export function MitosisDie({
 
       // Amplitude ramps from 0.02 to 0.12
       const amplitude = 0.02 + phaseT * 0.10;
-      const shakeOffset = Math.sin(elapsed * 40) * amplitude;
+      // Speed ramps up: sample new random direction more frequently over time
+      // Use a step counter that advances faster as phaseT increases
+      const stepRate = 15 + phaseT * 45; // 15 → 60 direction changes per second
+      const step = Math.floor(phaseElapsed * stepRate);
+      // Pseudo-random offsets using golden-ratio hash for deterministic but chaotic feel
+      const hashX = Math.sin(step * 127.1) * 43758.5453;
+      const hashZ = Math.sin(step * 269.5) * 43758.5453;
+      const hashY = Math.sin(step * 419.2) * 43758.5453;
+      const offsetX = (hashX - Math.floor(hashX) - 0.5) * 2 * amplitude;
+      const offsetZ = (hashZ - Math.floor(hashZ) - 0.5) * 2 * amplitude;
+      const offsetY = (hashY - Math.floor(hashY) - 0.5) * amplitude; // half amplitude on Y
 
       dieGroupARef.current.position.set(
-        targetPos[0] + shakeOffset,
-        targetPos[1],
-        targetPos[2],
+        targetPos[0] + offsetX,
+        targetPos[1] + offsetY,
+        targetPos[2] + offsetZ,
       );
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;

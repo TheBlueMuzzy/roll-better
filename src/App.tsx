@@ -120,12 +120,12 @@ function App() {
       // Trigger animations
       useGameStore.getState().setUnlockAnimations(allAnimations);
 
-      // After animation completes (~1.3s + 0.1s buffer), apply state change
+      // After animation completes (~1.7s + 0.1s buffer), apply state change
       setTimeout(() => {
         useGameStore.getState().confirmUnlock(0);
         useGameStore.getState().clearUnlockAnimations();
         setPhase('idle');
-      }, 1400);
+      }, 1800);
 
     } else if (mustUnlock) {
       // Can't skip — player has 0 dice to roll, must unlock at least 1
