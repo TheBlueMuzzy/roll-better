@@ -74,8 +74,13 @@ function App() {
     if (state.phase !== 'unlocking') return;
 
     const player = state.players[0];
+    const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
+
     if (player.selectedForUnlock.length > 0) {
       useGameStore.getState().confirmUnlock(0);
+    } else if (mustUnlock) {
+      // Can't skip — player has 0 dice to roll, must unlock at least 1
+      return;
     } else {
       useGameStore.getState().skipUnlock(0);
     }

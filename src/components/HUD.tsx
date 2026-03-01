@@ -18,6 +18,8 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   const startingDice = player?.startingDice ?? 2;
   const isRolling = phase === 'rolling';
   const selectedCount = player?.selectedForUnlock?.length ?? 0;
+  const lockedCount = player?.lockedDice?.length ?? 0;
+  const mustUnlock = poolSize === 0 && lockedCount < 8;
 
   const handleTapRoll = () => {
     if (phase === 'idle') onRoll();
@@ -38,9 +40,13 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
-    statusText = selectedCount > 0
-      ? `${selectedCount} selected`
-      : 'Tap dice to unlock';
+    if (mustUnlock && selectedCount === 0) {
+      statusText = 'No dice left — unlock 1+';
+    } else if (selectedCount > 0) {
+      statusText = `${selectedCount} selected`;
+    } else {
+      statusText = 'Tap dice to unlock';
+    }
   } else if (phase === 'scoring') {
     statusText = `Round Complete! +${roundScore}pts`;
   } else if (phase === 'roundEnd') {
@@ -68,10 +74,11 @@ export function HUD({ onRoll, onConfirmUnlock }: HUDProps) {
           <>
             <span className="hud-status">{statusText}</span>
             <button
-              className="hud-unlock-btn"
+              className={`hud-unlock-btn${mustUnlock && selectedCount === 0 ? ' hud-unlock-btn--disabled' : ''}`}
               onClick={onConfirmUnlock}
+              disabled={mustUnlock && selectedCount === 0}
             >
-              {selectedCount > 0 ? `UNLOCK ${selectedCount}` : 'SKIP'}
+              {selectedCount > 0 ? `UNLOCK ${selectedCount}` : mustUnlock ? 'MUST UNLOCK' : 'SKIP'}
             </button>
           </>
         ) : (

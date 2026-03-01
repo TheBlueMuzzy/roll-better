@@ -100,6 +100,11 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.hud-unlock-btn--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .hud-pool-stats {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
