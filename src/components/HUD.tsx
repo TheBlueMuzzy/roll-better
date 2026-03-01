@@ -11,7 +11,10 @@ export function HUD({ onRoll }: HUDProps) {
   const rollResults = useGameStore((s) => s.roundState.rollResults);
   const players = useGameStore((s) => s.players);
 
-  const score = players[0]?.score ?? 0;
+  const player = players[0];
+  const score = player?.score ?? 0;
+  const poolSize = player?.poolSize ?? 0;
+  const startingDice = player?.startingDice ?? 2;
   const isRolling = phase === 'rolling';
 
   const handleTap = () => {
@@ -28,6 +31,12 @@ export function HUD({ onRoll }: HUDProps) {
     statusText = 'Tap To Roll';
   } else if (phase === 'lobby') {
     statusText = 'Starting...';
+  } else if (phase === 'scoring') {
+    statusText = 'Round Complete!';
+  } else if (phase === 'roundEnd') {
+    statusText = 'Next Round...';
+  } else if (phase === 'sessionEnd') {
+    statusText = `Game Over! Final Score: ${score}`;
   } else {
     statusText = '';
   }
@@ -42,7 +51,7 @@ export function HUD({ onRoll }: HUDProps) {
         </span>
       </div>
 
-      {/* Bottom area — tap-to-roll text */}
+      {/* Bottom area — status text + pool stats */}
       <div className="hud-bottom">
         <span
           className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
@@ -50,6 +59,11 @@ export function HUD({ onRoll }: HUDProps) {
         >
           {statusText}
         </span>
+        {phase !== 'sessionEnd' && phase !== 'lobby' && (
+          <span className="hud-pool-stats">
+            {poolSize}/12 dice &middot; {startingDice} start
+          </span>
+        )}
       </div>
     </div>
   );

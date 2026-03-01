@@ -191,8 +191,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const players = state.players.map((p) => {
       // Only score players who completed the goal (all 8 slots locked)
       if (p.lockedDice.length === 8) {
-        const penalty = Math.max(0, (p.poolSize - 8) * 2);
-        const roundScore = Math.max(0, 8 - penalty);
+        // poolSize = remaining unlocked dice at time of win
+        // Fewer remaining = better score (8 is perfect, 0+ extra dice penalize)
+        const roundScore = Math.max(0, 8 - p.poolSize * 2);
         return { ...p, score: p.score + roundScore };
       }
       return p;
