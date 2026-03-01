@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 5 complete. All 4 plans executed. Full single-player game loop working: roll → lock → unlock → score → handicap → next round → session end. Ready for Phase 6 (Lerp & Animation).
+Phase 6 in progress. Plan 1 of 3 complete (Lock Lerp). Matched dice now fly from pool to player row with ease-in-out cubic lerp. AnimatingDie component ready for reuse in 06-02 (unlock lerp).
 
 ## Version
 0.1.0.58
 
 ## Current Position
 
-Phase: 5 of 12 (Core Game Logic) — COMPLETE
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-03-01 — Completed 05-04-PLAN.md (UI Integration)
+Phase: 6 of 12 (Lerp & Animation)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-01 — Completed 06-01-PLAN.md (Lock Lerp)
 
-Progress: ██████████████████████████░░░░░░░░░ 50%
+Progress: ████████████████░░░░░░░░░░░░░░░░░░░ 47%
 
 ## Last Session
-2026-03-01 — Completed 05-04-PLAN.md (UI Integration):
-- Fixed soft lock when all dice lock (must unlock 1+)
-- Added 12-die cap on unlock selections
-- Shake feedback on rejected unlock taps (150ms, 90Hz)
-- Removed redundant pool stats from HUD
-- Checkpoint 3 approved after bug fix iterations
+2026-03-01 — Completed 06-01-PLAN.md (Lock Lerp):
+- Position capture pipeline: PhysicsDie reports world position on settle
+- LockAnimation type + store state computed in setRollResults
+- AnimatingDie component: ease-in-out cubic + parabolic Y arc
+- Scene renders flying dice outside Physics, PlayerRow hides animating slots
+- Easing refined from ease-out to ease-in-out per user feedback
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -68,6 +68,10 @@ Progress: ███████████████████████�
 - Must unlock 1+ when poolSize reaches 0 (soft lock prevention)
 - 12-die cap: max unlocks = floor((12 - poolSize) / 2)
 - Shake feedback (150ms, 90Hz) on rejected unlock selections
+- Ease-in-out cubic easing for lock lerp (user feedback: much better than ease-out only)
+- AnimatingDie renders outside Physics group (visual-only, no physics body)
+- animatingSlotIndices hides PlayerRow dice during flight to prevent overlap
+- 0.6s animation within existing 1s locking delay — no timing changes needed
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -77,5 +81,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Phase 5 complete — ready for Phase 6
+Stopped at: Completed 06-01-PLAN.md — ready for 06-02
 Resume file: None
