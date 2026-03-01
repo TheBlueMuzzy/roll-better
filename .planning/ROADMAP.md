@@ -16,7 +16,7 @@ None (no expertise skill files available)
 - [x] **Phase 4: Game Board Layout** *(Complete — 2026-03-01)* — Goal row, player row, dice pool, HUD, portrait responsive
 - [x] **Phase 5: Core Game Logic** *(Complete — 2026-03-01)* — Goal gen, match detection, auto-lock, scoring, handicap, session state
 - [x] **Phase 6: Lerp & Animation** *(Complete — 2026-03-01)* — Lock/unlock lerps, bonus spawn, score counting, round transitions
-- [ ] **Phase 7: Unlock Interaction** — Drag-to-unlock, tap mode, bonus die spawn visual
+- [ ] **Phase 7: Unlock Interaction** — Settings panel, How to Play carousel, Tips system
 - [ ] **Phase 8: AI Opponents** — Easy/Medium/Hard heuristics, multi-player with AI
 - [ ] **Phase 9: Multi-Player Display** — Multiple player rows, icons, Goal indicators
 - [ ] **Phase 10: Screens & Flow** — Main Menu, Settings, Winners Screen, transitions
@@ -94,18 +94,19 @@ Plans:
 - [x] 06-03: Score + round animations (point tokens lerp to score, Z scale-pop, Goal roll-in/roll-out transitions)
 
 ### Phase 7: Unlock Interaction
-**Goal**: Player can drag (or tap) locked dice to unlock them, triggering bonus die spawn
-**Depends on**: Phase 6 (needs animation system for spawn visual)
-**Research**: Unlikely (standard drag/touch in R3F/HTML)
-**Plans**: 2 plans
+**Goal**: Settings panel (audio, performance, tips, quit), How to Play carousel with rules slides, contextual Tips system for new players
+**Depends on**: Phase 6 (game loop complete, HUD patterns established)
+**Research**: Unlikely (pure HTML/CSS UI components)
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: Drag-to-unlock (touch drag on mobile, mouse drag on desktop, drop zone at bottom)
-- [ ] 07-02: Tap mode + settings (tap-to-unlock toggle in settings, "Drag dice to unlock" prompt)
+- [ ] 07-01: Settings panel + core settings (gear button, audio slider, performance toggle, tips toggle, quit game)
+- [ ] 07-02: How to Play carousel (swipeable slides with rules content, breadcrumb dots, placeholder visuals)
+- [ ] 07-03: Tips system (contextual tip banner, tip tracking, initial gameplay tips)
 
 ### Phase 8: AI Opponents
 **Goal**: AI players that roll dice and make unlock decisions at Easy/Medium/Hard difficulty
-**Depends on**: Phase 5 (needs game logic), Phase 7 (needs unlock mechanic)
+**Depends on**: Phase 5 (needs game logic, unlock mechanic already implemented)
 **Research**: Unlikely (internal heuristic logic)
 **Plans**: 2 plans
 
@@ -172,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
-| 7. Unlock Interaction | 0/2 | Not started | - |
+| 7. Unlock Interaction | 0/3 | Not started | - |
 | 8. AI Opponents | 0/2 | Not started | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |
 | 10. Screens & Flow | 0/3 | Not started | - |

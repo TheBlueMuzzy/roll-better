@@ -30,6 +30,10 @@ Context: Raised during 06-02 checkpoint. Original departure+spawn animation felt
 After a roll settles and matching dice lock (lerp to player row), the remaining non-locked dice should stay at their physical resting positions — NOT snap to the center. Keeping it messy makes it feel more real. Currently the generation-key remount (BUG-001 fix) causes all surviving dice to reset to centered spawn positions.
 Context: Raised during 06-02 checkpoint. User noticed dice "sort of disappear and snap to the center" after locking.
 
+### 2026-03-01 — Drag-to-Unlock (DEFERRED)
+Drag-to-unlock was explored as an alternative to tap-to-select during Phase 7 planning. Conclusion: the drag and tap flows are wildly different — if drag were implemented, it would replace tap entirely, not coexist as a toggle. The drop zone detection, visual feedback during drag, snap-back on invalid drop, and sequential unlock timing all make it a substantial standalone feature. Saved for potential future phase if tap mode proves unsatisfying in playtesting. If implemented, would be drag-only (no dual-mode settings).
+Context: Phase 7 planning discussion. Muzzy decided the complexity wasn't justified and the UX wasn't clear enough for users.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.
