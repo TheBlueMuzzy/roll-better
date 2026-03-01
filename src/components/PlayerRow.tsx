@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
-import { useGameStore } from '../store/gameStore';
 import type { GamePhase } from '../types/game';
 import type { Group } from 'three';
 
@@ -139,10 +138,6 @@ export function PlayerRow({
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
 
-  // Read unlock animations to hide departing slots during animation
-  const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
-  const hasDepartureAnimations = unlockAnimations.some((a) => a.type === 'departure');
-
   return (
     <group position={[0, 0, z]}>
       {Array.from({ length: SLOT_COUNT }, (_, i) => {
@@ -150,16 +145,10 @@ export function PlayerRow({
 
         // Locked die
         if (value !== null) {
-          // Skip rendering if this slot is currently being animated (lock lerp — die flying in)
+          // Skip rendering if this slot is currently being animated (die is flying in)
           if (animatingSlotIndices.includes(i)) {
             return null;
           }
-
-          // Skip rendering if this slot is departing (unlock animation — die flying out)
-          if (hasDepartureAnimations && selectedForUnlock.includes(i)) {
-            return null;
-          }
-
           // During unlocking — interactive with highlights
           if (isUnlocking && onToggleUnlock) {
             return (

@@ -4,9 +4,6 @@ import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
 import { useGameStore } from './store/gameStore';
-import { getSlotX } from './components/GoalRow';
-import { DIE_SIZE } from './components/RollingArea';
-import type { UnlockAnimation } from './types/game';
 import versionData from '../version.json';
 import './App.css';
 
@@ -71,7 +68,7 @@ function App() {
     }
   }, [phase, checkSessionEnd, setPhase, initRound]);
 
-  // UNLOCK button: process unlocks with animation, then go to idle (ready to roll)
+  // UNLOCK button: process unlocks, then go to idle (ready to roll)
   const handleConfirmUnlock = useCallback(() => {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
@@ -80,52 +77,15 @@ function App() {
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
     if (player.selectedForUnlock.length > 0) {
-      // Capture data BEFORE confirmUnlock changes state
-      const selectedSlots = [...player.selectedForUnlock];
-      const lockedDice = [...player.lockedDice];
-
-      // Build animation data for each selected slot
-      const allAnimations: UnlockAnimation[] = [];
-
-      for (const slotIndex of selectedSlots) {
-        const lockedDie = lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
-        const value = lockedDie ? lockedDie.value : 1;
-
-        // Departure: locked die flies from player row to pool center
-        allAnimations.push({
-          type: 'departure',
-          fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, -3.77],
-          toPos: [0, DIE_SIZE / 2, 1.85],
-          value,
-          duration: 0.3,
-        });
-
-        // Spawn: bonus die appears at goal row and flies to pool center
-        allAnimations.push({
-          type: 'spawn',
-          fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, -4.67],
-          toPos: [0, DIE_SIZE / 2, 1.85],
-          value,
-          duration: 0.5,
-        });
-      }
-
-      // Start animations
-      useGameStore.getState().setUnlockAnimations(allAnimations);
-
-      // After animation window, apply state change
-      setTimeout(() => {
-        useGameStore.getState().confirmUnlock(0);
-        useGameStore.getState().clearUnlockAnimations();
-        setPhase('idle');
-      }, 800);
+      useGameStore.getState().confirmUnlock(0);
     } else if (mustUnlock) {
       // Can't skip — player has 0 dice to roll, must unlock at least 1
       return;
     } else {
       useGameStore.getState().skipUnlock(0);
-      setPhase('idle');
     }
+
+    setPhase('idle');
   }, [setPhase]);
 
   // Tap to Roll: only works during idle

@@ -37,7 +37,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
     const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
     const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
-    const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const player = players[0];
 
     // Track how many lerp animations have completed
@@ -251,21 +250,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             value={anim.value}
             color={player.color}
             onComplete={handleLerpComplete}
-          />
-        ))}
-
-        {/* Unlock animations — departure + spawn dice outside Physics */}
-        {unlockAnimations.map((anim, i) => (
-          <AnimatingDie
-            key={`unlock-${i}`}
-            fromPos={anim.fromPos}
-            toPos={anim.toPos}
-            value={anim.value}
-            color={player.color}
-            duration={anim.duration}
-            delay={anim.type === 'spawn' ? 0.15 : 0}
-            fromScale={anim.type === 'departure' ? 1.0 : 0.3}
-            toScale={anim.type === 'departure' ? 0.5 : 1.0}
           />
         ))}
       </group>

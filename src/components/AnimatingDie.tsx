@@ -11,9 +11,6 @@ interface AnimatingDieProps {
   value: number;
   color: string;
   duration?: number;
-  delay?: number;
-  fromScale?: number;
-  toScale?: number;
   onComplete?: () => void;
 }
 
@@ -23,9 +20,6 @@ export function AnimatingDie({
   value,
   color,
   duration = 0.6,
-  delay = 0,
-  fromScale = 1.0,
-  toScale = 1.0,
   onComplete,
 }: AnimatingDieProps) {
   const groupRef = useRef<Group>(null);
@@ -38,16 +32,7 @@ export function AnimatingDie({
     if (!groupRef.current) return;
 
     elapsedRef.current += delta;
-
-    // During delay period, hide the die
-    if (elapsedRef.current < delay) {
-      groupRef.current.visible = false;
-      return;
-    }
-
-    groupRef.current.visible = true;
-    const animTime = elapsedRef.current - delay;
-    const t = Math.min(animTime / duration, 1);
+    const t = Math.min(elapsedRef.current / duration, 1);
 
     // Ease-in-out cubic: accelerates then decelerates
     const eased = t < 0.5
@@ -64,10 +49,6 @@ export function AnimatingDie({
 
     groupRef.current.position.set(x, y, z);
 
-    // Interpolate scale alongside position
-    const currentScale = fromScale + (toScale - fromScale) * eased;
-    groupRef.current.scale.setScalar(DIE_SIZE * currentScale);
-
     // Fire completion once when animation ends
     if (t >= 1 && !hasFiredRef.current) {
       hasFiredRef.current = true;
@@ -76,7 +57,7 @@ export function AnimatingDie({
   });
 
   return (
-    <group ref={groupRef} scale={DIE_SIZE} rotation={rotation} visible={delay > 0 ? false : true}>
+    <group ref={groupRef} scale={DIE_SIZE} rotation={rotation}>
       <Die3D color={color} />
     </group>
   );
