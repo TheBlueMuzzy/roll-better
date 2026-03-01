@@ -14,6 +14,7 @@ interface PlayerRowProps {
   selectedForUnlock?: number[];
   onToggleUnlock?: (slotIndex: number) => void;
   shakingSlot?: number | null;
+  animatingSlotIndices?: number[];
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -133,6 +134,7 @@ export function PlayerRow({
   selectedForUnlock = [],
   onToggleUnlock,
   shakingSlot = null,
+  animatingSlotIndices = [],
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
 
@@ -143,6 +145,10 @@ export function PlayerRow({
 
         // Locked die
         if (value !== null) {
+          // Skip rendering if this slot is currently being animated (die is flying in)
+          if (animatingSlotIndices.includes(i)) {
+            return null;
+          }
           // During unlocking — interactive with highlights
           if (isUnlocking && onToggleUnlock) {
             return (

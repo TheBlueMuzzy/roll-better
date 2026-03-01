@@ -7,6 +7,7 @@ import { RollingArea, ROLLING_Z_MIN, ROLLING_Z_MAX, ARENA_HALF_X } from './Rolli
 import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
+import { AnimatingDie } from './AnimatingDie';
 import { useGameStore } from '../store/gameStore';
 
 // --- Public API exposed via ref ---
@@ -33,7 +34,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
     const remainingDiceValues = useGameStore((s) => s.roundState.remainingDiceValues);
+    const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
+    const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
+    const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
     const player = players[0];
+
+    // Track how many lerp animations have completed
+    const lerpCompleteCount = useRef(0);
+    const lerpExpectedCount = useRef(0);
 
     // Compute locked values array (8 slots, null if empty, value if locked)
     const lockedValues = useMemo(() => {
@@ -72,10 +80,28 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       },
     }));
 
-    function handleAllSettled(results: number[]) {
-      const sorted = [...results].sort((a, b) => a - b);
-      console.log('All dice settled:', sorted);
-      onResults?.(sorted);
+    function handleAllSettled(values: number[], positions: [number, number, number][]) {
+      console.log('All dice settled:', values);
+      // Reset lerp tracking for this roll
+      lerpCompleteCount.current = 0;
+      lerpExpectedCount.current = 0;
+      // Pass sorted values + positions directly to store (includes animation computation)
+      useGameStore.getState().setRollResults(values, positions);
+      // Also notify App via callback (for any non-position-aware consumers)
+      onResults?.(values);
+    }
+
+    function handleLerpComplete() {
+      lerpCompleteCount.current++;
+      if (lerpCompleteCount.current >= lerpExpectedCount.current && lerpExpectedCount.current > 0) {
+        clearLockAnimations();
+      }
+    }
+
+    // Sync expected lerp count when lockAnimations changes
+    if (lockAnimations.length > 0 && lerpExpectedCount.current === 0) {
+      lerpExpectedCount.current = lockAnimations.length;
+      lerpCompleteCount.current = 0;
     }
 
     function handleFloorClick() {
@@ -171,6 +197,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           selectedForUnlock={player.selectedForUnlock}
           onToggleUnlock={handleToggleUnlock}
           shakingSlot={shakingSlot}
+          animatingSlotIndices={animatingSlotIndices}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}
@@ -213,6 +240,18 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             onAllSettled={handleAllSettled}
           />
         </Physics>
+
+        {/* Lock lerp animations — flying dice outside Physics */}
+        {lockAnimations.map((anim, i) => (
+          <AnimatingDie
+            key={i}
+            fromPos={anim.fromPos}
+            toPos={anim.toPos}
+            value={anim.value}
+            color={player.color}
+            onComplete={handleLerpComplete}
+          />
+        ))}
       </group>
     );
   },
