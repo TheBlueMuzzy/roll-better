@@ -17,6 +17,7 @@ interface DicePoolProps {
   color: string;
   newDiceValues?: number[];
   remainingDiceValues?: number[];
+  remainingDicePositions?: [number, number, number][];
   onAllSettled?: (values: number[], positions: [number, number, number][]) => void;
 }
 
@@ -48,7 +49,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, newDiceValues, remainingDiceValues, onAllSettled }, ref) {
+  function DicePool({ count, color, newDiceValues, remainingDiceValues, remainingDicePositions, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -100,6 +101,14 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         // with correct face values. Without this, the wrong physical die stays
         // in the pool (index-based keys keep die 0 even if die 0 was the locked one).
         generation.current++;
+
+        // Use actual physical positions if available, otherwise fall back to grid
+        if (remainingDicePositions && remainingDicePositions.length === count) {
+          spawnPositions.current = remainingDicePositions;
+        } else {
+          spawnPositions.current = getSpawnPositions(count);
+        }
+
         dieRefs.current = Array.from({ length: count }, () => null);
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);

@@ -30,6 +30,7 @@ export interface RoundState {
   lastLockCount: number;
   pendingNewDice: number[];
   remainingDiceValues: number[];
+  remainingDicePositions: [number, number, number][];
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
 }

@@ -49,6 +49,7 @@ const initialRoundState = {
   lastLockCount: 0,
   pendingNewDice: [] as number[],
   remainingDiceValues: [] as number[],
+  remainingDicePositions: [] as [number, number, number][],
   lockAnimations: [] as LockAnimation[],
   animatingSlotIndices: [] as number[],
 };
@@ -105,6 +106,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lastLockCount: 0,
         pendingNewDice: [],
         remainingDiceValues: [],
+        remainingDicePositions: [],
         lockAnimations: [],
         animatingSlotIndices: [],
       },
@@ -167,19 +169,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
       `pool: ${player.poolSize} → ${player.poolSize - newLocks.length}`,
     );
 
-    // Compute non-locked die values (dice that stay in the pool)
+    // Compute non-locked die values AND positions (dice that stay in the pool)
     // Consume locked values from rolled results to find leftovers
     const lockedValueBag = new Map<number, number>();
     for (const lock of newLocks) {
       lockedValueBag.set(lock.value, (lockedValueBag.get(lock.value) || 0) + 1);
     }
     const remainingDiceValues: number[] = [];
-    for (const v of results) {
+    const remainingDicePositions: [number, number, number][] = [];
+    for (let i = 0; i < results.length; i++) {
+      const v = results[i];
       const lockCount = lockedValueBag.get(v) || 0;
       if (lockCount > 0) {
         lockedValueBag.set(v, lockCount - 1); // "consume" one lock
       } else {
         remainingDiceValues.push(v);
+        if (positions) {
+          remainingDicePositions.push(positions[i]);
+        }
       }
     }
 
@@ -236,6 +243,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lastLockCount: newLocks.length,
         pendingNewDice: [],
         remainingDiceValues,
+        remainingDicePositions,
         lockAnimations,
         animatingSlotIndices,
       },

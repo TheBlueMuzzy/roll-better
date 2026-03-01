@@ -34,6 +34,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
     const remainingDiceValues = useGameStore((s) => s.roundState.remainingDiceValues);
+    const remainingDicePositions = useGameStore((s) => s.roundState.remainingDicePositions);
     const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
     const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
     const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
@@ -237,6 +238,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             color={player.color}
             newDiceValues={pendingNewDice}
             remainingDiceValues={remainingDiceValues}
+            remainingDicePositions={remainingDicePositions}
             onAllSettled={handleAllSettled}
           />
         </Physics>
