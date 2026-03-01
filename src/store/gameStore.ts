@@ -45,6 +45,7 @@ const initialRoundState = {
   rollNumber: 0,
   lastLockCount: 0,
   pendingNewDice: [] as number[],
+  remainingDiceValues: [] as number[],
 };
 
 const initialState: GameState = {
@@ -98,6 +99,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollNumber: 0,
         lastLockCount: 0,
         pendingNewDice: [],
+        remainingDiceValues: [],
       },
       currentRound: state.currentRound + 1,
       phase: 'idle',
@@ -158,6 +160,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       `pool: ${player.poolSize} → ${player.poolSize - newLocks.length}`,
     );
 
+    // Compute non-locked die values (dice that stay in the pool)
+    // Consume locked values from rolled results to find leftovers
+    const lockedValueBag = new Map<number, number>();
+    for (const lock of newLocks) {
+      lockedValueBag.set(lock.value, (lockedValueBag.get(lock.value) || 0) + 1);
+    }
+    const remainingDiceValues: number[] = [];
+    for (const v of results) {
+      const lockCount = lockedValueBag.get(v) || 0;
+      if (lockCount > 0) {
+        lockedValueBag.set(v, lockCount - 1); // "consume" one lock
+      } else {
+        remainingDiceValues.push(v);
+      }
+    }
+
     // Apply new locks to player
     const players = [...state.players];
     const updatedPlayer = { ...player };
@@ -174,6 +192,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollNumber: state.roundState.rollNumber + 1,
         lastLockCount: newLocks.length,
         pendingNewDice: [],
+        remainingDiceValues,
       },
       phase: 'locking',
     });

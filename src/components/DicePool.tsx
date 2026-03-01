@@ -16,6 +16,7 @@ interface DicePoolProps {
   count: number;
   color: string;
   newDiceValues?: number[];
+  remainingDiceValues?: number[];
   onAllSettled?: (results: number[]) => void;
 }
 
@@ -47,7 +48,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, newDiceValues, onAllSettled }, ref) {
+  function DicePool({ count, color, newDiceValues, remainingDiceValues, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -60,12 +61,16 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     );
     const hasFired = useRef(false);
 
+    // Generation counter — bumped when pool shrinks after locking to force remount
+    // so remaining dice show correct face values (not the locked die's face)
+    const generation = useRef(0);
+
     // Spawn positions — regenerated when count changes or on rollAll
     const spawnPositions = useRef(getSpawnPositions(count));
     const prevCount = useRef(count);
 
-    // Track info about newly added dice (for initialFace prop)
-    const newDiceInfo = useRef<{ startIndex: number; values: number[] } | null>(null);
+    // Track info about dice that need initialFace (from unlock or post-lock remaining)
+    const initialFaces = useRef<Map<number, number>>(new Map());
 
     // Sync refs with count during render — INCREMENTAL (don't destroy existing)
     if (count !== prevCount.current) {
@@ -73,19 +78,33 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       console.log(`[DicePool] Count change: ${oldCount} → ${count}`);
       prevCount.current = count;
       spawnPositions.current = getSpawnPositions(count);
+      initialFaces.current = new Map();
 
       if (count > oldCount) {
         // Growing: keep existing dice state, extend arrays for new dice
         dieRefs.current = [...dieRefs.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
         settled.current = [...settled.current.slice(0, oldCount), ...Array(count - oldCount).fill(false)];
         results.current = [...results.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
-        newDiceInfo.current = { startIndex: oldCount, values: newDiceValues || [] };
+        // Set initialFace for new dice (from unlock)
+        if (newDiceValues) {
+          for (let i = 0; i < newDiceValues.length; i++) {
+            initialFaces.current.set(oldCount + i, newDiceValues[i]);
+          }
+        }
       } else {
-        // Shrinking: truncate arrays (higher-index dice unmount)
-        dieRefs.current = dieRefs.current.slice(0, count);
-        settled.current = settled.current.slice(0, count);
-        results.current = results.current.slice(0, count);
-        newDiceInfo.current = null;
+        // Shrinking (after locking): bump generation to force ALL dice to remount
+        // with correct face values. Without this, the wrong physical die stays
+        // in the pool (index-based keys keep die 0 even if die 0 was the locked one).
+        generation.current++;
+        dieRefs.current = Array.from({ length: count }, () => null);
+        settled.current = Array.from({ length: count }, () => false);
+        results.current = Array.from({ length: count }, () => null);
+        // Set initialFace for remaining dice so they show the correct (non-locked) values
+        if (remainingDiceValues) {
+          for (let i = 0; i < remainingDiceValues.length; i++) {
+            initialFaces.current.set(i, remainingDiceValues[i]);
+          }
+        }
       }
       hasFired.current = false;
     }
@@ -130,7 +149,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
         hasFired.current = false;
-        newDiceInfo.current = null;
+        initialFaces.current = new Map();
 
         // Regenerate spawn positions for fresh jitter
         spawnPositions.current = getSpawnPositions(count);
@@ -144,26 +163,17 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
 
     return (
       <group>
-        {spawnPositions.current.map((pos, i) => {
-          // New dice from unlocking get initialFace to show the unlocked value
-          let initialFace: number | undefined;
-          if (newDiceInfo.current && i >= newDiceInfo.current.startIndex) {
-            const newIdx = i - newDiceInfo.current.startIndex;
-            initialFace = newDiceInfo.current.values[newIdx];
-          }
-
-          return (
-            <PhysicsDie
-              key={i}
-              ref={setDieRef(i)}
-              color={color}
-              position={pos}
-              initialFace={initialFace}
-              onResult={handleDieResult(i)}
-              onUnsettled={handleDieUnsettled(i)}
-            />
-          );
-        })}
+        {spawnPositions.current.map((pos, i) => (
+          <PhysicsDie
+            key={`${generation.current}-${i}`}
+            ref={setDieRef(i)}
+            color={color}
+            position={pos}
+            initialFace={initialFaces.current.get(i)}
+            onResult={handleDieResult(i)}
+            onUnsettled={handleDieUnsettled(i)}
+          />
+        ))}
       </group>
     );
   },

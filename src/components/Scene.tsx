@@ -32,6 +32,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
+    const remainingDiceValues = useGameStore((s) => s.roundState.remainingDiceValues);
     const player = players[0];
 
     // Compute locked values array (8 slots, null if empty, value if locked)
@@ -192,6 +193,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             count={player.poolSize}
             color={player.color}
             newDiceValues={pendingNewDice}
+            remainingDiceValues={remainingDiceValues}
             onAllSettled={handleAllSettled}
           />
         </Physics>

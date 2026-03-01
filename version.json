@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 52,
+  "build": 53,
   "history": [
     {
       "version": "0.1.0",
@@ -27,6 +27,11 @@
       "version": "0.1.0.52",
       "date": "2026-03-01",
       "summary": "BUG-001 investigation + runtime validation trap for lock mismatch"
+    },
+    {
+      "version": "0.1.0.53",
+      "date": "2026-03-01",
+      "summary": "Fix BUG-001: wrong die stayed in pool after locking (generation key + remainingDiceValues)"
     }
   ]
 }
