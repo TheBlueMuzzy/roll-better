@@ -37,7 +37,7 @@ interface GoalRowProps {
   z?: number;
 }
 
-export function GoalRow({ values, z = -3.8 }: GoalRowProps) {
+export function GoalRow({ values, z = -4.67 }: GoalRowProps) {
   return (
     <group position={[0, 0, z]}>
       {values.slice(0, SLOT_COUNT).map((value, i) => (

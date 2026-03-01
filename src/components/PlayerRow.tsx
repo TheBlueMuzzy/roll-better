@@ -11,7 +11,7 @@ interface PlayerRowProps {
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
 
 export function PlayerRow({
-  z = -2.2,
+  z = -3.77,
   color,
   lockedValues = Array(SLOT_COUNT).fill(null),
 }: PlayerRowProps) {
