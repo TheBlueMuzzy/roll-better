@@ -16,6 +16,10 @@ function App() {
   const initGame = useGameStore((s) => s.initGame);
   const initRound = useGameStore((s) => s.initRound);
   const setRollResults = useGameStore((s) => s.setRollResults);
+  const scoreRound = useGameStore((s) => s.scoreRound);
+  const applyHandicap = useGameStore((s) => s.applyHandicap);
+  const checkWinner = useGameStore((s) => s.checkWinner);
+  const checkSessionEnd = useGameStore((s) => s.checkSessionEnd);
 
   // Initialize game on mount
   useEffect(() => {
@@ -23,16 +27,46 @@ function App() {
     initRound();
   }, [initGame, initRound]);
 
-  // After locking phase, auto-transition to idle after a brief delay
-  // so the player can see results before rolling again
+  // After locking phase, check for winner or transition to idle
   useEffect(() => {
     if (phase === 'locking') {
       const timer = setTimeout(() => {
-        setPhase('idle');
+        // Check if someone completed all 8 locks
+        if (checkWinner()) {
+          scoreRound();
+          // scoreRound sets phase to 'scoring'
+        } else {
+          setPhase('idle');
+        }
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [phase, setPhase]);
+  }, [phase, setPhase, checkWinner, scoreRound]);
+
+  // After scoring, apply handicap and start next round (or end session)
+  useEffect(() => {
+    if (phase === 'scoring') {
+      const timer = setTimeout(() => {
+        applyHandicap();
+        // applyHandicap sets phase to 'roundEnd'
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, applyHandicap]);
+
+  // After roundEnd, check session end or start new round
+  useEffect(() => {
+    if (phase === 'roundEnd') {
+      const timer = setTimeout(() => {
+        if (checkSessionEnd()) {
+          setPhase('sessionEnd');
+        } else {
+          initRound();
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, checkSessionEnd, setPhase, initRound]);
 
   const handleRoll = useCallback(() => {
     if (phase !== 'idle') return;

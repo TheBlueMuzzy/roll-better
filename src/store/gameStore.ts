@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, LockedDie } from '../types/game';
+import { findAutoLocks } from '../utils/matchDetection';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 const PLAYER_COLORS = [
@@ -101,7 +102,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setRollResults: (results: number[]) => {
     const state = get();
+    const player = state.players[0];
+
+    // Find new auto-locks from rolled results
+    const newLocks = findAutoLocks(
+      state.roundState.goalValues,
+      results,
+      player.lockedDice,
+    );
+
+    // Apply new locks to player
+    const players = [...state.players];
+    const updatedPlayer = { ...player };
+    updatedPlayer.lockedDice = [...updatedPlayer.lockedDice, ...newLocks];
+    updatedPlayer.poolSize = updatedPlayer.poolSize - newLocks.length;
+    players[0] = updatedPlayer;
+
+    // Update round state and set phase to locking (for UI feedback)
     set({
+      players,
       roundState: {
         ...state.roundState,
         rollResults: results,
