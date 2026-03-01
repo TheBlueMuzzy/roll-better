@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
-import { getFaceUp } from '../utils/diceUtils';
+import { getFaceUp, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
 
 // --- Helper: random float in [min, max] ---
@@ -23,16 +23,20 @@ export interface PhysicsDieHandle {
 interface PhysicsDieProps {
   color?: string;
   position?: [number, number, number];
+  initialFace?: number;
   onSettle?: () => void;
   onResult?: (value: number) => void;
   onUnsettled?: () => void;
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], onSettle, onResult, onUnsettled }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], initialFace, onSettle, onResult, onUnsettled }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
     const lastResult = useRef<number | null>(null);
+
+    // Compute initial rotation from face value (only used at mount time)
+    const rotation = initialFace ? getFaceUpRotation(initialFace) : [0, 0, 0] as [number, number, number];
 
     useImperativeHandle(ref, () => ({
       roll() {
@@ -89,6 +93,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         ref={bodyRef}
         type="dynamic"
         position={position}
+        rotation={rotation}
         ccd
         restitution={0.35}
         friction={0.5}

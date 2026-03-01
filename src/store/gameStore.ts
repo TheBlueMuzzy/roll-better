@@ -44,6 +44,7 @@ const initialRoundState = {
   rollResults: null,
   rollNumber: 0,
   lastLockCount: 0,
+  pendingNewDice: [] as number[],
 };
 
 const initialState: GameState = {
@@ -96,6 +97,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollResults: null,
         rollNumber: 0,
         lastLockCount: 0,
+        pendingNewDice: [],
       },
       currentRound: state.currentRound + 1,
       phase: 'idle',
@@ -145,6 +147,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollResults: results,
         rollNumber: state.roundState.rollNumber + 1,
         lastLockCount: newLocks.length,
+        pendingNewDice: [],
       },
       phase: 'locking',
     });
@@ -184,6 +187,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const player = { ...players[playerIndex] };
 
     const slotsToUnlock = player.selectedForUnlock;
+
+    // Get values of dice being unlocked (before removing them)
+    const unlockedValues = player.lockedDice
+      .filter((ld) => slotsToUnlock.includes(ld.goalSlotIndex))
+      .map((ld) => ld.value);
+
+    // Each unlock returns the die + 1 bonus die of the same value
+    const pendingNewDice = unlockedValues.flatMap((v) => [v, v]);
+
     // Remove locked dice at selected slots
     player.lockedDice = player.lockedDice.filter(
       (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
@@ -193,7 +205,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     player.selectedForUnlock = [];
 
     players[playerIndex] = player;
-    set({ players });
+    set({
+      players,
+      roundState: {
+        ...state.roundState,
+        pendingNewDice,
+      },
+    });
   },
 
   skipUnlock: (playerIndex: number) => {

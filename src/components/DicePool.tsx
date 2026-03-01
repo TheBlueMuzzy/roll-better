@@ -15,6 +15,7 @@ export interface DicePoolHandle {
 interface DicePoolProps {
   count: number;
   color: string;
+  newDiceValues?: number[];
   onAllSettled?: (results: number[]) => void;
 }
 
@@ -46,7 +47,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, onAllSettled }, ref) {
+  function DicePool({ count, color, newDiceValues, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -59,18 +60,32 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     );
     const hasFired = useRef(false);
 
-    // Spawn positions — useMemo ensures correct count during render (not after)
-    // Random jitter is regenerated when count changes or on rollAll
+    // Spawn positions — regenerated when count changes or on rollAll
     const spawnPositions = useRef(getSpawnPositions(count));
     const prevCount = useRef(count);
 
-    // Sync refs with count during render (before JSX is returned)
+    // Track info about newly added dice (for initialFace prop)
+    const newDiceInfo = useRef<{ startIndex: number; values: number[] } | null>(null);
+
+    // Sync refs with count during render — INCREMENTAL (don't destroy existing)
     if (count !== prevCount.current) {
+      const oldCount = prevCount.current;
       prevCount.current = count;
       spawnPositions.current = getSpawnPositions(count);
-      dieRefs.current = Array.from({ length: count }, () => null);
-      settled.current = Array.from({ length: count }, () => false);
-      results.current = Array.from({ length: count }, () => null);
+
+      if (count > oldCount) {
+        // Growing: keep existing dice state, extend arrays for new dice
+        dieRefs.current = [...dieRefs.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
+        settled.current = [...settled.current.slice(0, oldCount), ...Array(count - oldCount).fill(false)];
+        results.current = [...results.current.slice(0, oldCount), ...Array(count - oldCount).fill(null)];
+        newDiceInfo.current = { startIndex: oldCount, values: newDiceValues || [] };
+      } else {
+        // Shrinking: truncate arrays (higher-index dice unmount)
+        dieRefs.current = dieRefs.current.slice(0, count);
+        settled.current = settled.current.slice(0, count);
+        results.current = results.current.slice(0, count);
+        newDiceInfo.current = null;
+      }
       hasFired.current = false;
     }
 
@@ -111,6 +126,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
         hasFired.current = false;
+        newDiceInfo.current = null;
 
         // Regenerate spawn positions for fresh jitter
         spawnPositions.current = getSpawnPositions(count);
@@ -124,16 +140,26 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
 
     return (
       <group>
-        {spawnPositions.current.map((pos, i) => (
-          <PhysicsDie
-            key={`${count}-${i}`}
-            ref={setDieRef(i)}
-            color={color}
-            position={pos}
-            onResult={handleDieResult(i)}
-            onUnsettled={handleDieUnsettled(i)}
-          />
-        ))}
+        {spawnPositions.current.map((pos, i) => {
+          // New dice from unlocking get initialFace to show the unlocked value
+          let initialFace: number | undefined;
+          if (newDiceInfo.current && i >= newDiceInfo.current.startIndex) {
+            const newIdx = i - newDiceInfo.current.startIndex;
+            initialFace = newDiceInfo.current.values[newIdx];
+          }
+
+          return (
+            <PhysicsDie
+              key={i}
+              ref={setDieRef(i)}
+              color={color}
+              position={pos}
+              initialFace={initialFace}
+              onResult={handleDieResult(i)}
+              onUnsettled={handleDieUnsettled(i)}
+            />
+          );
+        })}
       </group>
     );
   },

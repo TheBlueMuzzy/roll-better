@@ -22,6 +22,7 @@ export interface RoundState {
   rollResults: number[] | null;
   rollNumber: number;
   lastLockCount: number;
+  pendingNewDice: number[];
 }
 
 export interface Die {

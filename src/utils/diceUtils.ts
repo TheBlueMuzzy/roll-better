@@ -28,6 +28,22 @@ const _scratch = new Vector3();
  * @param quaternion - The die's current world rotation as a Three.js Quaternion
  * @returns The face value (1-6) that is pointing up
  */
+/**
+ * Returns the Euler rotation [x, y, z] that places the given face value pointing up.
+ * Used to spawn dice showing a specific value without rolling.
+ */
+export function getFaceUpRotation(value: number): [number, number, number] {
+  switch (value) {
+    case 1: return [0, 0, 0];                // +Y already up
+    case 2: return [0, 0, -Math.PI / 2];     // -X → rotate around Z
+    case 3: return [-Math.PI / 2, 0, 0];     // +Z → rotate around X
+    case 4: return [Math.PI / 2, 0, 0];      // -Z → rotate around X
+    case 5: return [0, 0, Math.PI / 2];      // +X → rotate around Z
+    case 6: return [Math.PI, 0, 0];          // -Y → flip around X
+    default: return [0, 0, 0];
+  }
+}
+
 export function getFaceUp(quaternion: Quaternion): number {
   let bestValue = 1;
   let bestDot = -Infinity;
