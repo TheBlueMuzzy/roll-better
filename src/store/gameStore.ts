@@ -72,7 +72,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isAI: i !== 0,
     }));
 
-    set({ players, phase: 'lobby' });
+    set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState });
   },
 
   initRound: () => {
