@@ -50,6 +50,7 @@ export interface RoundState {
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
   unlockAnimations: UnlockAnimation[];
+  goalTransition: 'none' | 'exiting' | 'entering';
 }
 
 export interface Die {

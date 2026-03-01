@@ -33,6 +33,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const players = useGameStore((s) => s.players);
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
+    const goalTransition = useGameStore((s) => s.roundState.goalTransition);
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
     const pendingNewDicePositions = useGameStore((s) => s.roundState.pendingNewDicePositions);
     const pendingNewDiceRotations = useGameStore((s) => s.roundState.pendingNewDiceRotations);
@@ -192,8 +193,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
         </mesh>
 
-        {/* Goal row — static dice at top of screen (outside Physics) */}
-        <GoalRow values={roundState.goalValues} />
+        {/* Goal row — dice at top of screen with transition animation (outside Physics) */}
+        <GoalRow values={roundState.goalValues} transition={goalTransition} />
 
         {/* Player row — slot markers + locked dice (outside Physics) */}
         <PlayerRow

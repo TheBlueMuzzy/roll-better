@@ -24,6 +24,7 @@ function App() {
   const applyHandicap = useGameStore((s) => s.applyHandicap);
   const checkWinner = useGameStore((s) => s.checkWinner);
   const checkSessionEnd = useGameStore((s) => s.checkSessionEnd);
+  const setGoalTransition = useGameStore((s) => s.setGoalTransition);
 
   // Initialize game on mount
   useEffect(() => {
@@ -58,19 +59,36 @@ function App() {
     }
   }, [phase, applyHandicap]);
 
-  // After roundEnd, check session end or start new round
+  // After roundEnd: staged goal transition (exit → swap → enter → idle)
   useEffect(() => {
-    if (phase === 'roundEnd') {
-      const timer = setTimeout(() => {
-        if (checkSessionEnd()) {
-          setPhase('sessionEnd');
-        } else {
-          initRound();
-        }
-      }, 1500);
+    if (phase !== 'roundEnd') return;
+
+    // Check session end immediately — skip animation if game is over
+    if (checkSessionEnd()) {
+      const timer = setTimeout(() => setPhase('sessionEnd'), 500);
       return () => clearTimeout(timer);
     }
-  }, [phase, checkSessionEnd, setPhase, initRound]);
+
+    // Stage 1: old goal dice exit (roll off right)
+    setGoalTransition('exiting');
+
+    // Stage 2: after 500ms, swap to new round goals + start enter animation
+    const t1 = setTimeout(() => {
+      initRound({ skipPhase: true }); // new goals, players reset, but stay in roundEnd
+      setGoalTransition('entering');
+    }, 500);
+
+    // Stage 3: after 1500ms total, settle and go idle
+    const t2 = setTimeout(() => {
+      setGoalTransition('none');
+      setPhase('idle');
+    }, 1500);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition]);
 
   // UNLOCK button: process unlocks with mitosis animation, then go to idle
   const handleConfirmUnlock = useCallback(() => {

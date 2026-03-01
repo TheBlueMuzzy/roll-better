@@ -25,7 +25,10 @@ interface GameStore extends GameState {
 
   // Game setup
   initGame: (playerCount: number) => void;
-  initRound: () => void;
+  initRound: (options?: { skipPhase?: boolean }) => void;
+
+  // Goal transition
+  setGoalTransition: (state: 'none' | 'exiting' | 'entering') => void;
 
   // Rolling & locking
   setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => void;
@@ -61,6 +64,7 @@ const initialRoundState = {
   lockAnimations: [] as LockAnimation[],
   animatingSlotIndices: [] as number[],
   unlockAnimations: [] as UnlockAnimation[],
+  goalTransition: 'none' as const,
 };
 
 const initialState: GameState = {
@@ -94,7 +98,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState });
   },
 
-  initRound: () => {
+  initRound: (options?: { skipPhase?: boolean }) => {
     const state = get();
     const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
       .sort((a, b) => a - b);
@@ -106,7 +110,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedForUnlock: [],
     }));
 
-    set({
+    const updates: Partial<GameState> & { players: typeof players; currentRound: number } = {
       players,
       roundState: {
         goalValues,
@@ -123,9 +127,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lockAnimations: [],
         animatingSlotIndices: [],
         unlockAnimations: [],
+        goalTransition: 'none',
       },
       currentRound: state.currentRound + 1,
-      phase: 'idle',
+    };
+    if (!options?.skipPhase) {
+      updates.phase = 'idle';
+    }
+    set(updates);
+  },
+
+  setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        goalTransition,
+      },
     });
   },
 
