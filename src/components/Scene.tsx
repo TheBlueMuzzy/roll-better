@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
+import { useRef, useState, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
@@ -45,7 +45,22 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       return slots;
     }, [player]);
 
+    const [shakingSlot, setShakingSlot] = useState<number | null>(null);
+
     const handleToggleUnlock = useCallback((slotIndex: number) => {
+      const p = useGameStore.getState().players[0];
+      const isCurrentlySelected = p.selectedForUnlock.includes(slotIndex);
+
+      // If trying to select (not deselect), check 12-die cap
+      if (!isCurrentlySelected) {
+        const wouldBePool = p.poolSize + (p.selectedForUnlock.length + 1) * 2;
+        if (wouldBePool > 12) {
+          setShakingSlot(slotIndex);
+          setTimeout(() => setShakingSlot(null), 400);
+          return;
+        }
+      }
+
       toggleUnlockSelection(0, slotIndex);
     }, [toggleUnlockSelection]);
 
@@ -155,6 +170,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           phase={phase}
           selectedForUnlock={player.selectedForUnlock}
           onToggleUnlock={handleToggleUnlock}
+          shakingSlot={shakingSlot}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}

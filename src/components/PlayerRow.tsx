@@ -13,6 +13,7 @@ interface PlayerRowProps {
   phase?: GamePhase;
   selectedForUnlock?: number[];
   onToggleUnlock?: (slotIndex: number) => void;
+  shakingSlot?: number | null;
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -21,25 +22,56 @@ const SELECTED_SCALE = 0.75; // shrink 25% when selected
 const PULSE_SPEED = 3; // scale pulse frequency
 const PULSE_AMOUNT = 0.03; // subtle pulse amplitude
 
+const SHAKE_DURATION = 0.4; // seconds
+const SHAKE_INTENSITY = 0.08; // world units
+const SHAKE_FREQ = 30; // oscillations per second
+
 /** Animated wrapper for locked dice during unlock phase */
 function UnlockableDie({
   slotIndex,
   value,
   color,
   isSelected,
+  shaking,
   onToggle,
 }: {
   slotIndex: number;
   value: number;
   color: string;
   isSelected: boolean;
+  shaking: boolean;
   onToggle: () => void;
 }) {
   const groupRef = useRef<Group>(null);
+  const shakeStartRef = useRef<number | null>(null);
+
+  // Track shake start time
+  if (shaking && shakeStartRef.current === null) {
+    shakeStartRef.current = Date.now();
+  } else if (!shaking) {
+    shakeStartRef.current = null;
+  }
 
   // Subtle scale pulse on unlockable dice (not selected ones — they shrink static)
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+
+    // Shake: horizontal oscillation that decays
+    const baseX = getSlotX(slotIndex);
+    if (shakeStartRef.current !== null) {
+      const elapsed = (Date.now() - shakeStartRef.current) / 1000;
+      if (elapsed < SHAKE_DURATION) {
+        const decay = 1 - elapsed / SHAKE_DURATION;
+        const offset = Math.sin(elapsed * SHAKE_FREQ) * SHAKE_INTENSITY * decay;
+        groupRef.current.position.x = baseX + offset;
+      } else {
+        groupRef.current.position.x = baseX;
+        shakeStartRef.current = null;
+      }
+    } else {
+      groupRef.current.position.x = baseX;
+    }
+
     const targetScale = isSelected ? SELECTED_SCALE : 1;
     if (!isSelected) {
       // Gentle pulse to show they're interactive
@@ -100,6 +132,7 @@ export function PlayerRow({
   phase,
   selectedForUnlock = [],
   onToggleUnlock,
+  shakingSlot = null,
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
 
@@ -119,6 +152,7 @@ export function PlayerRow({
                 value={value}
                 color={color}
                 isSelected={selectedForUnlock.includes(i)}
+                shaking={shakingSlot === i}
                 onToggle={() => onToggleUnlock(i)}
               />
             );
