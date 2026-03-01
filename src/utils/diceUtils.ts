@@ -19,16 +19,6 @@ const WORLD_UP = new Vector3(0, 1, 0);
 const _scratch = new Vector3();
 
 /**
- * Determines which face of a standard die is pointing up, given its rotation.
- *
- * Algorithm: rotate each face normal by the die's quaternion, then dot with
- * world up. The face whose rotated normal has the highest dot product is
- * the one pointing most upward.
- *
- * @param quaternion - The die's current world rotation as a Three.js Quaternion
- * @returns The face value (1-6) that is pointing up
- */
-/**
  * Returns the Euler rotation [x, y, z] that places the given face value pointing up.
  * Used to spawn dice showing a specific value without rolling.
  */
@@ -44,6 +34,10 @@ export function getFaceUpRotation(value: number): [number, number, number] {
   }
 }
 
+/**
+ * Determines which face of a standard die is pointing up, given its rotation.
+ * Picks the face whose rotated normal has the highest dot product with world up.
+ */
 export function getFaceUp(quaternion: Quaternion): number {
   let bestValue = 1;
   let bestDot = -Infinity;
@@ -59,6 +53,11 @@ export function getFaceUp(quaternion: Quaternion): number {
       bestDot = dot;
       bestValue = face.value;
     }
+  }
+
+  // Warn if die is tilted (dot < 0.85 means >~32° from flat)
+  if (bestDot < 0.85) {
+    console.warn(`[getFaceUp] LOW CONFIDENCE: face=${bestValue} dot=${bestDot.toFixed(3)} — die may be canted`);
   }
 
   return bestValue;

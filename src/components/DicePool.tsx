@@ -70,6 +70,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     // Sync refs with count during render — INCREMENTAL (don't destroy existing)
     if (count !== prevCount.current) {
       const oldCount = prevCount.current;
+      console.log(`[DicePool] Count change: ${oldCount} → ${count}`);
       prevCount.current = count;
       spawnPositions.current = getSpawnPositions(count);
 
@@ -100,20 +101,23 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     // Result callback factory — marks die as settled, checks if ALL settled
     const handleDieResult = useCallback(
       (index: number) => (value: number) => {
+        console.log(`[DicePool] Die ${index} settled → face ${value}  (settled: ${settled.current.map((s, j) => j === index ? 'TRUE' : s).join(',')})`);
         results.current[index] = value;
         settled.current[index] = true;
 
         if (!hasFired.current && settled.current.every(Boolean)) {
           hasFired.current = true;
+          console.log('[DicePool] ALL SETTLED → results:', [...results.current], 'count:', count);
           onAllSettled?.(results.current as number[]);
         }
       },
-      [onAllSettled],
+      [onAllSettled, count],
     );
 
     // Unsettled callback — die got bumped after settling
     const handleDieUnsettled = useCallback(
       (index: number) => () => {
+        console.log(`[DicePool] Die ${index} UNSETTLED (bumped)`);
         settled.current[index] = false;
         hasFired.current = false;
       },

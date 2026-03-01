@@ -122,15 +122,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player.lockedDice,
     );
 
-    console.log('[setRollResults]', {
-      goal: state.roundState.goalValues,
-      rolled: results,
-      existingLocks: player.lockedDice.length,
-      newLocks: newLocks.length,
-      newLockDetails: newLocks,
-      poolBefore: player.poolSize,
-      poolAfter: player.poolSize - newLocks.length,
-    });
+    console.log(
+      `[setRollResults] goal=[${state.roundState.goalValues}] rolled=[${results}] ` +
+      `existingLocks=${player.lockedDice.length} newLocks=${newLocks.length} ` +
+      `details=[${newLocks.map(l => `slot${l.goalSlotIndex}=val${l.value}`)}] ` +
+      `pool: ${player.poolSize} → ${player.poolSize - newLocks.length}`,
+    );
 
     // Apply new locks to player
     const players = [...state.players];
