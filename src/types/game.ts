@@ -1,4 +1,4 @@
-export type GamePhase = 'lobby' | 'rolling' | 'locking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd';
+export type GamePhase = 'lobby' | 'rolling' | 'locking' | 'unlocking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd';
 
 export interface LockedDie {
   goalSlotIndex: number;

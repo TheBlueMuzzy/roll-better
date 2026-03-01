@@ -27,7 +27,7 @@ function App() {
     initRound();
   }, [initGame, initRound]);
 
-  // After locking phase, show lock count for 1s then check for winner or go idle
+  // After locking phase, show lock count for 1s then check for winner or go to unlocking
   useEffect(() => {
     if (phase === 'locking') {
       const timer = setTimeout(() => {
@@ -36,7 +36,7 @@ function App() {
           scoreRound();
           // scoreRound sets phase to 'scoring'
         } else {
-          setPhase('idle');
+          setPhase('unlocking');
         }
       }, 1000);
       return () => clearTimeout(timer);
@@ -69,8 +69,32 @@ function App() {
   }, [phase, checkSessionEnd, setPhase, initRound]);
 
   const handleRoll = useCallback(() => {
-    // Use getState() for synchronous phase check (avoids stale closure)
-    if (useGameStore.getState().phase !== 'idle') return;
+    const state = useGameStore.getState();
+
+    if (state.phase === 'unlocking') {
+      const player = state.players[0];
+      const hasUnlocks = player.selectedForUnlock.length > 0;
+
+      if (hasUnlocks) {
+        // Process unlocks — pool size will increase
+        useGameStore.getState().confirmUnlock(0);
+      }
+
+      setPhase('rolling');
+
+      if (hasUnlocks) {
+        // Pool changed — wait for DicePool to re-render with new count
+        requestAnimationFrame(() => {
+          sceneRef.current?.rollAll();
+        });
+      } else {
+        sceneRef.current?.rollAll();
+      }
+      return;
+    }
+
+    if (state.phase !== 'idle') return;
+
     setPhase('rolling');
     sceneRef.current?.rollAll();
   }, [setPhase]);
@@ -97,6 +121,7 @@ function App() {
           ref={sceneRef}
           onRollStart={handleRollStart}
           onResults={handleResults}
+          onRoll={handleRoll}
         />
       </Canvas>
       <HUD onRoll={handleRoll} />

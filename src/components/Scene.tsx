@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
@@ -18,16 +18,18 @@ export interface SceneHandle {
 interface SceneProps {
   onRollStart?: () => void;
   onResults?: (results: number[]) => void;
+  onRoll?: () => void;
 }
 
 export const Scene = forwardRef<SceneHandle, SceneProps>(
-  function Scene({ onRollStart, onResults }, ref) {
+  function Scene({ onRollStart, onResults, onRoll }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
 
     // Read store values
     const phase = useGameStore((s) => s.phase);
     const roundState = useGameStore((s) => s.roundState);
     const players = useGameStore((s) => s.players);
+    const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
     const player = players[0];
 
@@ -40,6 +42,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       }
       return slots;
     }, [player]);
+
+    const handleToggleUnlock = useCallback((slotIndex: number) => {
+      toggleUnlockSelection(0, slotIndex);
+    }, [toggleUnlockSelection]);
 
     // Expose rollAll to parent (App) via ref
     useImperativeHandle(ref, () => ({
@@ -56,10 +62,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     }
 
     function handleFloorClick() {
-      // Only allow rolling when in idle phase
-      if (phase !== 'idle') return;
-      onRollStart?.();
-      dicePoolRef.current?.rollAll();
+      // Route through App's handleRoll for proper unlock processing
+      if (phase === 'idle' || phase === 'unlocking') {
+        onRoll?.();
+      }
     }
 
     // Safety: if store not initialized yet, render just lighting/environment
@@ -144,6 +150,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         <PlayerRow
           color={player.color}
           lockedValues={lockedValues}
+          phase={phase}
+          selectedForUnlock={player.selectedForUnlock}
+          onToggleUnlock={handleToggleUnlock}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}

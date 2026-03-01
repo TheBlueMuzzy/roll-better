@@ -176,7 +176,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     player.selectedForUnlock = [];
 
     players[playerIndex] = player;
-    set({ players, phase: 'rolling' });
+    set({ players });
   },
 
   skipUnlock: (playerIndex: number) => {
@@ -186,7 +186,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     player.selectedForUnlock = [];
     players[playerIndex] = player;
-    set({ players, phase: 'rolling' });
+    set({ players });
   },
 
   scoreRound: () => {

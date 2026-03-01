@@ -17,8 +17,10 @@ export function HUD({ onRoll }: HUDProps) {
   const startingDice = player?.startingDice ?? 2;
   const isRolling = phase === 'rolling';
 
+  const selectedCount = player?.selectedForUnlock?.length ?? 0;
+
   const handleTap = () => {
-    if (phase === 'idle') onRoll();
+    if (phase === 'idle' || phase === 'unlocking') onRoll();
   };
 
   // Compute round score for display during scoring phase
@@ -35,6 +37,10 @@ export function HUD({ onRoll }: HUDProps) {
     statusText = 'Rolling...';
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
+  } else if (phase === 'unlocking') {
+    statusText = selectedCount > 0
+      ? `Unlock ${selectedCount} — Tap To Roll`
+      : 'Tap dice to unlock, or Roll';
   } else if (phase === 'scoring') {
     statusText = `Round Complete! +${roundScore}pts`;
   } else if (phase === 'roundEnd') {
