@@ -8,6 +8,7 @@ import { GoalRow } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerIcon } from './PlayerIcon';
 import { AnimatingDie } from './AnimatingDie';
+import { MitosisDie } from './MitosisDie';
 import { useGameStore } from '../store/gameStore';
 
 // --- Public API exposed via ref ---
@@ -38,6 +39,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
     const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
     const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
+    const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const player = players[0];
 
     // Track how many lerp animations have completed
@@ -199,6 +201,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           onToggleUnlock={handleToggleUnlock}
           shakingSlot={shakingSlot}
           animatingSlotIndices={animatingSlotIndices}
+          unlockAnimations={unlockAnimations}
         />
 
         {/* Player icon — name, color, score, stats (outside Physics) */}
@@ -252,6 +255,18 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             value={anim.value}
             color={player.color}
             onComplete={handleLerpComplete}
+          />
+        ))}
+
+        {/* Mitosis unlock animations — flying + splitting dice outside Physics */}
+        {unlockAnimations.map((anim, i) => (
+          <MitosisDie
+            key={`mitosis-${anim.slotIndex}-${i}`}
+            fromPos={anim.fromPos}
+            targetPos={anim.targetPos}
+            splitTargets={anim.splitTargets}
+            value={anim.value}
+            color={player.color}
           />
         ))}
       </group>

@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
-import type { GamePhase } from '../types/game';
+import type { GamePhase, UnlockAnimation } from '../types/game';
 import type { Group } from 'three';
 
 interface PlayerRowProps {
@@ -15,6 +15,7 @@ interface PlayerRowProps {
   onToggleUnlock?: (slotIndex: number) => void;
   shakingSlot?: number | null;
   animatingSlotIndices?: number[];
+  unlockAnimations?: UnlockAnimation[];
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -137,6 +138,7 @@ export function PlayerRow({
   onToggleUnlock,
   shakingSlot = null,
   animatingSlotIndices = [],
+  unlockAnimations = [],
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
 
@@ -149,6 +151,10 @@ export function PlayerRow({
         if (value !== null) {
           // Skip rendering if this slot is currently being animated (die is flying in)
           if (animatingSlotIndices.includes(i)) {
+            return null;
+          }
+          // Skip rendering if this slot is being animated out (mitosis unlock)
+          if (unlockAnimations.some((a) => a.slotIndex === i)) {
             return null;
           }
           // During unlocking — interactive with highlights

@@ -11,6 +11,14 @@ export interface LockAnimation {
   value: number;                       // face value for correct rotation
 }
 
+export interface UnlockAnimation {
+  slotIndex: number;           // which goal slot is being unlocked
+  value: number;               // die face value
+  fromPos: [number, number, number];    // player row position
+  targetPos: [number, number, number];  // clear spot in pool
+  splitTargets: [[number, number, number], [number, number, number]]; // two final positions
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -33,6 +41,7 @@ export interface RoundState {
   remainingDicePositions: [number, number, number][];
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
+  unlockAnimations: UnlockAnimation[];
 }
 
 export interface Die {

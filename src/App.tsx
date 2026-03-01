@@ -4,6 +4,10 @@ import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
 import { useGameStore } from './store/gameStore';
+import { getSlotX } from './components/GoalRow';
+import { DIE_SIZE } from './components/RollingArea';
+import { findClearSpot } from './utils/clearSpot';
+import type { UnlockAnimation } from './types/game';
 import versionData from '../version.json';
 import './App.css';
 
@@ -68,24 +72,69 @@ function App() {
     }
   }, [phase, checkSessionEnd, setPhase, initRound]);
 
-  // UNLOCK button: process unlocks, then go to idle (ready to roll)
+  // UNLOCK button: process unlocks with mitosis animation, then go to idle
   const handleConfirmUnlock = useCallback(() => {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
+
+    // Guard: ignore if animation is already in progress
+    if (state.roundState.unlockAnimations.length > 0) return;
 
     const player = state.players[0];
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
     if (player.selectedForUnlock.length > 0) {
-      useGameStore.getState().confirmUnlock(0);
+      // --- ANIMATED PATH: mitosis animation before state change ---
+      const selectedSlots = [...player.selectedForUnlock];
+      const lockedDice = player.lockedDice;
+      const existingPoolPositions = [...state.roundState.remainingDicePositions];
+
+      // Build occupied list: current pool dice positions
+      const occupied: [number, number, number][] = [...existingPoolPositions];
+
+      const allAnimations: UnlockAnimation[] = [];
+
+      for (const slotIndex of selectedSlots) {
+        // Find the locked die value for this slot
+        const lockedEntry = lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
+        if (!lockedEntry) continue;
+
+        // Source position: player row slot
+        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.77];
+
+        // Find a clear spot (avoids existing pool dice + previously computed targets)
+        const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
+
+        // Add both split targets to occupied so subsequent unlocks don't overlap
+        occupied.push(splitTargets[0], splitTargets[1]);
+
+        allAnimations.push({
+          slotIndex,
+          value: lockedEntry.value,
+          fromPos,
+          targetPos,
+          splitTargets,
+        });
+      }
+
+      // Trigger animations
+      useGameStore.getState().setUnlockAnimations(allAnimations);
+
+      // After animation completes (~1.3s + 0.1s buffer), apply state change
+      setTimeout(() => {
+        useGameStore.getState().confirmUnlock(0);
+        useGameStore.getState().clearUnlockAnimations();
+        setPhase('idle');
+      }, 1400);
+
     } else if (mustUnlock) {
       // Can't skip — player has 0 dice to roll, must unlock at least 1
       return;
     } else {
+      // SKIP path: no animation, immediate
       useGameStore.getState().skipUnlock(0);
+      setPhase('idle');
     }
-
-    setPhase('idle');
   }, [setPhase]);
 
   // Tap to Roll: only works during idle
