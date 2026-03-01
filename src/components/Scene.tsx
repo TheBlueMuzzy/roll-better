@@ -25,6 +25,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const dicePoolRef = useRef<DicePoolHandle>(null);
 
     // Read store values
+    const phase = useGameStore((s) => s.phase);
     const roundState = useGameStore((s) => s.roundState);
     const players = useGameStore((s) => s.players);
 
@@ -55,6 +56,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     }
 
     function handleFloorClick() {
+      // Only allow rolling when in idle phase
+      if (phase !== 'idle') return;
       onRollStart?.();
       dicePoolRef.current?.rollAll();
     }

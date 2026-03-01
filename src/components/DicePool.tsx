@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useCallback, useEffect } from 'react';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
@@ -59,8 +59,25 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     );
     const hasFired = useRef(false);
 
-    // Spawn positions (computed once per render)
+    // Spawn positions (computed once per render, updated when count changes)
     const spawnPositions = useRef(getSpawnPositions(count));
+
+    // Track previous count so we can detect changes between rolls
+    const prevCount = useRef(count);
+
+    // When count changes (poolSize shrinks after locking, or grows after unlock),
+    // reset spawn positions and tracking arrays for the next roll.
+    // This does NOT interrupt mid-roll — it prepares for the next render.
+    useEffect(() => {
+      if (count !== prevCount.current) {
+        prevCount.current = count;
+        spawnPositions.current = getSpawnPositions(count);
+        dieRefs.current = Array.from({ length: count }, () => null);
+        settled.current = Array.from({ length: count }, () => false);
+        results.current = Array.from({ length: count }, () => null);
+        hasFired.current = false;
+      }
+    }, [count]);
 
     // Callback ref factory — assigns each die ref into the array
     const setDieRef = useCallback(
