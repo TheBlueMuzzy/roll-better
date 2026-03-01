@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation } from '../types/game';
+import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
+import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
 
@@ -26,7 +28,7 @@ interface GameStore extends GameState {
   initRound: () => void;
 
   // Rolling & locking
-  setRollResults: (results: number[], positions?: [number, number, number][]) => void;
+  setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => void;
   lockDice: (playerIndex: number, locks: LockedDie[]) => void;
   clearLockAnimations: () => void;
 
@@ -50,8 +52,11 @@ const initialRoundState = {
   rollNumber: 0,
   lastLockCount: 0,
   pendingNewDice: [] as number[],
+  pendingNewDicePositions: [] as [number, number, number][],
+  pendingNewDiceRotations: [] as [number, number, number][],
   remainingDiceValues: [] as number[],
   remainingDicePositions: [] as [number, number, number][],
+  remainingDiceRotations: [] as [number, number, number][],
   lockAnimations: [] as LockAnimation[],
   animatingSlotIndices: [] as number[],
   unlockAnimations: [] as UnlockAnimation[],
@@ -108,8 +113,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollNumber: 0,
         lastLockCount: 0,
         pendingNewDice: [],
+        pendingNewDicePositions: [],
+        pendingNewDiceRotations: [],
         remainingDiceValues: [],
         remainingDicePositions: [],
+        remainingDiceRotations: [],
         lockAnimations: [],
         animatingSlotIndices: [],
         unlockAnimations: [],
@@ -119,7 +127,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  setRollResults: (results: number[], positions?: [number, number, number][]) => {
+  setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => {
     const state = get();
 
     // Guard: ignore if already processing (double-fire from settle detection)
@@ -173,7 +181,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       `pool: ${player.poolSize} → ${player.poolSize - newLocks.length}`,
     );
 
-    // Compute non-locked die values AND positions (dice that stay in the pool)
+    // Compute non-locked die values, positions, AND rotations (dice that stay in the pool)
     // Consume locked values from rolled results to find leftovers
     const lockedValueBag = new Map<number, number>();
     for (const lock of newLocks) {
@@ -181,6 +189,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     const remainingDiceValues: number[] = [];
     const remainingDicePositions: [number, number, number][] = [];
+    const remainingDiceRotations: [number, number, number][] = [];
     for (let i = 0; i < results.length; i++) {
       const v = results[i];
       const lockCount = lockedValueBag.get(v) || 0;
@@ -190,6 +199,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         remainingDiceValues.push(v);
         if (positions) {
           remainingDicePositions.push(positions[i]);
+        }
+        if (rotations) {
+          remainingDiceRotations.push(rotations[i]);
         }
       }
     }
@@ -214,10 +226,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const slots = locksByValue.get(v);
         if (slots && slots.length > 0) {
           const goalSlotIndex = slots.shift()!;
+          const prevDelay = lockAnimations.length > 0
+            ? lockAnimations[lockAnimations.length - 1].delay
+            : 0;
+          const delay = lockAnimations.length === 0
+            ? 0
+            : prevDelay + (0.25 + Math.random() * 0.25);
           lockAnimations.push({
             fromPos: positions[i],
             toPos: [getSlotX(goalSlotIndex), DIE_SIZE / 2, -3.77],
+            fromRotation: rotations ? rotations[i] : [0, 0, 0],
             value: v,
+            delay,
           });
         }
       }
@@ -246,8 +266,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         rollNumber: state.roundState.rollNumber + 1,
         lastLockCount: newLocks.length,
         pendingNewDice: [],
+        pendingNewDicePositions: [],
+        pendingNewDiceRotations: [],
         remainingDiceValues,
         remainingDicePositions,
+        remainingDiceRotations,
         lockAnimations,
         animatingSlotIndices,
       },
@@ -315,6 +338,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Each unlock returns the die + 1 bonus die of the same value
     const pendingNewDice = unlockedValues.flatMap((v) => [v, v]);
 
+    // Extract split target positions + rotations from unlock animations (still in state at this point)
+    // so new physics dice appear exactly where the MitosisDie animation ended
+    const pendingNewDicePositions: [number, number, number][] = [];
+    const pendingNewDiceRotations: [number, number, number][] = [];
+    for (const anim of state.roundState.unlockAnimations) {
+      pendingNewDicePositions.push(anim.splitTargets[0], anim.splitTargets[1]);
+      // Compose face tilt + Y spin via quaternions so Euler stays correct
+      const faceRot = getFaceUpRotation(anim.value);
+      for (const yRot of anim.splitYRotations) {
+        const faceQ = new Quaternion().setFromEuler(new Euler(faceRot[0], faceRot[1], faceRot[2]));
+        const yQ = new Quaternion().setFromEuler(new Euler(0, yRot, 0));
+        const combined = yQ.multiply(faceQ); // Y spin applied in world space
+        const result = new Euler().setFromQuaternion(combined);
+        pendingNewDiceRotations.push([result.x, result.y, result.z]);
+      }
+    }
+
     // Remove locked dice at selected slots
     player.lockedDice = player.lockedDice.filter(
       (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
@@ -329,6 +369,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       roundState: {
         ...state.roundState,
         pendingNewDice,
+        pendingNewDicePositions,
+        pendingNewDiceRotations,
       },
     });
   },

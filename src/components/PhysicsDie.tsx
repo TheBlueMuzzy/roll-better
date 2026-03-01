@@ -24,19 +24,33 @@ interface PhysicsDieProps {
   color?: string;
   position?: [number, number, number];
   initialFace?: number;
+  /** Exact Euler rotation to restore (overrides initialFace rotation) */
+  initialRotation?: [number, number, number];
   onSettle?: () => void;
-  onResult?: (value: number, position: [number, number, number]) => void;
+  onResult?: (value: number, position: [number, number, number], rotation: [number, number, number]) => void;
   onUnsettled?: () => void;
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], initialFace, onSettle, onResult, onUnsettled }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], initialFace, initialRotation, onSettle, onResult, onUnsettled }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
     const lastResult = useRef<number | null>(null);
 
-    // Compute initial rotation from face value (only used at mount time)
-    const rotation = initialFace ? getFaceUpRotation(initialFace) : [0, 0, 0] as [number, number, number];
+    // Compute initial rotation ONCE on mount (stored in ref so re-renders don't change it)
+    const rotationRef = useRef<[number, number, number] | null>(null);
+    if (rotationRef.current === null) {
+      if (initialRotation) {
+        // Exact rotation passed in (preserved from physics settle)
+        rotationRef.current = initialRotation;
+      } else if (initialFace) {
+        // Exact face-up rotation matching MitosisDie/GoalRow orientation
+        rotationRef.current = getFaceUpRotation(initialFace);
+      } else {
+        rotationRef.current = [0, 0, 0];
+      }
+    }
+    const rotation = rotationRef.current;
 
     useImperativeHandle(ref, () => ({
       roll() {
@@ -46,14 +60,15 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         // Mark as rolling
         isRolling.current = true;
 
-        // Reset to spawn position
-        body.setTranslation({ x: position[0], y: position[1], z: position[2] }, true);
+        // Lift die above the floor so random rotation doesn't clip into ground
+        const cur = body.translation();
+        body.setTranslation({ x: cur.x, y: cur.y + DIE_SIZE, z: cur.z }, true);
 
         // Reset velocities
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
-        // Random initial rotation
+        // Random rotation for face variety
         const euler = new Euler(
           randRange(0, Math.PI * 2),
           randRange(0, Math.PI * 2),
@@ -66,7 +81,6 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         body.wakeUp();
 
         // Apply upward impulse with random horizontal offset for natural tumbling
-        // (scaled for DIE_SIZE ≈ 0.66 → mass ≈ 0.29 — gives ~1s air time)
         body.applyImpulse(
           { x: randRange(-1, 1), y: randRange(6, 9), z: randRange(-1, 1) },
           true,
@@ -106,12 +120,14 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
             // Read which face is pointing up
             const body = bodyRef.current;
             if (body) {
-              const rotation = body.rotation();
-              const threeQuat = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+              const rot = body.rotation();
+              const threeQuat = new Quaternion(rot.x, rot.y, rot.z, rot.w);
               const faceValue = getFaceUp(threeQuat);
               lastResult.current = faceValue;
               const t = body.translation();
-              onResult?.(faceValue, [t.x, t.y, t.z]);
+              // Convert quaternion to Euler for preservation through remounts
+              const settledEuler = new Euler().setFromQuaternion(threeQuat);
+              onResult?.(faceValue, [t.x, t.y, t.z], [settledEuler.x, settledEuler.y, settledEuler.z]);
             }
 
             onSettle?.();

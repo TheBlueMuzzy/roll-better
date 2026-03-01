@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 63,
+  "build": 64,
   "history": [
     {
       "version": "0.1.0",
@@ -32,6 +32,11 @@
       "version": "0.1.0.53",
       "date": "2026-03-01",
       "summary": "Fix BUG-001: wrong die stayed in pool after locking (generation key + remainingDiceValues)"
+    },
+    {
+      "version": "0.1.0.64",
+      "date": "2026-03-01",
+      "summary": "Dice animation polish: slerp rotation on lock/unlock flights, staggered timing, casual Y rotation on split dice, roll from current position"
     }
   ]
 }

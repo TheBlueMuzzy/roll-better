@@ -34,8 +34,11 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
+    const pendingNewDicePositions = useGameStore((s) => s.roundState.pendingNewDicePositions);
+    const pendingNewDiceRotations = useGameStore((s) => s.roundState.pendingNewDiceRotations);
     const remainingDiceValues = useGameStore((s) => s.roundState.remainingDiceValues);
     const remainingDicePositions = useGameStore((s) => s.roundState.remainingDicePositions);
+    const remainingDiceRotations = useGameStore((s) => s.roundState.remainingDiceRotations);
     const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
     const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
     const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
@@ -83,13 +86,13 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       },
     }));
 
-    function handleAllSettled(values: number[], positions: [number, number, number][]) {
+    function handleAllSettled(values: number[], positions: [number, number, number][], rotations: [number, number, number][]) {
       console.log('All dice settled:', values);
       // Reset lerp tracking for this roll
       lerpCompleteCount.current = 0;
       lerpExpectedCount.current = 0;
-      // Pass sorted values + positions directly to store (includes animation computation)
-      useGameStore.getState().setRollResults(values, positions);
+      // Pass sorted values + positions + rotations directly to store (includes animation computation)
+      useGameStore.getState().setRollResults(values, positions, rotations);
       // Also notify App via callback (for any non-position-aware consumers)
       onResults?.(values);
     }
@@ -240,8 +243,11 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             count={player.poolSize}
             color={player.color}
             newDiceValues={pendingNewDice}
+            newDicePositions={pendingNewDicePositions}
+            newDiceRotations={pendingNewDiceRotations}
             remainingDiceValues={remainingDiceValues}
             remainingDicePositions={remainingDicePositions}
+            remainingDiceRotations={remainingDiceRotations}
             onAllSettled={handleAllSettled}
           />
         </Physics>
@@ -252,8 +258,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             key={i}
             fromPos={anim.fromPos}
             toPos={anim.toPos}
+            fromRotation={anim.fromRotation}
             value={anim.value}
             color={player.color}
+            delay={anim.delay}
             onComplete={handleLerpComplete}
           />
         ))}
@@ -265,6 +273,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             fromPos={anim.fromPos}
             targetPos={anim.targetPos}
             splitTargets={anim.splitTargets}
+            splitYRotations={anim.splitYRotations}
+            delay={anim.delay}
             value={anim.value}
             color={player.color}
           />

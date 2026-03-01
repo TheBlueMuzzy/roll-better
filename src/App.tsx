@@ -108,24 +108,42 @@ function App() {
         // Add both split targets to occupied so subsequent unlocks don't overlap
         occupied.push(splitTargets[0], splitTargets[1]);
 
+        const DEG30 = (30 * Math.PI) / 180;
+        // Stagger: each die starts 250–500ms after the previous
+        const prevDelay = allAnimations.length > 0
+          ? allAnimations[allAnimations.length - 1].delay
+          : 0;
+        const delay = allAnimations.length === 0
+          ? 0
+          : prevDelay + (0.25 + Math.random() * 0.25);
+
         allAnimations.push({
           slotIndex,
           value: lockedEntry.value,
           fromPos,
           targetPos,
           splitTargets,
+          splitYRotations: [
+            (Math.random() * 2 - 1) * DEG30,
+            (Math.random() * 2 - 1) * DEG30,
+          ],
+          delay,
         });
       }
 
       // Trigger animations
       useGameStore.getState().setUnlockAnimations(allAnimations);
 
-      // After animation completes (~1.7s + 0.1s buffer), apply state change
+      // Wait for last animation's delay + full animation duration (1.7s) + buffer
+      const lastDelay = allAnimations.length > 0
+        ? allAnimations[allAnimations.length - 1].delay
+        : 0;
+      const totalWait = (lastDelay * 1000) + 1800;
       setTimeout(() => {
         useGameStore.getState().confirmUnlock(0);
         useGameStore.getState().clearUnlockAnimations();
         setPhase('idle');
-      }, 1800);
+      }, totalWait);
 
     } else if (mustUnlock) {
       // Can't skip — player has 0 dice to roll, must unlock at least 1

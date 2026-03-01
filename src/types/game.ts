@@ -8,7 +8,9 @@ export interface LockedDie {
 export interface LockAnimation {
   fromPos: [number, number, number];  // die's settled position in pool
   toPos: [number, number, number];    // target slot in player row
+  fromRotation: [number, number, number]; // die's settled rotation (Euler)
   value: number;                       // face value for correct rotation
+  delay: number;                       // seconds to wait before starting
 }
 
 export interface UnlockAnimation {
@@ -17,6 +19,8 @@ export interface UnlockAnimation {
   fromPos: [number, number, number];    // player row position
   targetPos: [number, number, number];  // clear spot in pool
   splitTargets: [[number, number, number], [number, number, number]]; // two final positions
+  splitYRotations: [number, number]; // casual Y rotation for each split die
+  delay: number;               // seconds to wait before starting animation
 }
 
 export interface Player {
@@ -37,8 +41,11 @@ export interface RoundState {
   rollNumber: number;
   lastLockCount: number;
   pendingNewDice: number[];
+  pendingNewDicePositions: [number, number, number][];
+  pendingNewDiceRotations: [number, number, number][];
   remainingDiceValues: number[];
   remainingDicePositions: [number, number, number][];
+  remainingDiceRotations: [number, number, number][];
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
   unlockAnimations: UnlockAnimation[];

@@ -9,6 +9,8 @@ interface MitosisDieProps {
   fromPos: [number, number, number];
   targetPos: [number, number, number];
   splitTargets: [[number, number, number], [number, number, number]];
+  splitYRotations: [number, number];
+  delay?: number;
   value: number;
   color: string;
   onComplete?: () => void;
@@ -23,6 +25,8 @@ export function MitosisDie({
   fromPos,
   targetPos,
   splitTargets,
+  splitYRotations,
+  delay = 0,
   value,
   color,
   onComplete,
@@ -36,11 +40,22 @@ export function MitosisDie({
 
   const rotation = getRotationForFace(value);
 
+  const yOffsetA = splitYRotations[0];
+  const yOffsetB = splitYRotations[1];
+
   useFrame((_, delta) => {
     if (!groupRef.current || !dieGroupARef.current || !dieGroupBRef.current) return;
 
     elapsedRef.current += delta;
-    const elapsed = elapsedRef.current;
+    const elapsed = elapsedRef.current - delay;
+
+    // Still waiting for stagger delay — sit at locked position
+    if (elapsed < 0) {
+      dieGroupARef.current.position.set(fromPos[0], fromPos[1], fromPos[2]);
+      dieGroupARef.current.visible = true;
+      dieGroupBRef.current.visible = false;
+      return;
+    }
 
     if (elapsed < LERP_END) {
       // ---- Phase 1: LERP (0 to 0.5s) ----
@@ -62,6 +77,10 @@ export function MitosisDie({
 
       // Move die A to interpolated position
       dieGroupARef.current.position.set(x, y, z);
+
+      // Spin around Y (table-top spin) eases in during flight
+      dieGroupARef.current.rotation.y = yOffsetA * eased;
+
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;
 
@@ -91,6 +110,7 @@ export function MitosisDie({
         targetPos[1] + offsetY,
         targetPos[2] + offsetZ,
       );
+      dieGroupARef.current.rotation.y = yOffsetA;
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;
 
@@ -121,11 +141,16 @@ export function MitosisDie({
       const bz = targetPos[2] + (splitTargets[1][2] - targetPos[2]) * eased;
       dieGroupBRef.current.position.set(bx, targetPos[1], bz);
 
+      dieGroupARef.current.rotation.y = yOffsetA;
+      dieGroupBRef.current.rotation.y = yOffsetB;
+
     } else {
       // ---- Animation complete ----
       // Ensure final positions are exact
       dieGroupARef.current.position.set(splitTargets[0][0], splitTargets[0][1], splitTargets[0][2]);
       dieGroupBRef.current.position.set(splitTargets[1][0], splitTargets[1][1], splitTargets[1][2]);
+      dieGroupARef.current.rotation.y = yOffsetA;
+      dieGroupBRef.current.rotation.y = yOffsetB;
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = true;
 
@@ -138,14 +163,18 @@ export function MitosisDie({
 
   return (
     <group ref={groupRef}>
-      {/* Die A — visible from the start */}
-      <group ref={dieGroupARef} scale={DIE_SIZE} rotation={rotation}>
-        <Die3D color={color} />
+      {/* Die A — outer group handles position + Y spin, inner handles face tilt */}
+      <group ref={dieGroupARef}>
+        <group scale={DIE_SIZE} rotation={rotation}>
+          <Die3D color={color} />
+        </group>
       </group>
 
       {/* Die B — starts hidden, becomes visible during split phase */}
-      <group ref={dieGroupBRef} scale={DIE_SIZE} rotation={rotation} visible={false}>
-        <Die3D color={color} />
+      <group ref={dieGroupBRef} visible={false}>
+        <group scale={DIE_SIZE} rotation={rotation}>
+          <Die3D color={color} />
+        </group>
       </group>
     </group>
   );
