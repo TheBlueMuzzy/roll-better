@@ -90,7 +90,7 @@ Plans:
 
 Plans:
 - [x] 06-01: Dice lock lerps (matched dice lerp from pool to player row slots, ease-in-out timing)
-- [ ] 06-02: Unlock + bonus spawn animation (die lerps to pool, bonus die spawns from Goal die to pool)
+- [x] 06-02: Pool persistence + mitosis unlock (pool dice stay at physics positions, mitosis split animation)
 - [ ] 06-03: Score + round animations (point tokens lerp to score, Z scale-pop, Goal roll-in/roll-out transitions)
 
 ### Phase 7: Unlock Interaction
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
-| 6. Lerp & Animation | 1/3 | In progress | - |
+| 6. Lerp & Animation | 2/3 | In progress | - |
 | 7. Unlock Interaction | 0/2 | Not started | - |
 | 8. AI Opponents | 0/2 | Not started | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |

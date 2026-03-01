@@ -1,27 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 6 in progress. Plan 1 of 3 complete (Lock Lerp). Matched dice now fly from pool to player row with ease-in-out cubic lerp. AnimatingDie component ready for reuse in 06-02 (unlock lerp).
+Phase 6 in progress. Plan 2 of 3 complete (Pool Persistence + Mitosis Unlock). Pool dice stay at physical positions after locking. Unlock animation: lift → lerp → 3-axis shake → mitosis split into two dice.
 
 ## Version
-0.1.0.58
+0.1.0.63
 
 ## Current Position
 
 Phase: 6 of 12 (Lerp & Animation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-01 — Completed 06-01-PLAN.md (Lock Lerp)
+Last activity: 2026-03-01 — Completed 06-02-PLAN.md (Pool Persistence + Mitosis Unlock)
 
-Progress: ████████████████░░░░░░░░░░░░░░░░░░░ 47%
+Progress: ██████████████████░░░░░░░░░░░░░░░░░ 50%
 
 ## Last Session
-2026-03-01 — Completed 06-01-PLAN.md (Lock Lerp):
-- Position capture pipeline: PhysicsDie reports world position on settle
-- LockAnimation type + store state computed in setRollResults
-- AnimatingDie component: ease-in-out cubic + parabolic Y arc
-- Scene renders flying dice outside Physics, PlayerRow hides animating slots
-- Easing refined from ease-out to ease-in-out per user feedback
+2026-03-01 — Completed 06-02-PLAN.md (Pool Persistence + Mitosis Unlock):
+- Pool dice persist at physical positions after locking (remainingDicePositions)
+- Selected unlock dice lift up instead of shrinking
+- MitosisDie: 3-phase animation (lerp → 3-axis shake → split)
+- Clear-spot algorithm prefers center, moves outward if occupied
+- Shake ramps direction changes 15→60/sec, random all axes
+- Original plan reverted after checkpoint feedback, re-planned with mitosis vision
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -62,9 +63,9 @@ Progress: ████████████████░░░░░░░�
 - Vitest for testing (Vite-native, zero config)
 - findAutoLocks: pure function, left-to-right slot filling, returns only new locks
 - Phase transitions via chained useEffect timers with cleanup (StrictMode-safe)
-- Unlock flow: white ring + pulse, tap to select (shrinks 25%), UNLOCK button confirms
-- Unlock returns die + bonus die, both showing unlocked value (pendingNewDice)
-- DicePool uses generation-counter keys — forces remount with correct initialFace on pool shrink
+- Unlock flow: white ring + pulse, tap to select (lifts up 0.3), UNLOCK button confirms
+- Unlock returns die + bonus die via mitosis split animation
+- DicePool uses generation-counter keys + remainingDicePositions for position persistence
 - Must unlock 1+ when poolSize reaches 0 (soft lock prevention)
 - 12-die cap: max unlocks = floor((12 - poolSize) / 2)
 - Shake feedback (150ms, 90Hz) on rejected unlock selections
@@ -72,6 +73,11 @@ Progress: ████████████████░░░░░░░�
 - AnimatingDie renders outside Physics group (visual-only, no physics body)
 - animatingSlotIndices hides PlayerRow dice during flight to prevent overlap
 - 0.6s animation within existing 1s locking delay — no timing changes needed
+- Mitosis split over departure+spawn — communicates "1 die → 2 dice" intuitively
+- Pool dice persist at physical positions — generation key still bumps but uses saved positions
+- Lift-to-select instead of shrink — feels like picking the die up
+- Center-preferring clear-spot placement with minimum clearance
+- 3-axis random shake with ramping direction change rate (15→60/sec)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -81,5 +87,5 @@ Progress: ████████████████░░░░░░░�
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 06-01-PLAN.md — ready for 06-02
+Stopped at: Completed 06-02-PLAN.md — ready for 06-03
 Resume file: None
