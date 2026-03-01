@@ -1,33 +1,35 @@
 # Project State
 
 ## Current Status
-Phase 5 in progress. Round loop fully wired — auto-lock, scoring (8 - poolSize*2), handicap, session-to-20. 3 of 4 plans complete.
+Phase 5 in progress. Executing 05-04-PLAN.md (UI Integration). P0 BUG-001 open: dice matching goals don't all lock (likely getFaceUp misread on tilted dice). Diagnostic logging in place. Fix pending.
 
 ## Version
-0.1.0.46
+0.1.0.51
 
 ## Current Position
 
 Phase: 5 of 12 (Core Game Logic)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-03-01 — Completed 05-03-PLAN.md
+Plan: 4 of 4 in current phase
+Status: In progress — checkpoint 3 (human-verify) iteration
+Last activity: 2026-03-01 — Fixed DicePool stable keys + unlock dice faces
 
 Progress: █████████████████████░░░░░░░░░░░░░░ 41%
 
 ## Last Session
-2026-03-01 — Executed 05-03-PLAN.md (Scoring + Round Loop):
-- Wired findAutoLocks into setRollResults for auto-locking
-- Phase transition chain: locking → scoring → roundEnd → idle via useEffect timers
-- Scoring: max(0, 8 - poolSize * 2), handicap ±1 startingDice
-- HUD: round count, score/target, pool stats, phase status text
-- Session ends at 20 points
-- Commits: 4771c04, 1551780
+2026-03-01 — Executing 05-04-PLAN.md (UI Integration):
+- Connected Scene components to store (f52b078)
+- Phase-aware HUD with roll guarding (fbd8616)
+- Added unlock phase — pulled from Phase 7 (d81d6a3, c5fd416)
+- Guard setRollResults against double-fire (fc95761)
+- Fixed DicePool key bug: stable keys + unlock dice show correct face (24f6e38)
+- Added diagnostic logging for settle + lock pipeline (b5439c9)
+- Investigated P0 locking bug — findAutoLocks verified correct, getFaceUp suspected
+- Created BUG-001 P0 in ISSUES.md with full investigation data
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
 - `.planning/research/references.md` — personas, design theory, art direction
-- `.planning/research/core-rules.md` — complete rules (v2)
+- `.planning/research/core-rules.md` — complete rules (v2, unlock flow updated)
 - `.planning/research/dice-visuals.md` — 3D dice rendering research
 
 ## Key Decisions
@@ -57,21 +59,28 @@ Progress: █████████████████████░░�
 - PlayerIcon at lower-left of rolling area (not over black border)
 - HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
 - Tap-text instead of button — "Tap To Roll" → "Rolling" → results (user direction)
-- Phase flow: idle → rolling → locking → scoring → roundEnd → idle (chained useEffect timers, 1500ms each)
+- Phase flow: idle → rolling → locking → unlocking → idle (loop), locking → scoring → roundEnd (on win)
 - PLAYER_COLORS in store file (avoids circular dep with Die3D)
 - initGame must reset currentRound for StrictMode safety
 - Vitest for testing (Vite-native, zero config)
 - findAutoLocks: pure function, left-to-right slot filling, returns only new locks
 - Phase transitions via chained useEffect timers with cleanup (StrictMode-safe)
+- Unlock flow: all locked dice show white ring + pulse, tap to select (shrinks 25%), UNLOCK button confirms
+- Unlock returns die + bonus die, both showing the unlocked value (pendingNewDice in RoundState)
+- DicePool uses stable key={i} — dice survive count changes without remounting
 
 ## Known Issues
+- **BUG-001 (P0):** Dice matching goal slots don't all lock — some matches silently dropped. Likely getFaceUp misread on canted dice. Full investigation in ISSUES.md. Diagnostic logging active.
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
-- ISS-002: Dice can cant against walls or other dice, blocking face detection
+- ISS-002: Dice can cant against walls or other dice, blocking face detection (related to BUG-001)
+- ISS-003: After auto-lock shrinks pool, surviving dice may show locked values briefly (cosmetic, clears on next roll)
 
 ## Session Continuity
 Last session: 2026-03-01
-Stopped at: Completed 05-03-PLAN.md
+Stopped at: 05-04 checkpoint 3 — iterating on bug fixes after user testing
 Resume file: None
 
 ## Next Steps
-- Execute 05-04-PLAN.md: Auto-lock logic refinements
+- Fix BUG-001 (P0): dice not locking — see ISSUES.md for full investigation + fix approaches
+- After fix: re-test checkpoint 3 for user verification
+- After approval: create 05-04-SUMMARY.md, update ROADMAP, commit metadata

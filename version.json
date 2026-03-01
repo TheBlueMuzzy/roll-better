@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 51,
+  "build": 52,
   "history": [
     {
       "version": "0.1.0",
@@ -22,6 +22,11 @@
       "version": "0.1.0.39",
       "date": "2026-03-01",
       "summary": "PlayerRow + PlayerIcon, Goal/Player rows at top of viewport"
+    },
+    {
+      "version": "0.1.0.52",
+      "date": "2026-03-01",
+      "summary": "BUG-001 investigation + runtime validation trap for lock mismatch"
     }
   ]
 }

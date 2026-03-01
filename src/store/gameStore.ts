@@ -122,6 +122,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player.lockedDice,
     );
 
+    // --- BUG-001 VALIDATION: independently count expected locks ---
+    const lockedSlotSet = new Set(player.lockedDice.map(l => l.goalSlotIndex));
+    const availableByValue = new Map<number, number>();
+    for (let i = 0; i < state.roundState.goalValues.length; i++) {
+      if (!lockedSlotSet.has(i)) {
+        const v = state.roundState.goalValues[i];
+        availableByValue.set(v, (availableByValue.get(v) || 0) + 1);
+      }
+    }
+    let expectedTotal = 0;
+    const rolledCounts = new Map<number, number>();
+    for (const v of results) {
+      rolledCounts.set(v, (rolledCounts.get(v) || 0) + 1);
+    }
+    for (const [val, rolledCount] of rolledCounts) {
+      const availCount = availableByValue.get(val) || 0;
+      expectedTotal += Math.min(rolledCount, availCount);
+    }
+    if (newLocks.length !== expectedTotal) {
+      console.error(
+        `[BUG-001 MISMATCH] Expected ${expectedTotal} locks but got ${newLocks.length}! ` +
+        `goal=[${state.roundState.goalValues}] rolled=[${results}] ` +
+        `existingLocks=[${player.lockedDice.map(l => `s${l.goalSlotIndex}=v${l.value}`)}] ` +
+        `available=${JSON.stringify(Object.fromEntries(availableByValue))} ` +
+        `rolledCounts=${JSON.stringify(Object.fromEntries(rolledCounts))}`,
+      );
+    }
+    // --- END VALIDATION ---
+
     console.log(
       `[setRollResults] goal=[${state.roundState.goalValues}] rolled=[${results}] ` +
       `existingLocks=${player.lockedDice.length} newLocks=${newLocks.length} ` +
