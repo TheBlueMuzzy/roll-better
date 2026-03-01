@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings } from '../types/game';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -47,6 +47,11 @@ interface GameStore extends GameState {
   applyHandicap: () => void;
   checkWinner: () => boolean;
   checkSessionEnd: () => boolean;
+
+  // Settings
+  setAudioVolume: (volume: number) => void;
+  setPerformanceMode: (mode: Settings['performanceMode']) => void;
+  setTipsEnabled: (enabled: boolean) => void;
 }
 
 const initialRoundState = {
@@ -67,18 +72,25 @@ const initialRoundState = {
   goalTransition: 'none' as const,
 };
 
+const defaultSettings: Settings = {
+  audioVolume: 80,
+  performanceMode: 'advanced',
+  tipsEnabled: true,
+};
+
 const initialState: GameState = {
   phase: 'lobby',
   players: [],
   currentRound: 0,
   roundState: initialRoundState,
   sessionTargetScore: 20,
+  settings: defaultSettings,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
 
-  reset: () => set(initialState),
+  reset: () => set({ ...initialState, settings: get().settings }),
 
   setPhase: (phase) => set({ phase }),
 
@@ -473,5 +485,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
   checkSessionEnd: () => {
     const state = get();
     return state.players.some((p) => p.score >= state.sessionTargetScore);
+  },
+
+  // --- Settings actions ---
+  setAudioVolume: (volume: number) => {
+    set({ settings: { ...get().settings, audioVolume: volume } });
+  },
+
+  setPerformanceMode: (mode: Settings['performanceMode']) => {
+    set({ settings: { ...get().settings, performanceMode: mode } });
+  },
+
+  setTipsEnabled: (enabled: boolean) => {
+    set({ settings: { ...get().settings, tipsEnabled: enabled } });
   },
 }));

@@ -61,10 +61,17 @@ export interface Die {
   position: [number, number, number];
 }
 
+export interface Settings {
+  audioVolume: number;                         // 0-100, default 80
+  performanceMode: 'advanced' | 'simple';      // default 'advanced'
+  tipsEnabled: boolean;                        // default true
+}
+
 export interface GameState {
   phase: GamePhase;
   players: Player[];
   currentRound: number;
   roundState: RoundState;
   sessionTargetScore: number;
+  settings: Settings;
 }

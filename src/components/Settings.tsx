@@ -1,10 +1,35 @@
+import { useState } from 'react';
+import { useGameStore } from '../store/gameStore';
+
 interface SettingsProps {
   open: boolean;
   onClose: () => void;
 }
 
 export function Settings({ open, onClose }: SettingsProps) {
+  const audioVolume = useGameStore((s) => s.settings.audioVolume);
+  const performanceMode = useGameStore((s) => s.settings.performanceMode);
+  const tipsEnabled = useGameStore((s) => s.settings.tipsEnabled);
+  const setAudioVolume = useGameStore((s) => s.setAudioVolume);
+  const setPerformanceMode = useGameStore((s) => s.setPerformanceMode);
+  const setTipsEnabled = useGameStore((s) => s.setTipsEnabled);
+  const initGame = useGameStore((s) => s.initGame);
+  const initRound = useGameStore((s) => s.initRound);
+
+  const [quitConfirm, setQuitConfirm] = useState(false);
+
   if (!open) return null;
+
+  const handleQuitYes = () => {
+    setQuitConfirm(false);
+    onClose();
+    initGame(2);
+    initRound();
+  };
+
+  const handleQuitNo = () => {
+    setQuitConfirm(false);
+  };
 
   return (
     <div className="settings-backdrop" onClick={onClose}>
@@ -14,6 +39,83 @@ export function Settings({ open, onClose }: SettingsProps) {
           <button className="settings-close" onClick={onClose}>
             &#x2715;
           </button>
+        </div>
+
+        <div className="settings-items">
+          {/* Audio Volume */}
+          <div className="settings-item">
+            <div className="settings-item-row">
+              <span className="settings-label">Audio</span>
+              <span className="settings-value">{audioVolume}</span>
+            </div>
+            <input
+              className="settings-slider"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={audioVolume}
+              onChange={(e) => setAudioVolume(Number(e.target.value))}
+            />
+          </div>
+
+          {/* Performance Mode */}
+          <div className="settings-item">
+            <div className="settings-item-row">
+              <span className="settings-label">Performance</span>
+              <div className="settings-segmented">
+                <button
+                  className={`settings-segmented-btn${performanceMode === 'simple' ? ' active' : ''}`}
+                  onClick={() => setPerformanceMode('simple')}
+                >
+                  Simple
+                </button>
+                <button
+                  className={`settings-segmented-btn${performanceMode === 'advanced' ? ' active' : ''}`}
+                  onClick={() => setPerformanceMode('advanced')}
+                >
+                  Advanced
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tips Toggle */}
+          <div className="settings-item">
+            <div className="settings-item-row">
+              <span className="settings-label">Tips</span>
+              <div
+                className={`settings-toggle${tipsEnabled ? ' on' : ''}`}
+                onClick={() => setTipsEnabled(!tipsEnabled)}
+              >
+                <div className="settings-toggle-thumb" />
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="settings-divider" />
+
+          {/* Quit Game */}
+          <div className="settings-item">
+            {!quitConfirm ? (
+              <button className="settings-quit" onClick={() => setQuitConfirm(true)}>
+                Quit Game
+              </button>
+            ) : (
+              <div className="settings-quit-confirm">
+                <span className="settings-quit-text">Are you sure?</span>
+                <div className="settings-quit-actions">
+                  <button className="settings-quit-yes" onClick={handleQuitYes}>
+                    Yes
+                  </button>
+                  <button className="settings-quit-no" onClick={handleQuitNo}>
+                    No
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
