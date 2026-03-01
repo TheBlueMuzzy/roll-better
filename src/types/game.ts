@@ -21,6 +21,7 @@ export interface RoundState {
   goalValues: number[];
   rollResults: number[] | null;
   rollNumber: number;
+  lastLockCount: number;
 }
 
 export interface Die {

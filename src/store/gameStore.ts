@@ -43,6 +43,7 @@ const initialRoundState = {
   goalValues: [],
   rollResults: null,
   rollNumber: 0,
+  lastLockCount: 0,
 };
 
 const initialState: GameState = {
@@ -94,6 +95,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         goalValues,
         rollResults: null,
         rollNumber: 0,
+        lastLockCount: 0,
       },
       currentRound: state.currentRound + 1,
       phase: 'idle',
@@ -125,6 +127,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...state.roundState,
         rollResults: results,
         rollNumber: state.roundState.rollNumber + 1,
+        lastLockCount: newLocks.length,
       },
       phase: 'locking',
     });

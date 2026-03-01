@@ -27,7 +27,7 @@ function App() {
     initRound();
   }, [initGame, initRound]);
 
-  // After locking phase, check for winner or transition to idle
+  // After locking phase, show lock count for 1s then check for winner or go idle
   useEffect(() => {
     if (phase === 'locking') {
       const timer = setTimeout(() => {
@@ -38,18 +38,18 @@ function App() {
         } else {
           setPhase('idle');
         }
-      }, 1500);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [phase, setPhase, checkWinner, scoreRound]);
 
-  // After scoring, apply handicap and start next round (or end session)
+  // After scoring, show score for 2s then apply handicap and start next round
   useEffect(() => {
     if (phase === 'scoring') {
       const timer = setTimeout(() => {
         applyHandicap();
         // applyHandicap sets phase to 'roundEnd'
-      }, 1500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [phase, applyHandicap]);
@@ -69,10 +69,11 @@ function App() {
   }, [phase, checkSessionEnd, setPhase, initRound]);
 
   const handleRoll = useCallback(() => {
-    if (phase !== 'idle') return;
+    // Use getState() for synchronous phase check (avoids stale closure)
+    if (useGameStore.getState().phase !== 'idle') return;
     setPhase('rolling');
     sceneRef.current?.rollAll();
-  }, [phase, setPhase]);
+  }, [setPhase]);
 
   const handleRollStart = useCallback(() => {
     setPhase('rolling');
