@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 80,
+  "build": 81,
   "history": [
     {
       "version": "0.1.0",
@@ -77,6 +77,11 @@
       "version": "0.1.0.80",
       "date": "2026-03-02",
       "summary": "Pool dice spawn animation: fly from avatar with bounce+tumble on round start"
+    },
+    {
+      "version": "0.1.0.81",
+      "date": "2026-03-02",
+      "summary": "Fix unlock/skip button persisting during unlock animations"
     }
   ]
 }

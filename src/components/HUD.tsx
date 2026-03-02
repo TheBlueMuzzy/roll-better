@@ -24,6 +24,9 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const mustUnlock = poolSize === 0 && lockedCount < 8;
   const maxUnlocks = Math.floor((12 - poolSize) / 2);
   const atUnlockCap = selectedCount >= maxUnlocks && maxUnlocks > 0;
+  const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
+  const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
+  const animationsInProgress = unlockAnimating || aiUnlockAnimating;
 
   // --- Score counting animation ---
   const scoreRef = useRef<HTMLSpanElement>(null);
@@ -138,8 +141,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
 
       </div>
 
-      {/* Unlock/Skip button — centered in pool area during unlock phase */}
-      {phase === 'unlocking' && (
+      {/* Unlock/Skip button — centered in pool area during unlock phase, hidden during animations */}
+      {phase === 'unlocking' && !animationsInProgress && (
         <button
           className={`hud-skip-btn${mustUnlock && selectedCount === 0 ? ' hud-skip-btn--disabled' : ''}`}
           onClick={onConfirmUnlock}
