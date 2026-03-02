@@ -85,6 +85,7 @@ export interface Die {
 export interface Settings {
   audioVolume: number;                         // 0-100, default 80
   performanceMode: 'advanced' | 'simple';      // default 'advanced'
+  shakeToRollEnabled: boolean;                 // default true (mobile only)
   tipsEnabled: boolean;                        // default true
   confirmationEnabled: boolean;                // default true
 }

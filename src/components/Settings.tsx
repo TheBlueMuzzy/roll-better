@@ -1,35 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 interface SettingsProps {
   open: boolean;
   onClose: () => void;
   onOpenHowToPlay: () => void;
+  shakeSupported?: boolean;
 }
 
-export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
+export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: SettingsProps) {
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
+  const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
   const tipsEnabled = useGameStore((s) => s.settings.tipsEnabled);
   const confirmationEnabled = useGameStore((s) => s.settings.confirmationEnabled);
   const setAudioVolume = useGameStore((s) => s.setAudioVolume);
   const setPerformanceMode = useGameStore((s) => s.setPerformanceMode);
+  const setShakeToRollEnabled = useGameStore((s) => s.setShakeToRollEnabled);
   const setTipsEnabled = useGameStore((s) => s.setTipsEnabled);
   const setConfirmationEnabled = useGameStore((s) => s.setConfirmationEnabled);
   const setScreen = useGameStore((s) => s.setScreen);
 
   const [quitConfirm, setQuitConfirm] = useState(false);
 
+  // Reset quit confirmation when panel closes
+  useEffect(() => {
+    if (!open) setQuitConfirm(false);
+  }, [open]);
+
   if (!open) return null;
 
-  const handleQuitYes = () => {
-    setQuitConfirm(false);
-    onClose();
-    setScreen('menu');
-  };
-
-  const handleQuitNo = () => {
-    setQuitConfirm(false);
+  const handleQuit = () => {
+    if (quitConfirm) {
+      setQuitConfirm(false);
+      onClose();
+      setScreen('menu');
+    } else {
+      setQuitConfirm(true);
+    }
   };
 
   return (
@@ -77,6 +85,26 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
               </div>
             </div>
           </div>
+
+          {/* Shake to Roll Toggle — only on supported devices */}
+          {shakeSupported && (
+            <div className="settings-item">
+              <div className="settings-item-row">
+                <span className="settings-label">Shake to Roll</span>
+                <div className="settings-toggle-group">
+                  <div
+                    className={`settings-toggle${shakeToRollEnabled ? ' on' : ''}`}
+                    onClick={() => setShakeToRollEnabled(!shakeToRollEnabled)}
+                  >
+                    <div className="settings-toggle-thumb" />
+                  </div>
+                  <span className="settings-hint">
+                    {shakeToRollEnabled ? 'On' : 'Off'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Tips Toggle */}
           <div className="settings-item">
@@ -126,23 +154,12 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
 
           {/* Main Menu */}
           <div className="settings-item">
-            {!quitConfirm ? (
-              <button className="settings-quit" onClick={() => setQuitConfirm(true)}>
-                Main Menu
-              </button>
-            ) : (
-              <div className="settings-quit-confirm">
-                <span className="settings-quit-text">Are you sure?</span>
-                <div className="settings-quit-actions">
-                  <button className="settings-quit-yes" onClick={handleQuitYes}>
-                    Yes
-                  </button>
-                  <button className="settings-quit-no" onClick={handleQuitNo}>
-                    No
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              className={`settings-quit${quitConfirm ? ' confirming' : ''}`}
+              onClick={handleQuit}
+            >
+              {quitConfirm ? 'Are you sure?' : 'Main Menu'}
+            </button>
           </div>
         </div>
       </div>

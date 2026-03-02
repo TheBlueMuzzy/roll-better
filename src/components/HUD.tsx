@@ -5,9 +5,11 @@ interface HUDProps {
   onRoll: () => void;
   onConfirmUnlock: () => void;
   onOpenSettings: () => void;
+  shakeEnabled?: boolean;
+  onRequestShakePermission?: () => void;
 }
 
-export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
+export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onRequestShakePermission }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -85,7 +87,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   if (phase === 'lobby') {
     statusText = 'Starting...';
   } else if (phase === 'idle') {
-    statusText = 'Tap To Roll';
+    statusText = shakeEnabled ? 'Shake to Roll' : 'Tap To Roll';
   } else if (phase === 'rolling') {
     statusText = 'Rolling...';
   } else if (phase === 'locking') {
@@ -131,6 +133,13 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
           >
             {statusText}
           </span>
+        )}
+
+        {/* iOS shake permission prompt — shown once during first idle */}
+        {phase === 'idle' && onRequestShakePermission && (
+          <button className="hud-shake-permission" onClick={onRequestShakePermission}>
+            Enable Shake
+          </button>
         )}
 
       </div>

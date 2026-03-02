@@ -10,6 +10,7 @@ import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
+import { useShakeToRoll } from './hooks/useShakeToRoll';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
@@ -58,7 +59,6 @@ function App() {
   const shownTips = useGameStore((s) => s.shownTips);
   const playerPoolSize = useGameStore((s) => s.players[0]?.poolSize ?? 0);
   const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
-
 
   // Play button handler — called from MainMenu
   const handlePlay = useCallback((playerCount: number, difficulty: AIDifficulty) => {
@@ -355,6 +355,11 @@ function App() {
     sceneRef.current?.rollAll();
   }, [setPhase]);
 
+  // Shake-to-roll (mobile) — must come after handleRoll is defined
+  const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
+  const { isSupported: shakeSupported, permissionState: shakePermission, requestPermission: requestShakePermission } =
+    useShakeToRoll(handleRoll, shakeToRollEnabled && screen === 'game');
+
   const handleRollStart = useCallback(() => {
     setPhase('rolling');
   }, [setPhase]);
@@ -386,7 +391,13 @@ function App() {
               onRoll={handleRoll}
             />
           </Canvas>
-          <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
+          <HUD
+            onRoll={handleRoll}
+            onConfirmUnlock={handleConfirmUnlock}
+            onOpenSettings={() => setSettingsOpen(true)}
+            shakeEnabled={shakeSupported && shakeToRollEnabled}
+            onRequestShakePermission={shakeSupported && shakePermission === 'prompt' ? requestShakePermission : undefined}
+          />
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
           )}
@@ -395,7 +406,7 @@ function App() {
       {screen === 'winners' && (
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} shakeSupported={shakeSupported} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
       <div className="build-version">{version}</div>
