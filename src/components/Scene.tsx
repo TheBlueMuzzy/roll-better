@@ -44,12 +44,19 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const lockAnimations = useGameStore((s) => s.roundState.lockAnimations);
     const animatingSlotIndices = useGameStore((s) => s.roundState.animatingSlotIndices);
     const clearLockAnimations = useGameStore((s) => s.clearLockAnimations);
+    const aiLockAnimations = useGameStore((s) => s.roundState.aiLockAnimations);
+    const aiAnimatingSlotIndices = useGameStore((s) => s.roundState.aiAnimatingSlotIndices);
+    const clearAILockAnimations = useGameStore((s) => s.clearAILockAnimations);
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const player = players[0];
 
-    // Track how many lerp animations have completed
+    // Track how many lerp animations have completed (human)
     const lerpCompleteCount = useRef(0);
     const lerpExpectedCount = useRef(0);
+
+    // Track how many AI lerp animations have completed
+    const aiLerpCompleteCount = useRef(0);
+    const aiLerpExpectedCount = useRef(0);
 
     // Compute locked values array (8 slots, null if empty, value if locked)
     const lockedValues = useMemo(() => {
@@ -101,9 +108,11 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     function handleAllSettled(values: number[], positions: [number, number, number][], rotations: [number, number, number][]) {
       console.log('All dice settled:', values);
-      // Reset lerp tracking for this roll
+      // Reset lerp tracking for this roll (human + AI)
       lerpCompleteCount.current = 0;
       lerpExpectedCount.current = 0;
+      aiLerpCompleteCount.current = 0;
+      aiLerpExpectedCount.current = 0;
       // Pass sorted values + positions + rotations directly to store (includes animation computation)
       useGameStore.getState().setRollResults(values, positions, rotations);
       // Also notify App via callback (for any non-position-aware consumers)
@@ -121,6 +130,19 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     if (lockAnimations.length > 0 && lerpExpectedCount.current === 0) {
       lerpExpectedCount.current = lockAnimations.length;
       lerpCompleteCount.current = 0;
+    }
+
+    function handleAILerpComplete() {
+      aiLerpCompleteCount.current++;
+      if (aiLerpCompleteCount.current >= aiLerpExpectedCount.current && aiLerpExpectedCount.current > 0) {
+        clearAILockAnimations();
+      }
+    }
+
+    // Sync expected AI lerp count when aiLockAnimations changes
+    if (aiLockAnimations.length > 0 && aiLerpExpectedCount.current === 0) {
+      aiLerpExpectedCount.current = aiLockAnimations.length;
+      aiLerpCompleteCount.current = 0;
     }
 
     function handleFloorClick() {
@@ -227,6 +249,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             z={-3.77 + (idx + 1) * 0.9}
             color={aiPlayer.color}
             lockedValues={aiLockedValues[idx]}
+            animatingSlotIndices={aiAnimatingSlotIndices[aiPlayer.id] || []}
           />
         ))}
 
@@ -305,6 +328,25 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             onComplete={handleLerpComplete}
           />
         ))}
+
+        {/* AI lock animations — dice emerge from profile and fly to slots */}
+        {aiLockAnimations.map((anim, i) => {
+          const aiPlayer = players.find((p) => p.id === anim.playerId);
+          return (
+            <AnimatingDie
+              key={`ai-lock-${i}`}
+              fromPos={anim.fromPos}
+              toPos={anim.toPos}
+              fromRotation={anim.fromRotation}
+              value={anim.value}
+              color={aiPlayer?.color || '#888'}
+              delay={anim.delay}
+              fromScale={anim.fromScale}
+              toScale={anim.toScale}
+              onComplete={handleAILerpComplete}
+            />
+          );
+        })}
 
         {/* Mitosis unlock animations — flying + splitting dice outside Physics */}
         {unlockAnimations.map((anim, i) => (
