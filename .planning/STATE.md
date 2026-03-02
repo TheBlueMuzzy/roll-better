@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 9 in progress. Plan 09-01 complete (layout restructure + profile groups). 5 plans remaining in phase.
+Phase 9 in progress. Plan 09-02 complete (goal dice transitions rework). 4 plans remaining in phase.
 
 ## Version
 0.1.0.74
@@ -9,19 +9,19 @@ Phase 9 in progress. Plan 09-01 complete (layout restructure + profile groups). 
 ## Current Position
 
 Phase: 9 of 12 (Multi-Player Display)
-Plan: 1 of 6 in current phase
+Plan: 2 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 09-01-PLAN.md (layout restructure + profile groups)
+Last activity: 2026-03-02 — Completed 09-02-PLAN.md (goal transitions rework)
 
-Progress: █████████████████████████░░░░░░░░░░ 72%
+Progress: ██████████████████████████░░░░░░░░░ 74%
 
 ## Last Session
-2026-03-02 — Executed 09-01 (layout restructure + profile groups):
-- Scaled dice down (DIE_SIZE divisor 8.5 → 9.5, SLOT_SPACING 0.7 → 0.62)
-- Shifted rows right via centering formula for left-side avatar space
-- Created PlayerProfileGroup: two-column (57px avatar | star+score / SX|TX)
-- Created GoalProfileGroup: 57px gold circle with star
-- Iterated on profile layout per user feedback (30% larger circles, two-column, doubled star)
+2026-03-02 — Executed 09-02 (goal dice transitions rework):
+- Exit: fast rightward slide with 15ms stagger, no rotation, easeIn
+- Enter: emerge from star icon at scale 0, tumble during flight, scale up, snap face on arrival
+- Unified unlock/skip button centered in pool area (55% vertical)
+- Tips repositioned below divider line (36%)
+- Added 2nd AI player (3 total)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -95,6 +95,10 @@ Progress: ███████████████████████�
 - Round ends immediately when ANY player completes the goal
 - AI rolls: random numbers computed in setRollResults alongside human dice physics
 - AI unlocks: decisions processed when human confirms/skips (processAIUnlocks action)
+- Inner-wrapper animation: useFrame drives position/rotation/scale on inner group, outer group holds static face rotation + DIE_SIZE
+- Star-origin emergence: STAR_WORLD_X = getSlotX(0) - 0.9, local offset = (starX - slotX) / DIE_SIZE
+- Unified unlock/skip button centered at 55% vertical in pool area
+- Tips positioned at top: 36% (just below divider line)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -104,5 +108,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-01-PLAN.md (layout restructure + profile groups)
-Resume file: None — ready for 09-02-PLAN.md
+Stopped at: Completed 09-02-PLAN.md (goal transitions rework)
+Resume file: None — ready for 09-03-PLAN.md
