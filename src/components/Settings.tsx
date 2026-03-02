@@ -83,7 +83,7 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
                   <div className="settings-toggle-thumb" />
                 </div>
                 <span className="settings-hint">
-                  {performanceMode === 'advanced' ? 'Advanced' : 'Simple'}
+                  {performanceMode === 'advanced' ? 'Best visuals' : 'Better battery'}
                 </span>
               </div>
             </div>

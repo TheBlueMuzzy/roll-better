@@ -34,6 +34,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const phase = useGameStore((s) => s.phase);
     const roundState = useGameStore((s) => s.roundState);
     const players = useGameStore((s) => s.players);
+    const performanceMode = useGameStore((s) => s.settings.performanceMode);
     const hapticsEnabled = useGameStore((s) => s.settings.hapticsEnabled);
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
@@ -217,23 +218,25 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {/* HDRI environment for reflections */}
         <Environment preset="apartment" />
 
-        {/* Soft grounding shadows (visual-only, outside Physics) */}
-        <AccumulativeShadows
-          temporal
-          frames={100}
-          scale={10}
-          position={[0, 0.01, 0]}
-          opacity={0.25}
-        >
-          <RandomizedLight
-            amount={8}
-            radius={4}
-            ambient={0.5}
-            intensity={1}
-            position={[2, 10, -3]}
-            bias={0.001}
-          />
-        </AccumulativeShadows>
+        {/* Soft grounding shadows (visual-only, outside Physics) — disabled in simple mode */}
+        {performanceMode === 'advanced' && (
+          <AccumulativeShadows
+            temporal
+            frames={100}
+            scale={10}
+            position={[0, 0.01, 0]}
+            opacity={0.25}
+          >
+            <RandomizedLight
+              amount={8}
+              radius={4}
+              ambient={0.5}
+              intensity={1}
+              position={[2, 10, -3]}
+              bias={0.001}
+            />
+          </AccumulativeShadows>
+        )}
 
         {/* Placement zone floor — different color, edge-to-edge horizontally */}
         <mesh

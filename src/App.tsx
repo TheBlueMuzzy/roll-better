@@ -53,7 +53,8 @@ function App() {
   const setPoolExiting = useGameStore((s) => s.setPoolExiting);
   const setPoolSpawning = useGameStore((s) => s.setPoolSpawning);
 
-  // Haptics setting
+  // Performance + Haptics settings
+  const performanceMode = useGameStore((s) => s.settings.performanceMode);
   const hapticsEnabled = useGameStore((s) => s.settings.hapticsEnabled);
 
   // Tip-related store reads
@@ -401,7 +402,8 @@ function App() {
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
-            shadows
+            shadows={performanceMode === 'advanced'}
+            dpr={performanceMode === 'simple' ? 1 : [1, 2]}
             camera={{ position: [0, 12, 0.01], fov: 50 }}
             gl={{ antialias: true }}
           >
