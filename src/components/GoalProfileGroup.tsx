@@ -26,8 +26,8 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
         {/* Star icon inside a gold circle — same size as player avatars */}
         <div
           style={{
-            width: 44,
-            height: 44,
+            width: 57,
+            height: 57,
             borderRadius: '50%',
             backgroundColor: '#f1c40f',
             border: '2px solid rgba(255, 255, 255, 0.3)',
@@ -38,7 +38,7 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
         >
           <span
             style={{
-              fontSize: 24,
+              fontSize: 30,
               lineHeight: 1,
               color: '#ffffff',
               textShadow: '0 1px 2px rgba(0,0,0,0.3)',

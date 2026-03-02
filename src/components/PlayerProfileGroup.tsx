@@ -52,65 +52,65 @@ export function PlayerProfileGroup({
         whiteSpace: 'nowrap',
       }}
     >
+      {/* Two-column layout: A) Avatar | B) Star+score / SX|TX */}
       <div
         style={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          gap: 2,
+          gap: 6,
         }}
       >
-        {/* Top row: avatar circle + star-score side by side */}
+        {/* Column A: Avatar circle */}
+        <div
+          style={{
+            width: 57,
+            height: 57,
+            borderRadius: '50%',
+            backgroundColor: color,
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: '#ffffff',
+              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+
+        {/* Column B: two rows stacked */}
         <div
           style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            gap: 4,
+            gap: 2,
           }}
         >
-          {/* Avatar circle — sized to match dice */}
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              backgroundColor: color,
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                color: '#ffffff',
-                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-              }}
-            >
-              {name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-
-          {/* Score inside a star */}
+          {/* B.1: Star with score */}
           <div
             style={{
               position: 'relative',
-              width: 36,
-              height: 36,
+              width: 52,
+              height: 52,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            {/* Star background */}
             <span
               style={{
                 position: 'absolute',
-                fontSize: 36,
+                fontSize: 52,
                 lineHeight: 1,
                 color: '#f1c40f',
                 textShadow: '0 1px 3px rgba(0,0,0,0.4)',
@@ -118,11 +118,10 @@ export function PlayerProfileGroup({
             >
               &#9733;
             </span>
-            {/* Score number on top of star */}
             <span
               style={{
                 position: 'relative',
-                fontSize: 14,
+                fontSize: 20,
                 fontWeight: 'bold',
                 color: '#1a1a1a',
                 lineHeight: 1,
@@ -132,47 +131,47 @@ export function PlayerProfileGroup({
               {score}
             </span>
           </div>
-        </div>
 
-        {/* Bottom row: S{startingDice} | T{totalDice} */}
-        <div
-          ref={statsRef}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            transformOrigin: 'center',
-          }}
-        >
-          <span
+          {/* B.2: S{startingDice} | T{totalDice} */}
+          <div
+            ref={statsRef}
             style={{
-              fontSize: 11,
-              color: 'rgba(255, 255, 255, 0.7)',
-              lineHeight: 1,
-              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              transformOrigin: 'center',
             }}
           >
-            S{startingDice}
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              color: 'rgba(255, 255, 255, 0.35)',
-              lineHeight: 1,
-            }}
-          >
-            |
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              color: 'rgba(255, 255, 255, 0.7)',
-              lineHeight: 1,
-              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-            }}
-          >
-            T{totalDice}
-          </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: 'rgba(255, 255, 255, 0.7)',
+                lineHeight: 1,
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              }}
+            >
+              S{startingDice}
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: 'rgba(255, 255, 255, 0.35)',
+                lineHeight: 1,
+              }}
+            >
+              |
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: 'rgba(255, 255, 255, 0.7)',
+                lineHeight: 1,
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              }}
+            >
+              T{totalDice}
+            </span>
+          </div>
         </div>
       </div>
     </Html>
