@@ -1,9 +1,11 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
+import type { ContactForcePayload } from '@react-three/rapier';
 import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
 import { getFaceUp, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
+import { hapticBounce } from '../utils/haptics';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
@@ -26,16 +28,25 @@ interface PhysicsDieProps {
   initialFace?: number;
   /** Exact Euler rotation to restore (overrides initialFace rotation) */
   initialRotation?: [number, number, number];
+  /** Enable haptic feedback on dice collisions (human player only) */
+  hapticsEnabled?: boolean;
   onSettle?: () => void;
   onResult?: (value: number, position: [number, number, number], rotation: [number, number, number]) => void;
   onUnsettled?: () => void;
 }
 
 export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
-  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], initialFace, initialRotation, onSettle, onResult, onUnsettled }, ref) {
+  function PhysicsDie({ color = '#e8e0d4', position = [0, 1, 0], initialFace, initialRotation, hapticsEnabled, onSettle, onResult, onUnsettled }, ref) {
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
     const lastResult = useRef<number | null>(null);
+
+    // Haptic feedback on dice collisions — force-proportional pulse
+    const handleContactForce = useCallback((payload: ContactForcePayload) => {
+      if (hapticsEnabled) {
+        hapticBounce(payload.totalForceMagnitude);
+      }
+    }, [hapticsEnabled]);
 
     // Compute initial rotation ONCE on mount (stored in ref so re-renders don't change it)
     const rotationRef = useRef<[number, number, number] | null>(null);
@@ -113,6 +124,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         friction={0.5}
         angularDamping={0.3}
         linearDamping={0.1}
+        onContactForce={hapticsEnabled ? handleContactForce : undefined}
         onSleep={() => {
           if (isRolling.current) {
             isRolling.current = false;
