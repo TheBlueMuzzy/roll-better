@@ -9,6 +9,7 @@ import { TipBanner } from './components/TipBanner';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
+import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
 import type { UnlockAnimation, AIUnlockAnimation } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
@@ -43,6 +44,7 @@ function App() {
   const checkSessionEnd = useGameStore((s) => s.checkSessionEnd);
   const setGoalTransition = useGameStore((s) => s.setGoalTransition);
   const setPoolExiting = useGameStore((s) => s.setPoolExiting);
+  const setPoolSpawning = useGameStore((s) => s.setPoolSpawning);
 
   // Tip-related store reads
   const currentRound = useGameStore((s) => s.currentRound);
@@ -57,7 +59,19 @@ function App() {
   useEffect(() => {
     initGame(3, 'medium');
     initRound();
-  }, [initGame, initRound]);
+
+    // Start pool spawn animation for the first round
+    const state = useGameStore.getState();
+    const humanPlayer = state.players[0];
+    if (humanPlayer && humanPlayer.poolSize > 0) {
+      const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
+      setPoolSpawning(true, spawnPositions);
+      const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
+      setTimeout(() => {
+        setPoolSpawning(false);
+      }, spawnDuration);
+    }
+  }, [initGame, initRound, setPoolSpawning]);
 
   // --- Contextual tips ---
   useEffect(() => {
@@ -106,6 +120,7 @@ function App() {
 
   // After roundEnd: staged goal transition (exit → swap → enter → idle)
   // Pool dice exit animation runs in parallel with goal exit
+  // Pool dice spawn animation starts at initRound
   useEffect(() => {
     if (phase !== 'roundEnd') return;
 
@@ -119,24 +134,41 @@ function App() {
     setPoolExiting(true);
     setGoalTransition('exiting');
 
-    // Stage 2 (500ms): pool exit done (~0.45s), swap to new round + enter goals
+    // Stage 2 (500ms): pool exit done (~0.45s), swap to new round + enter goals + spawn pool dice
     // initRound clears poolExiting via roundState reset
     const t1 = setTimeout(() => {
       initRound({ skipPhase: true }); // new goals, players reset, poolExiting=false
       setGoalTransition('entering');
+
+      // Start pool spawn animation: dice fly from avatar to pool positions
+      const state = useGameStore.getState();
+      const humanPlayer = state.players[0];
+      if (humanPlayer && humanPlayer.poolSize > 0) {
+        const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
+        setPoolSpawning(true, spawnPositions);
+
+        // Spawn duration: 0.6s per die + 0.08s stagger per die
+        const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100; // +100ms buffer
+        setTimeout(() => {
+          setPoolSpawning(false);
+        }, spawnDuration);
+      }
     }, 500);
 
-    // Stage 3 (1500ms): settle and go idle
+    // Stage 3 (1500ms): settle goal transition and go idle
+    // Extended to 2000ms to accommodate spawn animation for larger pool sizes
     const t2 = setTimeout(() => {
       setGoalTransition('none');
+      // Ensure spawning is cleared before going idle
+      setPoolSpawning(false);
       setPhase('idle');
-    }, 1500);
+    }, 2000);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition, setPoolExiting]);
+  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition, setPoolExiting, setPoolSpawning]);
 
   // Compute and start AI unlock animations, then apply state after they finish
   const startAIUnlockAnimations = useCallback(() => {

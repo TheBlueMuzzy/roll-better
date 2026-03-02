@@ -33,6 +33,7 @@ interface GameStore extends GameState {
 
   // Pool animations
   setPoolExiting: (exiting: boolean) => void;
+  setPoolSpawning: (spawning: boolean, positions?: [number, number, number][]) => void;
 
   // Rolling & locking
   setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => void;
@@ -88,6 +89,8 @@ const initialRoundState = {
   aiUnlockAnimations: [] as AIUnlockAnimation[],
   goalTransition: 'none' as const,
   poolExiting: false,
+  poolSpawning: false,
+  poolSpawnPositions: [] as [number, number, number][],
 };
 
 const defaultSettings: Settings = {
@@ -165,6 +168,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         aiUnlockAnimations: [],
         goalTransition: 'none',
         poolExiting: false,
+        poolSpawning: false,
+        poolSpawnPositions: [],
       },
       currentRound: state.currentRound + 1,
     };
@@ -190,6 +195,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       roundState: {
         ...state.roundState,
         poolExiting,
+      },
+    });
+  },
+
+  setPoolSpawning: (poolSpawning: boolean, positions?: [number, number, number][]) => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        poolSpawning,
+        poolSpawnPositions: positions || state.roundState.poolSpawnPositions,
       },
     });
   },

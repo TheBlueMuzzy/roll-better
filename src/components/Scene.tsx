@@ -3,13 +3,14 @@ import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X } from './RollingArea';
+import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X, DIE_SIZE } from './RollingArea';
 import { GoalRow, getSlotX } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerProfileGroup } from './PlayerProfileGroup';
 import { GoalProfileGroup } from './GoalProfileGroup';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
+import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 
 // --- Public API exposed via ref ---
@@ -36,6 +37,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     const goalTransition = useGameStore((s) => s.roundState.goalTransition);
     const poolExiting = useGameStore((s) => s.roundState.poolExiting);
+    const poolSpawning = useGameStore((s) => s.roundState.poolSpawning);
+    const poolSpawnPositions = useGameStore((s) => s.roundState.poolSpawnPositions);
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
     const pendingNewDicePositions = useGameStore((s) => s.roundState.pendingNewDicePositions);
     const pendingNewDiceRotations = useGameStore((s) => s.roundState.pendingNewDiceRotations);
@@ -326,6 +329,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             count={player.poolSize}
             color={player.color}
             poolExiting={poolExiting}
+            poolSpawning={poolSpawning}
+            spawnTargetPositions={poolSpawnPositions}
             newDiceValues={pendingNewDice}
             newDicePositions={pendingNewDicePositions}
             newDiceRotations={pendingNewDiceRotations}
@@ -335,6 +340,17 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             onAllSettled={handleAllSettled}
           />
         </Physics>
+
+        {/* Pool spawn animations — dice fly from avatar to pool positions (outside Physics) */}
+        {poolSpawning && poolSpawnPositions.map((toPos, i) => (
+          <SpawningDie
+            key={`spawn-${i}`}
+            fromPos={[getSlotX(0) - 0.9, DIE_SIZE / 2, -3.77]}
+            toPos={toPos}
+            color={player.color}
+            delay={i * 0.08}
+          />
+        ))}
 
         {/* Lock lerp animations — flying dice outside Physics */}
         {lockAnimations.map((anim, i) => (

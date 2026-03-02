@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 79,
+  "build": 80,
   "history": [
     {
       "version": "0.1.0",
@@ -72,6 +72,11 @@
       "version": "0.1.0.79",
       "date": "2026-03-02",
       "summary": "Pool dice exit animation: pop+shrink on round end"
+    },
+    {
+      "version": "0.1.0.80",
+      "date": "2026-03-02",
+      "summary": "Pool dice spawn animation: fly from avatar with bounce+tumble on round start"
     }
   ]
 }

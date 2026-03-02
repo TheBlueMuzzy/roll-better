@@ -19,6 +19,8 @@ interface DicePoolProps {
   count: number;
   color: string;
   poolExiting?: boolean;
+  poolSpawning?: boolean;
+  spawnTargetPositions?: [number, number, number][];
   newDiceValues?: number[];
   newDicePositions?: [number, number, number][];
   newDiceRotations?: [number, number, number][];
@@ -102,7 +104,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, poolExiting, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
+  function DicePool({ count, color, poolExiting, poolSpawning, spawnTargetPositions, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -143,7 +145,17 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       initialFaces.current = new Map();
       preservedRotations.current = new Map();
 
-      if (count > oldCount) {
+      // If spawn target positions were pre-computed (from spawn animation),
+      // use them so PhysicsDie appear exactly where SpawningDie ended
+      if (spawnTargetPositions && spawnTargetPositions.length === count && oldCount === 0) {
+        spawnPositions.current = spawnTargetPositions;
+        dieRefs.current = Array.from({ length: count }, () => null);
+        settled.current = Array.from({ length: count }, () => false);
+        results.current = Array.from({ length: count }, () => null);
+        positions.current = Array.from({ length: count }, () => null);
+        rotations.current = Array.from({ length: count }, () => null);
+        hasFired.current = false;
+      } else if (count > oldCount) {
         // Growing: keep existing dice positions unchanged, only add positions for new dice.
         // Existing physics dice stay where they are (no teleport).
         const existingPositions = spawnPositions.current.slice(0, oldCount);
@@ -275,6 +287,11 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         }
       },
     }));
+
+    // When poolSpawning, render nothing — SpawningDie handles visuals in Scene
+    if (poolSpawning) {
+      return <group />;
+    }
 
     // When poolExiting, render visual-only ExitingDie (pop+shrink) instead of PhysicsDie
     if (poolExiting && count > 0) {

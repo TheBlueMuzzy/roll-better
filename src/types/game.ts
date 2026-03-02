@@ -70,6 +70,8 @@ export interface RoundState {
   aiUnlockAnimations: AIUnlockAnimation[];
   goalTransition: 'none' | 'exiting' | 'entering';
   poolExiting: boolean;
+  poolSpawning: boolean;
+  poolSpawnPositions: [number, number, number][];
 }
 
 export interface Die {
