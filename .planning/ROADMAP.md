@@ -20,7 +20,7 @@ None (no expertise skill files available)
 - [x] **Phase 8: AI Opponents** *(Complete — 2026-03-02)* — Easy/Medium/Hard heuristics, multi-player with AI
 - [x] **Phase 9: Multi-Player Display** *(Complete — 2026-03-02)* — Multiple player rows, icons, Goal indicators
 - [x] **Phase 10: Screens & Flow** *(Complete — 2026-03-02)* — Main Menu, Settings, Winners Screen, transitions
-- [ ] **Phase 11: Mobile Polish** — Shake-to-roll, haptics, touch optimization, performance
+- [x] **Phase 11: Mobile Polish** *(Complete — 2026-03-02)* — Shake-to-roll, haptics, touch optimization, performance
 - [ ] **Phase 12: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
 
 ## Phase Details
@@ -149,7 +149,7 @@ Plans:
 Plans:
 - [x] 11-01: Shake-to-roll (DeviceMotion API, permission flow, shake threshold tuning)
 - [x] 11-02: Haptic feedback (Vibration API per-bounce pulses, intensity decay, lock/spawn patterns)
-- [ ] 11-03: Mobile performance (Safari WebGL optimization, touch responsiveness, viewport/scaling)
+- [x] 11-03: Mobile performance (Safari WebGL optimization, touch responsiveness, viewport/scaling)
 
 ### Phase 12: Responsive UI
 **Goal**: Full responsive layout pass — HUD, overlays, modals, and floating UI adapt to all phone sizes (tested on Pixel 6, iPhone SE, large tablets). Nothing cut off, nothing misplaced.
@@ -187,6 +187,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
 | 10. Screens & Flow | 3/3 | Complete | 2026-03-02 |
-| 11. Mobile Polish | 2/3 | In progress | - |
+| 11. Mobile Polish | 3/3 | Complete | 2026-03-02 |
 | 12. Responsive UI | 0/? | Not started | - |
 | 13. Audio & Juice | 0/3 | Not started | - |

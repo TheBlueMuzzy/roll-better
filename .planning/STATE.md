@@ -1,28 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 11 in progress. Plan 11-02 (Haptic Feedback) complete. One plan remaining (11-03: Mobile Performance).
+Phase 11 complete. All 3 plans done (shake-to-roll, haptics, mobile performance). Ready for Phase 12: Responsive UI.
 
 ## Version
 0.1.0.91
 
 ## Current Position
 
-Phase: 11 of 13 (Mobile Polish) — IN PROGRESS
-Plan: 2 of 3 in current phase
-Status: 11-02 complete
-Last activity: 2026-03-02 — Completed 11-02-PLAN.md (Haptic Feedback)
+Phase: 11 of 13 (Mobile Polish) — COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 — Completed 11-03-PLAN.md (Mobile Performance)
 
-Progress: ██████████████████████████████████████░░░ 93%
+Progress: █████████████████████████████████████░░░░ 93%
 
 ## Last Session
-2026-03-02 — Executed 11-02 (Haptic Feedback):
-- Created src/utils/haptics.ts with 6 named patterns (bounce, lock, unlock, roll start, score, win)
-- Force-proportional bounce via Rapier onContactForce (3-15ms scaled, threshold 5 filters spam)
-- Feature detection: no-op on iOS Safari/desktop ('vibrate' in navigator)
-- hapticsEnabled setting with conditional Settings toggle
-- Haptics wired to roll start, lock, unlock, score, win game events
-- Scene.tsx→DicePool→PhysicsDie props-down data flow for human player dice only
+2026-03-02 — Executed 11-03 (Mobile Performance):
+- Viewport meta hardened: maximum-scale=1, user-scalable=no, viewport-fit=cover
+- Body CSS: position fixed, overscroll-behavior none, touch-action manipulation
+- Safe area insets on edge-touching UI (#root, hud-top, hud-bottom, settings-gear)
+- 100dvh with 100vh fallback
+- performanceMode 'simple': dpr=1, shadows disabled (AccumulativeShadows unmounted)
+- performanceMode 'advanced': unchanged (dpr [1,2], shadows on)
+- Settings hints: "Best visuals" / "Better battery"
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -127,6 +128,11 @@ Progress: ███████████████████████�
 - Haptics: pure utility pattern, no React state — gating at call site
 - Force-proportional bounce: clamp [0,50] → map [3,15]ms, skip below force 5
 - Feature-detected mobile API: isSupported() guard + no-op fallback pattern
+- touch-action: manipulation (not none) — preserves pan/tap, kills zoom
+- position: fixed on body for iOS rubber-band prevention
+- dpr=1 in simple mode (biggest GPU win on high-DPI), [1,2] in advanced
+- AccumulativeShadows unmounted in simple mode (not just hidden)
+- Dice materials untouched in simple mode — premium look non-negotiable
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -136,5 +142,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 11-02-PLAN.md (Haptic Feedback) — Phase 11 in progress
-Resume file: None — continue with 11-03 (Mobile Performance)
+Stopped at: Completed 11-03-PLAN.md (Mobile Performance) — Phase 11 complete
+Resume file: None — continue with Phase 12: Responsive UI
