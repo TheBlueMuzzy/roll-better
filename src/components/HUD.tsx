@@ -14,12 +14,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const lastLockCount = useGameStore((s) => s.roundState.lastLockCount);
   const roundScore = useGameStore((s) => s.roundState.roundScore);
   const players = useGameStore((s) => s.players);
-  const currentPlayerIndex = useGameStore((s) => s.currentPlayerIndex);
 
-  const currentPlayer = players[currentPlayerIndex];
-  const isAI = currentPlayer?.isAI ?? false;
-
-  const player = currentPlayer;
+  const player = players[0];
   const score = player?.score ?? 0;
   const poolSize = player?.poolSize ?? 0;
   const isRolling = phase === 'rolling';
@@ -78,7 +74,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   }, [phase, score, roundScore, animateScore]);
 
   const handleTapRoll = () => {
-    if (phase === 'idle' && !isAI) onRoll();
+    if (phase === 'idle') onRoll();
   };
 
   // Status text based on phase
@@ -86,15 +82,13 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   if (phase === 'lobby') {
     statusText = 'Starting...';
   } else if (phase === 'idle') {
-    statusText = isAI ? 'AI thinking...' : 'Tap To Roll';
+    statusText = 'Tap To Roll';
   } else if (phase === 'rolling') {
     statusText = 'Rolling...';
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
-    if (isAI) {
-      statusText = 'AI thinking...';
-    } else if (mustUnlock && selectedCount === 0) {
+    if (mustUnlock && selectedCount === 0) {
       statusText = 'No dice left — unlock 1+';
     } else if (atUnlockCap) {
       statusText = `${selectedCount} selected (max 12 dice)`;
@@ -113,25 +107,11 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
     statusText = '';
   }
 
-  // AI thinking pulsing class
-  const aiThinking = isAI && (phase === 'idle' || phase === 'unlocking');
-
   return (
     <div className="hud">
-      {/* Top bar — round + turn indicator + score */}
+      {/* Top bar — round + score */}
       <div className="hud-top">
-        <div className="hud-top-left">
-          <span className="hud-round">Round {currentRound}</span>
-          {currentPlayer && (
-            <span className="hud-turn-indicator">
-              <span
-                className="hud-turn-dot"
-                style={{ background: currentPlayer.color }}
-              />
-              {currentPlayer.name}'s Turn
-            </span>
-          )}
-        </div>
+        <span className="hud-round">Round {currentRound}</span>
         <span
           ref={scoreRef}
           className="hud-score"
@@ -143,8 +123,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
 
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
-        {/* During unlocking (human only): status text + UNLOCK button */}
-        {phase === 'unlocking' && !isAI ? (
+        {/* During unlocking: status text + UNLOCK button */}
+        {phase === 'unlocking' ? (
           <>
             <span className="hud-status">{statusText}</span>
             <button
@@ -158,7 +138,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
         ) : (
           /* All other phases: tappable status text */
           <span
-            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}${aiThinking ? ' hud-status--ai-thinking' : ''}`}
+            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
             onClick={handleTapRoll}
           >
             {statusText}

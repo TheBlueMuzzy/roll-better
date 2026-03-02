@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings, AIDifficulty } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings } from '../types/game';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -24,12 +24,8 @@ interface GameStore extends GameState {
   setPhase: (phase: GamePhase) => void;
 
   // Game setup
-  initGame: (playerCount: number, aiDifficulty?: AIDifficulty) => void;
+  initGame: (playerCount: number) => void;
   initRound: (options?: { skipPhase?: boolean }) => void;
-
-  // Turn management
-  startPlayerTurn: (playerIndex: number) => void;
-  advanceTurn: () => void;
 
   // Goal transition
   setGoalTransition: (state: 'none' | 'exiting' | 'entering') => void;
@@ -90,7 +86,6 @@ const defaultSettings: Settings = {
 const initialState: GameState = {
   phase: 'lobby',
   players: [],
-  currentPlayerIndex: 0,
   currentRound: 0,
   roundState: initialRoundState,
   sessionTargetScore: 20,
@@ -105,7 +100,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium') => {
+  initGame: (playerCount: number) => {
     const players = Array.from({ length: playerCount }, (_, i) => ({
       id: `player-${i}`,
       name: i === 0 ? 'You' : `Player ${i + 1}`,
@@ -116,10 +111,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lockedDice: [],
       selectedForUnlock: [],
       isAI: i !== 0,
-      ...(i !== 0 ? { difficulty: aiDifficulty } : {}),
     }));
 
-    set({ players, phase: 'lobby', currentRound: 0, currentPlayerIndex: 0, roundState: initialRoundState, shownTips: [] });
+    set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState, shownTips: [] });
   },
 
   initRound: (options?: { skipPhase?: boolean }) => {
@@ -134,7 +128,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedForUnlock: [],
     }));
 
-    const updates: Partial<GameState> & { players: typeof players; currentRound: number; currentPlayerIndex: number } = {
+    const updates: Partial<GameState> & { players: typeof players; currentRound: number } = {
       players,
       roundState: {
         goalValues,
@@ -154,55 +148,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         goalTransition: 'none',
       },
       currentRound: state.currentRound + 1,
-      currentPlayerIndex: 0,
     };
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
     set(updates);
-  },
-
-  startPlayerTurn: (playerIndex: number) => {
-    const state = get();
-    const players = [...state.players];
-    const player = { ...players[playerIndex] };
-    player.lockedDice = [];
-    player.poolSize = player.startingDice;
-    player.selectedForUnlock = [];
-    players[playerIndex] = player;
-
-    set({
-      players,
-      currentPlayerIndex: playerIndex,
-      phase: 'idle',
-      roundState: {
-        ...state.roundState,
-        rollResults: null,
-        rollNumber: 0,
-        lastLockCount: 0,
-        lockAnimations: [],
-        animatingSlotIndices: [],
-        unlockAnimations: [],
-        pendingNewDice: [],
-        pendingNewDicePositions: [],
-        pendingNewDiceRotations: [],
-        remainingDiceValues: [],
-        remainingDicePositions: [],
-        remainingDiceRotations: [],
-      },
-    });
-  },
-
-  advanceTurn: () => {
-    const state = get();
-    const nextIndex = state.currentPlayerIndex + 1;
-    if (nextIndex >= state.players.length) {
-      // All players have gone — end the round
-      set({ phase: 'roundEnd' });
-    } else {
-      // Start next player's turn
-      get().startPlayerTurn(nextIndex);
-    }
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -224,7 +174,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    const player = state.players[state.currentPlayerIndex];
+    const player = state.players[0];
 
     // Find new auto-locks from rolled results
     const newLocks = findAutoLocks(
@@ -343,7 +293,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const updatedPlayer = { ...player };
     updatedPlayer.lockedDice = [...updatedPlayer.lockedDice, ...newLocks];
     updatedPlayer.poolSize = updatedPlayer.poolSize - newLocks.length;
-    players[state.currentPlayerIndex] = updatedPlayer;
+    players[0] = updatedPlayer;
 
     // Update round state and set phase to locking (for UI feedback)
     set({
