@@ -124,6 +124,7 @@ Plans:
 - [x] 09-01: Layout restructure + profile groups (scaled dice, shifted rows, avatar + star-score + stats)
 - [x] 09-02: Goal dice transitions rework (fast rightward exit, star-origin emergence enter)
 - [x] 09-03: AI lock animations (dice emerge from profile at scale 0, fly to row slots scaling up)
+- [x] 09-04: AI unlock animations (dice scale down 1→0, fly arc back to profile group)
 
 ### Phase 10: Screens & Flow
 **Goal**: Main Menu, Settings, Winners Screen, screen transitions — complete app flow
@@ -175,7 +176,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
-| 9. Multi-Player Display | 3/6 | In progress | - |
+| 9. Multi-Player Display | 4/6 | In progress | - |
 | 10. Screens & Flow | 0/3 | Not started | - |
 | 11. Mobile Polish | 0/3 | Not started | - |
 | 12. Audio & Juice | 0/3 | Not started | - |

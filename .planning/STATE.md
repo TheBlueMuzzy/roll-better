@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 9 in progress. Plan 09-03 complete (AI lock animations). 3 plans remaining in phase.
+Phase 9 in progress. Plan 09-04 complete (AI unlock animations). 2 plans remaining in phase.
 
 ## Version
-0.1.0.76
+0.1.0.78
 
 ## Current Position
 
 Phase: 9 of 12 (Multi-Player Display)
-Plan: 3 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 09-03-PLAN.md (AI lock animations)
+Last activity: 2026-03-02 — Completed 09-04-PLAN.md (AI unlock animations)
 
-Progress: ███████████████████████████░░░░░░░░ 77%
+Progress: ████████████████████████████░░░░░░░ 80%
 
 ## Last Session
-2026-03-02 — Executed 09-03 (AI lock animations):
-- AnimatingDie extended with fromScale/toScale for scale interpolation
-- AI lock animation data computed in setRollResults alongside human
-- AI dice emerge from profile group at scale 0, fly to slots scaling to 1
-- Per-AI animatingSlotIndices hides row slots during flight
-- Separate aiLockAnimations array + clearAILockAnimations action
+2026-03-02 — Executed 09-04 (AI unlock animations):
+- AIUnlockAnimation type + store actions (setAIUnlockAnimations, clearAIUnlockAnimations)
+- Two-step animate-then-apply flow: animations play first, then processAIUnlocks applies state
+- AnimatingDie renders with fromScale=1 toScale=0 for shrink-to-nothing effect
+- Combined lock-in + unlock-out animatingSlotIndices for AI PlayerRows
+- 0.5s duration, staggered delays between each unlock die
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -101,6 +101,8 @@ Progress: ███████████████████████�
 - Tips positioned at top: 36% (just below divider line)
 - AI lock animations: separate aiLockAnimations array with playerId, fromScale=0 toScale=1
 - AnimatingDie scale interpolation: (fromScale + (toScale - fromScale) * eased) * DIE_SIZE
+- AI unlock animations: animate-then-apply pattern, scale 1→0 arc back to profile group
+- Combined animatingSlotIndices for AI rows (lock-in + unlock-out in single prop)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -110,5 +112,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-03-PLAN.md (AI lock animations)
-Resume file: None — ready for 09-04-PLAN.md
+Stopped at: Completed 09-04-PLAN.md (AI unlock animations)
+Resume file: None — ready for 09-05-PLAN.md
