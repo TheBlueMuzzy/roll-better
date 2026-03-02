@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 10 in progress. Plan 2 of 3 complete (Winners Screen). Next: 10-03 Settings + Screen Transitions.
+Phase 10 complete. All 3 plans executed (Menu, Winners, Transitions). Ready for Phase 11: Mobile Polish.
 
 ## Version
-0.1.0.86
+0.1.0.89
 
 ## Current Position
 
-Phase: 10 of 13 (Screens & Flow)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-02 — Completed 10-02-PLAN.md (Winners Screen)
+Phase: 10 of 13 (Screens & Flow) — COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 — Completed 10-03-PLAN.md (Screen Transitions + Flow Polish)
 
-Progress: █████████████████████████████████████░░░░ 89%
+Progress: █████████████████████████████████████░░░░ 90%
 
 ## Last Session
-2026-03-02 — Executed 10-02 (Winners Screen):
-- WinnersScreen.tsx: ranked players, trophy, gold highlight, stagger animation
-- Session end flow: roundEnd → sessionEnd + winners in single timeout (fixed race)
-- Play Again re-inits game with same settings, Menu returns to main menu
-- HUD sessionEnd text cleared (no conflicting "Game Over")
-- PlayerProfileGroup Html zIndexRange capped to [40,0] (below all overlays)
+2026-03-02 — Executed 10-03 (Screen Transitions + Flow Polish):
+- CSS fade transitions between all screens (0.3s ease, rAF class-toggle)
+- pointer-events gating on hidden overlays (prevents click blocking)
+- Game preferences (playerCount, aiDifficulty) persist in Zustand
+- Play Again reads stored prefs, handleMenu resets phase to 'lobby'
+- Removed decorative title animation (user: cosmetic anims deferred to art pass)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -115,6 +115,11 @@ Progress: ███████████████████████�
 - Settings "Quit Game" → "Main Menu" via setScreen
 - Single timeout for multi-state transitions (setPhase + setScreen) to prevent React cleanup races
 - PlayerProfileGroup Html zIndexRange [40,0] — below all overlays (settings 50, H2P 60, menu/winners 70)
+- CSS opacity transitions (0.3s) for screen fades — no JS animation libraries
+- pointer-events: none on hidden overlays to prevent click blocking
+- Game preferences stored in Zustand (session-scoped, not localStorage)
+- handleMenu resets phase to lobby before screen change
+- Cosmetic animations deferred to art pass (user direction)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -124,5 +129,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 10-02-PLAN.md (Winners Screen)
-Resume file: None — continuing Phase 10
+Stopped at: Completed 10-03-PLAN.md (Screen Transitions + Flow Polish) — Phase 10 complete
+Resume file: None — ready for Phase 11

@@ -19,7 +19,7 @@ None (no expertise skill files available)
 - [x] **Phase 7: Unlock Interaction** *(Complete — 2026-03-02)* — Settings panel, How to Play carousel, Tips system
 - [x] **Phase 8: AI Opponents** *(Complete — 2026-03-02)* — Easy/Medium/Hard heuristics, multi-player with AI
 - [x] **Phase 9: Multi-Player Display** *(Complete — 2026-03-02)* — Multiple player rows, icons, Goal indicators
-- [ ] **Phase 10: Screens & Flow** — Main Menu, Settings, Winners Screen, transitions
+- [x] **Phase 10: Screens & Flow** *(Complete — 2026-03-02)* — Main Menu, Settings, Winners Screen, transitions
 - [ ] **Phase 11: Mobile Polish** — Shake-to-roll, haptics, touch optimization, performance
 - [ ] **Phase 12: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
 
@@ -137,7 +137,7 @@ Plans:
 Plans:
 - [x] 10-01: Main Menu (title, Create/Join room UI placeholder, settings button, play vs AI button)
 - [x] 10-02: Winners Screen (session results, player scores, round-by-round breakdown, play again)
-- [ ] 10-03: Settings screen (tap vs drag unlock, AI difficulty, player count) + screen transitions
+- [x] 10-03: Screen transitions (CSS fades) + game preferences persistence + flow polish
 
 ### Phase 11: Mobile Polish
 **Goal**: Shake-to-roll, per-bounce haptics, touch optimization, mobile Safari performance
@@ -186,7 +186,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
-| 10. Screens & Flow | 2/3 | In progress | - |
+| 10. Screens & Flow | 3/3 | Complete | 2026-03-02 |
 | 11. Mobile Polish | 0/3 | Not started | - |
 | 12. Responsive UI | 0/? | Not started | - |
 | 13. Audio & Juice | 0/3 | Not started | - |
