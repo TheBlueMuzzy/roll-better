@@ -136,7 +136,7 @@ Plans:
 
 Plans:
 - [x] 10-01: Main Menu (title, Create/Join room UI placeholder, settings button, play vs AI button)
-- [ ] 10-02: Winners Screen (session results, player scores, round-by-round breakdown, play again)
+- [x] 10-02: Winners Screen (session results, player scores, round-by-round breakdown, play again)
 - [ ] 10-03: Settings screen (tap vs drag unlock, AI difficulty, player count) + screen transitions
 
 ### Phase 11: Mobile Polish
@@ -151,7 +151,14 @@ Plans:
 - [ ] 11-02: Haptic feedback (Vibration API per-bounce pulses, intensity decay, lock/spawn patterns)
 - [ ] 11-03: Mobile performance (Safari WebGL optimization, touch responsiveness, viewport/scaling)
 
-### Phase 12: Audio & Juice
+### Phase 12: Responsive UI
+**Goal**: Full responsive layout pass — HUD, overlays, modals, and floating UI adapt to all phone sizes (tested on Pixel 6, iPhone SE, large tablets). Nothing cut off, nothing misplaced.
+**Depends on**: Phase 11 (mobile polish baseline established)
+**Research**: Likely (safe area insets, viewport units, device-specific quirks)
+**Research topics**: CSS safe-area-inset env() variables, dvh/svh viewport units, Pixel 6 / iPhone SE / notch device testing, R3F canvas scaling vs HTML overlay alignment
+**Plans**: TBD
+
+### Phase 13: Audio & Juice
 **Goal**: Multi-layered dice sounds, UI audio, final animation polish pass
 **Depends on**: Phase 3 (needs physics collision events), Phase 10 (all UI exists)
 **Research**: Likely (Howler.js + Rapier integration, audio layering)
@@ -159,14 +166,14 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 12-01: Dice roll sounds (Howler.js setup, collision-triggered impacts, tumble/scrape/settle layers)
-- [ ] 12-02: UI sounds (lock click, bonus chime, score counting tones, win fanfare, round-end tone)
-- [ ] 12-03: Final juice pass (animation timing polish, roll prompt glow, visual effects tuning)
+- [ ] 13-01: Dice roll sounds (Howler.js setup, collision-triggered impacts, tumble/scrape/settle layers)
+- [ ] 13-02: UI sounds (lock click, bonus chime, score counting tones, win fanfare, round-end tone)
+- [ ] 13-03: Final juice pass (animation timing polish, roll prompt glow, visual effects tuning)
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
@@ -179,6 +186,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
-| 10. Screens & Flow | 1/3 | In progress | - |
+| 10. Screens & Flow | 2/3 | In progress | - |
 | 11. Mobile Polish | 0/3 | Not started | - |
-| 12. Audio & Juice | 0/3 | Not started | - |
+| 12. Responsive UI | 0/? | Not started | - |
+| 13. Audio & Juice | 0/3 | Not started | - |

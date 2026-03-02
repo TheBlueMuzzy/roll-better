@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 10 in progress. Plan 1 of 3 complete (Main Menu). Next: 10-02 Winners Screen.
+Phase 10 in progress. Plan 2 of 3 complete (Winners Screen). Next: 10-03 Settings + Screen Transitions.
 
 ## Version
 0.1.0.86
 
 ## Current Position
 
-Phase: 10 of 12 (Screens & Flow)
-Plan: 1 of 3 in current phase
+Phase: 10 of 13 (Screens & Flow)
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 10-01-PLAN.md (Main Menu)
+Last activity: 2026-03-02 — Completed 10-02-PLAN.md (Winners Screen)
 
-Progress: ██████████████████████████████████░░░ 88%
+Progress: █████████████████████████████████████░░░░ 89%
 
 ## Last Session
-2026-03-02 — Executed 10-01 (Main Menu):
-- MainMenu.tsx: title, player count (2/3/4), difficulty (Easy/Medium/Hard), Play button
-- Screen state ('menu' | 'game' | 'winners') in Zustand store
-- App starts at menu, Canvas/HUD only render in game screen
-- Settings "Quit Game" → "Main Menu" via setScreen
-- Menu at z-index 70 (above settings z-50, H2P z-60)
+2026-03-02 — Executed 10-02 (Winners Screen):
+- WinnersScreen.tsx: ranked players, trophy, gold highlight, stagger animation
+- Session end flow: roundEnd → sessionEnd + winners in single timeout (fixed race)
+- Play Again re-inits game with same settings, Menu returns to main menu
+- HUD sessionEnd text cleared (no conflicting "Game Over")
+- PlayerProfileGroup Html zIndexRange capped to [40,0] (below all overlays)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -113,6 +113,8 @@ Progress: ███████████████████████�
 - Menu at z-index 70 (above settings z-50 and H2P z-60)
 - Canvas/HUD don't render on menu screen (saves GPU)
 - Settings "Quit Game" → "Main Menu" via setScreen
+- Single timeout for multi-state transitions (setPhase + setScreen) to prevent React cleanup races
+- PlayerProfileGroup Html zIndexRange [40,0] — below all overlays (settings 50, H2P 60, menu/winners 70)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -122,5 +124,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 10-01-PLAN.md (Main Menu)
+Stopped at: Completed 10-02-PLAN.md (Winners Screen)
 Resume file: None — continuing Phase 10
