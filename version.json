@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 89,
+  "build": 93,
   "history": [
     {
       "version": "0.1.0",
@@ -112,6 +112,16 @@
       "version": "0.1.0.89",
       "date": "2026-03-02",
       "summary": "Screen transitions (CSS fades) + persisted game preferences + flow polish"
+    },
+    {
+      "version": "0.1.0.91",
+      "date": "2026-03-02",
+      "summary": "Responsive CSS custom properties + HUD responsive pass with clamp() scaling"
+    },
+    {
+      "version": "0.1.0.93",
+      "date": "2026-03-02",
+      "summary": "Profile layout improvements: right-aligned profiles, goal score star, settings menu text, responsive scaling"
     }
   ]
 }

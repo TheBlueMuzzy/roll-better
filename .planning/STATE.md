@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 12 in progress. Plan 12-03 complete (Main Menu + Winners Screen Responsive).
+Phase 12 complete. All 4 plans executed — responsive UI across all components.
 
 ## Version
 0.1.0.93
@@ -9,18 +9,21 @@ Phase 12 in progress. Plan 12-03 complete (Main Menu + Winners Screen Responsive
 ## Current Position
 
 Phase: 12 of 13 (Responsive UI)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-03-02 — Completed 12-03-PLAN.md (Main Menu + Winners Screen Responsive)
+Plan: 4 of 4 in current phase
+Status: Complete
+Last activity: 2026-03-02 — Completed 12-04-PLAN.md (Player Components + Device Verification)
 
-Progress: ██████████████████████████████████████░░░░ 90%
+Progress: ████████████████████████████████████████░░ 92%
 
 ## Last Session
-2026-03-02 — Executed 12-03 (Main Menu + Winners Screen Responsive):
-- Main Menu: selectors, buttons, play button, gear icon all use responsive custom properties
-- Winners Screen: list width, row padding, avatars (clamp), scores, action buttons all responsive
-- Class name mismatches in plan auto-resolved to actual codebase equivalents
-- Commits: 033472e (Task 1), e5240f7 (Task 2)
+2026-03-02 — Executed 12-04 (Player Components + Device Verification):
+- Responsive scaling on PlayerProfileGroup, GoalProfileGroup, PlayerIcon
+- Right-aligned profiles to prevent star-slot overlap
+- Goal star displays potential score (penalty-based formula)
+- Settings gear replaced with text link in main menu
+- H2P navigation arrows added
+- Verified layout on desktop (1280x720) and phone (375x667) via Playwright
+- Commits: a4cd2a3, d78340a, 8718d84
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -52,8 +55,9 @@ Progress: ███████████████████████�
 - ROLLING_Z_MIN = -1.7 — boundary between rolling zone and placement zone
 - Placement zone floor #4a3020
 - GoalRow Z = -4.67, PlayerRow Z = -3.77
-- SLOT_SPACING = 0.62 (reduced from 0.7), getSlotX centering (i - 3.0) for avatar space
-- PlayerProfileGroup: two-column layout, 57px avatar + star-score + SX|TX stats
+- SLOT_SPACING = 0.62, getSlotX centering (i - 2.5), PROFILE_X_OFFSET = 0.10
+- PlayerProfileGroup: right-aligned, 44px avatar + 42px star-score + SX|TX stats
+- GoalProfileGroup: right-aligned, 48px circle + potentialScore display
 - HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
 - Tap-text instead of button — "Tap To Roll" → "Rolling" → results
 - Phase flow: idle → rolling → locking → unlocking → idle (loop), locking → scoring → roundEnd (on win)
@@ -141,5 +145,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 12-03-PLAN.md (Main Menu + Winners Screen Responsive)
-Resume file: None — continue with Phase 12 next plan
+Stopped at: Completed 12-04-PLAN.md — Phase 12 (Responsive UI) complete
+Resume file: None — continue with Phase 13 (Audio & Juice)

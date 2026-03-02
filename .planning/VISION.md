@@ -69,6 +69,14 @@ Context: Raised during 09-01 checkpoint. Muzzy confirmed he'll do this in Illust
 A tutorial tip that tells the player they SHOULD unlock if they don't have 8 dice yet. Since the goal row has 8 slots, having fewer than 8 dice means you can't possibly fill all slots in one roll. This tip should persist (keep showing) until the player has crossed the 8-dice threshold. Different from a one-time tip — it's a recurring reminder until the condition is met.
 Context: Raised during 10-01 checkpoint. Fits into the Tips system (Phase 7, 07-03). Could be added as a new tip in the existing TipBanner system with a condition-based dismiss rather than the current one-time-per-session pattern.
 
+### 2026-03-02 — Responsive UI Issues on Pixel 6
+On a Google Pixel 6, some UI elements are cut off and floating UI (HUD, overlays) doesn't appear where expected. The 9:16 aspect ratio container + absolute positioning doesn't account for all phone screen ratios and safe areas. Needs a dedicated responsive pass — added as Phase 12 in roadmap. Should test on Pixel 6, iPhone SE, and larger devices. Key issues: content overflow/clipping, floating element placement, safe area insets.
+Context: Raised during 10-01 checkpoint UX polish. Muzzy confirmed it's visible on his Pixel 6 but wants to defer to a later phase.
+
+### 2026-03-02 — Decorative Animations Deferred to Art Pass
+Non-user-feedback animations (title lifts, decorative motion, entrance flourishes) should NOT be added during feature phases. Muzzy will design the art direction after core features are done, then dictate what cosmetic animations get added. Only add animations that serve as user feedback (screen transitions, interaction responses, state changes).
+Context: Raised during 10-03 checkpoint. Title was dropping instead of lifting, but the real issue is that decorative anims shouldn't be added without art direction.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.
