@@ -48,6 +48,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const aiAnimatingSlotIndices = useGameStore((s) => s.roundState.aiAnimatingSlotIndices);
     const clearAILockAnimations = useGameStore((s) => s.clearAILockAnimations);
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
+    const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
     const player = players[0];
 
     // Track how many lerp animations have completed (human)
@@ -78,6 +79,16 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         return slots;
       });
     }, [players]);
+
+    // Compute AI unlock animating slot indices (slots to hide during fly-out animation)
+    const aiUnlockSlotIndices = useMemo(() => {
+      const result: Record<string, number[]> = {};
+      for (const anim of aiUnlockAnimations) {
+        if (!result[anim.playerId]) result[anim.playerId] = [];
+        result[anim.playerId].push(anim.slotIndex);
+      }
+      return result;
+    }, [aiUnlockAnimations]);
 
     const [shakingSlot, setShakingSlot] = useState<number | null>(null);
 
@@ -243,15 +254,23 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         />
 
         {/* AI player rows — below human row (outside Physics) */}
-        {players.slice(1).map((aiPlayer, idx) => (
-          <PlayerRow
-            key={aiPlayer.id}
-            z={-3.77 + (idx + 1) * 0.9}
-            color={aiPlayer.color}
-            lockedValues={aiLockedValues[idx]}
-            animatingSlotIndices={aiAnimatingSlotIndices[aiPlayer.id] || []}
-          />
-        ))}
+        {players.slice(1).map((aiPlayer, idx) => {
+          // Combine lock-in and unlock-out animating indices for this AI player
+          const lockSlots = aiAnimatingSlotIndices[aiPlayer.id] || [];
+          const unlockSlots = aiUnlockSlotIndices[aiPlayer.id] || [];
+          const combinedSlots = lockSlots.length > 0 && unlockSlots.length > 0
+            ? [...lockSlots, ...unlockSlots]
+            : lockSlots.length > 0 ? lockSlots : unlockSlots;
+          return (
+            <PlayerRow
+              key={aiPlayer.id}
+              z={-3.77 + (idx + 1) * 0.9}
+              color={aiPlayer.color}
+              lockedValues={aiLockedValues[idx]}
+              animatingSlotIndices={combinedSlots}
+            />
+          );
+        })}
 
         {/* Profile groups — avatar circle + star-score + stats, left of each row */}
         <PlayerProfileGroup
@@ -361,6 +380,25 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             color={player.color}
           />
         ))}
+
+        {/* AI unlock animations — dice fly from row slots back to profile, scaling down to 0 */}
+        {aiUnlockAnimations.map((anim, i) => {
+          const aiPlayer = players.find((p) => p.id === anim.playerId);
+          return (
+            <AnimatingDie
+              key={`ai-unlock-${anim.playerId}-${anim.slotIndex}-${i}`}
+              fromPos={anim.fromPos}
+              toPos={anim.toPos}
+              fromRotation={[0, 0, 0]}
+              value={anim.value}
+              color={aiPlayer?.color || '#888'}
+              delay={anim.delay}
+              duration={0.5}
+              fromScale={1}
+              toScale={0}
+            />
+          );
+        })}
       </group>
     );
   },
