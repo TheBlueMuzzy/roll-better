@@ -11,6 +11,7 @@ import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
+import { isHapticsSupported, hapticPulse, hapticPattern, HAPTIC_ROLL_START, HAPTIC_LOCK, HAPTIC_UNLOCK, HAPTIC_SCORE, HAPTIC_WIN } from './utils/haptics';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
@@ -51,6 +52,9 @@ function App() {
   const setGoalTransition = useGameStore((s) => s.setGoalTransition);
   const setPoolExiting = useGameStore((s) => s.setPoolExiting);
   const setPoolSpawning = useGameStore((s) => s.setPoolSpawning);
+
+  // Haptics setting
+  const hapticsEnabled = useGameStore((s) => s.settings.hapticsEnabled);
 
   // Tip-related store reads
   const currentRound = useGameStore((s) => s.currentRound);
@@ -106,6 +110,9 @@ function App() {
     }
     if (phase === 'locking' && lastLockCount > 0) {
       tryShowTip('first-lock', 'Matched! Dice lock to the Goal row automatically');
+      if (hapticsEnabled && isHapticsSupported()) {
+        hapticPattern(HAPTIC_LOCK);
+      }
     }
     if (phase === 'unlocking') {
       const mustUnlockNow = playerPoolSize === 0 && playerLockedCount < 8;
@@ -115,7 +122,7 @@ function App() {
         tryShowTip('first-unlock', 'Tap locked dice to select, then press UNLOCK');
       }
     }
-  }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);
+  }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip, hapticsEnabled]);
 
   // After locking phase, show lock count for 1s then check for winner or go to unlocking
   useEffect(() => {
@@ -136,13 +143,16 @@ function App() {
   // After scoring, show score for 2s then apply handicap and start next round
   useEffect(() => {
     if (phase === 'scoring') {
+      if (hapticsEnabled && isHapticsSupported()) {
+        hapticPattern(HAPTIC_SCORE);
+      }
       const timer = setTimeout(() => {
         applyHandicap();
         // applyHandicap sets phase to 'roundEnd'
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [phase, applyHandicap]);
+  }, [phase, applyHandicap, hapticsEnabled]);
 
   // After roundEnd: staged goal transition (exit → swap → enter → idle)
   // Pool dice exit animation runs in parallel with goal exit
@@ -152,6 +162,9 @@ function App() {
 
     // Check session end immediately — skip animation if game is over
     if (checkSessionEnd()) {
+      if (hapticsEnabled && isHapticsSupported()) {
+        hapticPattern(HAPTIC_WIN);
+      }
       const t = setTimeout(() => {
         setPhase('sessionEnd');
         setScreen('winners');
@@ -197,7 +210,7 @@ function App() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, checkSessionEnd, setPhase, setScreen, initRound, setGoalTransition, setPoolExiting, setPoolSpawning]);
+  }, [phase, checkSessionEnd, setPhase, setScreen, initRound, setGoalTransition, setPoolExiting, setPoolSpawning, hapticsEnabled]);
 
   // Compute and start AI unlock animations, then apply state after they finish
   const startAIUnlockAnimations = useCallback(() => {
@@ -275,6 +288,10 @@ function App() {
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
     if (player.selectedForUnlock.length > 0) {
+      // Haptic feedback for unlock action
+      if (hapticsEnabled && isHapticsSupported()) {
+        hapticPattern(HAPTIC_UNLOCK);
+      }
       // --- ANIMATED PATH: mitosis animation before state change ---
       const selectedSlots = [...player.selectedForUnlock];
       const lockedDice = player.lockedDice;
@@ -345,15 +362,19 @@ function App() {
       useGameStore.getState().skipUnlock(0);
       startAIUnlockAnimations();
     }
-  }, [setPhase, startAIUnlockAnimations]);
+  }, [setPhase, startAIUnlockAnimations, hapticsEnabled]);
 
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
 
+    if (hapticsEnabled && isHapticsSupported()) {
+      hapticPulse(HAPTIC_ROLL_START);
+    }
+
     setPhase('rolling');
     sceneRef.current?.rollAll();
-  }, [setPhase]);
+  }, [setPhase, hapticsEnabled]);
 
   // Shake-to-roll (mobile) — must come after handleRoll is defined
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
