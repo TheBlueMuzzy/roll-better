@@ -4,7 +4,7 @@ import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X, DIE_SIZE } from './RollingArea';
-import { GoalRow, getSlotX } from './GoalRow';
+import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
 import { PlayerRow } from './PlayerRow';
 import { PlayerProfileGroup } from './PlayerProfileGroup';
@@ -294,7 +294,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           score={player.score}
           startingDice={player.startingDice}
           totalDice={player.poolSize + player.lockedDice.length}
-          position={[getSlotX(0) - 0.9, 0, -3.77]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77]}
         />
 
         {/* AI player profile groups */}
@@ -306,13 +306,23 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             score={aiPlayer.score}
             startingDice={aiPlayer.startingDice}
             totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
-            position={[getSlotX(0) - 0.9, 0, -3.77 + (idx + 1) * 0.9]}
+            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77 + (idx + 1) * 0.9]}
           />
         ))}
 
-        {/* Goal profile group — star icon left of goal row */}
+        {/* Goal profile group — star icon left of goal row, shows potential score */}
         <GoalProfileGroup
-          position={[getSlotX(0) - 0.9, 0, -4.67]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -4.67]}
+          potentialScore={(() => {
+            const totalDice = player.poolSize + player.lockedDice.length;
+            const projectedPool = Math.max(0, totalDice - 8);
+            const penalties = [1, 0, 1, 1];
+            let penalty = 0;
+            for (let i = 0; i < projectedPool && i < penalties.length; i++) {
+              penalty += penalties[i];
+            }
+            return Math.max(0, 8 - penalty);
+          })()}
         />
 
         {/* Subtle divider between player row and rolling area */}
@@ -357,7 +367,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {poolSpawning && poolSpawnPositions.map((toPos, i) => (
           <SpawningDie
             key={`spawn-${i}`}
-            fromPos={[getSlotX(0) - 0.9, DIE_SIZE / 2, -3.77]}
+            fromPos={[getSlotX(0) - PROFILE_X_OFFSET, DIE_SIZE / 2, -3.77]}
             toPos={toPos}
             color={player.color}
             delay={i * 0.08}

@@ -47,7 +47,6 @@ export function PlayerProfileGroup({
   return (
     <Html
       position={position}
-      center
       occlude={false}
       zIndexRange={[40, 0]}
       style={{
@@ -55,6 +54,7 @@ export function PlayerProfileGroup({
         userSelect: 'none',
         fontFamily: 'system-ui, sans-serif',
         whiteSpace: 'nowrap',
+        transform: 'translate(-100%, -50%)',
       }}
     >
       {/* Two-column layout: A) Avatar | B) Star+score / SX|TX */}
@@ -62,14 +62,14 @@ export function PlayerProfileGroup({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: Math.round(6 * scale),
+          gap: Math.round(4 * scale),
         }}
       >
         {/* Column A: Avatar circle */}
         <div
           style={{
-            width: Math.round(57 * scale),
-            height: Math.round(57 * scale),
+            width: Math.round(44 * scale),
+            height: Math.round(44 * scale),
             borderRadius: '50%',
             backgroundColor: color,
             border: '2px solid rgba(255, 255, 255, 0.3)',
@@ -81,7 +81,7 @@ export function PlayerProfileGroup({
         >
           <span
             style={{
-              fontSize: Math.round(24 * scale),
+              fontSize: Math.round(18 * scale),
               fontWeight: 'bold',
               color: '#ffffff',
               textShadow: '0 1px 2px rgba(0,0,0,0.4)',
@@ -104,8 +104,8 @@ export function PlayerProfileGroup({
           <div
             style={{
               position: 'relative',
-              width: Math.round(52 * scale),
-              height: Math.round(52 * scale),
+              width: Math.round(42 * scale),
+              height: Math.round(42 * scale),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -115,7 +115,7 @@ export function PlayerProfileGroup({
             <span
               style={{
                 position: 'absolute',
-                fontSize: Math.round(52 * scale),
+                fontSize: Math.round(42 * scale),
                 lineHeight: 1,
                 color: '#f1c40f',
                 textShadow: '0 1px 3px rgba(0,0,0,0.4)',
@@ -126,8 +126,8 @@ export function PlayerProfileGroup({
             <span
               style={{
                 position: 'relative',
-                top: 3,
-                fontSize: Math.round(20 * scale),
+                top: 2,
+                fontSize: Math.round(16 * scale),
                 fontWeight: 'bold',
                 color: '#ffffff',
                 lineHeight: 1,
@@ -145,13 +145,13 @@ export function PlayerProfileGroup({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
+              gap: 3,
               transformOrigin: 'center',
             }}
           >
             <span
               style={{
-                fontSize: Math.round(12 * scale),
+                fontSize: Math.round(10 * scale),
                 color: 'rgba(255, 255, 255, 0.7)',
                 lineHeight: 1,
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)',
@@ -161,7 +161,7 @@ export function PlayerProfileGroup({
             </span>
             <span
               style={{
-                fontSize: Math.round(12 * scale),
+                fontSize: Math.round(10 * scale),
                 color: 'rgba(255, 255, 255, 0.35)',
                 lineHeight: 1,
               }}
@@ -170,7 +170,7 @@ export function PlayerProfileGroup({
             </span>
             <span
               style={{
-                fontSize: Math.round(12 * scale),
+                fontSize: Math.round(10 * scale),
                 color: 'rgba(255, 255, 255, 0.7)',
                 lineHeight: 1,
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)',

@@ -3,7 +3,7 @@ import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockA
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
-import { getSlotX } from '../components/GoalRow';
+import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
 import { getAIUnlockDecision } from '../utils/aiDecision';
 
@@ -386,7 +386,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       // Compute AI lock animation data (emerge from profile → slot)
       if (aiLocks.length > 0) {
-        const profileX = getSlotX(0) - 0.9;
+        const profileX = getSlotX(0) - PROFILE_X_OFFSET;
         const rowZ = -3.77 + i * 0.9;
         const slotsAnimating: number[] = [];
 

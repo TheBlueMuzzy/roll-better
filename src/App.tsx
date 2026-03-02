@@ -12,7 +12,7 @@ import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
 import { isHapticsSupported, hapticPulse, hapticPattern, HAPTIC_ROLL_START, HAPTIC_LOCK, HAPTIC_UNLOCK, HAPTIC_SCORE, HAPTIC_WIN } from './utils/haptics';
-import { getSlotX } from './components/GoalRow';
+import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
@@ -234,7 +234,7 @@ function App() {
 
       if (slotsToUnlock.length === 0) continue;
 
-      const profileX = getSlotX(0) - 0.9;
+      const profileX = getSlotX(0) - PROFILE_X_OFFSET;
       const rowZ = -3.77 + i * 0.9;
 
       for (const slotIndex of slotsToUnlock) {

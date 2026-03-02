@@ -8,9 +8,12 @@ import { DIE_SIZE } from './RollingArea';
 export const SLOT_SPACING = 0.62;
 export const SLOT_COUNT = 8;
 
-/** Returns the X position for a given slot index (0-7), centered at 0. */
+/** Offset from slot 0 to profile group anchor (exported for reuse). */
+export const PROFILE_X_OFFSET = 0.10;
+
+/** Returns the X position for a given slot index (0-7), shifted right for profile room. */
 export function getSlotX(index: number): number {
-  return (index - 3.0) * SLOT_SPACING;
+  return (index - 2.5) * SLOT_SPACING;
 }
 
 /**
@@ -39,7 +42,7 @@ function easeIn(t: number): number { return t * t; }
 function easeOut(t: number): number { return 1 - (1 - t) * (1 - t); }
 
 // Star icon world X — same offset used by GoalProfileGroup in Scene.tsx
-const STAR_WORLD_X = getSlotX(0) - 0.9;
+const STAR_WORLD_X = getSlotX(0) - PROFILE_X_OFFSET;
 
 // --- Props ---
 interface GoalRowProps {

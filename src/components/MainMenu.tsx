@@ -87,9 +87,9 @@ export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
       {/* Online placeholder */}
       <span className="menu-coming-soon">Online (Coming Soon)</span>
 
-      {/* Settings gear */}
-      <button className="settings-gear menu-gear" onClick={onOpenSettings}>
-        &#x2699;
+      {/* Settings link */}
+      <button className="menu-settings-link" onClick={onOpenSettings}>
+        Settings
       </button>
     </div>
   );

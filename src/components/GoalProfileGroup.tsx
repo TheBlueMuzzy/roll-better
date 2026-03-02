@@ -2,18 +2,21 @@ import { Html } from '@react-three/drei';
 
 interface GoalProfileGroupProps {
   position: [number, number, number];
+  potentialScore?: number;
 }
 
-export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
+export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupProps) {
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
+  const scale = Math.min(Math.max(vw / 390, 0.85), 1.3);
   return (
     <Html
       position={position}
-      center
       occlude={false}
       style={{
         pointerEvents: 'none',
         userSelect: 'none',
         fontFamily: 'system-ui, sans-serif',
+        transform: 'translate(-100%, -50%)',
       }}
     >
       <div
@@ -23,12 +26,12 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
           justifyContent: 'center',
         }}
       >
-        {/* White circle with oversized gold star */}
+        {/* White circle with oversized gold star + score */}
         <div
           style={{
             position: 'relative',
-            width: 57,
-            height: 57,
+            width: Math.round(48 * scale),
+            height: Math.round(48 * scale),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -37,28 +40,47 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
           {/* White circle background */}
           <div
             style={{
-              width: 57,
-              height: 57,
+              width: Math.round(48 * scale),
+              height: Math.round(48 * scale),
               borderRadius: '50%',
               backgroundColor: '#ffffff',
               border: '2px solid rgba(255, 255, 255, 0.3)',
             }}
           />
-          {/* Gold star — 2.5x size, shifted up to center over indicator dots */}
+          {/* Gold star */}
           <span
             style={{
               position: 'absolute',
-              fontSize: 75,
+              fontSize: Math.round(62 * scale),
               lineHeight: 1,
               color: '#f1c40f',
               textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              top: 'calc(50% - 7px)',
+              top: 'calc(50% - 5px)',
               left: '50%',
               transform: 'translate(-50%, -50%) scale(0.90)',
             }}
           >
             &#9733;
           </span>
+          {/* Score number inside star */}
+          {potentialScore !== undefined && (
+            <span
+              style={{
+                position: 'absolute',
+                top: 'calc(50% - 3px)',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: Math.round(16 * scale),
+                fontWeight: 'bold',
+                color: '#ffffff',
+                lineHeight: 1,
+                zIndex: 1,
+                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+              }}
+            >
+              {potentialScore}
+            </span>
+          )}
         </div>
       </div>
     </Html>
