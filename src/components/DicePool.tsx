@@ -123,6 +123,10 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     );
     const hasFired = useRef(false);
 
+    // Fallback timer: if dice keep cycling sleep/wake (e.g. stacked),
+    // fire onAllSettled once all dice have reported a result
+    const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Generation counter — bumped when pool shrinks after locking to force remount
     // so remaining dice show correct face values (not the locked die's face)
     const generation = useRef(0);
@@ -230,6 +234,45 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       [],
     );
 
+    // Fire results — shared between immediate settle and fallback timer
+    const fireResults = useCallback(() => {
+      if (hasFired.current) return;
+      hasFired.current = true;
+      if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
+
+      console.log('[DicePool] ALL SETTLED → results:', [...results.current], 'count:', count);
+
+      const paired = results.current.map((v, i) => ({
+        value: v!,
+        position: positions.current[i]!,
+        rotation: rotations.current[i]!,
+      }));
+      paired.sort((a, b) => a.value - b.value);
+      const sortedValues = paired.map((p) => p.value);
+      const sortedPositions = paired.map((p) => p.position);
+      const sortedRotations = paired.map((p) => p.rotation);
+
+      onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
+    }, [onAllSettled, count]);
+
+    // Start fallback timer — if all dice have a result, fire after short delay
+    // even if some dice keep cycling sleep/wake (e.g. stacked on each other)
+    const startFallbackTimer = useCallback(() => {
+      if (hasFired.current) return;
+      // All dice must have reported a face value at least once
+      const allHaveResults = results.current.length === count && results.current.every((r) => r !== null);
+      if (!allHaveResults) return;
+
+      // Clear existing timer and start fresh (500ms grace period)
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(() => {
+        if (!hasFired.current) {
+          console.log('[DicePool] Fallback settle — dice stopped moving, firing results');
+          fireResults();
+        }
+      }, 500);
+    }, [count, fireResults]);
+
     // Result callback factory — marks die as settled, checks if ALL settled
     const handleDieResult = useCallback(
       (index: number) => (value: number, position: [number, number, number], rotation: [number, number, number]) => {
@@ -239,25 +282,15 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         rotations.current[index] = rotation;
         settled.current[index] = true;
 
+        // Immediate path: all dice settled at once
         if (!hasFired.current && settled.current.every(Boolean)) {
-          hasFired.current = true;
-          console.log('[DicePool] ALL SETTLED → results:', [...results.current], 'count:', count);
-
-          // Sort values, positions, and rotations together so indices stay aligned
-          const paired = results.current.map((v, i) => ({
-            value: v!,
-            position: positions.current[i]!,
-            rotation: rotations.current[i]!,
-          }));
-          paired.sort((a, b) => a.value - b.value);
-          const sortedValues = paired.map((p) => p.value);
-          const sortedPositions = paired.map((p) => p.position);
-          const sortedRotations = paired.map((p) => p.rotation);
-
-          onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
+          fireResults();
+        } else {
+          // Fallback path: some dice may be stacked/cycling — use timer
+          startFallbackTimer();
         }
       },
-      [onAllSettled, count],
+      [fireResults, startFallbackTimer],
     );
 
     // Unsettled callback — die got bumped after settling
@@ -265,13 +298,20 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       (index: number) => () => {
         console.log(`[DicePool] Die ${index} UNSETTLED (bumped)`);
         settled.current[index] = false;
-        hasFired.current = false;
+        // Don't reset hasFired — if results already fired, we're done
+        // Only reset if we haven't fired yet (die genuinely still rolling)
+        if (!hasFired.current) {
+          // Restart fallback timer since a die is still moving
+          startFallbackTimer();
+        }
       },
-      [],
+      [startFallbackTimer],
     );
 
     useImperativeHandle(ref, () => ({
       rollAll() {
+        // Clear any pending fallback timer
+        if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
         // Reset settled tracking
         settled.current = Array.from({ length: count }, () => false);
         results.current = Array.from({ length: count }, () => null);
