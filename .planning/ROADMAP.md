@@ -161,7 +161,7 @@ Plans:
 Plans:
 - [x] 12-01: CSS custom properties foundation + HUD responsive pass
 - [x] 12-02: Settings panel + How to Play carousel responsive
-- [ ] 12-03: Main Menu + Winners Screen responsive
+- [x] 12-03: Main Menu + Winners Screen responsive
 - [ ] 12-04: Player profile components responsive + multi-device verification checkpoint
 
 ### Phase 13: Audio & Juice
@@ -194,5 +194,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
 | 10. Screens & Flow | 3/3 | Complete | 2026-03-02 |
 | 11. Mobile Polish | 3/3 | Complete | 2026-03-02 |
-| 12. Responsive UI | 2/4 | In progress | - |
+| 12. Responsive UI | 3/4 | In progress | - |
 | 13. Audio & Juice | 0/3 | Not started | - |

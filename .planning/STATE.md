@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 12 in progress. Plan 12-02 complete (Settings + H2P Responsive).
+Phase 12 in progress. Plan 12-03 complete (Main Menu + Winners Screen Responsive).
 
 ## Version
 0.1.0.93
@@ -9,19 +9,18 @@ Phase 12 in progress. Plan 12-02 complete (Settings + H2P Responsive).
 ## Current Position
 
 Phase: 12 of 13 (Responsive UI)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 12-02-PLAN.md (Settings + H2P Responsive)
+Last activity: 2026-03-02 — Completed 12-03-PLAN.md (Main Menu + Winners Screen Responsive)
 
-Progress: █████████████████████████████████████░░░░░ 88%
+Progress: ██████████████████████████████████████░░░░ 90%
 
 ## Last Session
-2026-03-02 — Executed 12-02 (Settings + H2P Responsive):
-- Settings panel: max-width, padding, fonts, toggles, slider, buttons all use CSS custom properties
-- H2P carousel: card width, slide padding, visual height, icons, arrows, dots all responsive
-- Touch targets scale with viewport via var(--touch-target)
-- settings-close and settings-h2p also made responsive (consistency fix)
-- Commits: 0eec365 (Task 1), 8917397 (Task 2)
+2026-03-02 — Executed 12-03 (Main Menu + Winners Screen Responsive):
+- Main Menu: selectors, buttons, play button, gear icon all use responsive custom properties
+- Winners Screen: list width, row padding, avatars (clamp), scores, action buttons all responsive
+- Class name mismatches in plan auto-resolved to actual codebase equivalents
+- Commits: 033472e (Task 1), e5240f7 (Task 2)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -142,5 +141,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 12-02-PLAN.md (Settings + H2P Responsive)
+Stopped at: Completed 12-03-PLAN.md (Main Menu + Winners Screen Responsive)
 Resume file: None — continue with Phase 12 next plan
