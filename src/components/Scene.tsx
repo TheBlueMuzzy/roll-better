@@ -3,10 +3,11 @@ import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, ROLLING_Z_MIN, ROLLING_Z_MAX, ARENA_HALF_X } from './RollingArea';
-import { GoalRow } from './GoalRow';
+import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X } from './RollingArea';
+import { GoalRow, getSlotX } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
-import { PlayerIcon } from './PlayerIcon';
+import { PlayerProfileGroup } from './PlayerProfileGroup';
+import { GoalProfileGroup } from './GoalProfileGroup';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
 import { useGameStore } from '../store/gameStore';
@@ -229,15 +230,30 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           />
         ))}
 
-        {/* Player icon — name, color, score, stats (outside Physics) */}
-        <PlayerIcon
+        {/* Profile groups — avatar circle + stats, left of each row */}
+        <PlayerProfileGroup
           name={player.name}
           color={player.color}
           score={player.score}
-          poolSize={player.poolSize}
-          matches={player.lockedDice.length}
           startingDice={player.startingDice}
-          position={[-ARENA_HALF_X + 0.3, 0, ROLLING_Z_MAX - 0.3]}
+          position={[getSlotX(0) - 0.7, 0, -3.77]}
+        />
+
+        {/* AI player profile groups */}
+        {players.slice(1).map((aiPlayer, idx) => (
+          <PlayerProfileGroup
+            key={`profile-${aiPlayer.id}`}
+            name={aiPlayer.name}
+            color={aiPlayer.color}
+            score={aiPlayer.score}
+            startingDice={aiPlayer.startingDice}
+            position={[getSlotX(0) - 0.7, 0, -3.77 + (idx + 1) * 0.9]}
+          />
+        ))}
+
+        {/* Goal profile group — star icon left of goal row */}
+        <GoalProfileGroup
+          position={[getSlotX(0) - 0.7, 0, -4.67]}
         />
 
         {/* Subtle divider between player row and rolling area */}
