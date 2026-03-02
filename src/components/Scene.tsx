@@ -255,6 +255,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           shakingSlot={shakingSlot}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
+          canUnlock={Math.floor((12 - player.poolSize) / 2) > 0}
         />
 
         {/* AI player rows — below human row (outside Physics) */}

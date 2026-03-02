@@ -16,6 +16,7 @@ interface PlayerRowProps {
   shakingSlot?: number | null;
   animatingSlotIndices?: number[];
   unlockAnimations?: UnlockAnimation[];
+  canUnlock?: boolean;
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -139,6 +140,7 @@ export function PlayerRow({
   shakingSlot = null,
   animatingSlotIndices = [],
   unlockAnimations = [],
+  canUnlock = true,
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
 
@@ -157,8 +159,8 @@ export function PlayerRow({
           if (unlockAnimations.some((a) => a.slotIndex === i)) {
             return null;
           }
-          // During unlocking — interactive with highlights
-          if (isUnlocking && onToggleUnlock) {
+          // During unlocking — interactive with highlights (only if player can unlock)
+          if (isUnlocking && onToggleUnlock && canUnlock) {
             return (
               <UnlockableDie
                 key={i}

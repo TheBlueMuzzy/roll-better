@@ -121,11 +121,13 @@ export function PlayerProfileGroup({
             <span
               style={{
                 position: 'relative',
+                top: 3,
                 fontSize: 20,
                 fontWeight: 'bold',
-                color: '#1a1a1a',
+                color: '#ffffff',
                 lineHeight: 1,
                 zIndex: 1,
+                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
               }}
             >
               {score}

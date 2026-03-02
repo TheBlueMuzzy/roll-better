@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 81,
+  "build": 82,
   "history": [
     {
       "version": "0.1.0",
@@ -82,6 +82,11 @@
       "version": "0.1.0.81",
       "date": "2026-03-02",
       "summary": "Fix unlock/skip button persisting during unlock animations"
+    },
+    {
+      "version": "0.1.0.82",
+      "date": "2026-03-02",
+      "summary": "UI polish: white score text, 2.5x goal star, hide unlock rings at 12-die cap"
     }
   ]
 }

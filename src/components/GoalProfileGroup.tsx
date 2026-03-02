@@ -23,25 +23,38 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
           justifyContent: 'center',
         }}
       >
-        {/* Star icon inside a gold circle — same size as player avatars */}
+        {/* White circle with oversized gold star */}
         <div
           style={{
+            position: 'relative',
             width: 57,
             height: 57,
-            borderRadius: '50%',
-            backgroundColor: '#f1c40f',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
+          {/* White circle background */}
+          <div
+            style={{
+              width: 57,
+              height: 57,
+              borderRadius: '50%',
+              backgroundColor: '#ffffff',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+            }}
+          />
+          {/* Gold star — 2.5x size, centered over the circle */}
           <span
             style={{
-              fontSize: 30,
+              position: 'absolute',
+              fontSize: 75,
               lineHeight: 1,
-              color: '#ffffff',
-              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+              color: '#f1c40f',
+              textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
             }}
           >
             &#9733;
