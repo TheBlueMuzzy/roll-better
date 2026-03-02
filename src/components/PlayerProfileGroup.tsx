@@ -7,6 +7,7 @@ interface PlayerProfileGroupProps {
   color: string;
   score: number;
   startingDice: number;
+  totalDice: number;
   position: [number, number, number];
 }
 
@@ -15,27 +16,26 @@ export function PlayerProfileGroup({
   color,
   score,
   startingDice,
+  totalDice,
   position,
 }: PlayerProfileGroupProps) {
-  // --- Handicap (Z) scale-pop animation (carried over from PlayerIcon) ---
+  // --- Handicap (startingDice) scale-pop animation ---
   const prevStartingDice = useRef(startingDice);
   const popTimer = useRef(0);
-  const diceBadgeRef = useRef<HTMLSpanElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
 
   useFrame((_, delta) => {
-    // Detect startingDice change -> trigger pop
     if (startingDice !== prevStartingDice.current) {
       prevStartingDice.current = startingDice;
-      popTimer.current = 0.4; // 0.4s pop duration
+      popTimer.current = 0.4;
     }
 
-    // Animate pop
     if (popTimer.current > 0) {
       popTimer.current = Math.max(0, popTimer.current - delta);
-      const t = popTimer.current / 0.4; // 1->0 over duration
-      const scale = 1.0 + 0.4 * Math.sin(Math.PI * t);
-      if (diceBadgeRef.current) {
-        diceBadgeRef.current.style.transform = `scale(${scale})`;
+      const t = popTimer.current / 0.4;
+      const scale = 1.0 + 0.3 * Math.sin(Math.PI * t);
+      if (statsRef.current) {
+        statsRef.current.style.transform = `scale(${scale})`;
       }
     }
   });
@@ -60,59 +60,120 @@ export function PlayerProfileGroup({
           gap: 2,
         }}
       >
-        {/* Avatar circle */}
+        {/* Top row: avatar circle + star-score side by side */}
         <div
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            backgroundColor: color,
-            border: '2px solid rgba(255, 255, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 4,
           }}
         >
-          {/* First letter of name as placeholder */}
+          {/* Avatar circle — sized to match dice */}
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              backgroundColor: color,
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: '#ffffff',
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              }}
+            >
+              {name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+
+          {/* Score inside a star */}
+          <div
+            style={{
+              position: 'relative',
+              width: 36,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {/* Star background */}
+            <span
+              style={{
+                position: 'absolute',
+                fontSize: 36,
+                lineHeight: 1,
+                color: '#f1c40f',
+                textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+              }}
+            >
+              &#9733;
+            </span>
+            {/* Score number on top of star */}
+            <span
+              style={{
+                position: 'relative',
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#1a1a1a',
+                lineHeight: 1,
+                zIndex: 1,
+              }}
+            >
+              {score}
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom row: S{startingDice} | T{totalDice} */}
+        <div
+          ref={statsRef}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            transformOrigin: 'center',
+          }}
+        >
           <span
             style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: '#ffffff',
+              fontSize: 11,
+              color: 'rgba(255, 255, 255, 0.7)',
+              lineHeight: 1,
               textShadow: '0 1px 2px rgba(0,0,0,0.4)',
             }}
           >
-            {name.charAt(0).toUpperCase()}
+            S{startingDice}
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              color: 'rgba(255, 255, 255, 0.35)',
+              lineHeight: 1,
+            }}
+          >
+            |
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              color: 'rgba(255, 255, 255, 0.7)',
+              lineHeight: 1,
+              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+            }}
+          >
+            T{totalDice}
           </span>
         </div>
-
-        {/* Score (large, bold) */}
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#ffffff',
-            lineHeight: 1,
-            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-          }}
-        >
-          {score}
-        </span>
-
-        {/* Starting dice count (smaller, secondary) */}
-        <span
-          ref={diceBadgeRef}
-          style={{
-            fontSize: 12,
-            color: 'rgba(255, 255, 255, 0.6)',
-            lineHeight: 1,
-            display: 'inline-block',
-            transformOrigin: 'center',
-            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-          }}
-        >
-          {startingDice}d
-        </span>
       </div>
     </Html>
   );

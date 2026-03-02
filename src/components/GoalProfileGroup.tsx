@@ -23,11 +23,11 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
           justifyContent: 'center',
         }}
       >
-        {/* Star icon inside a gold circle */}
+        {/* Star icon inside a gold circle — same size as player avatars */}
         <div
           style={{
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             backgroundColor: '#f1c40f',
             border: '2px solid rgba(255, 255, 255, 0.3)',
@@ -38,7 +38,7 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
         >
           <span
             style={{
-              fontSize: 20,
+              fontSize: 24,
               lineHeight: 1,
               color: '#ffffff',
               textShadow: '0 1px 2px rgba(0,0,0,0.3)',

@@ -230,13 +230,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           />
         ))}
 
-        {/* Profile groups — avatar circle + stats, left of each row */}
+        {/* Profile groups — avatar circle + star-score + stats, left of each row */}
         <PlayerProfileGroup
           name={player.name}
           color={player.color}
           score={player.score}
           startingDice={player.startingDice}
-          position={[getSlotX(0) - 0.7, 0, -3.77]}
+          totalDice={player.poolSize + player.lockedDice.length}
+          position={[getSlotX(0) - 0.9, 0, -3.77]}
         />
 
         {/* AI player profile groups */}
@@ -247,13 +248,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             color={aiPlayer.color}
             score={aiPlayer.score}
             startingDice={aiPlayer.startingDice}
-            position={[getSlotX(0) - 0.7, 0, -3.77 + (idx + 1) * 0.9]}
+            totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
+            position={[getSlotX(0) - 0.9, 0, -3.77 + (idx + 1) * 0.9]}
           />
         ))}
 
         {/* Goal profile group — star icon left of goal row */}
         <GoalProfileGroup
-          position={[getSlotX(0) - 0.7, 0, -4.67]}
+          position={[getSlotX(0) - 0.9, 0, -4.67]}
         />
 
         {/* Subtle divider between player row and rolling area */}
