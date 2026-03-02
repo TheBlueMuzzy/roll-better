@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings, AIDifficulty } from '../types/game';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
+import { getAIUnlockDecision } from '../utils/aiDecision';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 const PLAYER_COLORS = [
@@ -24,7 +25,7 @@ interface GameStore extends GameState {
   setPhase: (phase: GamePhase) => void;
 
   // Game setup
-  initGame: (playerCount: number) => void;
+  initGame: (playerCount: number, aiDifficulty?: AIDifficulty) => void;
   initRound: (options?: { skipPhase?: boolean }) => void;
 
   // Goal transition
@@ -47,6 +48,9 @@ interface GameStore extends GameState {
   applyHandicap: () => void;
   checkWinner: () => boolean;
   checkSessionEnd: () => boolean;
+
+  // AI
+  processAIUnlocks: () => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -100,7 +104,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (playerCount: number) => {
+  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium') => {
     const players = Array.from({ length: playerCount }, (_, i) => ({
       id: `player-${i}`,
       name: i === 0 ? 'You' : `Player ${i + 1}`,
@@ -111,6 +115,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lockedDice: [],
       selectedForUnlock: [],
       isAI: i !== 0,
+      difficulty: i !== 0 ? aiDifficulty : undefined,
     }));
 
     set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState, shownTips: [] });
@@ -288,12 +293,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
       );
     }
 
-    // Apply new locks to player
+    // Apply new locks to human player
     const players = [...state.players];
     const updatedPlayer = { ...player };
     updatedPlayer.lockedDice = [...updatedPlayer.lockedDice, ...newLocks];
     updatedPlayer.poolSize = updatedPlayer.poolSize - newLocks.length;
     players[0] = updatedPlayer;
+
+    // --- Simultaneous AI rolls: process all AI players in the same update ---
+    for (let i = 1; i < players.length; i++) {
+      const aiPlayer = players[i];
+      if (!aiPlayer.isAI || aiPlayer.poolSize <= 0) continue;
+
+      // Generate random roll results for AI
+      const aiResults = Array.from({ length: aiPlayer.poolSize }, () =>
+        Math.floor(Math.random() * 6) + 1,
+      );
+
+      // Find auto-locks for AI
+      const aiLocks = findAutoLocks(
+        state.roundState.goalValues,
+        aiResults,
+        aiPlayer.lockedDice,
+      );
+
+      // Apply locks to AI player
+      const updatedAI = { ...aiPlayer };
+      updatedAI.lockedDice = [...updatedAI.lockedDice, ...aiLocks];
+      updatedAI.poolSize = updatedAI.poolSize - aiLocks.length;
+      players[i] = updatedAI;
+
+      console.log(
+        `[setRollResults AI-${i}] rolled=[${aiResults}] locks=${aiLocks.length} pool: ${aiPlayer.poolSize} → ${updatedAI.poolSize}`,
+      );
+    }
 
     // Update round state and set phase to locking (for UI feedback)
     set({
@@ -441,6 +474,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
         unlockAnimations: [],
       },
     });
+  },
+
+  processAIUnlocks: () => {
+    const state = get();
+    const players = [...state.players];
+    let changed = false;
+
+    for (let i = 1; i < players.length; i++) {
+      const aiPlayer = players[i];
+      if (!aiPlayer.isAI || !aiPlayer.difficulty) continue;
+      if (aiPlayer.lockedDice.length === 0) continue;
+      if (aiPlayer.lockedDice.length >= 8) continue;
+
+      const slotsToUnlock = getAIUnlockDecision({
+        goalValues: state.roundState.goalValues,
+        lockedDice: aiPlayer.lockedDice,
+        poolSize: aiPlayer.poolSize,
+        difficulty: aiPlayer.difficulty,
+      });
+
+      if (slotsToUnlock.length > 0) {
+        const updatedAI = { ...aiPlayer };
+        updatedAI.lockedDice = updatedAI.lockedDice.filter(
+          (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
+        );
+        updatedAI.poolSize = updatedAI.poolSize + slotsToUnlock.length * 2;
+        updatedAI.selectedForUnlock = [];
+        players[i] = updatedAI;
+        changed = true;
+
+        console.log(
+          `[processAIUnlocks AI-${i}] unlocked slots=[${slotsToUnlock}] pool: ${aiPlayer.poolSize} → ${updatedAI.poolSize}`,
+        );
+      }
+    }
+
+    if (changed) {
+      set({ players });
+    }
   },
 
   scoreRound: () => {

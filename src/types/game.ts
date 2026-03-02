@@ -23,6 +23,8 @@ export interface UnlockAnimation {
   delay: number;               // seconds to wait before starting animation
 }
 
+export type AIDifficulty = 'easy' | 'medium' | 'hard';
+
 export interface Player {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ export interface Player {
   lockedDice: LockedDie[];
   selectedForUnlock: number[];
   isAI: boolean;
+  difficulty?: AIDifficulty;
 }
 
 export interface RoundState {
