@@ -1,6 +1,6 @@
-import type { LockedDie } from '../types/game';
+import type { LockedDie, AIDifficulty } from '../types/game';
 
-export type AIDifficulty = 'easy' | 'medium' | 'hard';
+export type { AIDifficulty };
 
 export interface AIDecisionInput {
   goalValues: number[];          // 8 sorted goal values
