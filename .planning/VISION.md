@@ -38,6 +38,21 @@ Context: Phase 7 planning discussion. Muzzy decided the complexity wasn't justif
 The How to Play carousel (07-02) doesn't need final art or polished content — temporary placeholder slides are fine. Final visuals can be done in a later polish pass.
 Context: Raised during 07-01 execution. Relevant to 07-02 planning.
 
+### 2026-03-02 — Collapsible Goal Area ("Shade" / Split-Screen)
+The divider between the Goal/lock-in area and the rolling pool area should be interactive — either draggable or a collapse/expand toggle. Problem being solved: how to see all 8 player rows + goal row without shrinking the rolling area permanently.
+
+**Concept:** The goal area sits "above" the pool area (layered, not adjacent). Expanding it covers the pool area like pulling down a shade. Collapsing it reveals more rolling space. The pool/physics simulation continues underneath regardless — dice still roll and settle even when covered.
+
+**Open design questions (to resolve during Phase 9):**
+- Drag vs snap toggle? Snap (animated fast open/close) might solve the animation conflict better than free drag.
+- When dice need to lock-in (lerp from pool to goal area) while shade is expanded: should it auto-collapse first? Should dice animate from the avatar group instead?
+- Same issue with unlock: dice flying down to pool while shade covers it.
+- Maybe auto-collapse on any lock/unlock animation, then user can re-expand?
+- Goal: see ALL rows simultaneously when wanted, without scroll bars, without permanently shrinking the roll area.
+- The walls that contain rolling dice are in the pool layer — shade covers them visually but doesn't affect physics.
+
+Context: Raised during 08-02 completion. Affects Phase 9 layout design. User is still exploring options — needs discussion during planning.
+
 ### 2026-03-02 — Glyphtender as Design Pattern Library
 Muzzy wants to use Glyphtender's multiplayer connectivity logic and AI drop-in/drop-out replacement pattern as a referenceable design methodology for future games. Not a code port (Unity C# vs web), but the IDEOLOGY of the design approach: how players connect, how AI seamlessly replaces disconnecting players and yields back when they reconnect, and how that flow is architected. The goal is building a cross-project library of concepts under BMUZ so each new game doesn't start from scratch. Research this before Phase 13+ (online multiplayer milestone).
 Context: Raised during 08-02 checkpoint. Glyphtender project at C:\Users\Muzzy\Documents\UnityProjects\Glyphtender\.
