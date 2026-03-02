@@ -30,6 +30,30 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+/* --- Responsive design tokens --- */
+
+:root {
+  /* Font sizes */
+  --fs-xs: clamp(10px, 2.5vw, 13px);
+  --fs-sm: clamp(12px, 3vw, 14px);
+  --fs-md: clamp(14px, 3.5vw, 18px);
+  --fs-lg: clamp(16px, 4vw, 22px);
+  --fs-xl: clamp(20px, 5vw, 28px);
+
+  /* Spacing */
+  --sp-xs: clamp(4px, 1vw, 8px);
+  --sp-sm: clamp(8px, 2vw, 14px);
+  --sp-md: clamp(12px, 3vw, 20px);
+  --sp-lg: clamp(16px, 4vw, 28px);
+  --sp-xl: clamp(24px, 5vw, 36px);
+
+  /* Layout */
+  --overlay-max-w: clamp(280px, 85vw, 420px);
+  --btn-max-w: clamp(240px, 75vw, 360px);
+  --touch-target: clamp(40px, 10vw, 56px);
+  --border-radius: clamp(8px, 2vw, 16px);
+}
+
 /* --- HUD overlay (HTML over Canvas) --- */
 
 .hud {
