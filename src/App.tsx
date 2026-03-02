@@ -53,7 +53,7 @@ function App() {
 
   // Initialize game on mount
   useEffect(() => {
-    initGame(2, 'medium');
+    initGame(3, 'medium');
     initRound();
   }, [initGame, initRound]);
 

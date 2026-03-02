@@ -123,17 +123,19 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
 
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
-        {/* During unlocking: status text + UNLOCK button */}
+        {/* During unlocking: status text + UNLOCK button (skip handled separately below) */}
         {phase === 'unlocking' ? (
           <>
             <span className="hud-status">{statusText}</span>
-            <button
-              className={`hud-unlock-btn${mustUnlock && selectedCount === 0 ? ' hud-unlock-btn--disabled' : ''}`}
-              onClick={onConfirmUnlock}
-              disabled={mustUnlock && selectedCount === 0}
-            >
-              {selectedCount > 0 ? `UNLOCK ${selectedCount}` : mustUnlock ? 'MUST UNLOCK' : 'SKIP'}
-            </button>
+            {(selectedCount > 0 || mustUnlock) && (
+              <button
+                className={`hud-unlock-btn${mustUnlock && selectedCount === 0 ? ' hud-unlock-btn--disabled' : ''}`}
+                onClick={onConfirmUnlock}
+                disabled={mustUnlock && selectedCount === 0}
+              >
+                {selectedCount > 0 ? `UNLOCK ${selectedCount}` : 'MUST UNLOCK'}
+              </button>
+            )}
           </>
         ) : (
           /* All other phases: tappable status text */
@@ -146,6 +148,13 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
         )}
 
       </div>
+
+      {/* Skip button — centered in pool area during unlock phase */}
+      {phase === 'unlocking' && selectedCount === 0 && !mustUnlock && (
+        <button className="hud-skip-btn" onClick={onConfirmUnlock}>
+          SKIP
+        </button>
+      )}
 
       {/* Settings gear button — bottom-right */}
       <button className="settings-gear" onClick={onOpenSettings}>

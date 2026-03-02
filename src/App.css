@@ -105,6 +105,28 @@ body {
   cursor: not-allowed;
 }
 
+.hud-skip-btn {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 24px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.hud-skip-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 
 /* --- Settings gear button in HUD --- */
 
@@ -525,7 +547,7 @@ body {
 
 .tip-banner {
   position: absolute;
-  top: 44px;
+  top: 36%;
   left: 16px;
   right: 16px;
   z-index: 20;
