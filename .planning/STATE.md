@@ -1,29 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 9 in progress. Plan 09-05 complete (pool dice spawn & exit animations). 1 plan remaining in phase.
+Phase 9 complete. All 6 plans finished for Multi-Player Display. Ready for Phase 10: Screens & Flow.
 
 ## Version
-0.1.0.83
+0.1.0.86
 
 ## Current Position
 
 Phase: 9 of 12 (Multi-Player Display)
-Plan: 5 of 6 in current phase
-Status: In progress
-Last activity: 2026-03-02 — Completed 09-05-PLAN.md (pool dice spawn & exit animations)
+Plan: 6 of 6 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 — Completed 09-06-PLAN.md (goal column indicators)
 
-Progress: █████████████████████████████░░░░░░ 83%
+Progress: █████████████████████████████████░░░ 86%
 
 ## Last Session
-2026-03-02 — Executed 09-05 (pool dice spawn & exit animations):
-- ExitingDie: pop (scale 1→1.3) + shrink (1.3→0) on round end, 0.45s total
-- SpawningDie: fly from avatar, scale 0→1.15→1 overshoot, tumble rotation during flight
-- Pre-computed poolSpawnPositions shared between SpawningDie and DicePool (no teleport)
-- Extended roundEnd→idle window from 1500ms to 2000ms for larger pools
-- Fixed 12-die cap formula: was floor((12-pool)/2), now 12-pool-locked (prevented 16+ dice)
-- Dynamic unlock indicators: rings/pulse only on selectable dice
-- UI polish: white score text in star, 2.5x gold goal star, white circle background
+2026-03-02 — Executed 09-06 (goal column indicators):
+- GoalIndicators: 3D CircleGeometry colored dots under goal dice per locked player
+- Tie rendering: split wedge circles via thetaStart/thetaLength
+- Indicators positioned above goal row (Z -0.73) for visibility
+- Star tuning: -7px offset, 0.90 scale for visual centering
+- Removed score from HUD top-right
+- Fixed stacked dice soft-lock: 500ms fallback settle timer
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -40,7 +39,7 @@ Progress: ███████████████████████�
 - Premium 3D dice: MeshPhysicalMaterial + clearcoat + HDRI + AccumulativeShadows
 - Physics: Rapier, gravity -50, restitution 0.35 (die), face-up detection via dot product
 - PhysicsDie: forwardRef + useImperativeHandle for roll API, settle detection via sleep events
-- Settle detection: per-die boolean array with onUnsettled callback
+- Settle detection: per-die boolean array with onUnsettled callback + 500ms fallback timer
 - Pure physics determines roll results (no fake RNG)
 - Vite v7 scaffold (latest stable)
 - Camera locked top-down at [0, 12, 0.01], fov 50
@@ -109,6 +108,8 @@ Progress: ███████████████████████�
 - Pool spawn: SpawningDie from avatar pos, scale overshoot 0→1.15→1, tumble during flight
 - poolSpawnPositions pre-computed and shared with DicePool (no teleport on swap)
 - Unlock ring/pulse only on selectable dice (dynamic based on remaining cap)
+- Goal indicators: 3D CircleGeometry dots above goal row, split wedges for ties
+- Stacked dice: 500ms fallback timer fires results when all faces reported
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -118,5 +119,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-05-PLAN.md (pool dice spawn & exit animations)
-Resume file: None — ready for 09-06-PLAN.md
+Stopped at: Completed 09-06-PLAN.md (goal column indicators) — Phase 9 complete
+Resume file: None — ready for Phase 10: Screens & Flow
