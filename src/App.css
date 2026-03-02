@@ -589,6 +589,14 @@ body {
   gap: 20px;
   font-family: system-ui, sans-serif;
   user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.menu-backdrop.menu-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .menu-title {
@@ -597,6 +605,12 @@ body {
   color: #ffffff;
   letter-spacing: 3px;
   margin: 0;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.menu-backdrop.menu-visible .menu-title {
+  transform: translateY(0);
 }
 
 .menu-subtitle {
@@ -725,7 +739,7 @@ body {
 .winners-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 26, 0.95);
+  background: rgba(26, 26, 26, 0.92);
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -734,6 +748,14 @@ body {
   gap: 16px;
   font-family: system-ui, sans-serif;
   user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.winners-backdrop.winners-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .winners-heading {
@@ -873,6 +895,19 @@ body {
 
 .winners-menu-btn:active {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Game container transition --- */
+
+.game-container {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.game-container.game-visible {
+  opacity: 1;
 }
 
 /* --- Build version overlay --- */

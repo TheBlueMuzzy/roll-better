@@ -367,13 +367,14 @@ function App() {
     [setRollResults],
   );
 
+  // Game container visible when not on menu
+  const gameVisible = screen === 'game' || screen === 'winners';
+
   return (
     <>
-      {screen === 'menu' && (
-        <MainMenu onPlay={handlePlay} onOpenSettings={() => setSettingsOpen(true)} />
-      )}
-      {screen !== 'menu' && (
-        <>
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onOpenSettings={() => setSettingsOpen(true)} />
+      {gameVisible && (
+        <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
             shadows
             camera={{ position: [0, 12, 0.01], fov: 50 }}
@@ -390,10 +391,10 @@ function App() {
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
           )}
-        </>
+        </div>
       )}
       {screen === 'winners' && (
-        <WinnersScreen onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+        <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}

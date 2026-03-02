@@ -1,13 +1,26 @@
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 interface WinnersScreenProps {
+  visible: boolean;
   onPlayAgain: () => void;
   onMenu: () => void;
 }
 
-export function WinnersScreen({ onPlayAgain, onMenu }: WinnersScreenProps) {
+export function WinnersScreen({ visible, onPlayAgain, onMenu }: WinnersScreenProps) {
   const players = useGameStore((s) => s.players);
   const currentRound = useGameStore((s) => s.currentRound);
+
+  // mount → rAF → add class pattern for fade-in
+  const [showClass, setShowClass] = useState(false);
+  useEffect(() => {
+    if (visible) {
+      const raf = requestAnimationFrame(() => setShowClass(true));
+      return () => cancelAnimationFrame(raf);
+    } else {
+      setShowClass(false);
+    }
+  }, [visible]);
 
   // Sort players by score descending for ranking
   const ranked = [...players].sort((a, b) => b.score - a.score);
@@ -39,7 +52,7 @@ export function WinnersScreen({ onPlayAgain, onMenu }: WinnersScreenProps) {
   };
 
   return (
-    <div className="winners-backdrop">
+    <div className={`winners-backdrop${showClass ? ' winners-visible' : ''}`}>
       <h1 className="winners-heading">Game Over</h1>
 
       <div className="winners-announcement" style={{ color: announcementColor }}>

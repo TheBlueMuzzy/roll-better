@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AIDifficulty } from '../types/game';
 
 interface MainMenuProps {
+  visible: boolean;
   onPlay: (playerCount: number, difficulty: AIDifficulty) => void;
   onOpenSettings: () => void;
 }
@@ -13,12 +14,23 @@ const DIFFICULTIES: { label: string; value: AIDifficulty }[] = [
   { label: 'Hard', value: 'hard' },
 ];
 
-export function MainMenu({ onPlay, onOpenSettings }: MainMenuProps) {
+export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
   const [playerCount, setPlayerCount] = useState(3);
   const [difficulty, setDifficulty] = useState<AIDifficulty>('medium');
 
+  // mount → rAF → add class pattern (same as TipBanner)
+  const [showClass, setShowClass] = useState(false);
+  useEffect(() => {
+    if (visible) {
+      const raf = requestAnimationFrame(() => setShowClass(true));
+      return () => cancelAnimationFrame(raf);
+    } else {
+      setShowClass(false);
+    }
+  }, [visible]);
+
   return (
-    <div className="menu-backdrop">
+    <div className={`menu-backdrop${showClass ? ' menu-visible' : ''}`}>
       <h1 className="menu-title">Roll Better</h1>
       <p className="menu-subtitle">A dice-matching game</p>
 
