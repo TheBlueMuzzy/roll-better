@@ -52,6 +52,7 @@ interface GameStore extends GameState {
   setAudioVolume: (volume: number) => void;
   setPerformanceMode: (mode: Settings['performanceMode']) => void;
   setTipsEnabled: (enabled: boolean) => void;
+  setConfirmationEnabled: (enabled: boolean) => void;
 }
 
 const initialRoundState = {
@@ -76,6 +77,7 @@ const defaultSettings: Settings = {
   audioVolume: 80,
   performanceMode: 'advanced',
   tipsEnabled: true,
+  confirmationEnabled: true,
 };
 
 const initialState: GameState = {
@@ -498,5 +500,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setTipsEnabled: (enabled: boolean) => {
     set({ settings: { ...get().settings, tipsEnabled: enabled } });
+  },
+
+  setConfirmationEnabled: (enabled: boolean) => {
+    set({ settings: { ...get().settings, confirmationEnabled: enabled } });
   },
 }));

@@ -65,6 +65,7 @@ export interface Settings {
   audioVolume: number;                         // 0-100, default 80
   performanceMode: 'advanced' | 'simple';      // default 'advanced'
   tipsEnabled: boolean;                        // default true
+  confirmationEnabled: boolean;                // default true
 }
 
 export interface GameState {
