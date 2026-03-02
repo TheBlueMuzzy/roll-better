@@ -75,4 +75,5 @@ export interface GameState {
   roundState: RoundState;
   sessionTargetScore: number;
   settings: Settings;
+  shownTips: string[];
 }

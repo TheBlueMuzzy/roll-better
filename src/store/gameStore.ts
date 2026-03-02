@@ -48,6 +48,9 @@ interface GameStore extends GameState {
   checkWinner: () => boolean;
   checkSessionEnd: () => boolean;
 
+  // Tips
+  showTip: (tipId: string) => void;
+
   // Settings
   setAudioVolume: (volume: number) => void;
   setPerformanceMode: (mode: Settings['performanceMode']) => void;
@@ -87,6 +90,7 @@ const initialState: GameState = {
   roundState: initialRoundState,
   sessionTargetScore: 20,
   settings: defaultSettings,
+  shownTips: [],
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -109,7 +113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isAI: i !== 0,
     }));
 
-    set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState });
+    set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState, shownTips: [] });
   },
 
   initRound: (options?: { skipPhase?: boolean }) => {
@@ -489,6 +493,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return state.players.some((p) => p.score >= state.sessionTargetScore);
   },
 
+  // --- Tips ---
+  showTip: (tipId: string) => {
+    const state = get();
+    if (state.shownTips.includes(tipId)) return;
+    set({ shownTips: [...state.shownTips, tipId] });
+  },
+
   // --- Settings actions ---
   setAudioVolume: (volume: number) => {
     set({ settings: { ...get().settings, audioVolume: volume } });
@@ -506,3 +517,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ settings: { ...get().settings, confirmationEnabled: enabled } });
   },
 }));
+
+/** Check if a tip should be shown (tips enabled + not already shown this session) */
+export function shouldShowTip(tipId: string): boolean {
+  const state = useGameStore.getState();
+  return state.settings.tipsEnabled && !state.shownTips.includes(tipId);
+}
