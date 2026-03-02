@@ -16,8 +16,7 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
   const setPerformanceMode = useGameStore((s) => s.setPerformanceMode);
   const setTipsEnabled = useGameStore((s) => s.setTipsEnabled);
   const setConfirmationEnabled = useGameStore((s) => s.setConfirmationEnabled);
-  const initGame = useGameStore((s) => s.initGame);
-  const initRound = useGameStore((s) => s.initRound);
+  const setScreen = useGameStore((s) => s.setScreen);
 
   const [quitConfirm, setQuitConfirm] = useState(false);
 
@@ -26,8 +25,7 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
   const handleQuitYes = () => {
     setQuitConfirm(false);
     onClose();
-    initGame(2);
-    initRound();
+    setScreen('menu');
   };
 
   const handleQuitNo = () => {
@@ -126,11 +124,11 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
           {/* Divider */}
           <div className="settings-divider" />
 
-          {/* Quit Game */}
+          {/* Main Menu */}
           <div className="settings-item">
             {!quitConfirm ? (
               <button className="settings-quit" onClick={() => setQuitConfirm(true)}>
-                Quit Game
+                Main Menu
               </button>
             ) : (
               <div className="settings-quit-confirm">

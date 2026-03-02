@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
+import { MainMenu } from './components/MainMenu';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
 import { HowToPlay } from './components/HowToPlay';
@@ -11,7 +12,7 @@ import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
-import type { UnlockAnimation, AIUnlockAnimation } from './types/game';
+import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
 import './App.css';
@@ -33,6 +34,8 @@ function App() {
     setActiveTip({ id, text });
   }, [activeTip, showTip]);
 
+  const screen = useGameStore((s) => s.screen);
+  const setScreen = useGameStore((s) => s.setScreen);
   const phase = useGameStore((s) => s.phase);
   const setPhase = useGameStore((s) => s.setPhase);
   const initGame = useGameStore((s) => s.initGame);
@@ -55,23 +58,21 @@ function App() {
   const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
 
 
-  // Initialize game on mount
-  useEffect(() => {
-    initGame(3, 'medium');
+  // Play button handler — called from MainMenu
+  const handlePlay = useCallback((playerCount: number, difficulty: AIDifficulty) => {
+    initGame(playerCount, difficulty);
     initRound();
-
-    // Start pool spawn animation for the first round
+    setScreen('game');
+    // Start pool spawn animation
     const state = useGameStore.getState();
     const humanPlayer = state.players[0];
     if (humanPlayer && humanPlayer.poolSize > 0) {
       const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
       setPoolSpawning(true, spawnPositions);
       const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
-      setTimeout(() => {
-        setPoolSpawning(false);
-      }, spawnDuration);
+      setTimeout(() => setPoolSpawning(false), spawnDuration);
     }
-  }, [initGame, initRound, setPoolSpawning]);
+  }, [initGame, initRound, setScreen, setPoolSpawning]);
 
   // --- Contextual tips ---
   useEffect(() => {
@@ -339,24 +340,31 @@ function App() {
 
   return (
     <>
-      <Canvas
-        shadows
-        camera={{ position: [0, 12, 0.01], fov: 50 }}
-        gl={{ antialias: true }}
-      >
-        <Scene
-          ref={sceneRef}
-          onRollStart={handleRollStart}
-          onResults={handleResults}
-          onRoll={handleRoll}
-        />
-      </Canvas>
-      <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
+      {screen === 'menu' && (
+        <MainMenu onPlay={handlePlay} onOpenSettings={() => setSettingsOpen(true)} />
+      )}
+      {screen !== 'menu' && (
+        <>
+          <Canvas
+            shadows
+            camera={{ position: [0, 12, 0.01], fov: 50 }}
+            gl={{ antialias: true }}
+          >
+            <Scene
+              ref={sceneRef}
+              onRollStart={handleRollStart}
+              onResults={handleResults}
+              onRoll={handleRoll}
+            />
+          </Canvas>
+          <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
+          {activeTip && !settingsOpen && (
+            <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
+          )}
+        </>
+      )}
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
-      {activeTip && !settingsOpen && (
-        <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
-      )}
       <div className="build-version">{version}</div>
     </>
   );
