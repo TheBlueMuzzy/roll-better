@@ -31,6 +31,9 @@ interface GameStore extends GameState {
   // Goal transition
   setGoalTransition: (state: 'none' | 'exiting' | 'entering') => void;
 
+  // Pool animations
+  setPoolExiting: (exiting: boolean) => void;
+
   // Rolling & locking
   setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => void;
   lockDice: (playerIndex: number, locks: LockedDie[]) => void;
@@ -84,6 +87,7 @@ const initialRoundState = {
   unlockAnimations: [] as UnlockAnimation[],
   aiUnlockAnimations: [] as AIUnlockAnimation[],
   goalTransition: 'none' as const,
+  poolExiting: false,
 };
 
 const defaultSettings: Settings = {
@@ -160,6 +164,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         unlockAnimations: [],
         aiUnlockAnimations: [],
         goalTransition: 'none',
+        poolExiting: false,
       },
       currentRound: state.currentRound + 1,
     };
@@ -175,6 +180,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       roundState: {
         ...state.roundState,
         goalTransition,
+      },
+    });
+  },
+
+  setPoolExiting: (poolExiting: boolean) => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        poolExiting,
       },
     });
   },

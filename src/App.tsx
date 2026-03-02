@@ -42,6 +42,7 @@ function App() {
   const checkWinner = useGameStore((s) => s.checkWinner);
   const checkSessionEnd = useGameStore((s) => s.checkSessionEnd);
   const setGoalTransition = useGameStore((s) => s.setGoalTransition);
+  const setPoolExiting = useGameStore((s) => s.setPoolExiting);
 
   // Tip-related store reads
   const currentRound = useGameStore((s) => s.currentRound);
@@ -104,6 +105,7 @@ function App() {
   }, [phase, applyHandicap]);
 
   // After roundEnd: staged goal transition (exit → swap → enter → idle)
+  // Pool dice exit animation runs in parallel with goal exit
   useEffect(() => {
     if (phase !== 'roundEnd') return;
 
@@ -113,16 +115,18 @@ function App() {
       return () => clearTimeout(timer);
     }
 
-    // Stage 1: old goal dice exit (roll off right)
+    // Stage 1 (0ms): pool dice pop+shrink + old goal dice exit (in parallel)
+    setPoolExiting(true);
     setGoalTransition('exiting');
 
-    // Stage 2: after 500ms, swap to new round goals + start enter animation
+    // Stage 2 (500ms): pool exit done (~0.45s), swap to new round + enter goals
+    // initRound clears poolExiting via roundState reset
     const t1 = setTimeout(() => {
-      initRound({ skipPhase: true }); // new goals, players reset, but stay in roundEnd
+      initRound({ skipPhase: true }); // new goals, players reset, poolExiting=false
       setGoalTransition('entering');
     }, 500);
 
-    // Stage 3: after 1500ms total, settle and go idle
+    // Stage 3 (1500ms): settle and go idle
     const t2 = setTimeout(() => {
       setGoalTransition('none');
       setPhase('idle');
@@ -132,7 +136,7 @@ function App() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition]);
+  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition, setPoolExiting]);
 
   // Compute and start AI unlock animations, then apply state after they finish
   const startAIUnlockAnimations = useCallback(() => {

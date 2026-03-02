@@ -1,7 +1,10 @@
 import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
+import { Die3D } from './Die3D';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
+import type { Group } from 'three';
 
 // Center of the rolling zone — spawn grid is offset to this Z
 const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
@@ -15,6 +18,7 @@ export interface DicePoolHandle {
 interface DicePoolProps {
   count: number;
   color: string;
+  poolExiting?: boolean;
   newDiceValues?: number[];
   newDicePositions?: [number, number, number][];
   newDiceRotations?: [number, number, number][];
@@ -22,6 +26,52 @@ interface DicePoolProps {
   remainingDicePositions?: [number, number, number][];
   remainingDiceRotations?: [number, number, number][];
   onAllSettled?: (values: number[], positions: [number, number, number][], rotations: [number, number, number][]) => void;
+}
+
+// --- ExitingDie: visual-only die that plays pop+shrink animation ---
+// Phase 1 (0–0.15s): scale 1 → 1.3 (ease-out)
+// Phase 2 (0.15–0.45s): scale 1.3 → 0 (ease-in)
+const POP_DURATION = 0.15;
+const SHRINK_DURATION = 0.3;
+const EXIT_TOTAL = POP_DURATION + SHRINK_DURATION;
+const POP_SCALE = 1.3;
+
+function ExitingDie({ position, rotation, color }: {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  color: string;
+}) {
+  const groupRef = useRef<Group>(null);
+  const elapsedRef = useRef(0);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    elapsedRef.current += delta;
+    const t = elapsedRef.current;
+
+    let scale: number;
+    if (t < POP_DURATION) {
+      // Phase 1: scale 1 → 1.3 with ease-out (decelerating)
+      const p = t / POP_DURATION;
+      const eased = 1 - (1 - p) * (1 - p); // ease-out quadratic
+      scale = 1 + (POP_SCALE - 1) * eased;
+    } else if (t < EXIT_TOTAL) {
+      // Phase 2: scale 1.3 → 0 with ease-in (accelerating)
+      const p = (t - POP_DURATION) / SHRINK_DURATION;
+      const eased = p * p; // ease-in quadratic
+      scale = POP_SCALE * (1 - eased);
+    } else {
+      scale = 0;
+    }
+
+    groupRef.current.scale.setScalar(Math.max(0, scale) * DIE_SIZE);
+  });
+
+  return (
+    <group ref={groupRef} position={position} rotation={rotation} scale={DIE_SIZE}>
+      <Die3D color={color} />
+    </group>
+  );
 }
 
 // --- Spawn position calculator (exported for reuse) ---
@@ -52,7 +102,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
+  function DicePool({ count, color, poolExiting, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -225,6 +275,22 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         }
       },
     }));
+
+    // When poolExiting, render visual-only ExitingDie (pop+shrink) instead of PhysicsDie
+    if (poolExiting && count > 0) {
+      return (
+        <group>
+          {spawnPositions.current.map((pos, i) => (
+            <ExitingDie
+              key={`exit-${generation.current}-${i}`}
+              position={pos}
+              rotation={preservedRotations.current.get(i) || [0, 0, 0]}
+              color={color}
+            />
+          ))}
+        </group>
+      );
+    }
 
     return (
       <group>

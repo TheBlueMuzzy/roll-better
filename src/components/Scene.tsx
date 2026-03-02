@@ -35,6 +35,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
     const goalTransition = useGameStore((s) => s.roundState.goalTransition);
+    const poolExiting = useGameStore((s) => s.roundState.poolExiting);
     const pendingNewDice = useGameStore((s) => s.roundState.pendingNewDice);
     const pendingNewDicePositions = useGameStore((s) => s.roundState.pendingNewDicePositions);
     const pendingNewDiceRotations = useGameStore((s) => s.roundState.pendingNewDiceRotations);
@@ -324,6 +325,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             ref={dicePoolRef}
             count={player.poolSize}
             color={player.color}
+            poolExiting={poolExiting}
             newDiceValues={pendingNewDice}
             newDicePositions={pendingNewDicePositions}
             newDiceRotations={pendingNewDiceRotations}

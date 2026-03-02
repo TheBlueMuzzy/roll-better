@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 78,
+  "build": 79,
   "history": [
     {
       "version": "0.1.0",
@@ -67,6 +67,11 @@
       "version": "0.1.0.78",
       "date": "2026-03-02",
       "summary": "AI unlock animations: dice scale down 1→0, fly arc back to profile group"
+    },
+    {
+      "version": "0.1.0.79",
+      "date": "2026-03-02",
+      "summary": "Pool dice exit animation: pop+shrink on round end"
     }
   ]
 }
