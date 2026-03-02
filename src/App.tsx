@@ -50,9 +50,11 @@ function App() {
   const playerPoolSize = useGameStore((s) => s.players[0]?.poolSize ?? 0);
   const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
 
+  const processAIUnlocks = useGameStore((s) => s.processAIUnlocks);
+
   // Initialize game on mount
   useEffect(() => {
-    initGame(2);
+    initGame(2, 'medium');
     initRound();
   }, [initGame, initRound]);
 
@@ -202,6 +204,7 @@ function App() {
       setTimeout(() => {
         useGameStore.getState().confirmUnlock(0);
         useGameStore.getState().clearUnlockAnimations();
+        useGameStore.getState().processAIUnlocks();
         setPhase('idle');
       }, totalWait);
 
@@ -211,6 +214,7 @@ function App() {
     } else {
       // SKIP path: no animation, immediate
       useGameStore.getState().skipUnlock(0);
+      useGameStore.getState().processAIUnlocks();
       setPhase('idle');
     }
   }, [setPhase]);

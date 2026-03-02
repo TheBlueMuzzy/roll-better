@@ -60,6 +60,17 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       return slots;
     }, [player]);
 
+    // Compute locked values for AI players
+    const aiLockedValues = useMemo(() => {
+      return players.slice(1).map((aiPlayer) => {
+        const slots: (number | null)[] = Array(8).fill(null);
+        for (const ld of aiPlayer.lockedDice) {
+          slots[ld.goalSlotIndex] = ld.value;
+        }
+        return slots;
+      });
+    }, [players]);
+
     const [shakingSlot, setShakingSlot] = useState<number | null>(null);
 
     const handleToggleUnlock = useCallback((slotIndex: number) => {
@@ -207,6 +218,16 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
         />
+
+        {/* AI player rows — below human row (outside Physics) */}
+        {players.slice(1).map((aiPlayer, idx) => (
+          <PlayerRow
+            key={aiPlayer.id}
+            z={-3.77 + (idx + 1) * 0.9}
+            color={aiPlayer.color}
+            lockedValues={aiLockedValues[idx]}
+          />
+        ))}
 
         {/* Player icon — name, color, score, stats (outside Physics) */}
         <PlayerIcon
