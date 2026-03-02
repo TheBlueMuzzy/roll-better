@@ -111,7 +111,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: AI decision engine (Easy: random, Medium: probability-weighted, Hard: optimal unlock strategy)
+- [x] 08-01: AI decision engine (Easy: random, Medium: probability-weighted, Hard: optimal unlock strategy)
 - [ ] 08-02: AI integration (AI rolls, locks, unlocks in game loop, AI timing/delays for natural feel)
 
 ### Phase 9: Multi-Player Display
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
-| 8. AI Opponents | 0/2 | Not started | - |
+| 8. AI Opponents | 1/2 | In progress | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |
 | 10. Screens & Flow | 0/3 | Not started | - |
 | 11. Mobile Polish | 0/3 | Not started | - |
