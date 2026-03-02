@@ -18,7 +18,7 @@ None (no expertise skill files available)
 - [x] **Phase 6: Lerp & Animation** *(Complete — 2026-03-01)* — Lock/unlock lerps, bonus spawn, score counting, round transitions
 - [x] **Phase 7: Unlock Interaction** *(Complete — 2026-03-02)* — Settings panel, How to Play carousel, Tips system
 - [x] **Phase 8: AI Opponents** *(Complete — 2026-03-02)* — Easy/Medium/Hard heuristics, multi-player with AI
-- [ ] **Phase 9: Multi-Player Display** — Multiple player rows, icons, Goal indicators
+- [ ] **Phase 9: Multi-Player Display** *(In progress)* — Multiple player rows, icons, Goal indicators
 - [ ] **Phase 10: Screens & Flow** — Main Menu, Settings, Winners Screen, transitions
 - [ ] **Phase 11: Mobile Polish** — Shake-to-roll, haptics, touch optimization, performance
 - [ ] **Phase 12: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
@@ -121,7 +121,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: Multiple player rows (your row first, others below, scroll if needed for 8 players)
+- [x] 09-01: Layout restructure + profile groups (scaled dice, shifted rows, avatar + star-score + stats)
 - [ ] 09-02: Other players' dice animations (dice lerp from player icon to their row slots)
 - [ ] 09-03: Goal circle indicators (colored circles under Goal dice showing who leads, wedge splits for ties)
 
@@ -175,7 +175,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
-| 9. Multi-Player Display | 0/3 | Not started | - |
+| 9. Multi-Player Display | 1/6 | In progress | - |
 | 10. Screens & Flow | 0/3 | Not started | - |
 | 11. Mobile Polish | 0/3 | Not started | - |
 | 12. Audio & Juice | 0/3 | Not started | - |

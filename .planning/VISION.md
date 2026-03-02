@@ -61,6 +61,10 @@ Context: Raised during 08-02 checkpoint. Glyphtender project at C:\Users\Muzzy\D
 Dice emerge FROM their owner's icon (scale 0 → full, with rolling animation). Dice return TO their owner's icon (scale full → 0, arc trajectory). Goal dice emerge from a Star icon (points). This creates a consistent visual grammar: everything has a "home" it comes from and returns to. Applied to: AI lock/unlock, pool spawn/despawn, goal dice enter/exit.
 Context: Raised during 08-02 checkpoint. Fully detailed in .planning/phases/09-multi-player-display/CONTEXT.md.
 
+### 2026-03-02 — Player Profile Art Polish
+Profile group avatars are placeholder circles with initial letters. Muzzy will design proper avatar art in Illustrator and provide assets later. Current placeholder is functional but needs: custom avatar images, better visual hierarchy, potentially different frame/border styles per player. The profile layout (avatar + star-score + S/T stats) is structurally correct — just needs art assets swapped in.
+Context: Raised during 09-01 checkpoint. Muzzy confirmed he'll do this in Illustrator separately.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.

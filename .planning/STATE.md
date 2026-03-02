@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 8 complete. Both plans done (08-01 TDD AI decision engine, 08-02 simultaneous AI integration). Ready for Phase 9.
+Phase 9 in progress. Plan 09-01 complete (layout restructure + profile groups). 5 plans remaining in phase.
 
 ## Version
-0.1.0.70
+0.1.0.74
 
 ## Current Position
 
-Phase: 8 of 12 (AI Opponents) — COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-02 — Completed 08-02-PLAN.md (simultaneous AI integration)
+Phase: 9 of 12 (Multi-Player Display)
+Plan: 1 of 6 in current phase
+Status: In progress
+Last activity: 2026-03-02 — Completed 09-01-PLAN.md (layout restructure + profile groups)
 
-Progress: ████████████████████████░░░░░░░░░░░ 69%
+Progress: █████████████████████████░░░░░░░░░░ 72%
 
 ## Last Session
-2026-03-02 — Executed 08-02 (simultaneous play):
-- Reverted initial turn-based implementation after user design correction
-- Re-implemented with simultaneous model: all players roll/lock/unlock together
-- AI results computed as random numbers in same setRollResults action
-- AI unlock decisions processed when human confirms/skips
-- AI locked dice row visible below human's row
+2026-03-02 — Executed 09-01 (layout restructure + profile groups):
+- Scaled dice down (DIE_SIZE divisor 8.5 → 9.5, SLOT_SPACING 0.7 → 0.62)
+- Shifted rows right via centering formula for left-side avatar space
+- Created PlayerProfileGroup: two-column (57px avatar | star+score / SX|TX)
+- Created GoalProfileGroup: 57px gold circle with star
+- Iterated on profile layout per user feedback (30% larger circles, two-column, doubled star)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -47,13 +47,14 @@ Progress: ███████████████████████�
 - Viewport: 9:16 portrait aspect ratio (mobile-first)
 - Pip color: near-black (#1a1a1a) on cream — user direction for visibility
 - Build version overlay: non-negotiable, position:absolute inside game viewport
-- DIE_SIZE = arena_width / 8.5 ≈ 0.659
+- DIE_SIZE = arena_width / 9.5 ≈ 0.589 (scaled down from 8.5 for breathing room)
 - Results sorted ascending — required for future lerp-to-row feature
 - Wall height 8 — prevents dice escaping at peak of roll arc
 - ROLLING_Z_MIN = -1.7 — boundary between rolling zone and placement zone
 - Placement zone floor #4a3020
 - GoalRow Z = -4.67, PlayerRow Z = -3.77
-- PlayerIcon at lower-left of rolling area
+- SLOT_SPACING = 0.62 (reduced from 0.7), getSlotX centering (i - 3.0) for avatar space
+- PlayerProfileGroup: two-column layout, 57px avatar + star-score + SX|TX stats
 - HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
 - Tap-text instead of button — "Tap To Roll" → "Rolling" → results
 - Phase flow: idle → rolling → locking → unlocking → idle (loop), locking → scoring → roundEnd (on win)
@@ -103,5 +104,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 08-02-PLAN.md (simultaneous AI integration). Phase 8 complete.
-Resume file: None — ready for /gsd:plan-phase 9
+Stopped at: Completed 09-01-PLAN.md (layout restructure + profile groups)
+Resume file: None — ready for 09-02-PLAN.md
