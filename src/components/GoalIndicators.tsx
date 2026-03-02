@@ -8,6 +8,10 @@ const INDICATOR_SEGMENTS = 32;
 const INDICATOR_Y = 0.02;     // Just above floor to avoid z-fighting
 const Z_OFFSET = 0.25;        // Offset toward player (positive Z) from goal row
 
+// Outline ring for visibility on dark surface
+const RING_INNER = INDICATOR_RADIUS;
+const RING_OUTER = INDICATOR_RADIUS + 0.018;
+
 interface GoalIndicatorsProps {
   players: Player[];
   z?: number;  // goal row Z position — default matches GoalRow
@@ -40,13 +44,41 @@ export function GoalIndicators({ players, z = -4.67 }: GoalIndicatorsProps) {
 
         const x = getSlotX(slotIndex);
 
-        // Render a solid circle in the first player's color
         return (
           <group key={slotIndex} position={[x, INDICATOR_Y, 0]}>
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[INDICATOR_RADIUS, INDICATOR_SEGMENTS]} />
-              <meshBasicMaterial color={playersOnSlot[0].color} />
+            {/* Outline ring — dark border for visibility on wood surface */}
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
+              <ringGeometry args={[RING_INNER, RING_OUTER, INDICATOR_SEGMENTS]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.5} depthWrite={false} />
             </mesh>
+
+            {playersOnSlot.length === 1 ? (
+              /* Single player: solid full circle */
+              <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                <circleGeometry args={[INDICATOR_RADIUS, INDICATOR_SEGMENTS]} />
+                <meshBasicMaterial color={playersOnSlot[0].color} />
+              </mesh>
+            ) : (
+              /* Multiple players: equal wedges, one per player */
+              <>
+                {playersOnSlot.map((playerInfo, i) => {
+                  const wedgeAngle = (2 * Math.PI) / playersOnSlot.length;
+                  return (
+                    <mesh key={playerInfo.playerId} rotation={[-Math.PI / 2, 0, 0]}>
+                      <circleGeometry
+                        args={[
+                          INDICATOR_RADIUS,
+                          INDICATOR_SEGMENTS,
+                          i * wedgeAngle,       // thetaStart
+                          wedgeAngle,            // thetaLength
+                        ]}
+                      />
+                      <meshBasicMaterial color={playerInfo.color} />
+                    </mesh>
+                  );
+                })}
+              </>
+            )}
           </group>
         );
       })}
