@@ -605,12 +605,6 @@ body {
   color: #ffffff;
   letter-spacing: 3px;
   margin: 0;
-  transform: translateY(-20px);
-  transition: transform 0.3s ease;
-}
-
-.menu-backdrop.menu-visible .menu-title {
-  transform: translateY(0);
 }
 
 .menu-subtitle {
