@@ -38,6 +38,14 @@ Context: Phase 7 planning discussion. Muzzy decided the complexity wasn't justif
 The How to Play carousel (07-02) doesn't need final art or polished content — temporary placeholder slides are fine. Final visuals can be done in a later polish pass.
 Context: Raised during 07-01 execution. Relevant to 07-02 planning.
 
+### 2026-03-02 — Glyphtender as Design Pattern Library
+Muzzy wants to use Glyphtender's multiplayer connectivity logic and AI drop-in/drop-out replacement pattern as a referenceable design methodology for future games. Not a code port (Unity C# vs web), but the IDEOLOGY of the design approach: how players connect, how AI seamlessly replaces disconnecting players and yields back when they reconnect, and how that flow is architected. The goal is building a cross-project library of concepts under BMUZ so each new game doesn't start from scratch. Research this before Phase 13+ (online multiplayer milestone).
+Context: Raised during 08-02 checkpoint. Glyphtender project at C:\Users\Muzzy\Documents\UnityProjects\Glyphtender\.
+
+### 2026-03-02 — Visual Language for Dice Emergence/Return
+Dice emerge FROM their owner's icon (scale 0 → full, with rolling animation). Dice return TO their owner's icon (scale full → 0, arc trajectory). Goal dice emerge from a Star icon (points). This creates a consistent visual grammar: everything has a "home" it comes from and returns to. Applied to: AI lock/unlock, pool spawn/despawn, goal dice enter/exit.
+Context: Raised during 08-02 checkpoint. Fully detailed in .planning/phases/09-multi-player-display/CONTEXT.md.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.

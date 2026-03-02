@@ -1,25 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 8 in progress. 08-01 complete (TDD AI decision engine). 08-02 ready for execution.
+Phase 8 complete. Both plans done (08-01 TDD AI decision engine, 08-02 simultaneous AI integration). Ready for Phase 9.
 
 ## Version
 0.1.0.70
 
 ## Current Position
 
-Phase: 8 of 12 (AI Opponents)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-02 — Completed 08-01-PLAN.md (TDD AI decision engine)
+Phase: 8 of 12 (AI Opponents) — COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 — Completed 08-02-PLAN.md (simultaneous AI integration)
 
-Progress: ██████████████████████░░░░░░░░░░░░░ 63%
+Progress: ████████████████████████░░░░░░░░░░░ 69%
 
 ## Last Session
-2026-03-02 — Executed 08-01 (TDD):
-- RED: 24 failing tests for AI unlock decision engine
-- GREEN: Full implementation, all 24 tests passing, 31 total (no regressions)
-- Match rate formula: (poolSize * uniqueRemaining/6) / remainingSlots
+2026-03-02 — Executed 08-02 (simultaneous play):
+- Reverted initial turn-based implementation after user design correction
+- Re-implemented with simultaneous model: all players roll/lock/unlock together
+- AI results computed as random numbers in same setRollResults action
+- AI unlock decisions processed when human confirms/skips
+- AI locked dice row visible below human's row
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -88,6 +90,10 @@ Progress: ██████████████████████░�
 - AI strategy pattern: shared constraint checks (cap, must-unlock) → difficulty-specific function
 - AI match rate = (poolSize * uniqueRemaining/6) / remainingSlots — efficiency metric
 - AI Easy: 40% unlock chance, max 1 die; Medium: poolSize < remaining/2 heuristic; Hard: matchRate < 0.5 threshold
+- SIMULTANEOUS PLAY — all players roll/lock/unlock in same phases together (NOT turn-based)
+- Round ends immediately when ANY player completes the goal
+- AI rolls: random numbers computed in setRollResults alongside human dice physics
+- AI unlocks: decisions processed when human confirms/skips (processAIUnlocks action)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -97,5 +103,5 @@ Progress: ██████████████████████░�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 08-01-PLAN.md (AI decision engine)
-Resume file: .planning/phases/08-ai-opponents/08-02-PLAN.md
+Stopped at: Completed 08-02-PLAN.md (simultaneous AI integration). Phase 8 complete.
+Resume file: None — ready for /gsd:plan-phase 9
