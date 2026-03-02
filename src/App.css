@@ -390,6 +390,23 @@ body {
 
 /* --- Build version overlay --- */
 
+/* --- How to Play button in settings --- */
+
+.settings-h2p {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #ffffff;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.settings-h2p:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* --- How to Play carousel --- */
 
 .h2p-backdrop {

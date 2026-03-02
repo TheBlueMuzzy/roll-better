@@ -4,9 +4,10 @@ import { useGameStore } from '../store/gameStore';
 interface SettingsProps {
   open: boolean;
   onClose: () => void;
+  onOpenHowToPlay: () => void;
 }
 
-export function Settings({ open, onClose }: SettingsProps) {
+export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
   const tipsEnabled = useGameStore((s) => s.settings.tipsEnabled);
@@ -113,6 +114,13 @@ export function Settings({ open, onClose }: SettingsProps) {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* How to Play */}
+          <div className="settings-item">
+            <button className="settings-h2p" onClick={onOpenHowToPlay}>
+              {'\u{1F4D6}'} How to Play
+            </button>
           </div>
 
           {/* Divider */}

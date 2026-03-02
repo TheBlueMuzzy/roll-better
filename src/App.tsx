@@ -4,6 +4,7 @@ import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
+import { HowToPlay } from './components/HowToPlay';
 import { useGameStore } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
@@ -16,6 +17,7 @@ function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
 
   const phase = useGameStore((s) => s.phase);
   const setPhase = useGameStore((s) => s.setPhase);
@@ -209,7 +211,8 @@ function App() {
         />
       </Canvas>
       <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
+      {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <div className="build-version">{version}</div>
     </>
   );
