@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 83,
+  "build": 84,
   "history": [
     {
       "version": "0.1.0",
@@ -92,6 +92,11 @@
       "version": "0.1.0.83",
       "date": "2026-03-02",
       "summary": "Fix 12-die cap: correct formula (pool+locked+unlocks<=12), dynamic ring/pulse visibility"
+    },
+    {
+      "version": "0.1.0.84",
+      "date": "2026-03-02",
+      "summary": "GoalIndicators: colored dots under goal dice showing per-column player locks"
     }
   ]
 }
