@@ -16,13 +16,24 @@ Last activity: 2026-03-02 — Completed 12-04-PLAN.md (Player Components + Devic
 Progress: ████████████████████████████████████████░░ 92%
 
 ## Last Session
-2026-03-02 — Executed 12-04 (Player Components + Device Verification):
-- Responsive scaling on PlayerProfileGroup, GoalProfileGroup, PlayerIcon
-- Right-aligned profiles to prevent star-slot overlap
-- Goal star displays potential score (penalty-based formula)
-- Settings gear replaced with text link in main menu
-- H2P navigation arrows added
-- Verified layout on desktop (1280x720) and phone (375x667) via Playwright
+2026-03-02 — Post-plan layout tuning + shake-to-roll debugging:
+- Layout tuning: slot centering, avatar/star CSS margins, goal star margin reduced
+- Camera FOV 55 (wider horizontal view), portrait-adaptive FOV for phones
+- Portrait phones: full-screen container (@media orientation:portrait), desktop keeps 9:16
+- Removed ALL haptic feedback (vibration API not useful)
+- HTTPS dev server enabled (@vitejs/plugin-basic-ssl) — required for DeviceMotion on phones
+- Settings z-index 80, H2P z-index 90, Main Menu button hidden when settings opened from menu
+- HUD text: "Shake or Tap to Roll" on mobile (ontouchstart detection), "Tap to Roll" on desktop
+
+## IN PROGRESS: Shake-to-Roll on Phone
+**Problem**: Shake-to-roll doesn't trigger on phone. Two issues to investigate:
+1. DeviceMotion may still not fire even with HTTPS (self-signed cert, browser restrictions)
+2. User wants PHYSICAL shake feel — "like shaking a yahtzee cup" — accelerometer should drive dice physics in real-time, not just trigger a roll gesture
+**Files**: `src/hooks/useShakeToRoll.ts` (current shake detection), `src/App.tsx` (handleRoll callback)
+**Key constraint**: Only on phone/tablet, NOT PC
+**Approach to consider**: Map DeviceMotion acceleration to Rapier gravity vector per-frame in useFrame. When phone tilts/shakes, gravity shifts, dice respond physically. This is separate from the current gesture-detection approach.
+**Dev server**: `https://localhost:5173/` (PC) / `https://192.168.1.152:5173/` (phone — accept cert warning)
+**Commit**: 7082cbc
 - Commits: a4cd2a3, d78340a, 8718d84
 
 ## Research Files
