@@ -617,7 +617,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: var(--sp-lg);
   font-family: system-ui, sans-serif;
   user-select: none;
   opacity: 0;
@@ -636,23 +636,24 @@ body {
   color: #ffffff;
   letter-spacing: 3px;
   margin: 0;
+  margin-bottom: var(--sp-xs);
 }
 
 .menu-subtitle {
   font-size: 0.9rem;
   color: #888;
-  margin: -10px 0 10px;
+  margin: -10px 0 var(--sp-lg);
 }
 
 .menu-selector-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-sm);
 }
 
 .menu-selector-label {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -661,16 +662,16 @@ body {
 .menu-selector {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: var(--sp-xs);
 }
 
 .menu-btn {
-  padding: 12px 22px;
+  padding: var(--sp-sm) var(--sp-lg);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.6);
-  font-size: 16px;
+  font-size: var(--fs-md);
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
@@ -687,13 +688,13 @@ body {
 
 .menu-play {
   width: 100%;
-  max-width: 280px;
-  padding: 16px;
+  max-width: var(--btn-max-w);
+  padding: var(--sp-md);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   background: #e74c3c;
   color: #ffffff;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   font-weight: bold;
   letter-spacing: 3px;
   cursor: pointer;
@@ -712,8 +713,8 @@ body {
 
 .menu-gear {
   position: fixed;
-  bottom: 24px;
-  right: 14px;
+  bottom: var(--sp-xl);
+  right: var(--sp-sm);
 }
 
 /* --- Build version overlay --- */
