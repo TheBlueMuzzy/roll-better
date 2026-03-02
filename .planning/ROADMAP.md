@@ -135,7 +135,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: Main Menu (title, Create/Join room UI placeholder, settings button, play vs AI button)
+- [x] 10-01: Main Menu (title, Create/Join room UI placeholder, settings button, play vs AI button)
 - [ ] 10-02: Winners Screen (session results, player scores, round-by-round breakdown, play again)
 - [ ] 10-03: Settings screen (tap vs drag unlock, AI difficulty, player count) + screen transitions
 
@@ -179,6 +179,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
-| 10. Screens & Flow | 0/3 | Not started | - |
+| 10. Screens & Flow | 1/3 | In progress | - |
 | 11. Mobile Polish | 0/3 | Not started | - |
 | 12. Audio & Juice | 0/3 | Not started | - |

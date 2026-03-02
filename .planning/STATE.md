@@ -1,28 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 9 complete. All 6 plans finished for Multi-Player Display. Ready for Phase 10: Screens & Flow.
+Phase 10 in progress. Plan 1 of 3 complete (Main Menu). Next: 10-02 Winners Screen.
 
 ## Version
 0.1.0.86
 
 ## Current Position
 
-Phase: 9 of 12 (Multi-Player Display)
-Plan: 6 of 6 in current phase
-Status: Phase complete
-Last activity: 2026-03-02 — Completed 09-06-PLAN.md (goal column indicators)
+Phase: 10 of 12 (Screens & Flow)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-02 — Completed 10-01-PLAN.md (Main Menu)
 
-Progress: █████████████████████████████████░░░ 86%
+Progress: ██████████████████████████████████░░░ 88%
 
 ## Last Session
-2026-03-02 — Executed 09-06 (goal column indicators):
-- GoalIndicators: 3D CircleGeometry colored dots under goal dice per locked player
-- Tie rendering: split wedge circles via thetaStart/thetaLength
-- Indicators positioned above goal row (Z -0.73) for visibility
-- Star tuning: -7px offset, 0.90 scale for visual centering
-- Removed score from HUD top-right
-- Fixed stacked dice soft-lock: 500ms fallback settle timer
+2026-03-02 — Executed 10-01 (Main Menu):
+- MainMenu.tsx: title, player count (2/3/4), difficulty (Easy/Medium/Hard), Play button
+- Screen state ('menu' | 'game' | 'winners') in Zustand store
+- App starts at menu, Canvas/HUD only render in game screen
+- Settings "Quit Game" → "Main Menu" via setScreen
+- Menu at z-index 70 (above settings z-50, H2P z-60)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -110,6 +109,10 @@ Progress: ███████████████████████�
 - Unlock ring/pulse only on selectable dice (dynamic based on remaining cap)
 - Goal indicators: 3D CircleGeometry dots above goal row, split wedges for ties
 - Stacked dice: 500ms fallback timer fires results when all faces reported
+- Screen state as simple string union in Zustand ('menu' | 'game' | 'winners')
+- Menu at z-index 70 (above settings z-50 and H2P z-60)
+- Canvas/HUD don't render on menu screen (saves GPU)
+- Settings "Quit Game" → "Main Menu" via setScreen
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -119,5 +122,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-06-PLAN.md (goal column indicators) — Phase 9 complete
-Resume file: None — ready for Phase 10: Screens & Flow
+Stopped at: Completed 10-01-PLAN.md (Main Menu)
+Resume file: None — continuing Phase 10

@@ -65,6 +65,10 @@ Context: Raised during 08-02 checkpoint. Fully detailed in .planning/phases/09-m
 Profile group avatars are placeholder circles with initial letters. Muzzy will design proper avatar art in Illustrator and provide assets later. Current placeholder is functional but needs: custom avatar images, better visual hierarchy, potentially different frame/border styles per player. The profile layout (avatar + star-score + S/T stats) is structurally correct — just needs art assets swapped in.
 Context: Raised during 09-01 checkpoint. Muzzy confirmed he'll do this in Illustrator separately.
 
+### 2026-03-02 — Unlock Tip: "You should unlock" until 8+ dice
+A tutorial tip that tells the player they SHOULD unlock if they don't have 8 dice yet. Since the goal row has 8 slots, having fewer than 8 dice means you can't possibly fill all slots in one roll. This tip should persist (keep showing) until the player has crossed the 8-dice threshold. Different from a one-time tip — it's a recurring reminder until the condition is met.
+Context: Raised during 10-01 checkpoint. Fits into the Tips system (Phase 7, 07-03). Could be added as a new tip in the existing TipBanner system with a condition-based dismiss rather than the current one-time-per-session pattern.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.
