@@ -65,27 +65,34 @@ export function Settings({ open, onClose }: SettingsProps) {
           <div className="settings-item">
             <div className="settings-item-row">
               <span className="settings-label">Performance</span>
-              <div
-                className={`settings-toggle${performanceMode === 'advanced' ? ' on' : ''}`}
-                onClick={() => setPerformanceMode(performanceMode === 'advanced' ? 'simple' : 'advanced')}
-              >
-                <div className="settings-toggle-thumb" />
+              <div className="settings-toggle-group">
+                <div
+                  className={`settings-toggle${performanceMode === 'advanced' ? ' on' : ''}`}
+                  onClick={() => setPerformanceMode(performanceMode === 'advanced' ? 'simple' : 'advanced')}
+                >
+                  <div className="settings-toggle-thumb" />
+                </div>
+                <span className="settings-hint">
+                  {performanceMode === 'advanced' ? 'Advanced' : 'Simple'}
+                </span>
               </div>
             </div>
-            <span className="settings-hint">
-              {performanceMode === 'advanced' ? 'Advanced' : 'Simple'}
-            </span>
           </div>
 
           {/* Tips Toggle */}
           <div className="settings-item">
             <div className="settings-item-row">
               <span className="settings-label">Tips</span>
-              <div
-                className={`settings-toggle${tipsEnabled ? ' on' : ''}`}
-                onClick={() => setTipsEnabled(!tipsEnabled)}
-              >
-                <div className="settings-toggle-thumb" />
+              <div className="settings-toggle-group">
+                <div
+                  className={`settings-toggle${tipsEnabled ? ' on' : ''}`}
+                  onClick={() => setTipsEnabled(!tipsEnabled)}
+                >
+                  <div className="settings-toggle-thumb" />
+                </div>
+                <span className="settings-hint">
+                  {tipsEnabled ? 'On' : 'Off'}
+                </span>
               </div>
             </div>
           </div>
@@ -94,16 +101,18 @@ export function Settings({ open, onClose }: SettingsProps) {
           <div className="settings-item">
             <div className="settings-item-row">
               <span className="settings-label">Confirmation</span>
-              <div
-                className={`settings-toggle${confirmationEnabled ? ' on' : ''}`}
-                onClick={() => setConfirmationEnabled(!confirmationEnabled)}
-              >
-                <div className="settings-toggle-thumb" />
+              <div className="settings-toggle-group">
+                <div
+                  className={`settings-toggle${confirmationEnabled ? ' on' : ''}`}
+                  onClick={() => setConfirmationEnabled(!confirmationEnabled)}
+                >
+                  <div className="settings-toggle-thumb" />
+                </div>
+                <span className="settings-hint">
+                  {confirmationEnabled ? 'On' : 'Off'}
+                </span>
               </div>
             </div>
-            <span className="settings-hint">
-              {confirmationEnabled ? 'On' : 'Off'}
-            </span>
           </div>
 
           {/* Divider */}
