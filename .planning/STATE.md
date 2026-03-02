@@ -1,27 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 9 in progress. Plan 09-04 complete (AI unlock animations). 2 plans remaining in phase.
+Phase 9 in progress. Plan 09-05 complete (pool dice spawn & exit animations). 1 plan remaining in phase.
 
 ## Version
-0.1.0.78
+0.1.0.83
 
 ## Current Position
 
 Phase: 9 of 12 (Multi-Player Display)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 09-04-PLAN.md (AI unlock animations)
+Last activity: 2026-03-02 — Completed 09-05-PLAN.md (pool dice spawn & exit animations)
 
-Progress: ████████████████████████████░░░░░░░ 80%
+Progress: █████████████████████████████░░░░░░ 83%
 
 ## Last Session
-2026-03-02 — Executed 09-04 (AI unlock animations):
-- AIUnlockAnimation type + store actions (setAIUnlockAnimations, clearAIUnlockAnimations)
-- Two-step animate-then-apply flow: animations play first, then processAIUnlocks applies state
-- AnimatingDie renders with fromScale=1 toScale=0 for shrink-to-nothing effect
-- Combined lock-in + unlock-out animatingSlotIndices for AI PlayerRows
-- 0.5s duration, staggered delays between each unlock die
+2026-03-02 — Executed 09-05 (pool dice spawn & exit animations):
+- ExitingDie: pop (scale 1→1.3) + shrink (1.3→0) on round end, 0.45s total
+- SpawningDie: fly from avatar, scale 0→1.15→1 overshoot, tumble rotation during flight
+- Pre-computed poolSpawnPositions shared between SpawningDie and DicePool (no teleport)
+- Extended roundEnd→idle window from 1500ms to 2000ms for larger pools
+- Fixed 12-die cap formula: was floor((12-pool)/2), now 12-pool-locked (prevented 16+ dice)
+- Dynamic unlock indicators: rings/pulse only on selectable dice
+- UI polish: white score text in star, 2.5x gold goal star, white circle background
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -67,7 +69,7 @@ Progress: ███████████████████████�
 - Unlock returns die + bonus die via mitosis split animation
 - DicePool uses generation-counter keys + remainingDicePositions for position persistence
 - Must unlock 1+ when poolSize reaches 0 (soft lock prevention)
-- 12-die cap: max unlocks = floor((12 - poolSize) / 2)
+- 12-die cap: maxUnlocks = 12 - poolSize - lockedCount (net +1 die per unlock)
 - Shake feedback (150ms, 90Hz) on rejected unlock selections
 - Ease-in-out cubic easing for lock lerp (user feedback: much better than ease-out only)
 - AnimatingDie renders outside Physics group (visual-only, no physics body)
@@ -79,7 +81,7 @@ Progress: ███████████████████████�
 - 3-axis random shake with ramping direction change rate (15→60/sec)
 - Score counting via RAF in HTML overlay (not useFrame — HUD is outside Canvas)
 - initRound({ skipPhase: true }) for staged round transitions
-- Goal transition: 500ms exit + 500ms enter within 1500ms roundEnd window
+- Goal transition: 500ms exit + 500ms enter within 2000ms roundEnd window
 - Settings panel: HTML overlay z-index 50, gear button in HUD bottom-right
 - Settings persist in Zustand (not reset by initGame/initRound)
 - Performance mode as single toggle, not segmented control
@@ -103,6 +105,10 @@ Progress: ███████████████████████�
 - AnimatingDie scale interpolation: (fromScale + (toScale - fromScale) * eased) * DIE_SIZE
 - AI unlock animations: animate-then-apply pattern, scale 1→0 arc back to profile group
 - Combined animatingSlotIndices for AI rows (lock-in + unlock-out in single prop)
+- Pool exit: ExitingDie pop (1→1.3 ease-out) + shrink (1.3→0 ease-in), 0.45s total
+- Pool spawn: SpawningDie from avatar pos, scale overshoot 0→1.15→1, tumble during flight
+- poolSpawnPositions pre-computed and shared with DicePool (no teleport on swap)
+- Unlock ring/pulse only on selectable dice (dynamic based on remaining cap)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -112,5 +118,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-04-PLAN.md (AI unlock animations)
-Resume file: None — ready for 09-05-PLAN.md
+Stopped at: Completed 09-05-PLAN.md (pool dice spawn & exit animations)
+Resume file: None — ready for 09-06-PLAN.md
