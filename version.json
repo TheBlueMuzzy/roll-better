@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 84,
+  "build": 85,
   "history": [
     {
       "version": "0.1.0",
@@ -97,6 +97,11 @@
       "version": "0.1.0.84",
       "date": "2026-03-02",
       "summary": "GoalIndicators: colored dots under goal dice showing per-column player locks"
+    },
+    {
+      "version": "0.1.0.85",
+      "date": "2026-03-02",
+      "summary": "GoalIndicators: tie handling with split wedges + outline ring for visibility"
     }
   ]
 }
