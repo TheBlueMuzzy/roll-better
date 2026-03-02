@@ -21,6 +21,10 @@ export function PlayerIcon({
   startingDice,
   position,
 }: PlayerIconProps) {
+  // --- Responsive scale (1.0 at 390px baseline, clamped 0.85–1.3) ---
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
+  const scale = Math.min(Math.max(vw / 390, 0.85), 1.3);
+
   // --- Handicap (Z) scale-pop animation ---
   const prevStartingDice = useRef(startingDice);
   const popTimer = useRef(0);
@@ -60,7 +64,7 @@ export function PlayerIcon({
         style={{
           background: 'rgba(0, 0, 0, 0.4)',
           borderRadius: 6,
-          padding: '6px 10px',
+          padding: `${Math.round(6 * scale)}px ${Math.round(10 * scale)}px`,
         }}
       >
         {/* Top row: color dot, name, score */}
@@ -68,14 +72,14 @@ export function PlayerIcon({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            gap: Math.round(6 * scale),
           }}
         >
           {/* Color dot */}
           <div
             style={{
-              width: 12,
-              height: 12,
+              width: Math.round(12 * scale),
+              height: Math.round(12 * scale),
               borderRadius: '50%',
               backgroundColor: color,
               flexShrink: 0,
@@ -85,7 +89,7 @@ export function PlayerIcon({
           <span
             style={{
               fontWeight: 'bold',
-              fontSize: 13,
+              fontSize: Math.round(13 * scale),
               color: '#ffffff',
             }}
           >
@@ -94,7 +98,7 @@ export function PlayerIcon({
           {/* Score badge */}
           <span
             style={{
-              fontSize: 12,
+              fontSize: Math.round(12 * scale),
               color: 'rgba(255, 255, 255, 0.7)',
             }}
           >
@@ -106,8 +110,8 @@ export function PlayerIcon({
         <div
           style={{
             display: 'flex',
-            gap: 6,
-            marginTop: 3,
+            gap: Math.round(6 * scale),
+            marginTop: Math.round(3 * scale),
           }}
         >
           {[
@@ -117,7 +121,7 @@ export function PlayerIcon({
             <span
               key={stat.label}
               style={{
-                fontSize: 10,
+                fontSize: Math.round(10 * scale),
                 color: 'rgba(255, 255, 255, 0.5)',
               }}
             >
@@ -128,7 +132,7 @@ export function PlayerIcon({
           <span
             ref={zBadgeRef}
             style={{
-              fontSize: 10,
+              fontSize: Math.round(10 * scale),
               color: 'rgba(255, 255, 255, 0.5)',
               display: 'inline-block',
               transformOrigin: 'center',
