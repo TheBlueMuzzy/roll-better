@@ -5,7 +5,8 @@ import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
 import { HowToPlay } from './components/HowToPlay';
-import { useGameStore } from './store/gameStore';
+import { TipBanner } from './components/TipBanner';
+import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { findClearSpot } from './utils/clearSpot';
@@ -18,6 +19,17 @@ function App() {
   const sceneRef = useRef<SceneHandle>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
+  const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
+
+  const showTip = useGameStore((s) => s.showTip);
+
+  /** Try to show a tip — only if tips enabled, not already shown, and no tip currently active */
+  const tryShowTip = useCallback((id: string, text: string) => {
+    if (activeTip) return; // one tip at a time
+    if (!shouldShowTip(id)) return;
+    showTip(id);
+    setActiveTip({ id, text });
+  }, [activeTip, showTip]);
 
   const phase = useGameStore((s) => s.phase);
   const setPhase = useGameStore((s) => s.setPhase);
@@ -30,11 +42,37 @@ function App() {
   const checkSessionEnd = useGameStore((s) => s.checkSessionEnd);
   const setGoalTransition = useGameStore((s) => s.setGoalTransition);
 
+  // Tip-related store reads
+  const currentRound = useGameStore((s) => s.currentRound);
+  const rollNumber = useGameStore((s) => s.roundState.rollNumber);
+  const lastLockCount = useGameStore((s) => s.roundState.lastLockCount);
+  const shownTips = useGameStore((s) => s.shownTips);
+  const playerPoolSize = useGameStore((s) => s.players[0]?.poolSize ?? 0);
+  const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
+
   // Initialize game on mount
   useEffect(() => {
     initGame(2);
     initRound();
   }, [initGame, initRound]);
+
+  // --- Contextual tips ---
+  useEffect(() => {
+    if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
+      tryShowTip('first-roll', 'Tap anywhere to roll your dice');
+    }
+    if (phase === 'locking' && lastLockCount > 0) {
+      tryShowTip('first-lock', 'Matched! Dice lock to the Goal row automatically');
+    }
+    if (phase === 'unlocking') {
+      const mustUnlockNow = playerPoolSize === 0 && playerLockedCount < 8;
+      if (mustUnlockNow && shownTips.includes('first-unlock')) {
+        tryShowTip('must-unlock', 'No dice to roll \u2014 you must unlock at least one');
+      } else {
+        tryShowTip('first-unlock', 'Tap locked dice to select, then press UNLOCK');
+      }
+    }
+  }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);
 
   // After locking phase, show lock count for 1s then check for winner or go to unlocking
   useEffect(() => {
@@ -213,6 +251,9 @@ function App() {
       <HUD onRoll={handleRoll} onConfirmUnlock={handleConfirmUnlock} onOpenSettings={() => setSettingsOpen(true)} />
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
+      {activeTip && !settingsOpen && (
+        <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
+      )}
       <div className="build-version">{version}</div>
     </>
   );
