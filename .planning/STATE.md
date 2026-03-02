@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 12 in progress. Plan 12-01 complete (CSS Custom Properties + HUD Responsive Pass).
+Phase 12 in progress. Plan 12-02 complete (Settings + H2P Responsive).
 
 ## Version
 0.1.0.93
@@ -9,22 +9,19 @@ Phase 12 in progress. Plan 12-01 complete (CSS Custom Properties + HUD Responsiv
 ## Current Position
 
 Phase: 12 of 13 (Responsive UI)
-Plan: 1 of 4 in current phase
-Status: Plan 12-01 complete
-Last activity: 2026-03-02 — Completed 12-01-PLAN.md (CSS Custom Properties + HUD Responsive)
+Plan: 2 of 4 in current phase
+Status: In progress
+Last activity: 2026-03-02 — Completed 12-02-PLAN.md (Settings + H2P Responsive)
 
-Progress: ██████████████████████████████████████░░ 95%
+Progress: █████████████████████████████████████░░░░░ 88%
 
 ## Last Session
-2026-03-02 — Executed 12-01 (CSS Custom Properties + HUD Responsive):
-- :root block with 15 CSS custom properties using clamp() formulas
-- Font sizes (xs-xl), spacing (xs-xl), layout tokens (overlay-max-w, btn-max-w, touch-target, border-radius)
-- HUD top/bottom: responsive padding and font sizes via custom properties
-- hud-skip-btn: responsive padding, font-size, border-radius
-- settings-gear: responsive sizing with touch-target minimum (40px-56px)
-- tip-banner: responsive spacing, font-size, border-radius
-- All safe-area-inset calcs preserved
-- Commits: 1957bbd (Task 1), f14d785 (Task 2)
+2026-03-02 — Executed 12-02 (Settings + H2P Responsive):
+- Settings panel: max-width, padding, fonts, toggles, slider, buttons all use CSS custom properties
+- H2P carousel: card width, slide padding, visual height, icons, arrows, dots all responsive
+- Touch targets scale with viewport via var(--touch-target)
+- settings-close and settings-h2p also made responsive (consistency fix)
+- Commits: 0eec365 (Task 1), 8917397 (Task 2)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -145,5 +142,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 12-01-PLAN.md (CSS Custom Properties + HUD Responsive)
+Stopped at: Completed 12-02-PLAN.md (Settings + H2P Responsive)
 Resume file: None — continue with Phase 12 next plan
