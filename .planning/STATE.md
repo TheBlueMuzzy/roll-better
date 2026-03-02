@@ -1,29 +1,30 @@
 # Project State
 
 ## Current Status
-Phase 11 complete. All 3 plans done (shake-to-roll, haptics, mobile performance). Ready for Phase 12: Responsive UI.
+Phase 12 in progress. Plan 12-01 complete (CSS Custom Properties + HUD Responsive Pass).
 
 ## Version
-0.1.0.91
+0.1.0.93
 
 ## Current Position
 
-Phase: 11 of 13 (Mobile Polish) — COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-02 — Completed 11-03-PLAN.md (Mobile Performance)
+Phase: 12 of 13 (Responsive UI)
+Plan: 1 of 4 in current phase
+Status: Plan 12-01 complete
+Last activity: 2026-03-02 — Completed 12-01-PLAN.md (CSS Custom Properties + HUD Responsive)
 
-Progress: █████████████████████████████████████░░░░ 93%
+Progress: ██████████████████████████████████████░░ 95%
 
 ## Last Session
-2026-03-02 — Executed 11-03 (Mobile Performance):
-- Viewport meta hardened: maximum-scale=1, user-scalable=no, viewport-fit=cover
-- Body CSS: position fixed, overscroll-behavior none, touch-action manipulation
-- Safe area insets on edge-touching UI (#root, hud-top, hud-bottom, settings-gear)
-- 100dvh with 100vh fallback
-- performanceMode 'simple': dpr=1, shadows disabled (AccumulativeShadows unmounted)
-- performanceMode 'advanced': unchanged (dpr [1,2], shadows on)
-- Settings hints: "Best visuals" / "Better battery"
+2026-03-02 — Executed 12-01 (CSS Custom Properties + HUD Responsive):
+- :root block with 15 CSS custom properties using clamp() formulas
+- Font sizes (xs-xl), spacing (xs-xl), layout tokens (overlay-max-w, btn-max-w, touch-target, border-radius)
+- HUD top/bottom: responsive padding and font sizes via custom properties
+- hud-skip-btn: responsive padding, font-size, border-radius
+- settings-gear: responsive sizing with touch-target minimum (40px-56px)
+- tip-banner: responsive spacing, font-size, border-radius
+- All safe-area-inset calcs preserved
+- Commits: 1957bbd (Task 1), f14d785 (Task 2)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -133,6 +134,8 @@ Progress: ███████████████████████�
 - dpr=1 in simple mode (biggest GPU win on high-DPI), [1,2] in advanced
 - AccumulativeShadows unmounted in simple mode (not just hidden)
 - Dice materials untouched in simple mode — premium look non-negotiable
+- Responsive tokens: 5-step --fs-* font scale + 5-step --sp-* spacing scale + layout tokens via clamp()
+- Safe-area-inset calcs preserved when swapping base px to custom properties
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -142,5 +145,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 11-03-PLAN.md (Mobile Performance) — Phase 11 complete
-Resume file: None — continue with Phase 12: Responsive UI
+Stopped at: Completed 12-01-PLAN.md (CSS Custom Properties + HUD Responsive)
+Resume file: None — continue with Phase 12 next plan
