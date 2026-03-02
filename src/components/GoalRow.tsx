@@ -38,6 +38,9 @@ export function getRotationForFace(value: number): [number, number, number] {
 function easeIn(t: number): number { return t * t; }
 function easeOut(t: number): number { return 1 - (1 - t) * (1 - t); }
 
+// Star icon world X — same offset used by GoalProfileGroup in Scene.tsx
+const STAR_WORLD_X = getSlotX(0) - 0.9;
+
 // --- Props ---
 interface GoalRowProps {
   values: number[];
@@ -68,10 +71,11 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
   const EXIT_DURATION = 0.35;    // 350ms per die — fast departure
   const EXIT_DISTANCE = 8;       // local-space units to slide right
 
-  // --- Enter animation constants (legacy — reworked in Task 2) ---
-  const ENTER_STAGGER = 0.03;
-  const ENTER_DURATION = 0.4;
-  const SLIDE_DISTANCE = 8;
+  // --- Enter animation constants ---
+  const ENTER_STAGGER = 0.04;    // 40ms between each die (left to right)
+  const ENTER_DURATION = 0.5;    // 500ms per die — satisfying arrival
+  const TUMBLE_SPEED_X = 8;      // radians/sec tumble around X axis
+  const TUMBLE_SPEED_Z = 6;      // radians/sec tumble around Z axis
 
   useFrame((state) => {
     const clock = state.clock.elapsedTime;
@@ -112,18 +116,37 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
         continue;
       }
 
-      // --- Enter: slide in from left (legacy, reworked in Task 2) ---
+      // --- Enter: emerge from star icon with scale + tumble ---
+      // Star position in inner-group local space (outer group is at getSlotX(i)
+      // with scale=DIE_SIZE, so divide by DIE_SIZE to convert world→local)
+      const starLocalX = (STAR_WORLD_X - getSlotX(i)) / DIE_SIZE;
+
       const elapsed = clock - transitionStart.current - (ENTER_STAGGER * i);
 
       if (elapsed < 0) {
-        group.position.x = -SLIDE_DISTANCE;
-        group.rotation.z = Math.PI * 2;
+        // Not started yet — hold at star origin, invisible
+        group.position.x = starLocalX;
+        group.rotation.set(0, 0, 0);
+        group.scale.setScalar(0);
         continue;
       }
 
       const t = Math.min(elapsed / ENTER_DURATION, 1);
-      group.position.x = -SLIDE_DISTANCE * (1 - easeOut(t));
-      group.rotation.z = (1 - t) * Math.PI * 2;
+
+      if (t < 1) {
+        // In flight: lerp position, scale up, tumble
+        const easedT = easeOut(t);
+        group.position.x = starLocalX * (1 - easedT); // star → 0 (home)
+        group.scale.setScalar(t);                      // linear 0 → 1
+        // Continuous tumble rotation (visual only)
+        group.rotation.x = elapsed * TUMBLE_SPEED_X;
+        group.rotation.z = elapsed * TUMBLE_SPEED_Z;
+      } else {
+        // Arrived: snap to home, clear rotation (outer group has face rotation)
+        group.position.x = 0;
+        group.rotation.set(0, 0, 0);
+        group.scale.setScalar(1);
+      }
     }
   });
 
@@ -136,7 +159,7 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
           rotation={getRotationForFace(value)}
           scale={DIE_SIZE}
         >
-          {/* Wrapper group for animation — position/rotation offset applied by useFrame */}
+          {/* Wrapper group for animation — position/rotation/scale driven by useFrame */}
           <group ref={dieRefs.current[i]}>
             <Die3D />
           </group>
