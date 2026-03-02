@@ -6,10 +6,16 @@
 
 html,
 body {
-  width: 100vw;
+  position: fixed;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
   background: #000;
 }
 
@@ -21,6 +27,7 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* --- HUD overlay (HTML over Canvas) --- */
@@ -42,7 +49,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 10px calc(14px + env(safe-area-inset-left));
 }
 
 .hud-round {
@@ -58,7 +65,7 @@ body {
 
 .hud-bottom {
   position: absolute;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   left: 0;
   right: 0;
   display: flex;
@@ -115,8 +122,8 @@ body {
 
 .settings-gear {
   position: absolute;
-  bottom: 24px;
-  right: 14px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  right: calc(14px + env(safe-area-inset-right));
   pointer-events: auto;
   width: 44px;
   height: 44px;
