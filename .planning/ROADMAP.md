@@ -101,7 +101,7 @@ Plans:
 
 Plans:
 - [x] 07-01: Settings panel + core settings (gear button, audio slider, performance toggle, tips toggle, quit game)
-- [ ] 07-02: How to Play carousel (swipeable slides with rules content, breadcrumb dots, placeholder visuals)
+- [x] 07-02: How to Play carousel (swipeable slides with rules content, breadcrumb dots, placeholder visuals)
 - [ ] 07-03: Tips system (contextual tip banner, tip tracking, initial gameplay tips)
 
 ### Phase 8: AI Opponents
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
-| 7. Unlock Interaction | 1/3 | In progress | - |
+| 7. Unlock Interaction | 2/3 | In progress | - |
 | 8. AI Opponents | 0/2 | Not started | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |
 | 10. Screens & Flow | 0/3 | Not started | - |

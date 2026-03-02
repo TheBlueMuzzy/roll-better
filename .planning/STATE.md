@@ -1,28 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 7 in progress. Plan 1 of 3 done (Settings Panel). Settings infrastructure complete with gear button, audio slider, performance/tips/confirmation toggles, quit game.
+Phase 7 in progress. Plan 2 of 3 done (How to Play Carousel). Settings panel + H2P carousel complete, Tips system remaining.
 
 ## Version
-0.1.0.66
+0.1.0.68
 
 ## Current Position
 
 Phase: 7 of 12 (Unlock Interaction)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 07-01-PLAN.md (Settings Panel)
+Last activity: 2026-03-02 — Completed 07-02-PLAN.md (How to Play Carousel)
 
-Progress: ████████████████████░░░░░░░░░░░░░░░ 56%
+Progress: ████████████████████░░░░░░░░░░░░░░░ 57%
 
 ## Last Session
-2026-03-02 — Completed 07-01-PLAN.md (Settings Panel):
-- Settings panel with gear button (bottom-right HUD), dark overlay with backdrop dismiss
-- Audio volume slider (0-100), performance toggle (Advanced/Simple), tips toggle, confirmation toggle
-- Quit game with inline confirmation flow, restarts game
-- Settings persist in Zustand across game restarts (not reset by initGame/initRound)
-- Performance changed from segmented control to single toggle (user feedback)
-- Confirmation setting added (user request — will hook to unlock flow later)
+2026-03-02 — Completed 07-02-PLAN.md (How to Play Carousel):
+- Swipeable carousel modal with 6 rules slides (Roll, Match, Unlock, Score, Handicap, Win)
+- Touch swipe via refs (50px threshold, live drag preview, edge resistance)
+- Arrow key + Escape keyboard support, breadcrumb dots with click-to-jump
+- "How to Play" button in Settings, opens at z-index 60 above settings (z-50)
+- Settings stays open behind carousel — closing H2P returns to settings
+- Emoji placeholders for visuals (noted for future screenshots)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -84,6 +84,8 @@ Progress: ████████████████████░░░�
 - Settings persist in Zustand (not reset by initGame/initRound)
 - Performance mode as single toggle, not segmented control
 - Confirmation setting: on/off toggle, will affect unlock-to-roll flow when hooked up
+- H2P carousel: z-index 60 (above settings), touch swipe via refs, breadcrumb dots
+- Layered modal pattern: settings (z-50) < H2P (z-60) — modals stack
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -93,5 +95,5 @@ Progress: ████████████████████░░░�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 07-01-PLAN.md — ready for 07-02
+Stopped at: Completed 07-02-PLAN.md — ready for 07-03
 Resume file: None
