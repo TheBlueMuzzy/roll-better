@@ -22,6 +22,7 @@ const PLAYER_COLORS = [
 interface GameStore extends GameState {
   // Existing actions
   reset: () => void;
+  setScreen: (screen: GameState['screen']) => void;
   setPhase: (phase: GamePhase) => void;
 
   // Game setup
@@ -101,6 +102,7 @@ const defaultSettings: Settings = {
 };
 
 const initialState: GameState = {
+  screen: 'menu',
   phase: 'lobby',
   players: [],
   currentRound: 0,
@@ -114,6 +116,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
 
   reset: () => set({ ...initialState, settings: get().settings }),
+
+  setScreen: (screen) => set({ screen }),
 
   setPhase: (phase) => set({ phase }),
 

@@ -90,6 +90,7 @@ export interface Settings {
 }
 
 export interface GameState {
+  screen: 'menu' | 'game' | 'winners';
   phase: GamePhase;
   players: Player[];
   currentRound: number;

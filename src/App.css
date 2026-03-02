@@ -575,6 +575,108 @@ body {
   text-align: center;
 }
 
+/* --- Main Menu overlay --- */
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #1a1a1a;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-family: system-ui, sans-serif;
+  user-select: none;
+}
+
+.menu-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 3px;
+  margin: 0;
+}
+
+.menu-subtitle {
+  font-size: 0.9rem;
+  color: #888;
+  margin: -10px 0 10px;
+}
+
+.menu-selector-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-selector-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.menu-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.menu-btn {
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.menu-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.menu-btn.selected {
+  background: #e74c3c;
+  color: #ffffff;
+  border-color: #e74c3c;
+}
+
+.menu-play {
+  width: 100%;
+  max-width: 280px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: #e74c3c;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.15s;
+}
+
+.menu-play:active {
+  background: #c0392b;
+}
+
+.menu-coming-soon {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.menu-gear {
+  position: fixed;
+  bottom: 24px;
+  right: 14px;
+}
+
 /* --- Build version overlay --- */
 
 .build-version {
