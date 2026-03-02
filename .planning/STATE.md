@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 9 in progress. Plan 09-02 complete (goal dice transitions rework). 4 plans remaining in phase.
+Phase 9 in progress. Plan 09-03 complete (AI lock animations). 3 plans remaining in phase.
 
 ## Version
-0.1.0.74
+0.1.0.76
 
 ## Current Position
 
 Phase: 9 of 12 (Multi-Player Display)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 — Completed 09-02-PLAN.md (goal transitions rework)
+Last activity: 2026-03-02 — Completed 09-03-PLAN.md (AI lock animations)
 
-Progress: ██████████████████████████░░░░░░░░░ 74%
+Progress: ███████████████████████████░░░░░░░░ 77%
 
 ## Last Session
-2026-03-02 — Executed 09-02 (goal dice transitions rework):
-- Exit: fast rightward slide with 15ms stagger, no rotation, easeIn
-- Enter: emerge from star icon at scale 0, tumble during flight, scale up, snap face on arrival
-- Unified unlock/skip button centered in pool area (55% vertical)
-- Tips repositioned below divider line (36%)
-- Added 2nd AI player (3 total)
+2026-03-02 — Executed 09-03 (AI lock animations):
+- AnimatingDie extended with fromScale/toScale for scale interpolation
+- AI lock animation data computed in setRollResults alongside human
+- AI dice emerge from profile group at scale 0, fly to slots scaling to 1
+- Per-AI animatingSlotIndices hides row slots during flight
+- Separate aiLockAnimations array + clearAILockAnimations action
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -99,6 +99,8 @@ Progress: ███████████████████████�
 - Star-origin emergence: STAR_WORLD_X = getSlotX(0) - 0.9, local offset = (starX - slotX) / DIE_SIZE
 - Unified unlock/skip button centered at 55% vertical in pool area
 - Tips positioned at top: 36% (just below divider line)
+- AI lock animations: separate aiLockAnimations array with playerId, fromScale=0 toScale=1
+- AnimatingDie scale interpolation: (fromScale + (toScale - fromScale) * eased) * DIE_SIZE
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -108,5 +110,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 09-02-PLAN.md (goal transitions rework)
-Resume file: None — ready for 09-03-PLAN.md
+Stopped at: Completed 09-03-PLAN.md (AI lock animations)
+Resume file: None — ready for 09-04-PLAN.md
