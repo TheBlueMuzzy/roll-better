@@ -34,6 +34,10 @@ Context: Raised during 06-02 checkpoint. User noticed dice "sort of disappear an
 Drag-to-unlock was explored as an alternative to tap-to-select during Phase 7 planning. Conclusion: the drag and tap flows are wildly different — if drag were implemented, it would replace tap entirely, not coexist as a toggle. The drop zone detection, visual feedback during drag, snap-back on invalid drop, and sequential unlock timing all make it a substantial standalone feature. Saved for potential future phase if tap mode proves unsatisfying in playtesting. If implemented, would be drag-only (no dual-mode settings).
 Context: Phase 7 planning discussion. Muzzy decided the complexity wasn't justified and the UX wasn't clear enough for users.
 
+### 2026-03-01 — How to Play Slides Can Be Temporary
+The How to Play carousel (07-02) doesn't need final art or polished content — temporary placeholder slides are fine. Final visuals can be done in a later polish pass.
+Context: Raised during 07-01 execution. Relevant to 07-02 planning.
+
 ### 2026-02-28 — Customizable Tabletop Texture
 The tabletop surface material should be customizable/changeable later. Current dark walnut is a placeholder. Might want different wood types, felt, or player-selectable surfaces.
 Context: Raised during 02-03 checkpoint — user noted the tabletop texture will likely change or become a customization option.

@@ -1,27 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 6 complete. All 3 plans done (Lock Lerps, Pool Persistence + Mitosis, Score + Round Transitions). Full animation system in place for game loop.
+Phase 7 in progress. Plan 1 of 3 done (Settings Panel). Settings infrastructure complete with gear button, audio slider, performance/tips/confirmation toggles, quit game.
 
 ## Version
 0.1.0.66
 
 ## Current Position
 
-Phase: 6 of 12 (Lerp & Animation)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-01 — Completed 06-03-PLAN.md (Score + Round Transitions)
+Phase: 7 of 12 (Unlock Interaction)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-02 — Completed 07-01-PLAN.md (Settings Panel)
 
-Progress: ███████████████████░░░░░░░░░░░░░░░░ 53%
+Progress: ████████████████████░░░░░░░░░░░░░░░ 56%
 
 ## Last Session
-2026-03-01 — Completed 06-03-PLAN.md (Score + Round Transitions):
-- Score counting animation (RAF-based, 1.5s cubic ease-out, scale pulse at end)
-- Handicap Z scale-pop (useFrame, sin curve, 0.4s)
-- Goal row exit/enter staggered roll animations (500ms each)
-- initRound skipPhase parameter for staged round transitions
-- roundScore added to roundState for clean delta access
+2026-03-02 — Completed 07-01-PLAN.md (Settings Panel):
+- Settings panel with gear button (bottom-right HUD), dark overlay with backdrop dismiss
+- Audio volume slider (0-100), performance toggle (Advanced/Simple), tips toggle, confirmation toggle
+- Quit game with inline confirmation flow, restarts game
+- Settings persist in Zustand across game restarts (not reset by initGame/initRound)
+- Performance changed from segmented control to single toggle (user feedback)
+- Confirmation setting added (user request — will hook to unlock flow later)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -79,6 +80,10 @@ Progress: ███████████████████░░░░�
 - Score counting via RAF in HTML overlay (not useFrame — HUD is outside Canvas)
 - initRound({ skipPhase: true }) for staged round transitions
 - Goal transition: 500ms exit + 500ms enter within 1500ms roundEnd window
+- Settings panel: HTML overlay z-index 50, gear button in HUD bottom-right
+- Settings persist in Zustand (not reset by initGame/initRound)
+- Performance mode as single toggle, not segmented control
+- Confirmation setting: on/off toggle, will affect unlock-to-roll flow when hooked up
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -87,6 +92,6 @@ Progress: ███████████████████░░░░�
 - ISS-003: After auto-lock shrinks pool, surviving dice may show locked values briefly (cosmetic)
 
 ## Session Continuity
-Last session: 2026-03-01
-Stopped at: Phase 6 complete — ready for Phase 7
+Last session: 2026-03-02
+Stopped at: Completed 07-01-PLAN.md — ready for 07-02
 Resume file: None
