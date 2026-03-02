@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 11 in progress. Plan 11-01 (Shake-to-Roll) complete. Continuing with remaining Phase 11 plans.
+Phase 11 in progress. Plan 11-02 (Haptic Feedback) complete. One plan remaining (11-03: Mobile Performance).
 
 ## Version
 0.1.0.91
@@ -9,21 +9,20 @@ Phase 11 in progress. Plan 11-01 (Shake-to-Roll) complete. Continuing with remai
 ## Current Position
 
 Phase: 11 of 13 (Mobile Polish) — IN PROGRESS
-Plan: 1 of 3 in current phase
-Status: 11-01 complete
-Last activity: 2026-03-02 — Completed 11-01-PLAN.md (Shake-to-Roll)
+Plan: 2 of 3 in current phase
+Status: 11-02 complete
+Last activity: 2026-03-02 — Completed 11-02-PLAN.md (Haptic Feedback)
 
-Progress: █████████████████████████████████████░░░░ 91%
+Progress: ██████████████████████████████████████░░░ 93%
 
 ## Last Session
-2026-03-02 — Executed 11-01 (Shake-to-Roll):
-- Created useShakeToRoll hook with DeviceMotion API shake detection
-- iOS requestPermission flow (prompt/granted/denied/not-needed)
-- Shake threshold 15, 1000ms cooldown, refs for high-frequency tracking
-- shakeToRollEnabled setting with Zustand store toggle
-- HUD shows "Shake to Roll" when enabled, "Enable Shake" button for iOS permission
-- Settings toggle visible only on supported devices (between Performance and Tips)
-- Tap-to-roll preserved alongside shake input
+2026-03-02 — Executed 11-02 (Haptic Feedback):
+- Created src/utils/haptics.ts with 6 named patterns (bounce, lock, unlock, roll start, score, win)
+- Force-proportional bounce via Rapier onContactForce (3-15ms scaled, threshold 5 filters spam)
+- Feature detection: no-op on iOS Safari/desktop ('vibrate' in navigator)
+- hapticsEnabled setting with conditional Settings toggle
+- Haptics wired to roll start, lock, unlock, score, win game events
+- Scene.tsx→DicePool→PhysicsDie props-down data flow for human player dice only
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -125,6 +124,9 @@ Progress: ███████████████████████�
 - Shake-to-roll: SHAKE_THRESHOLD = 15, SHAKE_COOLDOWN = 1000ms (tunable)
 - DeviceMotion refs (not state) for high-frequency acceleration tracking
 - iOS permission-gated sensor pattern: detect → requestPermission → track state → listen
+- Haptics: pure utility pattern, no React state — gating at call site
+- Force-proportional bounce: clamp [0,50] → map [3,15]ms, skip below force 5
+- Feature-detected mobile API: isSupported() guard + no-op fallback pattern
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -134,5 +136,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 11-01-PLAN.md (Shake-to-Roll) — Phase 11 in progress
-Resume file: None — continue with remaining Phase 11 plans
+Stopped at: Completed 11-02-PLAN.md (Haptic Feedback) — Phase 11 in progress
+Resume file: None — continue with 11-03 (Mobile Performance)

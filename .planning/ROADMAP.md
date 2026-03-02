@@ -148,7 +148,7 @@ Plans:
 
 Plans:
 - [x] 11-01: Shake-to-roll (DeviceMotion API, permission flow, shake threshold tuning)
-- [ ] 11-02: Haptic feedback (Vibration API per-bounce pulses, intensity decay, lock/spawn patterns)
+- [x] 11-02: Haptic feedback (Vibration API per-bounce pulses, intensity decay, lock/spawn patterns)
 - [ ] 11-03: Mobile performance (Safari WebGL optimization, touch responsiveness, viewport/scaling)
 
 ### Phase 12: Responsive UI
@@ -187,6 +187,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
 | 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
 | 10. Screens & Flow | 3/3 | Complete | 2026-03-02 |
-| 11. Mobile Polish | 1/3 | In progress | - |
+| 11. Mobile Polish | 2/3 | In progress | - |
 | 12. Responsive UI | 0/? | Not started | - |
 | 13. Audio & Juice | 0/3 | Not started | - |
