@@ -5,6 +5,7 @@ import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X, DIE_SIZE } from './RollingArea';
 import { GoalRow, getSlotX } from './GoalRow';
+import { GoalIndicators } from './GoalIndicators';
 import { PlayerRow } from './PlayerRow';
 import { PlayerProfileGroup } from './PlayerProfileGroup';
 import { GoalProfileGroup } from './GoalProfileGroup';
@@ -245,6 +246,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
         {/* Goal row — dice at top of screen with transition animation (outside Physics) */}
         <GoalRow values={roundState.goalValues} transition={goalTransition} />
+
+        {/* Goal indicators — colored dots under goal dice showing who has each slot locked */}
+        <GoalIndicators players={players} />
 
         {/* Player row — slot markers + locked dice (outside Physics) */}
         <PlayerRow
