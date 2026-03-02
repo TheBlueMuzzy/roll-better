@@ -24,6 +24,7 @@ export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupP
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          marginRight: Math.round(48 * scale * 0.25) + Math.round(48 * scale * 0.35),
         }}
       >
         {/* White circle with oversized gold star + score */}

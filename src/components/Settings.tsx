@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { isHapticsSupported } from '../utils/haptics';
 
 interface SettingsProps {
   open: boolean;
@@ -10,16 +9,15 @@ interface SettingsProps {
 }
 
 export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: SettingsProps) {
+  const screen = useGameStore((s) => s.screen);
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
-  const hapticsEnabled = useGameStore((s) => s.settings.hapticsEnabled);
   const tipsEnabled = useGameStore((s) => s.settings.tipsEnabled);
   const confirmationEnabled = useGameStore((s) => s.settings.confirmationEnabled);
   const setAudioVolume = useGameStore((s) => s.setAudioVolume);
   const setPerformanceMode = useGameStore((s) => s.setPerformanceMode);
   const setShakeToRollEnabled = useGameStore((s) => s.setShakeToRollEnabled);
-  const setHapticsEnabled = useGameStore((s) => s.setHapticsEnabled);
   const setTipsEnabled = useGameStore((s) => s.setTipsEnabled);
   const setConfirmationEnabled = useGameStore((s) => s.setConfirmationEnabled);
   const setScreen = useGameStore((s) => s.setScreen);
@@ -109,25 +107,6 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
             </div>
           )}
 
-          {/* Haptics Toggle — only on supported devices */}
-          {isHapticsSupported() && (
-            <div className="settings-item">
-              <div className="settings-item-row">
-                <span className="settings-label">Haptics</span>
-                <div className="settings-toggle-group">
-                  <div
-                    className={`settings-toggle${hapticsEnabled ? ' on' : ''}`}
-                    onClick={() => setHapticsEnabled(!hapticsEnabled)}
-                  >
-                    <div className="settings-toggle-thumb" />
-                  </div>
-                  <span className="settings-hint">
-                    {hapticsEnabled ? 'On' : 'Off'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Tips Toggle */}
           <div className="settings-item">
@@ -175,15 +154,17 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
           {/* Divider */}
           <div className="settings-divider" />
 
-          {/* Main Menu */}
-          <div className="settings-item">
-            <button
-              className={`settings-quit${quitConfirm ? ' confirming' : ''}`}
-              onClick={handleQuit}
-            >
-              {quitConfirm ? 'Are you sure?' : 'Main Menu'}
-            </button>
-          </div>
+          {/* Main Menu — only visible during game, not from menu screen */}
+          {screen === 'game' && (
+            <div className="settings-item">
+              <button
+                className={`settings-quit${quitConfirm ? ' confirming' : ''}`}
+                onClick={handleQuit}
+              >
+                {quitConfirm ? 'Are you sure?' : 'Main Menu'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export const PROFILE_X_OFFSET = 0.10;
 
 /** Returns the X position for a given slot index (0-7), shifted right for profile room. */
 export function getSlotX(index: number): number {
-  return (index - 2.5) * SLOT_SPACING;
+  return (index - 2.5) * SLOT_SPACING - DIE_SIZE * 0.2 - 0.06 + DIE_SIZE / 3;
 }
 
 /**

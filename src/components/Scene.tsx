@@ -35,7 +35,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const roundState = useGameStore((s) => s.roundState);
     const players = useGameStore((s) => s.players);
     const performanceMode = useGameStore((s) => s.settings.performanceMode);
-    const hapticsEnabled = useGameStore((s) => s.settings.hapticsEnabled);
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
 
     const goalTransition = useGameStore((s) => s.roundState.goalTransition);
@@ -349,7 +348,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             ref={dicePoolRef}
             count={player.poolSize}
             color={player.color}
-            hapticsEnabled={hapticsEnabled}
             poolExiting={poolExiting}
             poolSpawning={poolSpawning}
             spawnTargetPositions={poolSpawnPositions}

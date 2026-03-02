@@ -87,7 +87,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onR
   if (phase === 'lobby') {
     statusText = 'Starting...';
   } else if (phase === 'idle') {
-    statusText = shakeEnabled ? 'Shake to Roll' : 'Tap To Roll';
+    const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window;
+    statusText = isMobile ? 'Shake or Tap to Roll' : 'Tap to Roll';
   } else if (phase === 'rolling') {
     statusText = 'Rolling...';
   } else if (phase === 'locking') {

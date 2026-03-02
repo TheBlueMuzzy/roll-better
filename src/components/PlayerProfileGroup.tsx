@@ -65,7 +65,7 @@ export function PlayerProfileGroup({
           gap: Math.round(4 * scale),
         }}
       >
-        {/* Column A: Avatar circle */}
+        {/* Column A: Avatar circle — shifted left by one circle width */}
         <div
           style={{
             width: Math.round(44 * scale),
@@ -77,6 +77,7 @@ export function PlayerProfileGroup({
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            marginRight: Math.round(44 * scale - 42 * scale * 0.25) - 5 - Math.round(44 * scale * 0.5),
           }}
         >
           <span
@@ -91,13 +92,14 @@ export function PlayerProfileGroup({
           </span>
         </div>
 
-        {/* Column B: two rows stacked */}
+        {/* Column B: two rows stacked — shifted left by 1/4 star width */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 2,
+            marginRight: Math.round(42 * scale * 0.25) + 10,
           }}
         >
           {/* B.1: Star with score */}

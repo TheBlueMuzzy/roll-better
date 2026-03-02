@@ -20,7 +20,7 @@ body {
 }
 
 #root {
-  /* 9:16 portrait aspect ratio, centered */
+  /* 9:16 portrait aspect ratio on desktop, full-screen on portrait phones */
   width: min(100vw, calc(100dvh * 9 / 16));
   height: min(100dvh, calc(100vw * 16 / 9));
   margin: auto;
@@ -28,6 +28,14 @@ body {
   inset: 0;
   overflow: hidden;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Portrait phones: fill full screen, camera FOV adapts */
+@media (orientation: portrait) {
+  #root {
+    width: 100vw;
+    height: 100dvh;
+  }
 }
 
 /* --- Responsive design tokens --- */
@@ -172,7 +180,7 @@ body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 50;
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,9 +422,10 @@ body {
 
 .h2p-backdrop {
   position: fixed;
+  /* Must be above settings (z-80) which is above menu (z-70) */
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
-  z-index: 60;
+  z-index: 90;
   display: flex;
   align-items: center;
   justify-content: center;

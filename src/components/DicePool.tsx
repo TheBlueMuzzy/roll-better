@@ -18,8 +18,6 @@ export interface DicePoolHandle {
 interface DicePoolProps {
   count: number;
   color: string;
-  /** Enable haptic feedback on dice bounces (human player only) */
-  hapticsEnabled?: boolean;
   poolExiting?: boolean;
   poolSpawning?: boolean;
   spawnTargetPositions?: [number, number, number][];
@@ -106,7 +104,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, hapticsEnabled, poolExiting, poolSpawning, spawnTargetPositions, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
+  function DicePool({ count, color, poolExiting, poolSpawning, spawnTargetPositions, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -361,7 +359,6 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
             position={pos}
             initialFace={initialFaces.current.get(i)}
             initialRotation={preservedRotations.current.get(i)}
-            hapticsEnabled={hapticsEnabled}
             onResult={handleDieResult(i)}
             onUnsettled={handleDieUnsettled(i)}
           />
