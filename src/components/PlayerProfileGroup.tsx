@@ -45,6 +45,7 @@ export function PlayerProfileGroup({
       position={position}
       center
       occlude={false}
+      zIndexRange={[40, 0]}
       style={{
         pointerEvents: 'none',
         userSelect: 'none',

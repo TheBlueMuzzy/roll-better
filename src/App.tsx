@@ -153,9 +153,11 @@ function App() {
 
     // Check session end immediately — skip animation if game is over
     if (checkSessionEnd()) {
-      const t1 = setTimeout(() => setPhase('sessionEnd'), 500);
-      const t2 = setTimeout(() => setScreen('winners'), 1000);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+      const t = setTimeout(() => {
+        setPhase('sessionEnd');
+        setScreen('winners');
+      }, 500);
+      return () => clearTimeout(t);
     }
 
     // Stage 1 (0ms): pool dice pop+shrink + old goal dice exit (in parallel)
@@ -196,7 +198,7 @@ function App() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition, setPoolExiting, setPoolSpawning]);
+  }, [phase, checkSessionEnd, setPhase, setScreen, initRound, setGoalTransition, setPoolExiting, setPoolSpawning]);
 
   // Compute and start AI unlock animations, then apply state after they finish
   const startAIUnlockAnimations = useCallback(() => {
