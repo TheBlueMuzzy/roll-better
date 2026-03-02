@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -63,6 +63,9 @@ interface GameStore extends GameState {
   // Tips
   showTip: (tipId: string) => void;
 
+  // Game preferences
+  setGamePrefs: (prefs: Partial<GamePrefs>) => void;
+
   // Settings
   setAudioVolume: (volume: number) => void;
   setPerformanceMode: (mode: Settings['performanceMode']) => void;
@@ -101,6 +104,11 @@ const defaultSettings: Settings = {
   confirmationEnabled: true,
 };
 
+const defaultGamePrefs: GamePrefs = {
+  playerCount: 3,
+  aiDifficulty: 'medium',
+};
+
 const initialState: GameState = {
   screen: 'menu',
   phase: 'lobby',
@@ -110,12 +118,13 @@ const initialState: GameState = {
   sessionTargetScore: 20,
   settings: defaultSettings,
   shownTips: [],
+  gamePrefs: defaultGamePrefs,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
 
-  reset: () => set({ ...initialState, settings: get().settings }),
+  reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
   setScreen: (screen) => set({ screen }),
 
@@ -628,8 +637,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Only score players who completed the goal (all 8 slots locked)
       if (p.lockedDice.length === 8) {
         // poolSize = remaining unlocked dice at time of win
-        // Fewer remaining = better score (8 is perfect, 0+ extra dice penalize)
-        computedRoundScore = Math.max(0, 8 - p.poolSize * 2);
+        // Penalty per extra die: 9th=-1, 10th=0, 11th=-1, 12th=-1
+        const penalties = [1, 0, 1, 1];
+        let penalty = 0;
+        for (let i = 0; i < p.poolSize && i < penalties.length; i++) {
+          penalty += penalties[i];
+        }
+        computedRoundScore = Math.max(0, 8 - penalty);
         return { ...p, score: p.score + computedRoundScore };
       }
       return p;
@@ -677,6 +691,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (state.shownTips.includes(tipId)) return;
     set({ shownTips: [...state.shownTips, tipId] });
   },
+
+  // --- Game preferences ---
+  setGamePrefs: (prefs) => set((s) => ({ gamePrefs: { ...s.gamePrefs, ...prefs } })),
 
   // --- Settings actions ---
   setAudioVolume: (volume: number) => {

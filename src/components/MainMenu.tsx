@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useGameStore } from '../store/gameStore';
 import type { AIDifficulty } from '../types/game';
 
 interface MainMenuProps {
@@ -15,8 +16,17 @@ const DIFFICULTIES: { label: string; value: AIDifficulty }[] = [
 ];
 
 export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
-  const [playerCount, setPlayerCount] = useState(3);
-  const [difficulty, setDifficulty] = useState<AIDifficulty>('medium');
+  const gamePrefs = useGameStore((s) => s.gamePrefs);
+  const setGamePrefs = useGameStore((s) => s.setGamePrefs);
+
+  const [playerCount, setPlayerCount] = useState(gamePrefs.playerCount);
+  const [difficulty, setDifficulty] = useState<AIDifficulty>(gamePrefs.aiDifficulty);
+
+  // Sync local state when gamePrefs change (e.g. returning to menu after Play Again)
+  useEffect(() => {
+    setPlayerCount(gamePrefs.playerCount);
+    setDifficulty(gamePrefs.aiDifficulty);
+  }, [gamePrefs.playerCount, gamePrefs.aiDifficulty]);
 
   // mount → rAF → add class pattern (same as TipBanner)
   const [showClass, setShowClass] = useState(false);
@@ -67,7 +77,10 @@ export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
       </div>
 
       {/* Play button */}
-      <button className="menu-play" onClick={() => onPlay(playerCount, difficulty)}>
+      <button className="menu-play" onClick={() => {
+        setGamePrefs({ playerCount, aiDifficulty: difficulty });
+        onPlay(playerCount, difficulty);
+      }}>
         PLAY
       </button>
 

@@ -76,12 +76,10 @@ function App() {
     }
   }, [initGame, initRound, setScreen, setPoolSpawning]);
 
-  // Play Again handler — replay with same player count and difficulty
+  // Play Again handler — replay with stored game preferences
   const handlePlayAgain = useCallback(() => {
-    const state = useGameStore.getState();
-    const playerCount = state.players.length;
-    const aiDifficulty = state.players.find((p) => p.isAI)?.difficulty || 'medium';
-    initGame(playerCount, aiDifficulty);
+    const { gamePrefs } = useGameStore.getState();
+    initGame(gamePrefs.playerCount, gamePrefs.aiDifficulty);
     initRound();
     setScreen('game');
     // Start pool spawn animation (same as handlePlay)
@@ -95,10 +93,11 @@ function App() {
     }
   }, [initGame, initRound, setScreen, setPoolSpawning]);
 
-  // Menu handler — return to main menu
+  // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
+    setPhase('lobby');
     setScreen('menu');
-  }, [setScreen]);
+  }, [setPhase, setScreen]);
 
   // --- Contextual tips ---
   useEffect(() => {

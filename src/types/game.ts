@@ -89,6 +89,11 @@ export interface Settings {
   confirmationEnabled: boolean;                // default true
 }
 
+export interface GamePrefs {
+  playerCount: number;       // last-used, default 3
+  aiDifficulty: AIDifficulty;  // last-used, default 'medium'
+}
+
 export interface GameState {
   screen: 'menu' | 'game' | 'winners';
   phase: GamePhase;
@@ -98,4 +103,5 @@ export interface GameState {
   sessionTargetScore: number;
   settings: Settings;
   shownTips: string[];
+  gamePrefs: GamePrefs;
 }
