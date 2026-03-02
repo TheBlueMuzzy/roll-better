@@ -14,6 +14,8 @@ interface AnimatingDieProps {
   color: string;
   delay?: number;
   duration?: number;
+  fromScale?: number;
+  toScale?: number;
   onComplete?: () => void;
 }
 
@@ -25,6 +27,8 @@ export function AnimatingDie({
   color,
   delay = 0,
   duration = 0.6,
+  fromScale = 1,
+  toScale = 1,
   onComplete,
 }: AnimatingDieProps) {
   const groupRef = useRef<Group>(null);
@@ -52,6 +56,7 @@ export function AnimatingDie({
     if (elapsed < 0) {
       groupRef.current.position.set(fromPos[0], fromPos[1], fromPos[2]);
       groupRef.current.quaternion.copy(startQ);
+      groupRef.current.scale.setScalar(fromScale * DIE_SIZE);
       return;
     }
 
@@ -73,6 +78,10 @@ export function AnimatingDie({
     currentQ.copy(startQ).slerp(endQ, eased);
     groupRef.current.quaternion.copy(currentQ);
 
+    // Scale interpolation (incorporates DIE_SIZE)
+    const currentScale = fromScale + (toScale - fromScale) * eased;
+    groupRef.current.scale.setScalar(currentScale * DIE_SIZE);
+
     if (t >= 1 && !hasFiredRef.current) {
       hasFiredRef.current = true;
       onComplete?.();
@@ -80,7 +89,7 @@ export function AnimatingDie({
   });
 
   return (
-    <group ref={groupRef} scale={DIE_SIZE}>
+    <group ref={groupRef} scale={fromScale * DIE_SIZE}>
       <Die3D color={color} />
     </group>
   );

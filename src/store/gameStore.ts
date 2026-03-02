@@ -35,6 +35,7 @@ interface GameStore extends GameState {
   setRollResults: (results: number[], positions?: [number, number, number][], rotations?: [number, number, number][]) => void;
   lockDice: (playerIndex: number, locks: LockedDie[]) => void;
   clearLockAnimations: () => void;
+  clearAILockAnimations: () => void;
 
   // Unlocking
   toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => void;
@@ -76,6 +77,8 @@ const initialRoundState = {
   remainingDiceRotations: [] as [number, number, number][],
   lockAnimations: [] as LockAnimation[],
   animatingSlotIndices: [] as number[],
+  aiLockAnimations: [] as LockAnimation[],
+  aiAnimatingSlotIndices: {} as Record<string, number[]>,
   unlockAnimations: [] as UnlockAnimation[],
   goalTransition: 'none' as const,
 };
@@ -149,6 +152,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         remainingDiceRotations: [],
         lockAnimations: [],
         animatingSlotIndices: [],
+        aiLockAnimations: [],
+        aiAnimatingSlotIndices: {},
         unlockAnimations: [],
         goalTransition: 'none',
       },
@@ -301,6 +306,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     players[0] = updatedPlayer;
 
     // --- Simultaneous AI rolls: process all AI players in the same update ---
+    const aiLockAnimations: LockAnimation[] = [];
+    const aiAnimatingSlotIndices: Record<string, number[]> = {};
+    let aiAnimDelay = 0;
+
     for (let i = 1; i < players.length; i++) {
       const aiPlayer = players[i];
       if (!aiPlayer.isAI || aiPlayer.poolSize <= 0) continue;
@@ -323,6 +332,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
       updatedAI.poolSize = updatedAI.poolSize - aiLocks.length;
       players[i] = updatedAI;
 
+      // Compute AI lock animation data (emerge from profile → slot)
+      if (aiLocks.length > 0) {
+        const profileX = getSlotX(0) - 0.9;
+        const rowZ = -3.77 + i * 0.9;
+        const slotsAnimating: number[] = [];
+
+        for (const lock of aiLocks) {
+          aiLockAnimations.push({
+            fromPos: [profileX, DIE_SIZE / 2, rowZ],
+            toPos: [getSlotX(lock.goalSlotIndex), DIE_SIZE / 2, rowZ],
+            fromRotation: [0, 0, 0],
+            value: lock.value,
+            delay: aiAnimDelay,
+            fromScale: 0,
+            toScale: 1,
+            playerId: aiPlayer.id,
+          });
+          slotsAnimating.push(lock.goalSlotIndex);
+          aiAnimDelay += 0.25 + Math.random() * 0.25;
+        }
+
+        aiAnimatingSlotIndices[aiPlayer.id] = slotsAnimating;
+      }
+
       console.log(
         `[setRollResults AI-${i}] rolled=[${aiResults}] locks=${aiLocks.length} pool: ${aiPlayer.poolSize} → ${updatedAI.poolSize}`,
       );
@@ -344,6 +377,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         remainingDiceRotations,
         lockAnimations,
         animatingSlotIndices,
+        aiLockAnimations,
+        aiAnimatingSlotIndices,
       },
       phase: 'locking',
     });
@@ -356,6 +391,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...state.roundState,
         lockAnimations: [],
         animatingSlotIndices: [],
+      },
+    });
+  },
+
+  clearAILockAnimations: () => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        aiLockAnimations: [],
+        aiAnimatingSlotIndices: {},
       },
     });
   },

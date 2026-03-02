@@ -11,6 +11,9 @@ export interface LockAnimation {
   fromRotation: [number, number, number]; // die's settled rotation (Euler)
   value: number;                       // face value for correct rotation
   delay: number;                       // seconds to wait before starting
+  fromScale?: number;                  // starting scale (0 = invisible, default 1)
+  toScale?: number;                    // ending scale (default 1)
+  playerId?: string;                   // which player this animation belongs to
 }
 
 export interface UnlockAnimation {
@@ -52,6 +55,8 @@ export interface RoundState {
   remainingDiceRotations: [number, number, number][];
   lockAnimations: LockAnimation[];
   animatingSlotIndices: number[];
+  aiLockAnimations: LockAnimation[];
+  aiAnimatingSlotIndices: Record<string, number[]>;
   unlockAnimations: UnlockAnimation[];
   goalTransition: 'none' | 'exiting' | 'entering';
 }
