@@ -101,9 +101,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       const isCurrentlySelected = p.selectedForUnlock.includes(slotIndex);
 
       // If trying to select (not deselect), check 12-die cap
+      // Each unlock adds 1 net die: total after = pool + locked + numUnlocks
       if (!isCurrentlySelected) {
-        const wouldBePool = p.poolSize + (p.selectedForUnlock.length + 1) * 2;
-        if (wouldBePool > 12) {
+        const wouldBeTotal = p.poolSize + p.lockedDice.length + (p.selectedForUnlock.length + 1);
+        if (wouldBeTotal > 12) {
           setShakingSlot(slotIndex);
           setTimeout(() => setShakingSlot(null), 150);
           return;
@@ -255,7 +256,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           shakingSlot={shakingSlot}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
-          canUnlock={Math.floor((12 - player.poolSize) / 2) > 0}
+          canUnlock={(12 - player.poolSize - player.lockedDice.length) > 0}
+          maxUnlocks={Math.max(0, 12 - player.poolSize - player.lockedDice.length)}
         />
 
         {/* AI player rows — below human row (outside Physics) */}

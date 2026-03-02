@@ -17,6 +17,7 @@ interface PlayerRowProps {
   animatingSlotIndices?: number[];
   unlockAnimations?: UnlockAnimation[];
   canUnlock?: boolean;
+  maxUnlocks?: number;
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -35,6 +36,7 @@ function UnlockableDie({
   value,
   color,
   isSelected,
+  selectable,
   shaking,
   onToggle,
 }: {
@@ -42,6 +44,7 @@ function UnlockableDie({
   value: number;
   color: string;
   isSelected: boolean;
+  selectable: boolean;
   shaking: boolean;
   onToggle: () => void;
 }) {
@@ -80,12 +83,12 @@ function UnlockableDie({
     liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * 10);
     groupRef.current.position.y = DIE_SIZE / 2 + liftRef.current;
 
-    // Pulse: gentle scale pulse on unselected dice (shows interactivity)
-    if (!isSelected) {
+    // Pulse: gentle scale pulse on selectable unselected dice (shows interactivity)
+    if (!isSelected && selectable) {
       const pulse = 1 + Math.sin(Date.now() * 0.001 * PULSE_SPEED) * PULSE_AMOUNT;
       groupRef.current.scale.setScalar(DIE_SIZE * pulse);
     } else {
-      // Selected dice stay at base scale (no pulse, no shrink)
+      // Selected or unselectable dice stay at base scale
       groupRef.current.scale.setScalar(DIE_SIZE);
     }
   });
@@ -113,19 +116,21 @@ function UnlockableDie({
         <Die3D color={color} />
       </group>
 
-      {/* White outline ring — always visible during unlock phase */}
-      <mesh
-        position={[getSlotX(slotIndex), 0.03, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <ringGeometry args={[OUTLINE_SIZE * 0.45, OUTLINE_SIZE * 0.55]} />
-        <meshBasicMaterial
-          color="#ffffff"
-          transparent
-          opacity={isSelected ? 1.0 : 0.5}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* White outline ring — only visible when selectable or already selected */}
+      {(selectable || isSelected) && (
+        <mesh
+          position={[getSlotX(slotIndex), 0.03, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <ringGeometry args={[OUTLINE_SIZE * 0.45, OUTLINE_SIZE * 0.55]} />
+          <meshBasicMaterial
+            color="#ffffff"
+            transparent
+            opacity={isSelected ? 1.0 : 0.5}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -141,8 +146,10 @@ export function PlayerRow({
   animatingSlotIndices = [],
   unlockAnimations = [],
   canUnlock = true,
+  maxUnlocks = 0,
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
+  const remainingSelections = maxUnlocks - selectedForUnlock.length;
 
   return (
     <group position={[0, 0, z]}>
@@ -161,13 +168,16 @@ export function PlayerRow({
           }
           // During unlocking — interactive with highlights (only if player can unlock)
           if (isUnlocking && onToggleUnlock && canUnlock) {
+            const isThisSelected = selectedForUnlock.includes(i);
+            const isSelectable = isThisSelected || remainingSelections > 0;
             return (
               <UnlockableDie
                 key={i}
                 slotIndex={i}
                 value={value}
                 color={color}
-                isSelected={selectedForUnlock.includes(i)}
+                isSelected={isThisSelected}
+                selectable={isSelectable}
                 shaking={shakingSlot === i}
                 onToggle={() => onToggleUnlock(i)}
               />

@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 82,
+  "build": 83,
   "history": [
     {
       "version": "0.1.0",
@@ -87,6 +87,11 @@
       "version": "0.1.0.82",
       "date": "2026-03-02",
       "summary": "UI polish: white score text, 2.5x goal star, hide unlock rings at 12-die cap"
+    },
+    {
+      "version": "0.1.0.83",
+      "date": "2026-03-02",
+      "summary": "Fix 12-die cap: correct formula (pool+locked+unlocks<=12), dynamic ring/pulse visibility"
     }
   ]
 }

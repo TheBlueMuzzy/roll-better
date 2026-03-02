@@ -11,10 +11,10 @@ export interface AIDecisionInput {
 
 // ─── Helpers ───────────────────────────────────────────────────
 
-/** How many unlocks can we do without exceeding the 12-die cap? Each unlock adds 2 dice. */
-function maxUnlocksForCap(poolSize: number): number {
-  // poolSize + numUnlocks * 2 <= 12
-  return Math.max(0, Math.floor((12 - poolSize) / 2));
+/** How many unlocks can we do without exceeding the 12-die cap? Each unlock adds 1 net die (pool+2, locked-1). */
+function maxUnlocksForCap(poolSize: number, lockedCount: number): number {
+  // total after unlock = poolSize + lockedCount + numUnlocks <= 12
+  return Math.max(0, 12 - poolSize - lockedCount);
 }
 
 /** Get the remaining (unmatched) goal values — the ones that still need to be rolled. */
@@ -188,7 +188,7 @@ export function getAIUnlockDecision(input: AIDecisionInput): number[] {
   if (lockedDice.length >= 8) return [];
 
   // How many unlocks the 12-die cap allows
-  const capLimit = maxUnlocksForCap(poolSize);
+  const capLimit = maxUnlocksForCap(poolSize, lockedDice.length);
 
   // Must-unlock: poolSize=0 AND lockedDice < 8
   const mustUnlock = poolSize === 0 && lockedDice.length < 8;

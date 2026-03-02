@@ -460,9 +460,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const idx = player.selectedForUnlock.indexOf(goalSlotIndex);
     if (idx === -1) {
-      // Check 12-die cap: each unlock adds 2 dice to pool
-      const wouldBePool = player.poolSize + (player.selectedForUnlock.length + 1) * 2;
-      if (wouldBePool > 12) {
+      // Check 12-die cap: each unlock adds 1 net die (pool+2, locked-1)
+      // Total after unlock = poolSize + lockedCount + numUnlocks
+      const wouldBeTotal = player.poolSize + player.lockedDice.length + (player.selectedForUnlock.length + 1);
+      if (wouldBeTotal > 12) {
         // Can't select more — would exceed 12 dice cap
         return;
       }

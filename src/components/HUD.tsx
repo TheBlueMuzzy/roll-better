@@ -22,7 +22,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const selectedCount = player?.selectedForUnlock?.length ?? 0;
   const lockedCount = player?.lockedDice?.length ?? 0;
   const mustUnlock = poolSize === 0 && lockedCount < 8;
-  const maxUnlocks = Math.floor((12 - poolSize) / 2);
+  const maxUnlocks = Math.max(0, 12 - poolSize - lockedCount);
   const atUnlockCap = selectedCount >= maxUnlocks && maxUnlocks > 0;
   const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
