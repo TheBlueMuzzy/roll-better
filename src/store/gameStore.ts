@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, Settings, AIDifficulty } from '../types/game';
+import type { GamePhase, GameState, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -52,6 +52,8 @@ interface GameStore extends GameState {
 
   // AI
   processAIUnlocks: () => void;
+  setAIUnlockAnimations: (anims: AIUnlockAnimation[]) => void;
+  clearAIUnlockAnimations: () => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -80,6 +82,7 @@ const initialRoundState = {
   aiLockAnimations: [] as LockAnimation[],
   aiAnimatingSlotIndices: {} as Record<string, number[]>,
   unlockAnimations: [] as UnlockAnimation[],
+  aiUnlockAnimations: [] as AIUnlockAnimation[],
   goalTransition: 'none' as const,
 };
 
@@ -155,6 +158,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         aiLockAnimations: [],
         aiAnimatingSlotIndices: {},
         unlockAnimations: [],
+        aiUnlockAnimations: [],
         goalTransition: 'none',
       },
       currentRound: state.currentRound + 1,
@@ -518,6 +522,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
       roundState: {
         ...state.roundState,
         unlockAnimations: [],
+      },
+    });
+  },
+
+  setAIUnlockAnimations: (anims: AIUnlockAnimation[]) => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        aiUnlockAnimations: anims,
+      },
+    });
+  },
+
+  clearAIUnlockAnimations: () => {
+    const state = get();
+    set({
+      roundState: {
+        ...state.roundState,
+        aiUnlockAnimations: [],
       },
     });
   },

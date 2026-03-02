@@ -26,6 +26,15 @@ export interface UnlockAnimation {
   delay: number;               // seconds to wait before starting animation
 }
 
+export interface AIUnlockAnimation {
+  playerId: string;                    // which AI player
+  slotIndex: number;                   // which goal slot being unlocked
+  value: number;                       // face value of the die
+  fromPos: [number, number, number];   // absolute world position of the slot in AI's row
+  toPos: [number, number, number];     // AI profile group position
+  delay: number;                       // stagger timing
+}
+
 export type AIDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Player {
@@ -58,6 +67,7 @@ export interface RoundState {
   aiLockAnimations: LockAnimation[];
   aiAnimatingSlotIndices: Record<string, number[]>;
   unlockAnimations: UnlockAnimation[];
+  aiUnlockAnimations: AIUnlockAnimation[];
   goalTransition: 'none' | 'exiting' | 'entering';
 }
 

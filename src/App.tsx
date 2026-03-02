@@ -10,7 +10,8 @@ import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { findClearSpot } from './utils/clearSpot';
-import type { UnlockAnimation } from './types/game';
+import type { UnlockAnimation, AIUnlockAnimation } from './types/game';
+import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
 import './App.css';
 
@@ -133,6 +134,69 @@ function App() {
     };
   }, [phase, checkSessionEnd, setPhase, initRound, setGoalTransition]);
 
+  // Compute and start AI unlock animations, then apply state after they finish
+  const startAIUnlockAnimations = useCallback(() => {
+    const state = useGameStore.getState();
+    const aiAnimations: AIUnlockAnimation[] = [];
+    let animDelay = 0;
+
+    for (let i = 1; i < state.players.length; i++) {
+      const aiPlayer = state.players[i];
+      if (!aiPlayer.isAI || !aiPlayer.difficulty) continue;
+      if (aiPlayer.lockedDice.length === 0) continue;
+      if (aiPlayer.lockedDice.length >= 8) continue;
+
+      const slotsToUnlock = getAIUnlockDecision({
+        goalValues: state.roundState.goalValues,
+        lockedDice: aiPlayer.lockedDice,
+        poolSize: aiPlayer.poolSize,
+        difficulty: aiPlayer.difficulty,
+      });
+
+      if (slotsToUnlock.length === 0) continue;
+
+      const profileX = getSlotX(0) - 0.9;
+      const rowZ = -3.77 + i * 0.9;
+
+      for (const slotIndex of slotsToUnlock) {
+        const lockedEntry = aiPlayer.lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
+        if (!lockedEntry) continue;
+
+        aiAnimations.push({
+          playerId: aiPlayer.id,
+          slotIndex,
+          value: lockedEntry.value,
+          fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, rowZ],
+          toPos: [profileX, 0, rowZ],
+          delay: animDelay,
+        });
+        animDelay += 0.15 + Math.random() * 0.15;
+      }
+
+      console.log(
+        `[startAIUnlockAnimations AI-${i}] unlocking slots=[${slotsToUnlock}] pool: ${aiPlayer.poolSize} → ${aiPlayer.poolSize + slotsToUnlock.length * 2}`,
+      );
+    }
+
+    if (aiAnimations.length > 0) {
+      // Store animations so Scene can render them
+      useGameStore.getState().setAIUnlockAnimations(aiAnimations);
+
+      // Wait for last animation's delay + animation duration (0.5s) + buffer
+      const lastDelay = aiAnimations[aiAnimations.length - 1].delay;
+      const totalWait = (lastDelay * 1000) + 600;
+      setTimeout(() => {
+        useGameStore.getState().processAIUnlocks();
+        useGameStore.getState().clearAIUnlockAnimations();
+        setPhase('idle');
+      }, totalWait);
+    } else {
+      // No AI unlocks — apply state immediately and go to idle
+      useGameStore.getState().processAIUnlocks();
+      setPhase('idle');
+    }
+  }, [setPhase]);
+
   // UNLOCK button: process unlocks with mitosis animation, then go to idle
   const handleConfirmUnlock = useCallback(() => {
     const state = useGameStore.getState();
@@ -140,6 +204,7 @@ function App() {
 
     // Guard: ignore if animation is already in progress
     if (state.roundState.unlockAnimations.length > 0) return;
+    if (state.roundState.aiUnlockAnimations.length > 0) return;
 
     const player = state.players[0];
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
@@ -203,20 +268,19 @@ function App() {
       setTimeout(() => {
         useGameStore.getState().confirmUnlock(0);
         useGameStore.getState().clearUnlockAnimations();
-        useGameStore.getState().processAIUnlocks();
-        setPhase('idle');
+        // After human unlock animations complete, start AI unlock animations
+        startAIUnlockAnimations();
       }, totalWait);
 
     } else if (mustUnlock) {
       // Can't skip — player has 0 dice to roll, must unlock at least 1
       return;
     } else {
-      // SKIP path: no animation, immediate
+      // SKIP path: no human animation, start AI unlock animations immediately
       useGameStore.getState().skipUnlock(0);
-      useGameStore.getState().processAIUnlocks();
-      setPhase('idle');
+      startAIUnlockAnimations();
     }
-  }, [setPhase]);
+  }, [setPhase, startAIUnlockAnimations]);
 
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {
