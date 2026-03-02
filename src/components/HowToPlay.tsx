@@ -126,27 +126,41 @@ export function HowToPlay({ onClose }: HowToPlayProps) {
           &#x2715;
         </button>
 
-        <div
-          className="h2p-viewport"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div
-            ref={trackRef}
-            className="h2p-track"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        <div className="h2p-nav-row">
+          <button
+            className={`h2p-arrow${currentSlide === 0 ? ' hidden' : ''}`}
+            onClick={() => setCurrentSlide((prev) => Math.max(prev - 1, 0))}
           >
-            {SLIDES.map((slide, i) => (
-              <div className="h2p-slide" key={i}>
-                <div className="h2p-visual">
-                  <span className="h2p-icon">{slide.icon}</span>
+            &#x2039;
+          </button>
+          <div
+            className="h2p-viewport"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              ref={trackRef}
+              className="h2p-track"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {SLIDES.map((slide, i) => (
+                <div className="h2p-slide" key={i}>
+                  <div className="h2p-visual">
+                    <span className="h2p-icon">{slide.icon}</span>
+                  </div>
+                  <h3 className="h2p-title">{slide.title}</h3>
+                  <p className="h2p-text">{slide.text}</p>
                 </div>
-                <h3 className="h2p-title">{slide.title}</h3>
-                <p className="h2p-text">{slide.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <button
+            className={`h2p-arrow${currentSlide === totalSlides - 1 ? ' hidden' : ''}`}
+            onClick={() => setCurrentSlide((prev) => Math.min(prev + 1, totalSlides - 1))}
+          >
+            &#x203A;
+          </button>
         </div>
 
         <div className="h2p-dots">
