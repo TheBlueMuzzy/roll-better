@@ -1,28 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 7 in progress. Plan 2 of 3 done (How to Play Carousel). Settings panel + H2P carousel complete, Tips system remaining.
+Phase 7 complete. All 3 plans done (Settings, H2P Carousel, Tips). Ready for Phase 8: AI Opponents.
 
 ## Version
-0.1.0.68
+0.1.0.70
 
 ## Current Position
 
 Phase: 7 of 12 (Unlock Interaction)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-02 — Completed 07-02-PLAN.md (How to Play Carousel)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 — Completed 07-03-PLAN.md (Tips System)
 
-Progress: ████████████████████░░░░░░░░░░░░░░░ 57%
+Progress: █████████████████████░░░░░░░░░░░░░░ 60%
 
 ## Last Session
-2026-03-02 — Completed 07-02-PLAN.md (How to Play Carousel):
-- Swipeable carousel modal with 6 rules slides (Roll, Match, Unlock, Score, Handicap, Win)
-- Touch swipe via refs (50px threshold, live drag preview, edge resistance)
-- Arrow key + Escape keyboard support, breadcrumb dots with click-to-jump
-- "How to Play" button in Settings, opens at z-index 60 above settings (z-50)
-- Settings stays open behind carousel — closing H2P returns to settings
-- Emoji placeholders for visuals (noted for future screenshots)
+2026-03-02 — Completed 07-03-PLAN.md (Tips System):
+- TipBanner component: slide-in + fade-out CSS animation, 4s auto-dismiss, tap-to-dismiss
+- Tip tracking: shownTips[] in Zustand, showTip action, shouldShowTip helper
+- 4 contextual tips: first-roll, first-lock, first-unlock, must-unlock
+- Tips reset on initGame (new session), persist within game (not reset on initRound)
+- One tip at a time, hidden when settings panel open
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -86,6 +85,8 @@ Progress: ████████████████████░░░�
 - Confirmation setting: on/off toggle, will affect unlock-to-roll flow when hooked up
 - H2P carousel: z-index 60 (above settings), touch swipe via refs, breadcrumb dots
 - Layered modal pattern: settings (z-50) < H2P (z-60) — modals stack
+- Tips: CSS transition toggle pattern (mount → rAF → add class), one-at-a-time guard
+- Tips: session-scoped (reset initGame, not initRound), hidden when settings open
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -95,5 +96,5 @@ Progress: ████████████████████░░░�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 07-02-PLAN.md — ready for 07-03
+Stopped at: Completed 07-03-PLAN.md — Phase 7 complete
 Resume file: None

@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 68,
+  "build": 70,
   "history": [
     {
       "version": "0.1.0",
@@ -47,6 +47,11 @@
       "version": "0.1.0.66",
       "date": "2026-03-01",
       "summary": "Goal row transition: staggered roll-off exit and roll-in enter during round end"
+    },
+    {
+      "version": "0.1.0.70",
+      "date": "2026-03-02",
+      "summary": "Tips system: contextual gameplay hints with slide-in banner, 4 tips for roll/lock/unlock phases"
     }
   ]
 }

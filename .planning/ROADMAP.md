@@ -16,7 +16,7 @@ None (no expertise skill files available)
 - [x] **Phase 4: Game Board Layout** *(Complete — 2026-03-01)* — Goal row, player row, dice pool, HUD, portrait responsive
 - [x] **Phase 5: Core Game Logic** *(Complete — 2026-03-01)* — Goal gen, match detection, auto-lock, scoring, handicap, session state
 - [x] **Phase 6: Lerp & Animation** *(Complete — 2026-03-01)* — Lock/unlock lerps, bonus spawn, score counting, round transitions
-- [ ] **Phase 7: Unlock Interaction** — Settings panel, How to Play carousel, Tips system
+- [x] **Phase 7: Unlock Interaction** *(Complete — 2026-03-02)* — Settings panel, How to Play carousel, Tips system
 - [ ] **Phase 8: AI Opponents** — Easy/Medium/Hard heuristics, multi-player with AI
 - [ ] **Phase 9: Multi-Player Display** — Multiple player rows, icons, Goal indicators
 - [ ] **Phase 10: Screens & Flow** — Main Menu, Settings, Winners Screen, transitions
@@ -102,7 +102,7 @@ Plans:
 Plans:
 - [x] 07-01: Settings panel + core settings (gear button, audio slider, performance toggle, tips toggle, quit game)
 - [x] 07-02: How to Play carousel (swipeable slides with rules content, breadcrumb dots, placeholder visuals)
-- [ ] 07-03: Tips system (contextual tip banner, tip tracking, initial gameplay tips)
+- [x] 07-03: Tips system (contextual tip banner, tip tracking, initial gameplay tips)
 
 ### Phase 8: AI Opponents
 **Goal**: AI players that roll dice and make unlock decisions at Easy/Medium/Hard difficulty
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
 | 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
 | 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
-| 7. Unlock Interaction | 2/3 | In progress | - |
+| 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
 | 8. AI Opponents | 0/2 | Not started | - |
 | 9. Multi-Player Display | 0/3 | Not started | - |
 | 10. Screens & Flow | 0/3 | Not started | - |
