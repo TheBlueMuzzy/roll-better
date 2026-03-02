@@ -44,7 +44,7 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
               border: '2px solid rgba(255, 255, 255, 0.3)',
             }}
           />
-          {/* Gold star — 2.5x size, centered over the circle */}
+          {/* Gold star — 2.5x size, shifted up to center over indicator dots */}
           <span
             style={{
               position: 'absolute',
@@ -52,9 +52,9 @@ export function GoalProfileGroup({ position }: GoalProfileGroupProps) {
               lineHeight: 1,
               color: '#f1c40f',
               textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              top: '50%',
+              top: 'calc(50% - 7px)',
               left: '50%',
-              transform: 'translate(-50%, -50%)',
+              transform: 'translate(-50%, -50%) scale(0.90)',
             }}
           >
             &#9733;

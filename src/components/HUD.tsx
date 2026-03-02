@@ -115,13 +115,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
       {/* Top bar — round + score */}
       <div className="hud-top">
         <span className="hud-round">Round {currentRound}</span>
-        <span
-          ref={scoreRef}
-          className="hud-score"
-          style={{ transition: 'transform 0.15s ease-out' }}
-        >
-          {score} / {sessionTargetScore}
-        </span>
+        {/* Score display removed */}
       </div>
 
       {/* Bottom area — status text + controls + pool stats */}

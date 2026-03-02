@@ -6,7 +6,7 @@ import type { Player } from '../types/game';
 const INDICATOR_RADIUS = 0.12;
 const INDICATOR_SEGMENTS = 32;
 const INDICATOR_Y = 0.02;     // Just above floor to avoid z-fighting
-const Z_OFFSET = 0.25;        // Offset toward player (positive Z) from goal row
+const Z_OFFSET = -0.73;       // Offset ABOVE goal row (negative Z = toward top of screen)
 
 // Outline ring for visibility on dark surface
 const RING_INNER = INDICATOR_RADIUS;
