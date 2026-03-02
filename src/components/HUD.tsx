@@ -105,7 +105,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   } else if (phase === 'roundEnd') {
     statusText = 'Next Round...';
   } else if (phase === 'sessionEnd') {
-    statusText = `Game Over! Score: ${score}`;
+    statusText = '';
   } else {
     statusText = '';
   }

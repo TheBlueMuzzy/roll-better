@@ -3,10 +3,12 @@ import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { MainMenu } from './components/MainMenu';
+import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
 import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
+import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getSlotX } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
@@ -74,6 +76,30 @@ function App() {
     }
   }, [initGame, initRound, setScreen, setPoolSpawning]);
 
+  // Play Again handler — replay with same player count and difficulty
+  const handlePlayAgain = useCallback(() => {
+    const state = useGameStore.getState();
+    const playerCount = state.players.length;
+    const aiDifficulty = state.players.find((p) => p.isAI)?.difficulty || 'medium';
+    initGame(playerCount, aiDifficulty);
+    initRound();
+    setScreen('game');
+    // Start pool spawn animation (same as handlePlay)
+    const newState = useGameStore.getState();
+    const humanPlayer = newState.players[0];
+    if (humanPlayer && humanPlayer.poolSize > 0) {
+      const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
+      setPoolSpawning(true, spawnPositions);
+      const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
+      setTimeout(() => setPoolSpawning(false), spawnDuration);
+    }
+  }, [initGame, initRound, setScreen, setPoolSpawning]);
+
+  // Menu handler — return to main menu
+  const handleMenu = useCallback(() => {
+    setScreen('menu');
+  }, [setScreen]);
+
   // --- Contextual tips ---
   useEffect(() => {
     if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
@@ -127,8 +153,9 @@ function App() {
 
     // Check session end immediately — skip animation if game is over
     if (checkSessionEnd()) {
-      const timer = setTimeout(() => setPhase('sessionEnd'), 500);
-      return () => clearTimeout(timer);
+      const t1 = setTimeout(() => setPhase('sessionEnd'), 500);
+      const t2 = setTimeout(() => setScreen('winners'), 1000);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     }
 
     // Stage 1 (0ms): pool dice pop+shrink + old goal dice exit (in parallel)
@@ -363,8 +390,12 @@ function App() {
           )}
         </>
       )}
+      {screen === 'winners' && (
+        <WinnersScreen onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+      )}
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
+      <TouchIndicator />
       <div className="build-version">{version}</div>
     </>
   );
