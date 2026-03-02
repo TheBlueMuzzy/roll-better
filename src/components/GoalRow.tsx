@@ -63,10 +63,15 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
     }
   }, [transition]);
 
-  // Animation constants
-  const STAGGER_DELAY = 0.03; // 30ms between each die
-  const DIE_DURATION = 0.4;   // 400ms per die animation
-  const SLIDE_DISTANCE = 8;   // units to slide off/on screen
+  // --- Exit animation constants ---
+  const EXIT_STAGGER = 0.015;    // 15ms between each die (tight)
+  const EXIT_DURATION = 0.35;    // 350ms per die — fast departure
+  const EXIT_DISTANCE = 8;       // local-space units to slide right
+
+  // --- Enter animation constants (legacy — reworked in Task 2) ---
+  const ENTER_STAGGER = 0.03;
+  const ENTER_DURATION = 0.4;
+  const SLIDE_DISTANCE = 8;
 
   useFrame((state) => {
     const clock = state.clock.elapsedTime;
@@ -80,39 +85,45 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
       const group = dieRefs.current[i]?.current;
       if (!group) continue;
 
+      // --- Idle state: reset everything ---
       if (transition === 'none') {
-        // Reset to home position
         group.position.x = 0;
-        group.rotation.z = 0;
+        group.rotation.set(0, 0, 0);
+        group.scale.setScalar(1);
         continue;
       }
 
-      const elapsed = clock - transitionStart.current - (STAGGER_DELAY * i);
+      // --- Exit: fast rightward slide, no rotation ---
+      if (transition === 'exiting') {
+        const elapsed = clock - transitionStart.current - (EXIT_STAGGER * i);
+
+        if (elapsed < 0) {
+          // Not started yet — hold at home position
+          group.position.x = 0;
+          group.rotation.set(0, 0, 0);
+          group.scale.setScalar(1);
+          continue;
+        }
+
+        const t = Math.min(elapsed / EXIT_DURATION, 1);
+        group.position.x = EXIT_DISTANCE * easeIn(t);
+        group.rotation.set(0, 0, 0);  // no rotation on exit
+        group.scale.setScalar(1);     // no scale change on exit
+        continue;
+      }
+
+      // --- Enter: slide in from left (legacy, reworked in Task 2) ---
+      const elapsed = clock - transitionStart.current - (ENTER_STAGGER * i);
 
       if (elapsed < 0) {
-        // Die hasn't started animating yet
-        if (transition === 'exiting') {
-          group.position.x = 0;
-          group.rotation.z = 0;
-        } else {
-          // Entering: start off-screen left
-          group.position.x = -SLIDE_DISTANCE;
-          group.rotation.z = Math.PI * 2;
-        }
+        group.position.x = -SLIDE_DISTANCE;
+        group.rotation.z = Math.PI * 2;
         continue;
       }
 
-      const t = Math.min(elapsed / DIE_DURATION, 1);
-
-      if (transition === 'exiting') {
-        // Slide right with accelerating motion + roll
-        group.position.x = SLIDE_DISTANCE * easeIn(t);
-        group.rotation.z = -t * Math.PI * 2; // one full roll
-      } else {
-        // Entering: slide in from left with decelerating motion + roll
-        group.position.x = -SLIDE_DISTANCE * (1 - easeOut(t));
-        group.rotation.z = (1 - t) * Math.PI * 2; // rolling in, decelerating
-      }
+      const t = Math.min(elapsed / ENTER_DURATION, 1);
+      group.position.x = -SLIDE_DISTANCE * (1 - easeOut(t));
+      group.rotation.z = (1 - t) * Math.PI * 2;
     }
   });
 
