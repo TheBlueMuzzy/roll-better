@@ -1,27 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 10 complete. All 3 plans executed (Menu, Winners, Transitions). Ready for Phase 11: Mobile Polish.
+Phase 11 in progress. Plan 11-01 (Shake-to-Roll) complete. Continuing with remaining Phase 11 plans.
 
 ## Version
-0.1.0.89
+0.1.0.91
 
 ## Current Position
 
-Phase: 10 of 13 (Screens & Flow) — COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-02 — Completed 10-03-PLAN.md (Screen Transitions + Flow Polish)
+Phase: 11 of 13 (Mobile Polish) — IN PROGRESS
+Plan: 1 of 3 in current phase
+Status: 11-01 complete
+Last activity: 2026-03-02 — Completed 11-01-PLAN.md (Shake-to-Roll)
 
-Progress: █████████████████████████████████████░░░░ 90%
+Progress: █████████████████████████████████████░░░░ 91%
 
 ## Last Session
-2026-03-02 — Executed 10-03 (Screen Transitions + Flow Polish):
-- CSS fade transitions between all screens (0.3s ease, rAF class-toggle)
-- pointer-events gating on hidden overlays (prevents click blocking)
-- Game preferences (playerCount, aiDifficulty) persist in Zustand
-- Play Again reads stored prefs, handleMenu resets phase to 'lobby'
-- Removed decorative title animation (user: cosmetic anims deferred to art pass)
+2026-03-02 — Executed 11-01 (Shake-to-Roll):
+- Created useShakeToRoll hook with DeviceMotion API shake detection
+- iOS requestPermission flow (prompt/granted/denied/not-needed)
+- Shake threshold 15, 1000ms cooldown, refs for high-frequency tracking
+- shakeToRollEnabled setting with Zustand store toggle
+- HUD shows "Shake to Roll" when enabled, "Enable Shake" button for iOS permission
+- Settings toggle visible only on supported devices (between Performance and Tips)
+- Tap-to-roll preserved alongside shake input
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -120,6 +122,9 @@ Progress: ███████████████████████�
 - Game preferences stored in Zustand (session-scoped, not localStorage)
 - handleMenu resets phase to lobby before screen change
 - Cosmetic animations deferred to art pass (user direction)
+- Shake-to-roll: SHAKE_THRESHOLD = 15, SHAKE_COOLDOWN = 1000ms (tunable)
+- DeviceMotion refs (not state) for high-frequency acceleration tracking
+- iOS permission-gated sensor pattern: detect → requestPermission → track state → listen
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -129,5 +134,5 @@ Progress: ███████████████████████�
 
 ## Session Continuity
 Last session: 2026-03-02
-Stopped at: Completed 10-03-PLAN.md (Screen Transitions + Flow Polish) — Phase 10 complete
-Resume file: None — ready for Phase 11
+Stopped at: Completed 11-01-PLAN.md (Shake-to-Roll) — Phase 11 in progress
+Resume file: None — continue with remaining Phase 11 plans
