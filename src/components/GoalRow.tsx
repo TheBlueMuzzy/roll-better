@@ -5,12 +5,12 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 
 // --- Layout constants (exported for PlayerRow reuse) ---
-export const SLOT_SPACING = 0.7;
+export const SLOT_SPACING = 0.62;
 export const SLOT_COUNT = 8;
 
 /** Returns the X position for a given slot index (0-7), centered at 0. */
 export function getSlotX(index: number): number {
-  return (index - 3.5) * SLOT_SPACING;
+  return (index - 3.0) * SLOT_SPACING;
 }
 
 /**

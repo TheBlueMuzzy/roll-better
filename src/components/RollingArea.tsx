@@ -22,8 +22,8 @@ export const ROLLING_Z_MAX = 4.5;
 const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 1.85
 const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 2.65
 
-// Die size: 8.5 dice must fit across the arena width
-export const DIE_SIZE = (ARENA_HALF_X * 2) / 8.5; // ≈ 0.659
+// Die size: 9.5 dice must fit across the arena width (smaller for avatar space)
+export const DIE_SIZE = (ARENA_HALF_X * 2) / 9.5; // ≈ 0.589
 
 // Wall thickness and height
 const WALL_THICKNESS = 0.25;

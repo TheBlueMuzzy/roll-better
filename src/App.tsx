@@ -50,7 +50,6 @@ function App() {
   const playerPoolSize = useGameStore((s) => s.players[0]?.poolSize ?? 0);
   const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
 
-  const processAIUnlocks = useGameStore((s) => s.processAIUnlocks);
 
   // Initialize game on mount
   useEffect(() => {
