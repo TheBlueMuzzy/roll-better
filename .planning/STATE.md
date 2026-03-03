@@ -1,30 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 15 in progress. Plan 15-02 complete: useRoom hook created, lobby screen state added, Play Online button wired up. Ready for 15-03 (lobby UI component).
+Phase 15 in progress. Plan 15-03 complete: LobbyScreen component built with create/join flow, player list, room code display, ready toggle, host controls, server-assigned colors, shared goal values. Ready for 15-04 (game start flow + AI fill).
 
 ## Version
-0.1.0.105
+0.1.0.110
 
 ## Current Position
 
 Phase: 15 of 21 (Lobby UI + Room Codes)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-03 — Completed 15-02-PLAN.md
+Last activity: 2026-03-03 — Completed 15-03-PLAN.md
 
-Progress: ██████████████████████████████████████████████░░░░ 70%
+Progress: ████████████████████████████████████████████████░░ 75%
 
 ## Last Session
-2026-03-03 — Plan 15-02 execution:
-- Created useRoom hook (src/hooks/useRoom.ts): wraps partyClient.ts, manages room state via useState/useRef
-- Room code generation: 4-letter uppercase (no I/O), Math.random()
-- Connection lifecycle: createRoom/joinRoom/leave/toggleReady/startGame actions
-- Message handling: connected, room_state, player_joined, player_left, game_starting, error (3s auto-clear)
-- Socket cleanup on unmount, onclose resets state + shows "Connection lost"
-- Added 'lobby' to screen union in game.ts
-- Replaced "Coming Soon" span with PLAY ONLINE button in MainMenu
-- Added handlePlayOnline → setScreen('lobby') in App.tsx with placeholder div
+2026-03-03 — Plan 15-03 execution:
+- Created LobbyScreen component with CreateJoin and Lobby views
+- Three rounds of user testing and iterative fixes
+- Server assigns player colors by join order (not client-specified)
+- Server generates goalValues in game_starting — shared across all clients
+- Room-not-found detection via intent tracking in useRoom
+- Local player uses server-assigned name/color in game (initGame accepts onlineInfo)
+- ISS-003 closed (goal dice sync), ISS-004 opened (roll sync — Phase 16 scope)
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -152,12 +151,20 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Protocol aiDifficulty as string (not game.ts AIDifficulty) — protocol must not import game types
 - Host exempt from ready check (host controls start button)
 - handleReady/handleStartGame as private methods following established handler pattern
+- Server-authoritative color assignment: PLAYER_COLORS[joinOrderIndex] in server handleJoin
+- Server-generated goalValues: broadcast in game_starting, clients use instead of local random
+- initGame accepts onlineInfo: { localPlayer: { name, color } } for server-assigned identity
+- AI players use remaining PLAYER_COLORS (skip local player's color) to avoid duplicates
+- Room-not-found detection: intent tracking ('create'|'join') + solo-player-in-room_state check
+- Intentional close tracking: prevents "Connection lost" overwriting server errors
+- Lobby UX: CREATE ROOM / JOIN mutually exclusive, SILLY_NAMES for empty input, shake on error
+- Online game auto-fill: < 4 players → fill to 4 with AI; >= 4 → no AI. Always hard difficulty.
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
 - ISS-002: Dice can cant against walls or other dice, blocking face detection
-- ISS-003: After auto-lock shrinks pool, surviving dice may show locked values briefly (cosmetic)
+- ISS-004: Online game rolls not synced — each client rolls independently (Phase 16 scope)
 
 ### Roadmap Evolution
 
@@ -165,5 +172,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 15-02-PLAN.md
+Stopped at: Completed 15-03-PLAN.md
 Resume file: None

@@ -220,7 +220,7 @@ Plans:
 Plans:
 - [x] 15-01: Protocol extensions + server lobby logic (ready toggle, host-only game start)
 - [x] 15-02: useRoom React hook + screen state integration (lobby screen routing)
-- [ ] 15-03: Lobby screen UI (create/join, player list, room code, ready, host controls)
+- [x] 15-03: Lobby screen UI (create/join, player list, room code, ready, host controls)
 - [ ] 15-04: Game start flow + AI fill (initOnlineGame, lobby → game transition)
 
 #### Phase 16: State Sync Protocol
@@ -302,7 +302,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
 | 13. Audio & Juice | v1.0 | 4/4 | Complete | 2026-03-03 |
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
-| 15. Lobby UI + Room Codes | v1.1 | 2/4 | In progress | - |
+| 15. Lobby UI + Room Codes | v1.1 | 3/4 | In progress | - |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |

@@ -143,13 +143,18 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Medium
 - **Suggested phase:** Phase 6 (animation/polish) or dedicated fix
 
-### ISS-003: Online players see different goal dice — each client generates own random goals
+### ISS-003: Online players see different goal dice — FIXED (server-generated goalValues)
 
 - **Discovered:** Phase 15 Task 3 checkpoint (2026-03-03)
-- **Type:** Multiplayer sync bug (expected)
-- **Description:** When starting an online game, each client calls initGame/initRound locally, which generates random goal values independently. All players should see the same goal dice. Fix: server should generate and broadcast goal values, or use a shared seed. This is the core problem Phase 16 (State Sync Protocol) will solve.
-- **Impact:** High (game unplayable online until fixed)
-- **Effort:** Part of Phase 16 scope
+- **Status:** CLOSED — fixed in commit e5b0e8f (server generates goalValues in game_starting)
+
+### ISS-004: Online game rolls not synced — each client rolls independently
+
+- **Discovered:** Phase 15 Task 3 checkpoint (2026-03-03)
+- **Type:** Multiplayer sync (architectural)
+- **Description:** After game_starting, each client runs a fully local game — rolls are random per-device, AI decisions are independent, lock results diverge immediately. The lobby + shared goals create the illusion of multiplayer, but actual gameplay is not synced. Fixing this requires server-authoritative rolls or a shared PRNG seed, plus a state sync protocol so all clients see the same game state.
+- **Impact:** High (online games diverge after first roll)
+- **Effort:** Large — core Phase 16 (State Sync Protocol) scope
 - **Suggested phase:** Phase 16
 
 ## Closed Enhancements

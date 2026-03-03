@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 105,
+  "build": 110,
   "history": [
     {
       "version": "0.1.0",
@@ -172,6 +172,11 @@
       "version": "0.1.0.105",
       "date": "2026-03-03",
       "summary": "Lobby screen state + Play Online button in MainMenu and App routing"
+    },
+    {
+      "version": "0.1.0.110",
+      "date": "2026-03-03",
+      "summary": "Lobby screen UI: create/join flow, room codes, player list, ready toggle, server-assigned colors, shared goals"
     }
   ]
 }
