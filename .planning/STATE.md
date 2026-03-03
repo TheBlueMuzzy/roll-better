@@ -1,27 +1,26 @@
 # Project State
 
 ## Current Status
-Phase 14 complete. Full Partykit stack ready: server (room lifecycle, player tracking, host migration), client utility (typed connection factory, message helpers), shared protocol types. Ready for Phase 15 (Lobby UI + Room Codes).
+Phase 15 in progress. Plan 15-01 complete: protocol extended with ready/start_game/game_starting messages, server handles ready toggle + host-only game start validation. Ready for 15-02 (useRoom hook).
 
 ## Version
 0.1.0.103
 
 ## Current Position
 
-Phase: 14 of 21 (Partykit Server Setup)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-03 — Completed 14-03-PLAN.md
+Phase: 15 of 21 (Lobby UI + Room Codes)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-03-03 — Completed 15-01-PLAN.md
 
-Progress: ██████████████████████████████████████████████░░░ 67% (14/21 phases complete)
+Progress: ██████████████████████████████████████████████░░░ 68%
 
 ## Last Session
-2026-03-03 — Plan 14-03 execution:
-- PartySocket client utility: createPartyConnection, sendMessage, parseServerMessage
-- VITE_PARTY_HOST env var with localhost:1999 fallback
-- Pinned partykit dev port to 1999 in partykit.json
-- Fixed 3 pre-existing unused variable errors blocking build
-- End-to-end verification: partykit + Vite both running, server reachable
+2026-03-03 — Plan 15-01 execution:
+- Extended protocol: ReadyMessage, StartGameMessage (client→server), GameStartingMessage (server→client)
+- Server handleReady: toggle isReady + broadcast room_state
+- Server handleStartGame: host-only validation, all-ready check, status→"playing", broadcast game_starting
+- aiDifficulty kept as string in protocol (no game.ts imports)
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -146,6 +145,9 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Room server: broadcastRoomState/sendToConnection/broadcastExcept helper pattern
 - Client utility: thin factory + typed helpers pattern (not a class), VITE_PARTY_HOST env var
 - Partykit dev port pinned to 1999 in partykit.json
+- Protocol aiDifficulty as string (not game.ts AIDifficulty) — protocol must not import game types
+- Host exempt from ready check (host controls start button)
+- handleReady/handleStartGame as private methods following established handler pattern
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -159,5 +161,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 14-03-PLAN.md — Phase 14 complete
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
