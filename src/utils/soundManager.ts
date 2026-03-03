@@ -246,6 +246,81 @@ export function playExitPop(): void {
   osc.stop(now + duration);
 }
 
+/** Tiny sine beep for each point increment during score counting. */
+export function playScoreTick(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.008; // 8ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 1400;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Satisfying three-tone ascending chime (C5-E5-G5) — round score tallied. */
+export function playScoreComplete(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const tones = [523, 659, 784]; // C5, E5, G5
+  const toneDuration = 0.06; // 60ms each
+  const overlap = 0.02; // slight overlap between tones
+  const step = toneDuration - overlap; // 40ms between starts
+
+  for (let i = 0; i < tones.length; i++) {
+    const start = now + i * step;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = tones[i];
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.4, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + toneDuration);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(start);
+    osc.stop(start + toneDuration);
+  }
+}
+
+/** Ascending arpeggio (C5-E5-G5-C6) — session winner declared. */
+export function playWinFanfare(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const tones = [523, 659, 784, 1047]; // C5, E5, G5, C6
+  const toneDuration = 0.08; // 80ms each
+  const gap = 0.04; // 40ms gap between tones
+  const step = toneDuration + gap; // 120ms between starts
+
+  for (let i = 0; i < tones.length; i++) {
+    const start = now + i * step;
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = tones[i];
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.5, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + toneDuration);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(start);
+    osc.stop(start + toneDuration);
+  }
+}
+
 /** Short ascending two-tone chime — signals "results are in." */
 export function playAllSettled(): void {
   if (!ctx || !masterGain) return;

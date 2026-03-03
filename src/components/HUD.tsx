@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { playScoreTick, playScoreComplete } from '../utils/soundManager';
 
 interface HUDProps {
   onRoll: () => void;
@@ -39,6 +40,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onR
 
     const duration = 1500; // 1.5s
     const startTime = performance.now();
+    let lastTickScore = startScore; // track displayed score for tick sounds
+    let lastTickTime = 0; // throttle ticks to ~10/sec (every 100ms)
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
@@ -50,8 +53,16 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onR
       if (scoreRef.current) {
         scoreRef.current.textContent = `${current} / ${sessionTargetScore}`;
 
+        // Play tick sound when displayed score increments (throttled to ~10/sec)
+        if (current !== lastTickScore && now - lastTickTime >= 100) {
+          lastTickScore = current;
+          lastTickTime = now;
+          playScoreTick();
+        }
+
         // Brief scale pulse when reaching final value
         if (t >= 1) {
+          playScoreComplete();
           scoreRef.current.style.transform = 'scale(1.15)';
           setTimeout(() => {
             if (scoreRef.current) scoreRef.current.style.transform = 'scale(1)';

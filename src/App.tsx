@@ -16,7 +16,7 @@ import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
-import { initAudio, setVolume } from './utils/soundManager';
+import { initAudio, setVolume, playWinFanfare } from './utils/soundManager';
 import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
@@ -165,6 +165,7 @@ function App() {
     // Check session end immediately — skip animation if game is over
     if (checkSessionEnd()) {
       const t = setTimeout(() => {
+        playWinFanfare();
         setPhase('sessionEnd');
         setScreen('winners');
       }, 500);
