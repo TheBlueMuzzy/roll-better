@@ -1,22 +1,34 @@
 # Project State
 
 ## Current Status
-Phase 16 in progress. Plan 16-01 complete: game action protocol types, server game state tracking, roll handler with auto-lock. Next: 16-02 (unlock/scoring handlers).
+Phase 16 in progress. Plan 16-02 Tasks 1-2 complete: unlock/skip handlers, scoring, handicap, round transitions. Task 3 (checkpoint) pending.
 
 ## Version
-0.1.0.114
+0.1.0.115
 
 ## Current Position
 
 Phase: 16 of 21 (State Sync Protocol)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-03 — Completed 16-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: In progress — Tasks 1-2 done, checkpoint pending
+Last activity: 2026-03-03 — Completed 16-02-PLAN.md Tasks 1-2
 
-Progress: █████████████████████████████████████████████████░ 77%
+Progress: █████████████████████████████████████████████████░ 78%
 
 ## Last Session
-2026-03-03 — Plan 16-01 execution:
+2026-03-03 — Plan 16-02 Tasks 1-2 execution:
+- Unlock/skip handlers: handleUnlockRequest, handleSkipUnlock, processAllUnlocks
+- Wait-for-all pattern: collects responses from all online players before processing
+- AI unlock decisions via shared getAIUnlockDecision (no code duplication)
+- Must-unlock guard: rejects skip when poolSize=0 and <8 locked
+- Scoring: penalty formula [1,0,1,1], handleScoring broadcasts scoring message
+- Handicap: winner -1 dice (min 1), others +1 (max 12)
+- Round transitions: checkWinnerOrUnlock routes to scoring or unlocking
+- Session end detection: any player score >= 20 triggers session_end broadcast
+- Timer management: lockingTimer, scoringTimer, roundEndTimer with cleanupTimers()
+- Full server game loop complete: idle → roll → lock → unlock → idle → score → roundEnd → next
+
+Previous session (16-01):
 - Game action protocol types: roll, unlock, phase change, round start, scoring, session end
 - Server game state tracking: ServerGameState/ServerPlayerState with round initialization
 - Server roll handler: generates dice for all players, computes auto-locks via findAutoLocks
@@ -163,6 +175,14 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - findAutoLocks shared between client and server (pure function, no React deps)
 - Duplicate roll guard: ignore roll_request during rolling/locking phases
 - Server roll flow: idle → rolling → generate all → broadcast roll_results → locking → 1s timeout → unlocking
+- Server unlock: wait-for-all pattern — collect responses from all online players before processing
+- AI unlock decisions: getAIUnlockDecision shared between client and server (pure function)
+- Must-unlock guard: server rejects skip_unlock when poolSize=0 and lockedDice < 8
+- Server scoring formula: penalties [1,0,1,1], roundScore = max(0, 8 - penalty sum)
+- Server handicap: winner startingDice -1 (min 1), others +1 (max 12)
+- Session end: any player score >= 20 triggers session_end broadcast
+- Timer management: class-level timer IDs (lockingTimer, scoringTimer, roundEndTimer) with cleanupTimers()
+- ServerPlayerState.difficulty stores AI difficulty per bot player
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -176,5 +196,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 16-01-PLAN.md. Next: 16-02 (unlock/scoring handlers)
+Stopped at: Completed 16-02-PLAN.md Tasks 1-2. Next: 16-02 Task 3 (checkpoint verification)
 Resume file: None
