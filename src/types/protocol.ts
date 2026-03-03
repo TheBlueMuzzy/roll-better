@@ -29,8 +29,18 @@ export interface LeaveMessage {
   type: "leave";
 }
 
+export interface ReadyMessage {
+  type: "ready";
+}
+
+export interface StartGameMessage {
+  type: "start_game";
+  targetPlayers: number;
+  aiDifficulty: string;
+}
+
 /** All messages the client can send to the server */
-export type ClientMessage = JoinMessage | LeaveMessage;
+export type ClientMessage = JoinMessage | LeaveMessage | ReadyMessage | StartGameMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 
@@ -62,10 +72,18 @@ export interface ErrorMessage {
   message: string;
 }
 
+export interface GameStartingMessage {
+  type: "game_starting";
+  players: RoomPlayer[];
+  targetPlayers: number;
+  aiDifficulty: string;
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
   | RoomStateMessage
   | PlayerJoinedMessage
   | PlayerLeftMessage
-  | ErrorMessage;
+  | ErrorMessage
+  | GameStartingMessage;
