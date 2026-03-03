@@ -224,14 +224,14 @@ Plans:
 - [x] 15-04: Game start flow + AI fill (initOnlineGame, lobby → game transition)
 
 #### Phase 16: State Sync Protocol
-**Goal**: Game state → Partykit room → all clients. Host-authoritative validation pattern. Server generates roll results.
-**Depends on**: Phase 14
-**Research**: Likely (real-time/websocket state sync architecture, Glyphtender patterns)
-**Research topics**: Partykit message protocol, host-authoritative state patterns, serialization format, state reconciliation
-**Plans**: TBD
+**Goal**: Game state → Partykit room → all clients. Server-authoritative game engine. Server generates roll results, computes auto-locks, manages unlock/scoring/round lifecycle.
+**Depends on**: Phase 15
+**Research**: No (architecture decided — server-authoritative, shared pure functions)
+**Plans**: 2 plans
 
 Plans:
-- [ ] 16-01: TBD
+- [ ] 16-01: Protocol types + server game state + roll handler
+- [ ] 16-02: Server unlock/scoring handlers + verification
 
 #### Phase 17: Dice Sync + Simultaneous Play
 **Goal**: Roll results from server, auto-lock sync, visual dice animations across all clients simultaneously
