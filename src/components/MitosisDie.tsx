@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { getRotationForFace } from './GoalRow';
+import { playWhoosh, playMitosisRumble, playMitosisPop } from '../utils/soundManager';
 import type { Group } from 'three';
 
 interface MitosisDieProps {
@@ -37,6 +38,7 @@ export function MitosisDie({
   const elapsedRef = useRef(0);
   const hasFiredRef = useRef(false);
   const bVisibleRef = useRef(false);
+  const soundsRef = useRef({ whoosh: false, rumble: false, pop: false });
 
   const rotation = getRotationForFace(value);
 
@@ -55,6 +57,20 @@ export function MitosisDie({
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;
       return;
+    }
+
+    // --- Sound triggers at phase boundaries ---
+    if (!soundsRef.current.whoosh && elapsed >= 0) {
+      soundsRef.current.whoosh = true;
+      playWhoosh();
+    }
+    if (!soundsRef.current.rumble && elapsed >= LERP_END) {
+      soundsRef.current.rumble = true;
+      playMitosisRumble();
+    }
+    if (!soundsRef.current.pop && elapsed >= SHAKE_END) {
+      soundsRef.current.pop = true;
+      playMitosisPop();
     }
 
     if (elapsed < LERP_END) {

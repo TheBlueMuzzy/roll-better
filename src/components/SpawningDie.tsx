@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
+import { playSpawnPop } from '../utils/soundManager';
 import type { Group } from 'three';
 
 interface SpawningDieProps {
@@ -28,6 +29,7 @@ export function SpawningDie({
   const groupRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
   const hasFiredRef = useRef(false);
+  const hasStartedRef = useRef(false);
 
   // Random tumble speeds (fixed per die instance)
   const tumbleSpeeds = useMemo(() => ({
@@ -46,6 +48,12 @@ export function SpawningDie({
       groupRef.current.position.set(fromPos[0], fromPos[1], fromPos[2]);
       groupRef.current.scale.setScalar(0);
       return;
+    }
+
+    // Play spawn pop when flight starts (delay expired)
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      playSpawnPop();
     }
 
     const t = Math.min(elapsed / duration, 1);

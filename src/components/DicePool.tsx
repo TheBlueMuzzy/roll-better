@@ -5,7 +5,7 @@ import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
 import type { Group } from 'three';
-import { playAllSettled } from '../utils/soundManager';
+import { playAllSettled, playExitPop } from '../utils/soundManager';
 
 // Center of the rolling zone — spawn grid is offset to this Z
 const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
@@ -46,11 +46,18 @@ function ExitingDie({ position, rotation, color }: {
 }) {
   const groupRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
+  const hasStartedRef = useRef(false);
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     elapsedRef.current += delta;
     const t = elapsedRef.current;
+
+    // Play exit pop on first frame
+    if (!hasStartedRef.current && t > 0) {
+      hasStartedRef.current = true;
+      playExitPop();
+    }
 
     let scale: number;
     if (t < POP_DURATION) {

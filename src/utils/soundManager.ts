@@ -152,6 +152,100 @@ export function playWhoosh(): void {
   source.stop(now + duration);
 }
 
+/** Low rumble during mitosis shake phase (600ms, low-pass filtered noise). */
+export function playMitosisRumble(): void {
+  if (!ctx || !masterGain || !noiseBuffer) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.6; // 600ms
+
+  const source = ctx.createBufferSource();
+  source.buffer = noiseBuffer;
+
+  // Low-pass filter at 200Hz for deep rumble
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 200;
+  filter.Q.value = 1;
+
+  // Gain ramps 0.1 → 0.4 over duration, then drops
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.1, now);
+  gain.gain.linearRampToValueAtTime(0.4, now + duration * 0.8);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+  source.start(now);
+  source.stop(now + duration);
+}
+
+/** Short bright pop on mitosis split (sine 800Hz + noise, 40ms). */
+export function playMitosisPop(): void {
+  if (!ctx || !masterGain || !noiseBuffer) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.04; // 40ms
+
+  // Sine component at 800Hz
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 800;
+  const oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(0.35, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  osc.connect(oscGain);
+  oscGain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+
+  // Noise component for texture
+  playNoiseBurst(40, 600, 1200, 0.25);
+}
+
+/** Tiny pop when a die spawns into the pool (sine 1000Hz, 20ms). */
+export function playSpawnPop(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.02; // 20ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 1000;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.3, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Inverse pop when a die exits the pool (sine 600Hz, 25ms). */
+export function playExitPop(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.025; // 25ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 600;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
 /** Short ascending two-tone chime — signals "results are in." */
 export function playAllSettled(): void {
   if (!ctx || !masterGain) return;
