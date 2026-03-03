@@ -84,6 +84,13 @@ interface GameStore extends GameState {
   setPendingServerResults: (results: PlayerRollResult[] | null) => void;
   pendingUnlockResult: UnlockResultMessage | null;
   setPendingUnlockResult: (result: UnlockResultMessage | null) => void;
+
+  // Physics settled data (online game — stores physics positions when they arrive before server results)
+  physicsSettledData: { positions: [number, number, number][]; rotations: [number, number, number][] } | null;
+  setPhysicsSettledData: (data: { positions: [number, number, number][]; rotations: [number, number, number][] } | null) => void;
+
+  // Online roll results — uses server values + physics positions for lock animations
+  applyOnlineRollResults: (physicsPositions: [number, number, number][], physicsRotations: [number, number, number][]) => void;
 }
 
 const initialRoundState = {
@@ -138,10 +145,200 @@ const initialState: GameState = {
   onlinePlayerId: null,
 };
 
+// --- Internal helpers for online roll results (not exported) ---
+
+type StoreGet = () => GameStore;
+type StoreSet = (partial: Partial<GameStore> | ((state: GameStore) => Partial<GameStore>)) => void;
+
+/** Timing barrier: checks if BOTH pendingServerResults AND physicsSettledData are ready.
+ *  If both are set, applies the online roll results and clears the staging fields. */
+function tryApplyOnlineResults(get: StoreGet, set: StoreSet) {
+  const state = get();
+  if (state.pendingServerResults && state.physicsSettledData) {
+    applyOnlineRollResultsImpl(get, set, state.physicsSettledData.positions, state.physicsSettledData.rotations);
+  }
+}
+
+/** Core implementation for applyOnlineRollResults — uses server-provided values with physics positions for animations. */
+function applyOnlineRollResultsImpl(
+  get: StoreGet,
+  set: StoreSet,
+  physicsPositions: [number, number, number][],
+  physicsRotations: [number, number, number][],
+) {
+  const state = get();
+
+  // Guard: ignore if not in rolling phase
+  if (state.phase !== 'rolling') {
+    console.warn('[applyOnlineRollResults] IGNORED — phase is', state.phase, 'not rolling');
+    return;
+  }
+
+  const serverResults = state.pendingServerResults;
+  if (!serverResults) {
+    console.warn('[applyOnlineRollResults] No pendingServerResults available');
+    return;
+  }
+
+  // Find local player's result by onlinePlayerId, fallback to index 0
+  const localResult = serverResults.find(r => r.playerId === state.onlinePlayerId)
+    || serverResults[0];
+
+  if (!localResult) {
+    console.warn('[applyOnlineRollResults] Could not find local player result');
+    return;
+  }
+
+  const player = state.players[0];
+  const players = [...state.players];
+
+  // --- Local human player (index 0): server values + physics positions for lock animations ---
+  const serverRolled = localResult.rolled;
+  const newLocks = localResult.newLocks; // LockedDieSync — same shape as LockedDie
+
+  // Compute lock animations using physics positions (same pattern as setRollResults)
+  let lockAnimations: LockAnimation[] = [];
+  let animatingSlotIndices: number[] = [];
+
+  if (physicsPositions.length > 0 && newLocks.length > 0) {
+    // Map each lock to its source position in physics results
+    const locksByValue = new Map<number, number[]>();
+    for (const lock of newLocks) {
+      if (!locksByValue.has(lock.value)) locksByValue.set(lock.value, []);
+      locksByValue.get(lock.value)!.push(lock.goalSlotIndex);
+    }
+
+    for (let i = 0; i < serverRolled.length; i++) {
+      const v = serverRolled[i];
+      const slots = locksByValue.get(v);
+      if (slots && slots.length > 0) {
+        const goalSlotIndex = slots.shift()!;
+        const prevDelay = lockAnimations.length > 0
+          ? lockAnimations[lockAnimations.length - 1].delay
+          : 0;
+        const delay = lockAnimations.length === 0
+          ? 0
+          : prevDelay + (0.25 + Math.random() * 0.25);
+        lockAnimations.push({
+          fromPos: physicsPositions[i] || [0, DIE_SIZE / 2, 0],
+          toPos: [getSlotX(goalSlotIndex), DIE_SIZE / 2, -3.77],
+          fromRotation: physicsRotations[i] || [0, 0, 0],
+          value: v,
+          delay,
+        });
+      }
+    }
+
+    animatingSlotIndices = newLocks.map(l => l.goalSlotIndex);
+  }
+
+  // Compute remaining dice (dice that stay in pool — same consumption pattern as setRollResults)
+  const lockedValueBag = new Map<number, number>();
+  for (const lock of newLocks) {
+    lockedValueBag.set(lock.value, (lockedValueBag.get(lock.value) || 0) + 1);
+  }
+  const remainingDiceValues: number[] = [];
+  const remainingDicePositions: [number, number, number][] = [];
+  const remainingDiceRotations: [number, number, number][] = [];
+  for (let i = 0; i < serverRolled.length; i++) {
+    const v = serverRolled[i];
+    const lockCount = lockedValueBag.get(v) || 0;
+    if (lockCount > 0) {
+      lockedValueBag.set(v, lockCount - 1);
+    } else {
+      remainingDiceValues.push(v);
+      if (physicsPositions[i]) remainingDicePositions.push(physicsPositions[i]);
+      if (physicsRotations[i]) remainingDiceRotations.push(physicsRotations[i]);
+    }
+  }
+
+  // Update human player with server values
+  const updatedPlayer = { ...player };
+  updatedPlayer.lockedDice = [...updatedPlayer.lockedDice, ...newLocks];
+  updatedPlayer.poolSize = localResult.poolSize;
+  players[0] = updatedPlayer;
+
+  console.log(
+    `[applyOnlineRollResults] rolled=[${serverRolled}] newLocks=${newLocks.length} ` +
+    `pool: ${player.poolSize} → ${localResult.poolSize}`,
+  );
+
+  // --- Other players (index 1+): server values + profile-emerge animations ---
+  const aiLockAnimations: LockAnimation[] = [];
+  const aiAnimatingSlotIndices: Record<string, number[]> = {};
+  let aiAnimDelay = 0;
+
+  for (let i = 1; i < players.length; i++) {
+    const otherPlayer = players[i];
+    // Find this player's result from server
+    const otherResult = serverResults.find(r => r.playerId === otherPlayer.id);
+    if (!otherResult) continue;
+
+    // Update player state from server
+    const updatedOther = { ...otherPlayer };
+    updatedOther.lockedDice = otherResult.lockedDice;
+    updatedOther.poolSize = otherResult.poolSize;
+    players[i] = updatedOther;
+
+    // Create lock animations for other players (profile-emerge pattern)
+    if (otherResult.newLocks.length > 0) {
+      const profileX = getSlotX(0) - PROFILE_X_OFFSET;
+      const rowZ = -3.77 + i * 0.9;
+      const slotsAnimating: number[] = [];
+
+      for (const lock of otherResult.newLocks) {
+        aiLockAnimations.push({
+          fromPos: [profileX, DIE_SIZE / 2, rowZ],
+          toPos: [getSlotX(lock.goalSlotIndex), DIE_SIZE / 2, rowZ],
+          fromRotation: [0, 0, 0],
+          value: lock.value,
+          delay: aiAnimDelay,
+          fromScale: 0,
+          toScale: 1,
+          playerId: otherPlayer.id,
+        });
+        slotsAnimating.push(lock.goalSlotIndex);
+        aiAnimDelay += 0.25 + Math.random() * 0.25;
+      }
+
+      aiAnimatingSlotIndices[otherPlayer.id] = slotsAnimating;
+    }
+
+    console.log(
+      `[applyOnlineRollResults Player-${i}] locks=${otherResult.newLocks.length} pool: ${otherPlayer.poolSize} → ${updatedOther.poolSize}`,
+    );
+  }
+
+  // Final state update
+  set({
+    players,
+    phase: 'locking',
+    roundState: {
+      ...state.roundState,
+      rollResults: serverRolled,
+      rollNumber: state.roundState.rollNumber + 1,
+      lastLockCount: newLocks.length,
+      pendingNewDice: [],
+      pendingNewDicePositions: [],
+      pendingNewDiceRotations: [],
+      remainingDiceValues,
+      remainingDicePositions,
+      remainingDiceRotations,
+      lockAnimations,
+      animatingSlotIndices,
+      aiLockAnimations,
+      aiAnimatingSlotIndices,
+    },
+    pendingServerResults: null,
+    physicsSettledData: null,
+  });
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   pendingServerResults: null,
   pendingUnlockResult: null,
+  physicsSettledData: null,
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -776,8 +973,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // --- Pending server data (online game sync) ---
-  setPendingServerResults: (results) => set({ pendingServerResults: results }),
+  setPendingServerResults: (results) => {
+    set({ pendingServerResults: results });
+    if (results !== null) {
+      // Check if physics data is also ready (timing barrier)
+      tryApplyOnlineResults(get, set);
+    }
+  },
   setPendingUnlockResult: (result) => set({ pendingUnlockResult: result }),
+
+  // --- Physics settled data (online game) ---
+  setPhysicsSettledData: (data) => {
+    set({ physicsSettledData: data });
+    if (data !== null) {
+      // Check if server results are also ready (timing barrier)
+      tryApplyOnlineResults(get, set);
+    }
+  },
+
+  // --- Online roll results ---
+  applyOnlineRollResults: (physicsPositions, physicsRotations) => {
+    applyOnlineRollResultsImpl(get, set, physicsPositions, physicsRotations);
+  },
 }));
 
 /** Check if a tip should be shown (tips enabled + not already shown this session) */
