@@ -215,10 +215,13 @@ Plans:
 **Goal**: Jackbox-style 4-letter room codes, lobby screen with player list, ready-up, host start fills empty slots with AI
 **Depends on**: Phase 14
 **Research**: Unlikely (internal UI patterns, extends existing Main Menu)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 15-01: TBD
+- [ ] 15-01: Protocol extensions + server lobby logic (ready toggle, host-only game start)
+- [ ] 15-02: useRoom React hook + screen state integration (lobby screen routing)
+- [ ] 15-03: Lobby screen UI (create/join, player list, room code, ready, host controls)
+- [ ] 15-04: Game start flow + AI fill (initOnlineGame, lobby → game transition)
 
 #### Phase 16: State Sync Protocol
 **Goal**: Game state → Partykit room → all clients. Host-authoritative validation pattern. Server generates roll results.
