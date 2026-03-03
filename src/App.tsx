@@ -11,6 +11,7 @@ import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
+import { useAccelerometerGravity } from './hooks/useAccelerometerGravity';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
@@ -362,6 +363,9 @@ function App() {
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
   const { isSupported: shakeSupported, permissionState: shakePermission, requestPermission: requestShakePermission } =
     useShakeToRoll(handleRoll, shakeToRollEnabled && screen === 'game');
+
+  // Accelerometer-driven gravity — active during rolling phase on mobile
+  useAccelerometerGravity(shakeSupported && shakeToRollEnabled && phase === 'rolling');
 
   const handleRollStart = useCallback(() => {
     setPhase('rolling');
