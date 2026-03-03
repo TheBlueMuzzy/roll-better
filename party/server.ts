@@ -4,6 +4,7 @@ import type {
   RoomStatus,
   ClientMessage,
   ServerMessage,
+  GameStartingMessage,
 } from "../src/types/protocol";
 
 const MAX_PLAYERS = 8;
@@ -80,6 +81,12 @@ export default class RollBetterServer implements Party.Server {
       case "leave":
         this.removePlayer(sender.id);
         break;
+      case "ready":
+        this.handleReady(sender);
+        break;
+      case "start_game":
+        this.handleStartGame(sender, parsed.targetPlayers, parsed.aiDifficulty);
+        break;
       default:
         this.log(`Warning: unknown message type "${(parsed as { type: string }).type}" from ${sender.id}`);
         break;
@@ -145,6 +152,63 @@ export default class RollBetterServer implements Party.Server {
 
     // Send full room_state to the joining player
     this.sendRoomState(conn);
+  }
+
+  private handleReady(conn: Party.Connection) {
+    const player = this.players.get(conn.id);
+    if (!player) return;
+
+    player.isReady = !player.isReady;
+    this.log(`Player ${player.name} is now ${player.isReady ? "ready" : "not ready"}`);
+    this.broadcastRoomState();
+  }
+
+  private handleStartGame(
+    conn: Party.Connection,
+    targetPlayers: number,
+    aiDifficulty: string
+  ) {
+    // Only the host can start the game
+    if (conn.id !== this.hostId) {
+      this.sendToConnection(conn, {
+        type: "error",
+        message: "Only the host can start the game",
+      });
+      return;
+    }
+
+    // Must have at least 1 player (the host)
+    if (this.players.size < 1) {
+      this.sendToConnection(conn, {
+        type: "error",
+        message: "Need at least 1 player to start",
+      });
+      return;
+    }
+
+    // All non-host players must be ready
+    for (const [id, player] of this.players) {
+      if (id !== this.hostId && !player.isReady) {
+        this.sendToConnection(conn, {
+          type: "error",
+          message: `Player ${player.name} is not ready`,
+        });
+        return;
+      }
+    }
+
+    // Transition to playing
+    this.status = "playing";
+
+    const startMsg: GameStartingMessage = {
+      type: "game_starting",
+      players: Array.from(this.players.values()),
+      targetPlayers,
+      aiDifficulty,
+    };
+
+    this.room.broadcast(JSON.stringify(startMsg));
+    this.log(`Game starting — ${this.players.size} online players, ${targetPlayers} target, AI: ${aiDifficulty}`);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
