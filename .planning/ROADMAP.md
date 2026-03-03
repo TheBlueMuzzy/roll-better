@@ -186,7 +186,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 13-01: Sound system foundation + dice collision sounds (Web Audio API SoundManager, onContactForce impacts, settle/chime)
+- [x] 13-01: Sound system foundation + dice collision sounds (Web Audio API SoundManager, onContactForce impacts, settle/chime)
 - [ ] 13-02: Lock & unlock animation sounds (whoosh+snap locks, mitosis rumble+pop, spawn/exit pops)
 - [ ] 13-03: UI & score audio (score tick counting, win fanfare, selection tones, phase transitions)
 - [ ] 13-04: Final juice pass + verification (audio-visual sync, roll prompt pulse, full playtest)
@@ -295,7 +295,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 10. Screens & Flow | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 11. Mobile Polish | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
-| 13. Audio & Juice | v1.0 | 0/4 | Not started | - |
+| 13. Audio & Juice | v1.0 | 1/4 | In progress | - |
 | 14. Partykit Server Setup | v1.1 | 0/? | Not started | - |
 | 15. Lobby UI + Room Codes | v1.1 | 0/? | Not started | - |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |

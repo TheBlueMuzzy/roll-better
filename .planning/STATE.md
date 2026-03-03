@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 12 complete. Milestone v1.1 Online Multiplayer created (Phases 14-21). Phase 13 (Audio & Juice) still pending to finish v1.0.
+Phase 13 in progress. Plan 13-01 (SoundManager + dice collision audio) complete. 3 plans remain in phase.
 
 ## Version
 0.1.0.93
@@ -9,9 +9,9 @@ Phase 12 complete. Milestone v1.1 Online Multiplayer created (Phases 14-21). Pha
 ## Current Position
 
 Phase: 13 of 21 (Audio & Juice)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-03 — Milestone v1.1 Online Multiplayer created (8 phases)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-03-03 — Completed 13-01-PLAN.md
 
 Progress: ████████████████████████████████████████░░ 57% (12/21 phases)
 
@@ -140,6 +140,8 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Dice materials untouched in simple mode — premium look non-negotiable
 - Responsive tokens: 5-step --fs-* font scale + 5-step --sp-* spacing scale + layout tokens via clamp()
 - Safe-area-inset calcs preserved when swapping base px to custom properties
+- Audio: Pure Web Audio API (no Howler.js), procedural sounds, module-level state pattern
+- Audio: totalForceMagnitude (scalar) for Rapier contact force normalization
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -153,5 +155,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Milestone v1.1 initialization
-Resume file: None — continue with Phase 13 (Audio & Juice) to finish v1.0
+Stopped at: Plan 13-01 complete (SoundManager + dice collision audio)
+Resume file: None — continue with Phase 13, Plan 13-02
