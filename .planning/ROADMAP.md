@@ -27,7 +27,7 @@ None (no expertise skill files available)
 - [x] **Phase 10: Screens & Flow** *(Complete — 2026-03-02)* — Main Menu, Settings, Winners Screen, transitions
 - [x] **Phase 11: Mobile Polish** *(Complete — 2026-03-02)* — Shake-to-roll, haptics, touch optimization, performance
 - [x] **Phase 12: Responsive UI** *(Complete — 2026-03-02)* — HUD, overlays, modals adapt to all phone sizes
-- [ ] **Phase 13: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
+- [x] **Phase 13: Audio & Juice** *(Complete — 2026-03-03)* — Audio hooks wired, procedural sounds stripped to stubs pending art pass
 - [ ] **Phase 14: Partykit Server Setup** — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
 - [ ] **Phase 15: Lobby UI + Room Codes** — Jackbox-style 4-letter codes, player list, ready-up, AI fill
 - [ ] **Phase 16: State Sync Protocol** — Game state → Partykit room → all clients
@@ -189,7 +189,7 @@ Plans:
 - [x] 13-01: Sound system foundation + dice collision sounds (Web Audio API SoundManager, onContactForce impacts, settle/chime)
 - [x] 13-02: Lock & unlock animation sounds (whoosh+snap locks, mitosis rumble+pop, spawn/exit pops)
 - [x] 13-03: UI & score audio (score tick counting, win fanfare, selection tones, phase transitions)
-- [ ] 13-04: Final juice pass + verification (audio-visual sync, roll prompt pulse, full playtest)
+- [x] 13-04: Final juice pass + verification (procedural sounds rejected, stripped to stubs, hooks retained)
 
 ### 🚧 v1.1 Online Multiplayer (Planned)
 

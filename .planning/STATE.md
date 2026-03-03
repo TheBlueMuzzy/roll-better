@@ -1,33 +1,32 @@
 # Project State
 
 ## Current Status
-Phase 13 in progress. Plan 13-03 (UI & score audio) complete. 1 plan remains in phase.
+Phase 13 complete. v1.0 MVP milestone done (Phases 1-13). Audio hooks wired but sound generation stripped — real audio deferred to art pass.
 
 ## Version
-0.1.0.97
+0.1.0.100
 
 ## Current Position
 
-Phase: 13 of 21 (Audio & Juice)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-03-03 — Completed 13-03-PLAN.md
+Phase: 13 of 21 (Audio & Juice) — COMPLETE
+Plan: 4 of 4 — COMPLETE
+Status: Phase complete, milestone v1.0 done
+Last activity: 2026-03-03 — Stripped procedural sounds to stubs, approved playtest
 
-Progress: ████████████████████████████████████████░░ 57% (12/21 phases)
+Progress: █████████████████████████████████████████████░░░ 62% (13/21 phases)
 
 ## Last Session
-2026-03-02 — Post-plan layout tuning + shake-to-roll debugging:
-- Layout tuning: slot centering, avatar/star CSS margins, goal star margin reduced
-- Camera FOV 55 (wider horizontal view), portrait-adaptive FOV for phones
-- Portrait phones: full-screen container (@media orientation:portrait), desktop keeps 9:16
-- Removed ALL haptic feedback (vibration API not useful)
-- HTTPS dev server enabled (@vitejs/plugin-basic-ssl) — required for DeviceMotion on phones
-- Settings z-index 80, H2P z-index 90, Main Menu button hidden when settings opened from menu
-- HUD text: "Shake or Tap to Roll" on mobile (ontouchstart detection), "Tap to Roll" on desktop
+2026-03-03 — Phase 13 closure:
+- Procedural sounds tested — user rejected (quality insufficient)
+- All sound function bodies stripped to no-ops, keeping hook structure intact
+- 18 audio hooks remain wired throughout codebase (dice, lock, unlock, score, UI)
+- initAudio/setVolume still functional (AudioContext + master gain)
+- Roll prompt pulse animation live (CSS breathing on idle "Tap to Roll")
+- basicSsl plugin commented out in vite.config.ts
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
-**Dev server**: `https://localhost:5173/` (PC) / `https://192.168.1.152:5173/` (phone — accept cert warning)
+**Dev server**: `http://localhost:5174/` (PC) / `http://192.168.1.152:5174/` (phone)
 
 ## Research Files
 - `.planning/research/competitors.md` — 10 competitor deep-dives
@@ -140,13 +139,9 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Dice materials untouched in simple mode — premium look non-negotiable
 - Responsive tokens: 5-step --fs-* font scale + 5-step --sp-* spacing scale + layout tokens via clamp()
 - Safe-area-inset calcs preserved when swapping base px to custom properties
-- Audio: Pure Web Audio API (no Howler.js), procedural sounds, module-level state pattern
-- Audio: totalForceMagnitude (scalar) for Rapier contact force normalization
-- Audio: One-shot sound guard pattern (boolean ref in useFrame) for animation sounds
-- Audio: Phase-boundary triggers via elapsed time checks for multi-phase animations (MitosisDie)
-- Audio: RAF-integrated score ticks throttled to ~10/sec (100ms intervals) inside animateScore loop
-- Audio: Multi-oscillator scheduling with audioCtx.currentTime offsets for chime/fanfare note sequences
-- Audio: Noise-burst UI click pattern (random buffer + bandpass 3000Hz filter)
+- Audio: Stub-based hook system — 18 no-op functions wired at all game event trigger points
+- Audio: initAudio/setVolume functional (AudioContext + masterGain), sound bodies empty
+- Audio: Real audio assets to be implemented during art pass
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -160,5 +155,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Plan 13-03 complete (UI & score audio)
-Resume file: None — continue with Phase 13, Plan 13-04
+Stopped at: Phase 13 complete. v1.0 MVP milestone done.
+Next: Phase 14 (Partykit Server Setup) — first phase of v1.1 Online Multiplayer
