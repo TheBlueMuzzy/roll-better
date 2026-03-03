@@ -14,6 +14,7 @@ import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
 import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
+import { playSelectDie, playDeselectDie } from '../utils/soundManager';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -112,6 +113,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           setTimeout(() => setShakingSlot(null), 150);
           return;
         }
+        playSelectDie();
+      } else {
+        playDeselectDie();
       }
 
       toggleUnlockSelection(0, slotIndex);

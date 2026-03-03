@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { playScoreTick, playScoreComplete } from '../utils/soundManager';
+import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 
 interface HUDProps {
   onRoll: () => void;
@@ -168,7 +168,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onR
       )}
 
       {/* Settings gear button — bottom-right */}
-      <button className="settings-gear" onClick={onOpenSettings}>
+      <button className="settings-gear" onClick={() => { playUIClick(); onOpenSettings(); }}>
         &#x2699;
       </button>
     </div>

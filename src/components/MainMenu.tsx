@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { playUIClick } from '../utils/soundManager';
 import type { AIDifficulty } from '../types/game';
 
 interface MainMenuProps {
@@ -88,7 +89,7 @@ export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
       <span className="menu-coming-soon">Online (Coming Soon)</span>
 
       {/* Settings link */}
-      <button className="menu-settings-link" onClick={onOpenSettings}>
+      <button className="menu-settings-link" onClick={() => { playUIClick(); onOpenSettings(); }}>
         Settings
       </button>
     </div>

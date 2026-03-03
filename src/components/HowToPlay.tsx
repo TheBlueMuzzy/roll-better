@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { playUIClick } from '../utils/soundManager';
 
 interface Slide {
   title: string;
@@ -122,7 +123,7 @@ export function HowToPlay({ onClose }: HowToPlayProps) {
   return (
     <div className="h2p-backdrop" onClick={onClose}>
       <div className="h2p-card" onClick={(e) => e.stopPropagation()}>
-        <button className="h2p-close" onClick={onClose}>
+        <button className="h2p-close" onClick={() => { playUIClick(); onClose(); }}>
           &#x2715;
         </button>
 

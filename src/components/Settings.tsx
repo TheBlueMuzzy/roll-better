@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { playUIClick } from '../utils/soundManager';
 
 interface SettingsProps {
   open: boolean;
@@ -46,7 +47,7 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
       <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
           <span className="settings-title">Settings</span>
-          <button className="settings-close" onClick={onClose}>
+          <button className="settings-close" onClick={() => { playUIClick(); onClose(); }}>
             &#x2715;
           </button>
         </div>
@@ -146,7 +147,7 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
 
           {/* How to Play */}
           <div className="settings-item">
-            <button className="settings-h2p" onClick={onOpenHowToPlay}>
+            <button className="settings-h2p" onClick={() => { playUIClick(); onOpenHowToPlay(); }}>
               {'\u{1F4D6}'} How to Play
             </button>
           </div>

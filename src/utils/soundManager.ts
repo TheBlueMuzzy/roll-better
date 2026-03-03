@@ -321,6 +321,108 @@ export function playWinFanfare(): void {
   }
 }
 
+/** Micro click — generic button/selection sound (noise burst, 5ms, bandpass 3kHz). */
+export function playUIClick(): void {
+  if (!ctx || !masterGain || !noiseBuffer) return;
+  playNoiseBurst(5, 2500, 3500, 0.15);
+}
+
+/** Soft select tone for die selection in unlock phase (sine 900Hz, 15ms). */
+export function playSelectDie(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.015; // 15ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 900;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Lower deselect tone for die deselection (sine 600Hz, 15ms). */
+export function playDeselectDie(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.015; // 15ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 600;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.15, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Soft rising tone for new round start (sine sweep 400-600Hz over 200ms). */
+export function playRoundStart(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.2; // 200ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, now);
+  osc.frequency.linearRampToValueAtTime(600, now + duration);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Flat two-tone "no matches" feedback (sine 400Hz then 350Hz, 60ms each). */
+export function playNoMatch(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const toneDuration = 0.06; // 60ms each
+
+  // Tone 1: 400Hz
+  const osc1 = ctx.createOscillator();
+  osc1.type = 'sine';
+  osc1.frequency.value = 400;
+  const g1 = ctx.createGain();
+  g1.gain.setValueAtTime(0.2, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + toneDuration);
+  osc1.connect(g1);
+  g1.connect(masterGain);
+  osc1.start(now);
+  osc1.stop(now + toneDuration);
+
+  // Tone 2: 350Hz, starts right after tone 1
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.value = 350;
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.2, now + toneDuration);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + toneDuration * 2);
+  osc2.connect(g2);
+  g2.connect(masterGain);
+  osc2.start(now + toneDuration);
+  osc2.stop(now + toneDuration * 2);
+}
+
 /** Short ascending two-tone chime — signals "results are in." */
 export function playAllSettled(): void {
   if (!ctx || !masterGain) return;

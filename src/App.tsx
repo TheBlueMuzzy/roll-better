@@ -16,7 +16,7 @@ import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
-import { initAudio, setVolume, playWinFanfare } from './utils/soundManager';
+import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch, playUIClick } from './utils/soundManager';
 import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
@@ -132,6 +132,10 @@ function App() {
   // After locking phase, show lock count for 1s then check for winner or go to unlocking
   useEffect(() => {
     if (phase === 'locking') {
+      // Play "no match" sound when no new locks found
+      if (lastLockCount === 0) {
+        playNoMatch();
+      }
       const timer = setTimeout(() => {
         // Check if someone completed all 8 locks
         if (checkWinner()) {
@@ -203,6 +207,7 @@ function App() {
       setGoalTransition('none');
       // Ensure spawning is cleared before going idle
       setPoolSpawning(false);
+      playRoundStart();
       setPhase('idle');
     }, 2000);
 
