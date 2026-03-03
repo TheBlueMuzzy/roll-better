@@ -10,7 +10,7 @@ interface HUDProps {
   onRequestShakePermission?: () => void;
 }
 
-export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onRequestShakePermission }: HUDProps) {
+export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePermission }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);

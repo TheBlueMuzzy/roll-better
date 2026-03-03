@@ -16,7 +16,7 @@ import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
-import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch, playUIClick } from './utils/soundManager';
+import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
 import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';

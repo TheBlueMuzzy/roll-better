@@ -6,7 +6,6 @@
 
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
-let currentVolume = 100;
 
 // --- Lifecycle ---
 
@@ -20,7 +19,6 @@ export function initAudio(): void {
 
 /** Set master volume. Takes 0-100 (from store), maps to 0-1 gain. */
 export function setVolume(v: number): void {
-  currentVolume = v;
   if (!masterGain || !ctx) return;
   const gain = Math.max(0, Math.min(1, v / 100));
   masterGain.gain.setValueAtTime(gain, ctx.currentTime);
