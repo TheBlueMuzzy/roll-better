@@ -1,37 +1,32 @@
 # Project State
 
 ## Current Status
-Phase 16 complete. Full server-authoritative game engine: roll → lock → unlock → score → handicap → next round → session end. Multi-winner support, AFK timeout, disconnect-safe. Next: Phase 17 (dice sync + simultaneous play).
+Phase 17 in progress. Online game infrastructure wired: module-level socket singleton, online mode store flags, useOnlineGame hook with message routing + action senders. Next: 17-02 (dice roll sync).
 
 ## Version
 0.1.0.115
 
 ## Current Position
 
-Phase: 16 of 21 (State Sync Protocol)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-03 — Completed 16-02-PLAN.md
+Phase: 17 of 21 (Dice Sync + Simultaneous Play)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-03 — Completed 17-01-PLAN.md
 
-Progress: ██████████████████████████████████████████████████░ 80%
+Progress: █████████████████████████████████████████████████████░ 82%
 
 ## Last Session
-2026-03-03 — Plan 16-02 execution + audit fixes:
-- Unlock/skip handlers: wait-for-all pattern, must-unlock guard
-- AI unlock decisions via shared getAIUnlockDecision
-- Multi-winner scoring: ScoringMessage.winners[] array (not single winnerId)
-- Scoring formula: penalties [1,0,1,1], matches client exactly
-- Handicap: winner -1 (min 1), others +1 (max 12)
-- Session end at score >= 20, highest score wins, ties are ties
-- Starting dice fixed: 5 → 2 (matches PRD/client)
-- Disconnect-safe: removePlayer marks isOnline=false in gameState, re-checks unlock responses
-- 20-second AFK timeout auto-skips unresponsive players
-- Timer cleanup: 4 timers (locking, scoring, roundEnd, unlockTimeout)
+2026-03-03 — Plan 17-01 execution:
+- Module-level game socket singleton (setGameSocket/getGameSocket in partyClient.ts)
+- Online mode store flags (isOnlineGame, onlinePlayerId, setOnlineMode, clearOnlineMode)
+- useOnlineGame hook: addEventListener-based message routing (coexists with useRoom onmessage)
+- Action senders: sendRollRequest, sendUnlockRequest, sendSkipUnlock
+- Pending server results storage: pendingServerResults, pendingUnlockResult in zustand
+- App.tsx wires setOnlineMode on game start, clearOnlineMode + setGameSocket(null) on menu
 
-Previous session (16-01):
-- Game action protocol types: roll, unlock, phase change, round start, scoring, session end
-- Server game state tracking: ServerGameState/ServerPlayerState with round initialization
-- Server roll handler: generates dice for all players, computes auto-locks via findAutoLocks
+Previous session (16-02):
+- Full server-authoritative game engine: roll → lock → unlock → score → handicap → next round → session end
+- Multi-winner support, AFK timeout, disconnect-safe
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferred to VISION.md.
@@ -83,6 +78,9 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 - Session end: highest score wins, ties are ties (client determines from player states)
 - Starting dice = 2 (matches PRD/client)
 - Disconnect-safe: removePlayer updates both room players and gameState players
+- addEventListener('message') coexists with useRoom onmessage — no conflict
+- Module-level socket singleton for cross-hook access (not React ref)
+- Pending server results in zustand store for consumption by future plans
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -96,5 +94,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed Phase 16 (State Sync Protocol). Next: Phase 17 (Dice Sync + Simultaneous Play)
+Stopped at: Completed 17-01-PLAN.md. Next: 17-02 (dice roll sync)
 Resume file: None
