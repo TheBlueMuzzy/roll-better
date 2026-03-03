@@ -27,7 +27,7 @@ interface GameStore extends GameState {
 
   // Game setup
   initGame: (playerCount: number, aiDifficulty?: AIDifficulty) => void;
-  initRound: (options?: { skipPhase?: boolean }) => void;
+  initRound: (options?: { skipPhase?: boolean; goalValues?: number[] }) => void;
 
   // Goal transition
   setGoalTransition: (state: 'none' | 'exiting' | 'entering') => void;
@@ -151,10 +151,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState, shownTips: [] });
   },
 
-  initRound: (options?: { skipPhase?: boolean }) => {
+  initRound: (options?: { skipPhase?: boolean; goalValues?: number[] }) => {
     const state = get();
-    const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
-      .sort((a, b) => a - b);
+    const goalValues = options?.goalValues ??
+      Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => a - b);
 
     const players = state.players.map((p) => ({
       ...p,

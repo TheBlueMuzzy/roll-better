@@ -77,6 +77,7 @@ export interface GameStartingMessage {
   players: RoomPlayer[];
   targetPlayers: number;
   aiDifficulty: string;
+  goalValues: number[];
 }
 
 /** All messages the server can send to the client */

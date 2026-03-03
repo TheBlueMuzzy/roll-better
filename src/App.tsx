@@ -119,11 +119,11 @@ function App() {
   }, [setScreen]);
 
   // Online game start handler — called from LobbyScreen when game_starting fires
-  const handleOnlineGameStart = useCallback((_players: RoomPlayer[], targetPlayers: number, aiDifficulty: string) => {
+  const handleOnlineGameStart = useCallback((_players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[]) => {
     // Start game with online settings (AI fills remaining slots)
     const difficulty = aiDifficulty as AIDifficulty;
     initGame(targetPlayers, difficulty);
-    initRound();
+    initRound({ goalValues }); // Use server-provided goals so all clients match
     setScreen('game');
     // Start pool spawn animation
     const state = useGameStore.getState();

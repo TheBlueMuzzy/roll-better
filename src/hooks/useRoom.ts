@@ -21,6 +21,7 @@ interface GameStartData {
   players: RoomPlayer[];
   targetPlayers: number;
   aiDifficulty: string;
+  goalValues: number[];
 }
 
 interface UseRoomReturn {
@@ -147,6 +148,7 @@ export function useRoom(): UseRoomReturn {
             players: msg.players,
             targetPlayers: msg.targetPlayers,
             aiDifficulty: msg.aiDifficulty,
+            goalValues: msg.goalValues,
           });
           break;
 

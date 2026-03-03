@@ -5,7 +5,7 @@ import type { RoomPlayer } from '../types/protocol';
 
 interface LobbyScreenProps {
   visible: boolean;
-  onGameStart: (players: RoomPlayer[], targetPlayers: number, aiDifficulty: string) => void;
+  onGameStart: (players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[]) => void;
   onBack: () => void;
 }
 
@@ -49,6 +49,7 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
         room.gameStartData.players,
         room.gameStartData.targetPlayers,
         room.gameStartData.aiDifficulty,
+        room.gameStartData.goalValues,
       );
     }
   }, [room.gameStartData, onGameStart]);
@@ -180,7 +181,7 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
             className="lobby-name-input"
             type="text"
             maxLength={12}
-            placeholder="Your name"
+            placeholder="Enter Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />

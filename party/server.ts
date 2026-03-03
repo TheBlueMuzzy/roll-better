@@ -207,11 +207,16 @@ export default class RollBetterServer implements Party.Server {
     // Transition to playing
     this.status = "playing";
 
+    // Server generates goal values so all clients share the same goals
+    const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
+      .sort((a, b) => a - b);
+
     const startMsg: GameStartingMessage = {
       type: "game_starting",
       players: Array.from(this.players.values()),
       targetPlayers,
       aiDifficulty,
+      goalValues,
     };
 
     this.room.broadcast(JSON.stringify(startMsg));
