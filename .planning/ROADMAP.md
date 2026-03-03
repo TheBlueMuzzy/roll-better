@@ -238,10 +238,12 @@ Plans:
 **Depends on**: Phase 16
 **Research**: Likely (server-side RNG vs client physics split, syncing animations without syncing physics)
 **Research topics**: Server-side random number generation, client-side physics animation to target results, timing coordination across clients
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 17-01: TBD
+- [ ] 17-01: Online infrastructure (module-level socket, online mode flags, useOnlineGame hook)
+- [ ] 17-02: Dice roll sync (server roll results + physics positions merge, lock animations)
+- [ ] 17-03: Phase + unlock sync + verification (server-driven phases, unlock/skip to server, checkpoint)
 
 #### Phase 18: Unlock + Scoring Sync
 **Goal**: Unlock decisions, scoring, round transitions synced across clients. Turn timers with AI takeover on timeout.
@@ -304,7 +306,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
 | 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
-| 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
+| 17. Dice Sync + Simultaneous Play | v1.1 | 0/3 | Not started | - |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
 | 19. Connection Resilience | v1.1 | 0/? | Not started | - |
 | 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |
