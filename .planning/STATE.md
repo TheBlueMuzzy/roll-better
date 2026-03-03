@@ -1,26 +1,30 @@
 # Project State
 
 ## Current Status
-Phase 15 in progress. Plan 15-01 complete: protocol extended with ready/start_game/game_starting messages, server handles ready toggle + host-only game start validation. Ready for 15-02 (useRoom hook).
+Phase 15 in progress. Plan 15-02 complete: useRoom hook created, lobby screen state added, Play Online button wired up. Ready for 15-03 (lobby UI component).
 
 ## Version
-0.1.0.103
+0.1.0.105
 
 ## Current Position
 
 Phase: 15 of 21 (Lobby UI + Room Codes)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-03 — Completed 15-01-PLAN.md
+Last activity: 2026-03-03 — Completed 15-02-PLAN.md
 
 Progress: ██████████████████████████████████████████████░░░ 68%
 
 ## Last Session
-2026-03-03 — Plan 15-01 execution:
-- Extended protocol: ReadyMessage, StartGameMessage (client→server), GameStartingMessage (server→client)
-- Server handleReady: toggle isReady + broadcast room_state
-- Server handleStartGame: host-only validation, all-ready check, status→"playing", broadcast game_starting
-- aiDifficulty kept as string in protocol (no game.ts imports)
+2026-03-03 — Plan 15-02 execution:
+- Created useRoom hook (src/hooks/useRoom.ts): wraps partyClient.ts, manages room state via useState/useRef
+- Room code generation: 4-letter uppercase (no I/O), Math.random()
+- Connection lifecycle: createRoom/joinRoom/leave/toggleReady/startGame actions
+- Message handling: connected, room_state, player_joined, player_left, game_starting, error (3s auto-clear)
+- Socket cleanup on unmount, onclose resets state + shows "Connection lost"
+- Added 'lobby' to screen union in game.ts
+- Replaced "Coming Soon" span with PLAY ONLINE button in MainMenu
+- Added handlePlayOnline → setScreen('lobby') in App.tsx with placeholder div
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -113,7 +117,7 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Unlock ring/pulse only on selectable dice (dynamic based on remaining cap)
 - Goal indicators: 3D CircleGeometry dots above goal row, split wedges for ties
 - Stacked dice: 500ms fallback timer fires results when all faces reported
-- Screen state as simple string union in Zustand ('menu' | 'game' | 'winners')
+- Screen state as simple string union in Zustand ('menu' | 'lobby' | 'game' | 'winners')
 - Menu at z-index 70 (above settings z-50 and H2P z-60)
 - Canvas/HUD don't render on menu screen (saves GPU)
 - Settings "Quit Game" → "Main Menu" via setScreen
@@ -161,5 +165,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 15-01-PLAN.md
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
