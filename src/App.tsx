@@ -111,6 +111,11 @@ function App() {
     setScreen('menu');
   }, [setPhase, setScreen]);
 
+  // Play Online handler — navigate to lobby screen
+  const handlePlayOnline = useCallback(() => {
+    setScreen('lobby');
+  }, [setScreen]);
+
   // --- Contextual tips ---
   useEffect(() => {
     if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
@@ -415,7 +420,8 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onOpenSettings={() => setSettingsOpen(true)} />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenSettings={() => setSettingsOpen(true)} />
+      {screen === 'lobby' && <div>Lobby placeholder</div>}
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas

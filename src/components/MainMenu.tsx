@@ -6,6 +6,7 @@ import type { AIDifficulty } from '../types/game';
 interface MainMenuProps {
   visible: boolean;
   onPlay: (playerCount: number, difficulty: AIDifficulty) => void;
+  onPlayOnline: () => void;
   onOpenSettings: () => void;
 }
 
@@ -16,7 +17,7 @@ const DIFFICULTIES: { label: string; value: AIDifficulty }[] = [
   { label: 'Hard', value: 'hard' },
 ];
 
-export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
+export function MainMenu({ visible, onPlay, onPlayOnline, onOpenSettings }: MainMenuProps) {
   const gamePrefs = useGameStore((s) => s.gamePrefs);
   const setGamePrefs = useGameStore((s) => s.setGamePrefs);
 
@@ -85,8 +86,10 @@ export function MainMenu({ visible, onPlay, onOpenSettings }: MainMenuProps) {
         PLAY
       </button>
 
-      {/* Online placeholder */}
-      <span className="menu-coming-soon">Online (Coming Soon)</span>
+      {/* Play Online button */}
+      <button className="menu-online" onClick={() => { playUIClick(); onPlayOnline(); }}>
+        PLAY ONLINE
+      </button>
 
       {/* Settings link */}
       <button className="menu-settings-link" onClick={() => { playUIClick(); onOpenSettings(); }}>
