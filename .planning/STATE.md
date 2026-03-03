@@ -1,28 +1,32 @@
 # Project State
 
 ## Current Status
-Phase 13 complete. v1.0 MVP milestone done (Phases 1-13). Audio hooks wired but sound generation stripped — real audio deferred to art pass.
+Phase 14 in progress. Plan 14-01 (Scaffold Partykit + Define Protocol Types) complete. Partykit installed, server placeholder running, shared protocol types defined.
 
 ## Version
-0.1.0.100
+0.1.0.102
 
 ## Current Position
 
-Phase: 13 of 21 (Audio & Juice) — COMPLETE
-Plan: 4 of 4 — COMPLETE
-Status: Phase complete, milestone v1.0 done
-Last activity: 2026-03-03 — Stripped procedural sounds to stubs, approved playtest
+Phase: 14 of 21 (Partykit Server Setup)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-03 — Completed 14-01-PLAN.md
 
-Progress: █████████████████████████████████████████████░░░ 62% (13/21 phases)
+Progress: █████████████████████████████████████████████░░░ 62% (13/21 phases + 14 started)
 
 ## Last Session
-2026-03-03 — Phase 13 closure:
-- Procedural sounds tested — user rejected (quality insufficient)
-- All sound function bodies stripped to no-ops, keeping hook structure intact
-- 18 audio hooks remain wired throughout codebase (dice, lock, unlock, score, UI)
-- initAudio/setVolume still functional (AudioContext + master gain)
-- Roll prompt pulse animation live (CSS breathing on idle "Tap to Roll")
-- basicSsl plugin commented out in vite.config.ts
+2026-03-03 — Plan 14-01 execution:
+- Installed partykit (v0.0.115) + partysocket (v1.1.16)
+- Created partykit.json (project config, Cloudflare Workers compat date 2024-12-01)
+- Created party/server.ts — minimal placeholder (onConnect sends connected ack)
+- Created tsconfig.server.json — ESNext/bundler targeting Workers, includes party/ + src/types/
+- Added party:dev and party:deploy npm scripts
+- Created src/types/protocol.ts — discriminated union message types for room lifecycle
+- Types: ClientMessage (join, leave) and ServerMessage (connected, room_state, player_joined, player_left, error)
+- Supporting types: RoomPlayer (id, name, color, isHost, isReady), RoomStatus
+- Verified: partykit dev starts on :1999, tsc passes on server tsconfig, vite dev unaffected
+- Pre-existing build errors (3 unused vars in App.tsx, HUD.tsx, soundManager.ts) not caused by these changes
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -155,5 +159,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Phase 13 complete. v1.0 MVP milestone done.
-Next: Phase 14 (Partykit Server Setup) — first phase of v1.1 Online Multiplayer
+Stopped at: Completed 14-01-PLAN.md
+Resume file: None

@@ -207,7 +207,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: Partykit project scaffold + message protocol types
+- [x] 14-01: Partykit project scaffold + message protocol types
 - [ ] 14-02: Room server implementation (player tracking, host assignment, lifecycle)
 - [ ] 14-03: Client connection utility + integration verification
 
@@ -298,7 +298,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 11. Mobile Polish | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
 | 13. Audio & Juice | v1.0 | 3/4 | In progress | - |
-| 14. Partykit Server Setup | v1.1 | 0/? | Not started | - |
+| 14. Partykit Server Setup | v1.1 | 1/3 | In progress | - |
 | 15. Lobby UI + Room Codes | v1.1 | 0/? | Not started | - |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
