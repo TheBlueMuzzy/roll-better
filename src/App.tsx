@@ -14,6 +14,7 @@ import { useGameStore, shouldShowTip } from './store/gameStore';
 import { setGameSocket } from './utils/partyClient';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
 import { useAccelerometerGravity } from './hooks/useAccelerometerGravity';
+import { useOnlineGame } from './hooks/useOnlineGame';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
@@ -57,6 +58,9 @@ function App() {
   const setGoalTransition = useGameStore((s) => s.setGoalTransition);
   const setPoolExiting = useGameStore((s) => s.setPoolExiting);
   const setPoolSpawning = useGameStore((s) => s.setPoolSpawning);
+
+  // Online game hook — message routing + action senders
+  const { sendRollRequest, sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
 
   // Performance settings
   const performanceMode = useGameStore((s) => s.settings.performanceMode);

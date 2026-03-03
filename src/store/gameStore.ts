@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
+import type { PlayerRollResult, UnlockResultMessage } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -77,6 +78,12 @@ interface GameStore extends GameState {
   // Online mode
   setOnlineMode: (playerId: string) => void;
   clearOnlineMode: () => void;
+
+  // Pending server data (online game sync)
+  pendingServerResults: PlayerRollResult[] | null;
+  setPendingServerResults: (results: PlayerRollResult[] | null) => void;
+  pendingUnlockResult: UnlockResultMessage | null;
+  setPendingUnlockResult: (result: UnlockResultMessage | null) => void;
 }
 
 const initialRoundState = {
@@ -133,6 +140,8 @@ const initialState: GameState = {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
+  pendingServerResults: null,
+  pendingUnlockResult: null,
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -765,6 +774,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   clearOnlineMode: () => {
     set({ isOnlineGame: false, onlinePlayerId: null });
   },
+
+  // --- Pending server data (online game sync) ---
+  setPendingServerResults: (results) => set({ pendingServerResults: results }),
+  setPendingUnlockResult: (result) => set({ pendingUnlockResult: result }),
 }));
 
 /** Check if a tip should be shown (tips enabled + not already shown this session) */
