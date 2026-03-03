@@ -230,7 +230,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 16-01: Protocol types + server game state + roll handler
+- [x] 16-01: Protocol types + server game state + roll handler
 - [ ] 16-02: Server unlock/scoring handlers + verification
 
 #### Phase 17: Dice Sync + Simultaneous Play
@@ -303,7 +303,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 13. Audio & Juice | v1.0 | 4/4 | Complete | 2026-03-03 |
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
-| 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
+| 16. State Sync Protocol | v1.1 | 1/2 | In progress | - |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
 | 19. Connection Resilience | v1.1 | 0/? | Not started | - |

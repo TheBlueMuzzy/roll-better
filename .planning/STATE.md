@@ -1,27 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 15 complete. All 4 plans done: protocol extensions, useRoom hook, lobby screen UI, game start flow with AI fill. Ready for Phase 16 (State Sync Protocol).
+Phase 16 in progress. Plan 16-01 complete: game action protocol types, server game state tracking, roll handler with auto-lock. Next: 16-02 (unlock/scoring handlers).
 
 ## Version
-0.1.0.111
+0.1.0.114
 
 ## Current Position
 
-Phase: 15 of 21 (Lobby UI + Room Codes) — COMPLETE
-Plan: 4 of 4 in current phase
-Status: Complete
-Last activity: 2026-03-03 — Completed 15-04-PLAN.md (Phase 15 done)
+Phase: 16 of 21 (State Sync Protocol)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-03 — Completed 16-01-PLAN.md
 
-Progress: ████████████████████████████████████████████████░░ 75%
+Progress: █████████████████████████████████████████████████░ 77%
 
 ## Last Session
-2026-03-03 — Plan 15-04 execution:
-- initGame accepts full onlinePlayers array (local first, then others)
-- Online players show actual lobby names in-game (not generic "Player N")
-- Bot slots labeled "Bot 1", "Bot 2" with unused colors
-- All edge cases verified: cleanup, error handling, host migration, back/leave
-- Phase 15 complete — lobby → game flow working end-to-end
+2026-03-03 — Plan 16-01 execution:
+- Game action protocol types: roll, unlock, phase change, round start, scoring, session end
+- Server game state tracking: ServerGameState/ServerPlayerState with round initialization
+- Server roll handler: generates dice for all players, computes auto-locks via findAutoLocks
+- Phase transition flow: idle → rolling → locking → unlocking (1s timeout)
+- LockedDieSync defined in protocol.ts (no game.ts imports)
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -157,12 +157,18 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Intentional close tracking: prevents "Connection lost" overwriting server errors
 - Lobby UX: CREATE ROOM / JOIN mutually exclusive, SILLY_NAMES for empty input, shake on error
 - Online game auto-fill: < 4 players → fill to 4 with AI; >= 4 → no AI. Always hard difficulty.
+- LockedDieSync in protocol.ts (same shape as game.ts LockedDie, protocol-safe)
+- ServerGameState/ServerPlayerState: file-local interfaces in server.ts (not exported)
+- First round reuses goalValues from game_starting (no double generation)
+- findAutoLocks shared between client and server (pure function, no React deps)
+- Duplicate roll guard: ignore roll_request during rolling/locking phases
+- Server roll flow: idle → rolling → generate all → broadcast roll_results → locking → 1s timeout → unlocking
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
 - ISS-002: Dice can cant against walls or other dice, blocking face detection
-- ISS-004: Online game rolls not synced — each client rolls independently (Phase 16 scope)
+- ISS-004: Online game rolls not synced — server now generates results (16-01), client consumption in Phase 17
 
 ### Roadmap Evolution
 
@@ -170,5 +176,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed Phase 15 (all 4 plans). Next: Phase 16 (State Sync Protocol)
+Stopped at: Completed 16-01-PLAN.md. Next: 16-02 (unlock/scoring handlers)
 Resume file: None
