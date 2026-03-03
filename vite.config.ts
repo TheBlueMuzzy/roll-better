@@ -4,6 +4,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/roll-better/' : '/',
   plugins: [react(), basicSsl()],
   server: {
     host: true, // expose on local network for phone testing
