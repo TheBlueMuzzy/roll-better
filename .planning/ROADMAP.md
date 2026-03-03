@@ -30,7 +30,7 @@ None (no expertise skill files available)
 - [x] **Phase 13: Audio & Juice** *(Complete — 2026-03-03)* — Audio hooks wired, procedural sounds stripped to stubs pending art pass
 - [x] **Phase 14: Partykit Server Setup** *(Complete — 2026-03-03)* — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
 - [x] **Phase 15: Lobby UI + Room Codes** *(Complete — 2026-03-03)* — Jackbox-style 4-letter codes, player list, ready-up, AI fill
-- [ ] **Phase 16: State Sync Protocol** — Game state → Partykit room → all clients
+- [x] **Phase 16: State Sync Protocol** *(Complete — 2026-03-03)* — Game state → Partykit room → all clients
 - [ ] **Phase 17: Dice Sync + Simultaneous Play** — Roll results, auto-lock, visual sync across clients
 - [ ] **Phase 18: Unlock + Scoring Sync** — Unlock decisions, scoring, round transitions + turn timers
 - [ ] **Phase 19: Connection Resilience** — Disconnect/reconnect, AI drop-in/drop-out replacement
@@ -231,7 +231,7 @@ Plans:
 
 Plans:
 - [x] 16-01: Protocol types + server game state + roll handler
-- [ ] 16-02: Server unlock/scoring handlers + verification
+- [x] 16-02: Server unlock/scoring handlers + verification
 
 #### Phase 17: Dice Sync + Simultaneous Play
 **Goal**: Roll results from server, auto-lock sync, visual dice animations across all clients simultaneously
@@ -303,7 +303,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 13. Audio & Juice | v1.0 | 4/4 | Complete | 2026-03-03 |
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
-| 16. State Sync Protocol | v1.1 | 1/2 | In progress | - |
+| 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
 | 19. Connection Resilience | v1.1 | 0/? | Not started | - |
