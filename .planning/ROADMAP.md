@@ -28,7 +28,7 @@ None (no expertise skill files available)
 - [x] **Phase 11: Mobile Polish** *(Complete — 2026-03-02)* — Shake-to-roll, haptics, touch optimization, performance
 - [x] **Phase 12: Responsive UI** *(Complete — 2026-03-02)* — HUD, overlays, modals adapt to all phone sizes
 - [x] **Phase 13: Audio & Juice** *(Complete — 2026-03-03)* — Audio hooks wired, procedural sounds stripped to stubs pending art pass
-- [ ] **Phase 14: Partykit Server Setup** — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
+- [x] **Phase 14: Partykit Server Setup** *(Complete — 2026-03-03)* — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
 - [ ] **Phase 15: Lobby UI + Room Codes** — Jackbox-style 4-letter codes, player list, ready-up, AI fill
 - [ ] **Phase 16: State Sync Protocol** — Game state → Partykit room → all clients
 - [ ] **Phase 17: Dice Sync + Simultaneous Play** — Roll results, auto-lock, visual sync across clients
@@ -209,7 +209,7 @@ Plans:
 Plans:
 - [x] 14-01: Partykit project scaffold + message protocol types
 - [x] 14-02: Room server implementation (player tracking, host assignment, lifecycle)
-- [ ] 14-03: Client connection utility + integration verification
+- [x] 14-03: Client connection utility + integration verification
 
 #### Phase 15: Lobby UI + Room Codes
 **Goal**: Jackbox-style 4-letter room codes, lobby screen with player list, ready-up, host start fills empty slots with AI
@@ -298,7 +298,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 11. Mobile Polish | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
 | 13. Audio & Juice | v1.0 | 3/4 | In progress | - |
-| 14. Partykit Server Setup | v1.1 | 2/3 | In progress | - |
+| 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
 | 15. Lobby UI + Room Codes | v1.1 | 0/? | Not started | - |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |

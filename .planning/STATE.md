@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 14 in progress. Plan 14-02 (Room Server Implementation) complete. Full room server with player tracking, host assignment, host migration, disconnect handling, and edge case guards.
+Phase 14 complete. Full Partykit stack ready: server (room lifecycle, player tracking, host migration), client utility (typed connection factory, message helpers), shared protocol types. Ready for Phase 15 (Lobby UI + Room Codes).
 
 ## Version
 0.1.0.103
@@ -9,23 +9,19 @@ Phase 14 in progress. Plan 14-02 (Room Server Implementation) complete. Full roo
 ## Current Position
 
 Phase: 14 of 21 (Partykit Server Setup)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-03 — Completed 14-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-03-03 — Completed 14-03-PLAN.md
 
-Progress: █████████████████████████████████████████████░░░ 62% (13/21 phases + 14 started)
+Progress: ██████████████████████████████████████████████░░░ 67% (14/21 phases complete)
 
 ## Last Session
-2026-03-03 — Plan 14-02 execution:
-- Replaced placeholder server with full room lifecycle management
-- Players tracked via in-memory Map keyed by connection ID
-- First player becomes host automatically; host migration on disconnect
-- Room closes when last player leaves; rejects connections when closed/full (8 max)
-- Message handling: join (name/color validation), leave, malformed JSON recovery
-- Broadcast helpers: sendToConnection, broadcastRoomState, broadcastExcept
-- Edge cases: connect-without-join guard, duplicate join idempotency, capacity checks
-- Diagnostic logging for joins, leaves, host changes, errors
-- Verified: tsc --noEmit passes, partykit dev starts cleanly on :1999
+2026-03-03 — Plan 14-03 execution:
+- PartySocket client utility: createPartyConnection, sendMessage, parseServerMessage
+- VITE_PARTY_HOST env var with localhost:1999 fallback
+- Pinned partykit dev port to 1999 in partykit.json
+- Fixed 3 pre-existing unused variable errors blocking build
+- End-to-end verification: partykit + Vite both running, server reachable
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -148,6 +144,8 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Room server: Players Map keyed by connection ID, first player = host, host migration on disconnect
 - Room server: removePlayer shared helper for leave + onClose, guard against connect-without-join
 - Room server: broadcastRoomState/sendToConnection/broadcastExcept helper pattern
+- Client utility: thin factory + typed helpers pattern (not a class), VITE_PARTY_HOST env var
+- Partykit dev port pinned to 1999 in partykit.json
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -161,5 +159,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 14-02-PLAN.md
+Stopped at: Completed 14-03-PLAN.md — Phase 14 complete
 Resume file: None
