@@ -7,6 +7,7 @@ import type {
   GameStartingMessage,
   LockedDieSync,
   PlayerSyncState,
+  PlayerRollResult,
 } from "../src/types/protocol";
 import { findAutoLocks } from "../src/utils/matchDetection";
 
@@ -120,6 +121,9 @@ export default class RollBetterServer implements Party.Server {
         break;
       case "start_game":
         this.handleStartGame(sender, parsed.targetPlayers, parsed.aiDifficulty);
+        break;
+      case "roll_request":
+        this.handleRollRequest(sender);
         break;
       default:
         this.log(`Warning: unknown message type "${(parsed as { type: string }).type}" from ${sender.id}`);
@@ -343,6 +347,102 @@ export default class RollBetterServer implements Party.Server {
 
     this.room.broadcast(JSON.stringify(roundStartMsg));
     this.log(`Round ${this.gameState.currentRound} started — goals: [${this.gameState.goalValues.join(", ")}]`);
+  }
+
+  /**
+   * Handle a roll request from any connected player.
+   * Generates dice rolls for ALL players (online + bots), computes auto-locks,
+   * and broadcasts results.
+   */
+  private handleRollRequest(sender: Party.Connection) {
+    // Validate: game must be active
+    if (!this.gameState) {
+      this.sendToConnection(sender, { type: "error", message: "No active game" });
+      return;
+    }
+
+    // Duplicate roll guard: ignore if already rolling or locking
+    if (this.gameState.phase === "rolling" || this.gameState.phase === "locking") {
+      return;
+    }
+
+    // Must be in idle phase to roll
+    if (this.gameState.phase !== "idle") {
+      this.sendToConnection(sender, { type: "error", message: "Cannot roll in current phase" });
+      return;
+    }
+
+    // Sender must be a player in the game
+    const senderInGame = this.gameState.players.some((p) => p.id === sender.id);
+    if (!senderInGame) {
+      this.sendToConnection(sender, { type: "error", message: "You are not in this game" });
+      return;
+    }
+
+    // ─── Execute roll for ALL players ───────────────────────────────
+    this.gameState.phase = "rolling";
+
+    const playerResults: PlayerRollResult[] = [];
+
+    for (const player of this.gameState.players) {
+      // Generate random dice values for this player's pool
+      const rolled: number[] = Array.from({ length: player.poolSize }, () =>
+        Math.floor(Math.random() * 6) + 1
+      );
+
+      // Compute auto-locks using shared pure function
+      const newLocks = findAutoLocks(
+        this.gameState.goalValues,
+        rolled,
+        player.lockedDice
+      );
+
+      // Update server state: add new locks, reduce pool
+      player.lockedDice = [...player.lockedDice, ...newLocks].sort(
+        (a, b) => a.goalSlotIndex - b.goalSlotIndex
+      );
+      player.poolSize -= newLocks.length;
+
+      playerResults.push({
+        playerId: player.id,
+        rolled,
+        newLocks,
+        poolSize: player.poolSize,
+        lockedDice: player.lockedDice,
+      });
+    }
+
+    // Broadcast roll results to all clients
+    const rollMsg: ServerMessage = {
+      type: "roll_results",
+      playerResults,
+    };
+    this.room.broadcast(JSON.stringify(rollMsg));
+    this.log(`Roll executed — ${playerResults.length} players rolled`);
+
+    // Set phase to locking
+    this.gameState.phase = "locking";
+
+    // After a delay, advance to next phase
+    setTimeout(() => {
+      if (!this.gameState || this.gameState.phase !== "locking") return;
+
+      // Check if any player has all 8 goal slots locked → scoring
+      const winner = this.gameState.players.find((p) => p.lockedDice.length >= 8);
+      if (winner) {
+        // Scoring will be handled in 16-02 — for now just set phase
+        this.gameState.phase = "scoring";
+        const phaseMsg: ServerMessage = { type: "phase_change", phase: "scoring" };
+        this.room.broadcast(JSON.stringify(phaseMsg));
+        this.log(`Player ${winner.name} filled all 8 slots — scoring phase`);
+      } else {
+        // Advance to unlocking phase
+        this.gameState.phase = "unlocking";
+        const phaseMsg: ServerMessage = { type: "phase_change", phase: "unlocking" };
+        this.room.broadcast(JSON.stringify(phaseMsg));
+        this.log(`Phase → unlocking`);
+      }
+    }, 1000);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
