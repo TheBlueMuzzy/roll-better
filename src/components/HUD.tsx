@@ -140,7 +140,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, shakeEnabled, onR
         ) : (
           /* All other phases: tappable status text */
           <span
-            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
+            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}${phase === 'idle' ? ' tap-pulse' : ''}`}
             onClick={handleTapRoll}
           >
             {statusText}

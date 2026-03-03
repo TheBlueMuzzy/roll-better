@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 98,
+  "build": 99,
   "history": [
     {
       "version": "0.1.0",
@@ -137,6 +137,11 @@
       "version": "0.1.0.98",
       "date": "2026-03-03",
       "summary": "Audio sync audit: mute early-return guards, settle thud volume reduction, all-settled chime bump"
+    },
+    {
+      "version": "0.1.0.99",
+      "date": "2026-03-03",
+      "summary": "Roll prompt pulse animation: gentle CSS breathing effect on 'Tap to Roll' during idle phase"
     }
   ]
 }
