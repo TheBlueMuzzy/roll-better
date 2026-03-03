@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 93,
+  "build": 95,
   "history": [
     {
       "version": "0.1.0",
@@ -122,6 +122,11 @@
       "version": "0.1.0.93",
       "date": "2026-03-02",
       "summary": "Profile layout improvements: right-aligned profiles, goal score star, settings menu text, responsive scaling"
+    },
+    {
+      "version": "0.1.0.95",
+      "date": "2026-03-03",
+      "summary": "Lock/unlock/pool animation sounds: whoosh+snap on locks, rumble+pop on mitosis, spawn/exit pops"
     }
   ]
 }
