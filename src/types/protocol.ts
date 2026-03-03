@@ -39,8 +39,30 @@ export interface StartGameMessage {
   aiDifficulty: string;
 }
 
+// ─── Game Action Messages (Client → Server) ─────────────────────────
+
+export interface RollRequestMessage {
+  type: "roll_request";
+}
+
+export interface UnlockRequestMessage {
+  type: "unlock_request";
+  slotIndices: number[];
+}
+
+export interface SkipUnlockMessage {
+  type: "skip_unlock";
+}
+
 /** All messages the client can send to the server */
-export type ClientMessage = JoinMessage | LeaveMessage | ReadyMessage | StartGameMessage;
+export type ClientMessage =
+  | JoinMessage
+  | LeaveMessage
+  | ReadyMessage
+  | StartGameMessage
+  | RollRequestMessage
+  | UnlockRequestMessage
+  | SkipUnlockMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 
@@ -80,6 +102,73 @@ export interface GameStartingMessage {
   goalValues: number[];
 }
 
+// ─── Game Sync Types ──────────────────────────────────────────────────
+
+/** A locked die for protocol sync — protocol-local, NOT imported from game.ts */
+export interface LockedDieSync {
+  goalSlotIndex: number;
+  value: number;
+}
+
+/** Player state for round sync */
+export interface PlayerSyncState {
+  id: string;
+  name: string;
+  color: string;
+  score: number;
+  startingDice: number;
+  poolSize: number;
+  lockedDice: LockedDieSync[];
+}
+
+/** Per-player roll result */
+export interface PlayerRollResult {
+  playerId: string;
+  rolled: number[];
+  newLocks: LockedDieSync[];
+  poolSize: number;
+  lockedDice: LockedDieSync[];
+}
+
+// ─── Game Action Messages (Server → Client) ─────────────────────────
+
+export interface RollResultsMessage {
+  type: "roll_results";
+  playerResults: PlayerRollResult[];
+}
+
+export interface PhaseChangeMessage {
+  type: "phase_change";
+  phase: string;
+}
+
+export interface RoundStartMessage {
+  type: "round_start";
+  round: number;
+  goalValues: number[];
+  players: PlayerSyncState[];
+}
+
+export interface UnlockResultMessage {
+  type: "unlock_result";
+  playerId: string;
+  unlockedSlots: number[];
+  newPoolSize: number;
+  lockedDice: LockedDieSync[];
+}
+
+export interface ScoringMessage {
+  type: "scoring";
+  winnerId: string;
+  roundScore: number;
+  players: PlayerSyncState[];
+}
+
+export interface SessionEndMessage {
+  type: "session_end";
+  players: PlayerSyncState[];
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -87,4 +176,10 @@ export type ServerMessage =
   | PlayerJoinedMessage
   | PlayerLeftMessage
   | ErrorMessage
-  | GameStartingMessage;
+  | GameStartingMessage
+  | RollResultsMessage
+  | PhaseChangeMessage
+  | RoundStartMessage
+  | UnlockResultMessage
+  | ScoringMessage
+  | SessionEndMessage;
