@@ -383,26 +383,48 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Duplicate roll guard: ignore if already rolling or locking
-    if (this.gameState.phase === "rolling" || this.gameState.phase === "locking") {
-      return;
-    }
-
-    // Must be in idle phase to roll
+    // Must be in idle phase to accept roll requests
     if (this.gameState.phase !== "idle") {
-      this.sendToConnection(sender, { type: "error", message: "Cannot roll in current phase" });
-      return;
+      return; // Silently ignore — player may have double-tapped or tapped during transition
     }
 
-    // Sender must be a player in the game
-    const senderInGame = this.gameState.players.some((p) => p.id === sender.id);
+    // Sender must be an online player in the game
+    const senderInGame = this.gameState.players.some((p) => p.id === sender.id && p.isOnline);
     if (!senderInGame) {
       this.sendToConnection(sender, { type: "error", message: "You are not in this game" });
       return;
     }
 
-    // ─── Execute roll for ALL players ───────────────────────────────
+    // Duplicate guard: ignore if this player already sent a roll request
+    if (this.gameState.rollRequestedBy.has(sender.id)) {
+      return;
+    }
+
+    // Record this player's roll request
+    this.gameState.rollRequestedBy.add(sender.id);
+    this.log(`Roll request from ${sender.id} (${this.gameState.rollRequestedBy.size}/${this.getOnlinePlayerCount()} online players)`);
+
+    // Wait for ALL online players to send roll_request before executing
+    if (this.gameState.rollRequestedBy.size < this.getOnlinePlayerCount()) {
+      return; // Still waiting for other players
+    }
+
+    // All online players have tapped — execute the roll
+    this.executeRoll();
+  }
+
+  /** Count online players in the current game */
+  private getOnlinePlayerCount(): number {
+    if (!this.gameState) return 0;
+    return this.gameState.players.filter((p) => p.isOnline).length;
+  }
+
+  /** Execute roll for ALL players (called once all online players have sent roll_request) */
+  private executeRoll() {
+    if (!this.gameState) return;
+
     this.gameState.phase = "rolling";
+    this.gameState.rollRequestedBy.clear();
 
     const playerResults: PlayerRollResult[] = [];
 

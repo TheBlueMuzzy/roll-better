@@ -457,16 +457,6 @@ function App() {
     sceneRef.current?.rollAll(); // Visual physics animation (both modes)
   }, [setPhase, isOnlineGame, sendRollRequest]);
 
-  // Server-triggered roll — another player tapped, so we start our physics animation
-  const serverRollTrigger = useGameStore((s) => s.serverRollTrigger);
-  useEffect(() => {
-    if (!serverRollTrigger) return;
-    useGameStore.setState({ serverRollTrigger: false });
-    console.log('[App] Server-triggered roll — starting physics animation');
-    setPhase('rolling');
-    sceneRef.current?.rollAll();
-  }, [serverRollTrigger, setPhase]);
-
   // Shake-to-roll (mobile) — must come after handleRoll is defined
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
   const { isSupported: shakeSupported, permissionState: shakePermission, requestPermission: requestShakePermission } =

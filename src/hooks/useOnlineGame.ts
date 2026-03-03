@@ -43,12 +43,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const rollState = useGameStore.getState();
           rollState.setPendingServerResults(msg.playerResults);
 
-          // If we didn't tap to roll (still in idle), signal App.tsx to start
-          // the physics animation. This preserves the full visual roll experience
-          // — dice tumble, settle, then server results merge via timing barrier.
+          // Server waits for all players to tap before broadcasting results,
+          // so each client should already be in 'rolling' phase with physics running.
           if (rollState.phase !== 'rolling') {
-            console.log("[useOnlineGame] Non-rolling client — triggering visual roll");
-            useGameStore.setState({ serverRollTrigger: true });
+            console.warn("[useOnlineGame] Received roll_results but not in rolling phase — unexpected");
           }
           break;
         }
