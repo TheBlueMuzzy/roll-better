@@ -43,13 +43,12 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const rollState = useGameStore.getState();
           rollState.setPendingServerResults(msg.playerResults);
 
-          // If we didn't tap to roll (still in idle), we need to join the roll:
-          // provide empty physics data so the timing barrier fires immediately.
-          // This tab won't show physics animation — just lock results.
+          // If we didn't tap to roll (still in idle), signal App.tsx to start
+          // the physics animation. This preserves the full visual roll experience
+          // — dice tumble, settle, then server results merge via timing barrier.
           if (rollState.phase !== 'rolling') {
-            console.log("[useOnlineGame] Non-rolling client — injecting empty physics data");
-            useGameStore.setState({ phase: 'rolling' });
-            rollState.setPhysicsSettledData({ positions: [], rotations: [] });
+            console.log("[useOnlineGame] Non-rolling client — triggering visual roll");
+            useGameStore.setState({ serverRollTrigger: true });
           }
           break;
         }

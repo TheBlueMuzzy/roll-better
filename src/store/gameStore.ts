@@ -87,6 +87,9 @@ interface GameStore extends GameState {
   pendingUnlockResult: UnlockResultMessage | null;
   setPendingUnlockResult: (result: UnlockResultMessage | null) => void;
 
+  // Server-triggered roll (online game — signals App.tsx to start physics animation)
+  serverRollTrigger: boolean;
+
   // Physics settled data (online game — stores physics positions when they arrive before server results)
   physicsSettledData: { positions: [number, number, number][]; rotations: [number, number, number][] } | null;
   setPhysicsSettledData: (data: { positions: [number, number, number][]; rotations: [number, number, number][] } | null) => void;
@@ -347,6 +350,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingServerResults: null,
   pendingUnlockResult: null,
   physicsSettledData: null,
+  serverRollTrigger: false,
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -977,7 +981,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], deferredPhase: null });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], deferredPhase: null, serverRollTrigger: false });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
