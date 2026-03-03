@@ -1,29 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 15 in progress. Plan 15-03 complete: LobbyScreen component built with create/join flow, player list, room code display, ready toggle, host controls, server-assigned colors, shared goal values. Ready for 15-04 (game start flow + AI fill).
+Phase 15 complete. All 4 plans done: protocol extensions, useRoom hook, lobby screen UI, game start flow with AI fill. Ready for Phase 16 (State Sync Protocol).
 
 ## Version
-0.1.0.110
+0.1.0.111
 
 ## Current Position
 
-Phase: 15 of 21 (Lobby UI + Room Codes)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-03-03 — Completed 15-03-PLAN.md
+Phase: 15 of 21 (Lobby UI + Room Codes) — COMPLETE
+Plan: 4 of 4 in current phase
+Status: Complete
+Last activity: 2026-03-03 — Completed 15-04-PLAN.md (Phase 15 done)
 
 Progress: ████████████████████████████████████████████████░░ 75%
 
 ## Last Session
-2026-03-03 — Plan 15-03 execution:
-- Created LobbyScreen component with CreateJoin and Lobby views
-- Three rounds of user testing and iterative fixes
-- Server assigns player colors by join order (not client-specified)
-- Server generates goalValues in game_starting — shared across all clients
-- Room-not-found detection via intent tracking in useRoom
-- Local player uses server-assigned name/color in game (initGame accepts onlineInfo)
-- ISS-003 closed (goal dice sync), ISS-004 opened (roll sync — Phase 16 scope)
+2026-03-03 — Plan 15-04 execution:
+- initGame accepts full onlinePlayers array (local first, then others)
+- Online players show actual lobby names in-game (not generic "Player N")
+- Bot slots labeled "Bot 1", "Bot 2" with unused colors
+- All edge cases verified: cleanup, error handling, host migration, back/leave
+- Phase 15 complete — lobby → game flow working end-to-end
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -172,5 +170,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 15-03-PLAN.md
+Stopped at: Completed Phase 15 (all 4 plans). Next: Phase 16 (State Sync Protocol)
 Resume file: None

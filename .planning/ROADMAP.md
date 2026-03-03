@@ -29,7 +29,7 @@ None (no expertise skill files available)
 - [x] **Phase 12: Responsive UI** *(Complete — 2026-03-02)* — HUD, overlays, modals adapt to all phone sizes
 - [x] **Phase 13: Audio & Juice** *(Complete — 2026-03-03)* — Audio hooks wired, procedural sounds stripped to stubs pending art pass
 - [x] **Phase 14: Partykit Server Setup** *(Complete — 2026-03-03)* — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
-- [ ] **Phase 15: Lobby UI + Room Codes** — Jackbox-style 4-letter codes, player list, ready-up, AI fill
+- [x] **Phase 15: Lobby UI + Room Codes** *(Complete — 2026-03-03)* — Jackbox-style 4-letter codes, player list, ready-up, AI fill
 - [ ] **Phase 16: State Sync Protocol** — Game state → Partykit room → all clients
 - [ ] **Phase 17: Dice Sync + Simultaneous Play** — Roll results, auto-lock, visual sync across clients
 - [ ] **Phase 18: Unlock + Scoring Sync** — Unlock decisions, scoring, round transitions + turn timers
@@ -221,7 +221,7 @@ Plans:
 - [x] 15-01: Protocol extensions + server lobby logic (ready toggle, host-only game start)
 - [x] 15-02: useRoom React hook + screen state integration (lobby screen routing)
 - [x] 15-03: Lobby screen UI (create/join, player list, room code, ready, host controls)
-- [ ] 15-04: Game start flow + AI fill (initOnlineGame, lobby → game transition)
+- [x] 15-04: Game start flow + AI fill (initOnlineGame, lobby → game transition)
 
 #### Phase 16: State Sync Protocol
 **Goal**: Game state → Partykit room → all clients. Host-authoritative validation pattern. Server generates roll results.
@@ -302,7 +302,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
 | 13. Audio & Juice | v1.0 | 4/4 | Complete | 2026-03-03 |
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
-| 15. Lobby UI + Room Codes | v1.1 | 3/4 | In progress | - |
+| 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
