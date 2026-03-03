@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 99,
+  "build": 100,
   "history": [
     {
       "version": "0.1.0",
@@ -142,6 +142,11 @@
       "version": "0.1.0.99",
       "date": "2026-03-03",
       "summary": "Roll prompt pulse animation: gentle CSS breathing effect on 'Tap to Roll' during idle phase"
+    },
+    {
+      "version": "0.1.0.100",
+      "date": "2026-03-03",
+      "summary": "Strip procedural sounds to stubs — keep audio hooks, remove all sound generation"
     }
   ]
 }
