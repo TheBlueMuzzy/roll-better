@@ -1,32 +1,31 @@
 # Project State
 
 ## Current Status
-Phase 14 in progress. Plan 14-01 (Scaffold Partykit + Define Protocol Types) complete. Partykit installed, server placeholder running, shared protocol types defined.
+Phase 14 in progress. Plan 14-02 (Room Server Implementation) complete. Full room server with player tracking, host assignment, host migration, disconnect handling, and edge case guards.
 
 ## Version
-0.1.0.102
+0.1.0.103
 
 ## Current Position
 
 Phase: 14 of 21 (Partykit Server Setup)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-03 — Completed 14-01-PLAN.md
+Last activity: 2026-03-03 — Completed 14-02-PLAN.md
 
 Progress: █████████████████████████████████████████████░░░ 62% (13/21 phases + 14 started)
 
 ## Last Session
-2026-03-03 — Plan 14-01 execution:
-- Installed partykit (v0.0.115) + partysocket (v1.1.16)
-- Created partykit.json (project config, Cloudflare Workers compat date 2024-12-01)
-- Created party/server.ts — minimal placeholder (onConnect sends connected ack)
-- Created tsconfig.server.json — ESNext/bundler targeting Workers, includes party/ + src/types/
-- Added party:dev and party:deploy npm scripts
-- Created src/types/protocol.ts — discriminated union message types for room lifecycle
-- Types: ClientMessage (join, leave) and ServerMessage (connected, room_state, player_joined, player_left, error)
-- Supporting types: RoomPlayer (id, name, color, isHost, isReady), RoomStatus
-- Verified: partykit dev starts on :1999, tsc passes on server tsconfig, vite dev unaffected
-- Pre-existing build errors (3 unused vars in App.tsx, HUD.tsx, soundManager.ts) not caused by these changes
+2026-03-03 — Plan 14-02 execution:
+- Replaced placeholder server with full room lifecycle management
+- Players tracked via in-memory Map keyed by connection ID
+- First player becomes host automatically; host migration on disconnect
+- Room closes when last player leaves; rejects connections when closed/full (8 max)
+- Message handling: join (name/color validation), leave, malformed JSON recovery
+- Broadcast helpers: sendToConnection, broadcastRoomState, broadcastExcept
+- Edge cases: connect-without-join guard, duplicate join idempotency, capacity checks
+- Diagnostic logging for joins, leaves, host changes, errors
+- Verified: tsc --noEmit passes, partykit dev starts cleanly on :1999
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accelerometer → Rapier gravity per-frame for physical dice shaking) deferred to VISION.md as future upgrade.
@@ -146,6 +145,9 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Audio: Stub-based hook system — 18 no-op functions wired at all game event trigger points
 - Audio: initAudio/setVolume functional (AudioContext + masterGain), sound bodies empty
 - Audio: Real audio assets to be implemented during art pass
+- Room server: Players Map keyed by connection ID, first player = host, host migration on disconnect
+- Room server: removePlayer shared helper for leave + onClose, guard against connect-without-join
+- Room server: broadcastRoomState/sendToConnection/broadcastExcept helper pattern
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -159,5 +161,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 14-01-PLAN.md
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
