@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 115,
+  "build": 117,
   "history": [
     {
       "version": "0.1.0",
@@ -202,6 +202,16 @@
       "version": "0.1.0.115",
       "date": "2026-03-03",
       "summary": "Server unlock/skip handlers, scoring, handicap, round transitions — full server game loop"
+    },
+    {
+      "version": "0.1.0.116",
+      "date": "2026-03-03",
+      "summary": "applyOnlineRollResults store action with timing barrier for server/physics merge"
+    },
+    {
+      "version": "0.1.0.117",
+      "date": "2026-03-03",
+      "summary": "Wire online roll flow: sendRollRequest on roll, physics-settle routing, lock animations for all players"
     }
   ]
 }

@@ -1,32 +1,34 @@
 # Project State
 
 ## Current Status
-Phase 17 in progress. Online game infrastructure wired: module-level socket singleton, online mode store flags, useOnlineGame hook with message routing + action senders. Next: 17-02 (dice roll sync).
+Phase 17 in progress. Server-authoritative dice rolling wired into client: roll_request sent to server, server values merged with physics positions via timing barrier, lock animations for all players. Next: 17-03 (phase + unlock sync).
 
 ## Version
-0.1.0.115
+0.1.0.117
 
 ## Current Position
 
 Phase: 17 of 21 (Dice Sync + Simultaneous Play)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-03 — Completed 17-01-PLAN.md
+Last activity: 2026-03-03 — Completed 17-02-PLAN.md
 
-Progress: █████████████████████████████████████████████████████░ 82%
+Progress: ██████████████████████████████████████████████████████░ 83%
 
 ## Last Session
-2026-03-03 — Plan 17-01 execution:
-- Module-level game socket singleton (setGameSocket/getGameSocket in partyClient.ts)
-- Online mode store flags (isOnlineGame, onlinePlayerId, setOnlineMode, clearOnlineMode)
-- useOnlineGame hook: addEventListener-based message routing (coexists with useRoom onmessage)
-- Action senders: sendRollRequest, sendUnlockRequest, sendSkipUnlock
-- Pending server results storage: pendingServerResults, pendingUnlockResult in zustand
-- App.tsx wires setOnlineMode on game start, clearOnlineMode + setGameSocket(null) on menu
+2026-03-03 — Plan 17-02 execution:
+- applyOnlineRollResults store action: merges server dice values with physics positions
+- physicsSettledData field + setter for timing barrier (either-arrives-first pattern)
+- tryApplyOnlineResults barrier: auto-triggers when both server results and physics data ready
+- handleRoll sends roll_request when online, then starts visual physics animation
+- handleAllSettled routes to setPhysicsSettledData for online games
+- Lock animations for all players: human uses physics positions, others use profile-emerge pattern
+- Offline setRollResults path completely untouched
 
-Previous session (16-02):
-- Full server-authoritative game engine: roll → lock → unlock → score → handicap → next round → session end
-- Multi-winner support, AFK timeout, disconnect-safe
+Previous session (17-01):
+- Module-level game socket singleton, online mode store flags, useOnlineGame hook
+- Action senders: sendRollRequest, sendUnlockRequest, sendSkipUnlock
+- Pending server results storage in zustand
 
 ## RESOLVED: Shake-to-Roll on Phone
 Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferred to VISION.md.
@@ -81,12 +83,14 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 - addEventListener('message') coexists with useRoom onmessage — no conflict
 - Module-level socket singleton for cross-hook access (not React ref)
 - Pending server results in zustand store for consumption by future plans
+- Timing barrier pattern for online roll results: either server or physics can arrive first
+- Server dice values override physics-detected values; physics positions used for animation only
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
 - ISS-002: Dice can cant against walls or other dice, blocking face detection
-- ISS-004: Online game rolls not synced — server generates results (16-01), client consumption in Phase 17
+- ISS-004: ~~Online game rolls not synced~~ RESOLVED (17-02) — roll results now merged via timing barrier
 
 ### Roadmap Evolution
 
@@ -94,5 +98,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Completed 17-01-PLAN.md. Next: 17-02 (dice roll sync)
+Stopped at: Completed 17-02-PLAN.md. Next: 17-03 (phase + unlock sync)
 Resume file: None
