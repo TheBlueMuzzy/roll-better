@@ -146,6 +146,7 @@ const initialState: GameState = {
   isOnlineGame: false,
   onlinePlayerId: null,
   onlinePlayerIds: [],
+  deferredPhase: null,
 };
 
 // --- Internal helpers for online roll results (not exported) ---
@@ -170,13 +171,6 @@ function applyOnlineRollResultsImpl(
   physicsRotations: [number, number, number][],
 ) {
   const state = get();
-
-  // Guard: ignore if not in rolling phase
-  if (state.phase !== 'rolling') {
-    console.warn('[applyOnlineRollResults] IGNORED — phase is', state.phase, 'not rolling');
-    return;
-  }
-
   const serverResults = state.pendingServerResults;
   if (!serverResults) {
     console.warn('[applyOnlineRollResults] No pendingServerResults available');
@@ -335,6 +329,15 @@ function applyOnlineRollResultsImpl(
     pendingServerResults: null,
     physicsSettledData: null,
   });
+
+  // Check for deferred phase change (server sent phase_change while physics were still settling)
+  const deferred = get().deferredPhase;
+  if (deferred) {
+    console.log('[applyOnlineRollResults] Applying deferred phase change:', deferred, '(after 1s for lock animation)');
+    setTimeout(() => {
+      set({ phase: deferred, deferredPhase: null });
+    }, 1000);
+  }
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -972,7 +975,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [] });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], deferredPhase: null });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });

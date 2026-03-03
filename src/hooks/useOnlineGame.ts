@@ -45,9 +45,19 @@ export function useOnlineGame(): UseOnlineGameReturn {
 
         case "phase_change": {
           const newPhase = msg.phase as GamePhase;
-          const currentPhase = useGameStore.getState().phase;
-          if (newPhase !== currentPhase) {
-            console.log("[useOnlineGame] phase_change:", currentPhase, "->", newPhase);
+          const state = useGameStore.getState();
+
+          // If roll results haven't been applied yet (physics still settling),
+          // defer phase changes that would skip past locking. The deferred phase
+          // will be applied after applyOnlineRollResults runs + lock animation.
+          if (state.pendingServerResults && (newPhase === 'unlocking' || newPhase === 'scoring')) {
+            console.log("[useOnlineGame] Deferring phase_change to", newPhase, "— roll results pending");
+            useGameStore.setState({ deferredPhase: newPhase });
+            break;
+          }
+
+          if (newPhase !== state.phase) {
+            console.log("[useOnlineGame] phase_change:", state.phase, "->", newPhase);
             useGameStore.getState().setPhase(newPhase);
           }
           break;
