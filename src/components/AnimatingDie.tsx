@@ -4,6 +4,7 @@ import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { getRotationForFace } from './GoalRow';
+import { playWhoosh, playLockSnap } from '../utils/soundManager';
 import type { Group } from 'three';
 
 interface AnimatingDieProps {
@@ -34,6 +35,7 @@ export function AnimatingDie({
   const groupRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
   const hasFiredRef = useRef(false);
+  const hasStartedRef = useRef(false);
 
   // Precompute quaternions for slerp
   const { startQ, endQ } = useMemo(() => {
@@ -60,6 +62,12 @@ export function AnimatingDie({
       return;
     }
 
+    // Play whoosh when flight starts (delay expired)
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      playWhoosh();
+    }
+
     const t = Math.min(elapsed / duration, 1);
 
     // Ease-in-out cubic
@@ -84,6 +92,7 @@ export function AnimatingDie({
 
     if (t >= 1 && !hasFiredRef.current) {
       hasFiredRef.current = true;
+      playLockSnap();
       onComplete?.();
     }
   });

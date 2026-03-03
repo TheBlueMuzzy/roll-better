@@ -103,6 +103,55 @@ export function playDiceSettle(): void {
   playNoiseBurst(30, 400, 800, 0.3);
 }
 
+/** Short click/snap — like a piece snapping into place. */
+export function playLockSnap(): void {
+  if (!ctx || !masterGain) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.015; // 15ms
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 1200;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.4, now); // sharp attack
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration); // fast decay
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+/** Very short filtered noise sweep — subtle movement whoosh. */
+export function playWhoosh(): void {
+  if (!ctx || !masterGain || !noiseBuffer) return;
+
+  const now = ctx.currentTime;
+  const duration = 0.03; // 30ms
+
+  const source = ctx.createBufferSource();
+  source.buffer = noiseBuffer;
+
+  // Bandpass filter sweeping 2000 → 500Hz
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(2000, now);
+  filter.frequency.linearRampToValueAtTime(500, now + duration);
+  filter.Q.value = 2;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.3, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+  source.start(now);
+  source.stop(now + duration);
+}
+
 /** Short ascending two-tone chime — signals "results are in." */
 export function playAllSettled(): void {
   if (!ctx || !masterGain) return;
