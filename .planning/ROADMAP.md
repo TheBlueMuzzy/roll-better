@@ -183,12 +183,13 @@ Plans:
 **Depends on**: Phase 3 (needs physics collision events), Phase 10 (all UI exists)
 **Research**: Likely (Howler.js + Rapier integration, audio layering)
 **Research topics**: Howler.js setup in React, triggering sounds from Rapier collision callbacks, audio sprite layering for multi-dice rolls, Web Audio API spatial audio basics
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 13-01: Dice roll sounds (Howler.js setup, collision-triggered impacts, tumble/scrape/settle layers)
-- [ ] 13-02: UI sounds (lock click, bonus chime, score counting tones, win fanfare, round-end tone)
-- [ ] 13-03: Final juice pass (animation timing polish, roll prompt glow, visual effects tuning)
+- [ ] 13-01: Sound system foundation + dice collision sounds (Web Audio API SoundManager, onContactForce impacts, settle/chime)
+- [ ] 13-02: Lock & unlock animation sounds (whoosh+snap locks, mitosis rumble+pop, spawn/exit pops)
+- [ ] 13-03: UI & score audio (score tick counting, win fanfare, selection tones, phase transitions)
+- [ ] 13-04: Final juice pass + verification (audio-visual sync, roll prompt pulse, full playtest)
 
 ### 🚧 v1.1 Online Multiplayer (Planned)
 
@@ -294,7 +295,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 10. Screens & Flow | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 11. Mobile Polish | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
-| 13. Audio & Juice | v1.0 | 0/3 | Not started | - |
+| 13. Audio & Juice | v1.0 | 0/4 | Not started | - |
 | 14. Partykit Server Setup | v1.1 | 0/? | Not started | - |
 | 15. Lobby UI + Room Codes | v1.1 | 0/? | Not started | - |
 | 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
