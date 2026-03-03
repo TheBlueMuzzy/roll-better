@@ -144,8 +144,12 @@ function App() {
     useGameStore.getState().setOnlineMode(localPlayerId);
 
     // Build server-to-local player ID mapping
-    // Index in this array = player index in store (local first, then others)
+    // Index in this array = player index in store (local first, then others, then bots)
     const serverPlayerIds = [localPlayerId, ...otherPlayers.map(p => p.id)];
+    const botCount = targetPlayers - players.length;
+    for (let i = 0; i < botCount; i++) {
+      serverPlayerIds.push(`bot-${i}`);
+    }
     useGameStore.getState().setOnlinePlayerIds(serverPlayerIds);
 
     setScreen('game');

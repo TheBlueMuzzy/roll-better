@@ -268,7 +268,9 @@ function applyOnlineRollResultsImpl(
   for (let i = 1; i < players.length; i++) {
     const otherPlayer = players[i];
     // Find this player's result from server
-    const otherResult = serverResults.find(r => r.playerId === otherPlayer.id);
+    // Use onlinePlayerIds mapping — client IDs ("player-1") don't match server IDs
+    const serverPlayerId = state.onlinePlayerIds[i];
+    const otherResult = serverResults.find(r => r.playerId === serverPlayerId);
     if (!otherResult) continue;
 
     // Update player state from server

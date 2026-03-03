@@ -38,10 +38,21 @@ export function useOnlineGame(): UseOnlineGameReturn {
       if (!msg) return;
 
       switch (msg.type) {
-        case "roll_results":
+        case "roll_results": {
           console.log("[useOnlineGame] roll_results received", msg.playerResults);
-          useGameStore.getState().setPendingServerResults(msg.playerResults);
+          const rollState = useGameStore.getState();
+          rollState.setPendingServerResults(msg.playerResults);
+
+          // If we didn't tap to roll (still in idle), we need to join the roll:
+          // provide empty physics data so the timing barrier fires immediately.
+          // This tab won't show physics animation — just lock results.
+          if (rollState.phase !== 'rolling') {
+            console.log("[useOnlineGame] Non-rolling client — injecting empty physics data");
+            useGameStore.setState({ phase: 'rolling' });
+            rollState.setPhysicsSettledData({ positions: [], rotations: [] });
+          }
           break;
+        }
 
         case "phase_change": {
           const newPhase = msg.phase as GamePhase;
