@@ -134,11 +134,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium') => {
+  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium', onlineInfo?: { localPlayer: { name: string; color: string } }) => {
+    // Player 0's name/color: use server-assigned values for online, defaults for offline
+    const p0Name = onlineInfo?.localPlayer.name ?? 'You';
+    const p0Color = onlineInfo?.localPlayer.color ?? PLAYER_COLORS[0];
+
+    // Other players get colors from the palette, skipping player 0's color
+    const otherColors = PLAYER_COLORS.filter(c => c !== p0Color);
+
     const players = Array.from({ length: playerCount }, (_, i) => ({
       id: `player-${i}`,
-      name: i === 0 ? 'You' : `Player ${i + 1}`,
-      color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+      name: i === 0 ? p0Name : `Player ${i + 1}`,
+      color: i === 0 ? p0Color : otherColors[(i - 1) % otherColors.length],
       score: 0,
       startingDice: 2,
       poolSize: 2,
