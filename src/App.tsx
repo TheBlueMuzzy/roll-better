@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { MainMenu } from './components/MainMenu';
+import { LobbyScreen } from './components/LobbyScreen';
 import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
@@ -18,6 +19,7 @@ import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
 import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
+import type { RoomPlayer } from './types/protocol';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
 import './App.css';
@@ -115,6 +117,24 @@ function App() {
   const handlePlayOnline = useCallback(() => {
     setScreen('lobby');
   }, [setScreen]);
+
+  // Online game start handler — called from LobbyScreen when game_starting fires
+  const handleOnlineGameStart = useCallback((_players: RoomPlayer[], targetPlayers: number, aiDifficulty: string) => {
+    // Start game with online settings (AI fills remaining slots)
+    const difficulty = aiDifficulty as AIDifficulty;
+    initGame(targetPlayers, difficulty);
+    initRound();
+    setScreen('game');
+    // Start pool spawn animation
+    const state = useGameStore.getState();
+    const humanPlayer = state.players[0];
+    if (humanPlayer && humanPlayer.poolSize > 0) {
+      const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
+      setPoolSpawning(true, spawnPositions);
+      const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
+      setTimeout(() => setPoolSpawning(false), spawnDuration);
+    }
+  }, [initGame, initRound, setScreen, setPoolSpawning]);
 
   // --- Contextual tips ---
   useEffect(() => {
@@ -421,7 +441,11 @@ function App() {
   return (
     <>
       <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenSettings={() => setSettingsOpen(true)} />
-      {screen === 'lobby' && <div>Lobby placeholder</div>}
+      <LobbyScreen
+        visible={screen === 'lobby'}
+        onGameStart={handleOnlineGameStart}
+        onBack={() => setScreen('menu')}
+      />
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas

@@ -8,7 +8,7 @@ import { DIE_SIZE } from '../components/RollingArea';
 import { getAIUnlockDecision } from '../utils/aiDecision';
 
 // Player colors — defined here to avoid circular dependency with Die3D
-const PLAYER_COLORS = [
+export const PLAYER_COLORS = [
   '#e74c3c', // red
   '#3498db', // blue
   '#2ecc71', // green
