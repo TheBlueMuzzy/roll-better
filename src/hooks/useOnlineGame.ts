@@ -55,7 +55,9 @@ export function useOnlineGame(): UseOnlineGameReturn {
 
         case "unlock_result":
           console.log("[useOnlineGame] unlock_result received", msg);
-          useGameStore.getState().setPendingUnlockResult(msg);
+          useGameStore.getState().applyOnlineUnlockResult(
+            msg.playerId, msg.unlockedSlots, msg.newPoolSize, msg.lockedDice
+          );
           break;
 
         case "round_start":

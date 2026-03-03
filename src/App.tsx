@@ -62,6 +62,9 @@ function App() {
   // Online game hook — message routing + action senders
   const { sendRollRequest, sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
 
+  // Read online mode flag (used by phase useEffects, handleRoll, handleConfirmUnlock)
+  const isOnlineGame = useGameStore((s) => s.isOnlineGame);
+
   // Performance settings
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
 
@@ -139,6 +142,12 @@ function App() {
     initGame(targetPlayers, difficulty, orderedPlayers);
     initRound({ goalValues }); // Use server-provided goals so all clients match
     useGameStore.getState().setOnlineMode(localPlayerId);
+
+    // Build server-to-local player ID mapping
+    // Index in this array = player index in store (local first, then others)
+    const serverPlayerIds = [localPlayerId, ...otherPlayers.map(p => p.id)];
+    useGameStore.getState().setOnlinePlayerIds(serverPlayerIds);
+
     setScreen('game');
     // Start pool spawn animation
     const state = useGameStore.getState();
@@ -176,6 +185,11 @@ function App() {
       if (lastLockCount === 0) {
         playNoMatch();
       }
+
+      // Online: server drives phase transitions — don't use local timer
+      if (isOnlineGame) return;
+
+      // Offline: local 1s timer
       const timer = setTimeout(() => {
         // Check if someone completed all 8 locks
         if (checkWinner()) {
@@ -187,10 +201,11 @@ function App() {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [phase, setPhase, checkWinner, scoreRound]);
+  }, [phase, setPhase, checkWinner, scoreRound, isOnlineGame, lastLockCount]);
 
   // After scoring, show score for 2s then apply handicap and start next round
   useEffect(() => {
+    if (isOnlineGame) return; // Online: server drives scoring (Phase 18)
     if (phase === 'scoring') {
       const timer = setTimeout(() => {
         applyHandicap();
@@ -198,12 +213,13 @@ function App() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [phase, applyHandicap]);
+  }, [phase, applyHandicap, isOnlineGame]);
 
   // After roundEnd: staged goal transition (exit → swap → enter → idle)
   // Pool dice exit animation runs in parallel with goal exit
   // Pool dice spawn animation starts at initRound
   useEffect(() => {
+    if (isOnlineGame) return; // Online: server drives round transitions (Phase 18)
     if (phase !== 'roundEnd') return;
 
     // Check session end immediately — skip animation if game is over
@@ -255,7 +271,7 @@ function App() {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, checkSessionEnd, setPhase, setScreen, initRound, setGoalTransition, setPoolExiting, setPoolSpawning]);
+  }, [phase, checkSessionEnd, setPhase, setScreen, initRound, setGoalTransition, setPoolExiting, setPoolSpawning, isOnlineGame]);
 
   // Compute and start AI unlock animations, then apply state after they finish
   const startAIUnlockAnimations = useCallback(() => {
@@ -332,6 +348,19 @@ function App() {
     const player = state.players[0];
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
+    if (isOnlineGame) {
+      // Online: send to server, don't process locally
+      if (player.selectedForUnlock.length > 0) {
+        sendUnlockRequest(player.selectedForUnlock);
+        useGameStore.getState().skipUnlock(0); // Clear selection UI
+      } else if (mustUnlock) {
+        return; // Can't skip — must select at least 1
+      } else {
+        sendSkipUnlock();
+      }
+      return; // Don't fall through to local processing
+    }
+
     if (player.selectedForUnlock.length > 0) {
       // --- ANIMATED PATH: mitosis animation before state change ---
       const selectedSlots = [...player.selectedForUnlock];
@@ -403,10 +432,7 @@ function App() {
       useGameStore.getState().skipUnlock(0);
       startAIUnlockAnimations();
     }
-  }, [setPhase, startAIUnlockAnimations]);
-
-  // Read online mode flag for handleRoll
-  const isOnlineGame = useGameStore((s) => s.isOnlineGame);
+  }, [setPhase, startAIUnlockAnimations, isOnlineGame, sendUnlockRequest, sendSkipUnlock]);
 
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {

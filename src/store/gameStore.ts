@@ -78,6 +78,8 @@ interface GameStore extends GameState {
   // Online mode
   setOnlineMode: (playerId: string) => void;
   clearOnlineMode: () => void;
+  setOnlinePlayerIds: (ids: string[]) => void;
+  applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => void;
 
   // Pending server data (online game sync)
   pendingServerResults: PlayerRollResult[] | null;
@@ -143,6 +145,7 @@ const initialState: GameState = {
   gamePrefs: defaultGamePrefs,
   isOnlineGame: false,
   onlinePlayerId: null,
+  onlinePlayerIds: [],
 };
 
 // --- Internal helpers for online roll results (not exported) ---
@@ -969,7 +972,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [] });
+  },
+  setOnlinePlayerIds: (ids: string[]) => {
+    set({ onlinePlayerIds: ids });
+  },
+  applyOnlineUnlockResult: (playerId: string, _unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
+    const state = get();
+    const playerIndex = state.onlinePlayerIds.indexOf(playerId);
+    if (playerIndex === -1) return; // Bot or unknown — server manages
+
+    const players = [...state.players];
+    const player = { ...players[playerIndex] };
+    player.lockedDice = serverLockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
+    player.poolSize = newPoolSize;
+    player.selectedForUnlock = [];
+    players[playerIndex] = player;
+
+    console.log(
+      `[applyOnlineUnlockResult] player=${playerId} index=${playerIndex} ` +
+      `pool=${newPoolSize} locks=${serverLockedDice.length}`,
+    );
+
+    set({ players });
   },
 
   // --- Pending server data (online game sync) ---
