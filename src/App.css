@@ -912,6 +912,16 @@ body {
   cursor: not-allowed;
 }
 
+@keyframes lobby-shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 55%, 95% { transform: translateX(-4px); }
+  35%, 75% { transform: translateX(4px); }
+}
+
+.lobby-join-btn.shake {
+  animation: lobby-shake 0.4s ease;
+}
+
 .lobby-error {
   color: #e74c3c;
   font-size: var(--fs-sm);
@@ -974,6 +984,18 @@ body {
   margin: 0;
 }
 
+.lobby-player-count {
+  font-size: var(--fs-md);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.lobby-ai-note {
+  font-weight: normal;
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .lobby-player-list {
   display: flex;
   flex-direction: column;
@@ -1020,15 +1042,15 @@ body {
   width: 100%;
   max-width: var(--btn-max-w);
   padding: var(--sp-md);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--border-radius);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
   font-size: var(--fs-lg);
   font-weight: bold;
   letter-spacing: 2px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .lobby-ready-btn:active {
@@ -1051,10 +1073,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-md);
+  gap: var(--sp-sm);
   width: 100%;
   padding-top: var(--sp-sm);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .lobby-start-btn {

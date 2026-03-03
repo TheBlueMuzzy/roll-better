@@ -143,6 +143,15 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Medium
 - **Suggested phase:** Phase 6 (animation/polish) or dedicated fix
 
+### ISS-003: Online players see different goal dice — each client generates own random goals
+
+- **Discovered:** Phase 15 Task 3 checkpoint (2026-03-03)
+- **Type:** Multiplayer sync bug (expected)
+- **Description:** When starting an online game, each client calls initGame/initRound locally, which generates random goal values independently. All players should see the same goal dice. Fix: server should generate and broadcast goal values, or use a shared seed. This is the core problem Phase 16 (State Sync Protocol) will solve.
+- **Impact:** High (game unplayable online until fixed)
+- **Effort:** Part of Phase 16 scope
+- **Suggested phase:** Phase 16
+
 ## Closed Enhancements
 
 [Moved here when addressed]

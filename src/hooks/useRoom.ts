@@ -61,6 +61,15 @@ export function useRoom(): UseRoomReturn {
   // Ref to hold pending join info (name + color to send after "connected")
   const pendingJoinRef = useRef<{ name: string; color: string } | null>(null);
 
+  // Track intent: 'create' vs 'join' — used to detect "room not found"
+  const intentRef = useRef<'create' | 'join' | null>(null);
+
+  // Track intentional closes (leave, room-not-found) to suppress "Connection lost"
+  const intentionalCloseRef = useRef(false);
+
+  // Track recent server errors to prevent onclose overwriting them
+  const lastErrorTimeRef = useRef(0);
+
   // Error auto-clear timer ref
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,6 +77,7 @@ export function useRoom(): UseRoomReturn {
   const setErrorWithAutoClear = useCallback((msg: string) => {
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     setError(msg);
+    lastErrorTimeRef.current = Date.now();
     errorTimerRef.current = setTimeout(() => setError(null), 3000);
   }, []);
 
@@ -106,6 +116,19 @@ export function useRoom(): UseRoomReturn {
           break;
 
         case "room_state":
+          // Detect "room not found" — joined as sole player when intent was "join"
+          if (intentRef.current === 'join' && msg.players.length === 1) {
+            intentionalCloseRef.current = true;
+            if (socketRef.current) {
+              socketRef.current.close();
+              socketRef.current = null;
+            }
+            resetState();
+            setErrorWithAutoClear("Room not found");
+            intentRef.current = null;
+            return;
+          }
+          intentRef.current = null;
           setPlayers(msg.players);
           setHostId(msg.hostId);
           setStatus(msg.status);
@@ -134,8 +157,16 @@ export function useRoom(): UseRoomReturn {
     };
 
     socket.onclose = () => {
+      if (intentionalCloseRef.current) {
+        intentionalCloseRef.current = false;
+        return;
+      }
+      // Don't overwrite a recent server error (e.g., "Room is full")
+      const hadRecentError = Date.now() - lastErrorTimeRef.current < 500;
       resetState();
-      setErrorWithAutoClear("Connection lost");
+      if (!hadRecentError) {
+        setErrorWithAutoClear("Connection lost");
+      }
     };
   }, [resetState, setErrorWithAutoClear]);
 
@@ -144,10 +175,12 @@ export function useRoom(): UseRoomReturn {
   const createRoom = useCallback((playerName: string, color: string) => {
     // Close any existing connection
     if (socketRef.current) {
+      intentionalCloseRef.current = true;
       socketRef.current.close();
       socketRef.current = null;
     }
 
+    intentRef.current = 'create';
     const code = generateRoomCode();
     pendingJoinRef.current = { name: playerName, color };
 
@@ -165,10 +198,12 @@ export function useRoom(): UseRoomReturn {
 
     // Close any existing connection
     if (socketRef.current) {
+      intentionalCloseRef.current = true;
       socketRef.current.close();
       socketRef.current = null;
     }
 
+    intentRef.current = 'join';
     pendingJoinRef.current = { name: playerName, color };
 
     const socket = createPartyConnection(code);
@@ -178,6 +213,7 @@ export function useRoom(): UseRoomReturn {
 
   const leave = useCallback(() => {
     if (socketRef.current) {
+      intentionalCloseRef.current = true;
       sendMessage(socketRef.current, { type: "leave" });
       socketRef.current.close();
       socketRef.current = null;

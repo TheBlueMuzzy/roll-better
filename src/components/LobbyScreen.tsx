@@ -9,8 +9,15 @@ interface LobbyScreenProps {
   onBack: () => void;
 }
 
-const TARGET_COUNTS = [2, 3, 4, 5, 6, 7, 8];
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
+const SILLY_NAMES = [
+  'Wobble', 'Noodle', 'Pickle', 'Wombat', 'Nugget', 'Biscuit', 'Muffin', 'Waffle',
+  'Gremlin', 'Goblin', 'Pepper', 'Taco', 'Doodle', 'Sprout', 'Turnip', 'Bonkers',
+  'Zippy', 'Pudding', 'Snooze', 'Pebble', 'Bumble', 'Fizz', 'Quirky', 'Rascal',
+];
+
+function getRandomName(): string {
+  return SILLY_NAMES[Math.floor(Math.random() * SILLY_NAMES.length)];
+}
 
 export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) {
   const room = useRoom();
@@ -30,21 +37,10 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
   const [name, setName] = useState('');
   const [codeChars, setCodeChars] = useState(['', '', '', '']);
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
-
-  // --- Lobby host controls state ---
-  const [targetPlayers, setTargetPlayers] = useState(4);
-  const [aiDifficulty, setAiDifficulty] = useState('Medium');
+  const [shakeJoin, setShakeJoin] = useState(false);
 
   // --- Clipboard feedback ---
   const [copied, setCopied] = useState(false);
-
-  // Update target players when online player count changes
-  useEffect(() => {
-    const onlineCount = room.players.length;
-    if (onlineCount > targetPlayers) {
-      setTargetPlayers(onlineCount);
-    }
-  }, [room.players.length]);
 
   // --- Game start detection ---
   useEffect(() => {
@@ -56,6 +52,19 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
       );
     }
   }, [room.gameStartData, onGameStart]);
+
+  // --- Watch for join errors → shake + clear code ---
+  const prevErrorRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (room.error && room.error !== prevErrorRef.current && codeChars.some(c => c !== '')) {
+      setShakeJoin(true);
+      setTimeout(() => {
+        setCodeChars(['', '', '', '']);
+        setShakeJoin(false);
+      }, 500);
+    }
+    prevErrorRef.current = room.error;
+  }, [room.error]);
 
   // --- Code input handlers ---
   const handleCodeInput = useCallback((index: number, value: string) => {
@@ -107,17 +116,18 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
 
   const fullCode = codeChars.join('');
   const codeComplete = fullCode.length === 4;
+  const hasCodeChars = codeChars.some(c => c !== '');
 
   // --- Actions ---
+  const getDisplayName = () => name.trim() || getRandomName();
+
   const handleCreate = () => {
-    if (!name.trim()) return;
-    room.createRoom(name.trim(), PLAYER_COLORS[0]);
+    room.createRoom(getDisplayName(), PLAYER_COLORS[0]);
   };
 
   const handleJoin = () => {
-    if (!name.trim() || !codeComplete) return;
-    // Color will be corrected by room_state
-    room.joinRoom(fullCode, name.trim(), PLAYER_COLORS[1]);
+    if (!codeComplete) return;
+    room.joinRoom(fullCode, getDisplayName(), PLAYER_COLORS[1]);
   };
 
   const handleCopyCode = async () => {
@@ -137,7 +147,9 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
   };
 
   const handleStart = () => {
-    room.startGame(targetPlayers, aiDifficulty.toLowerCase());
+    const online = room.players.length;
+    const total = online < 4 ? 4 : online;
+    room.startGame(total, 'hard');
   };
 
   // Determine which view to show
@@ -150,6 +162,9 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
   // Current player's ready state
   const myPlayer = room.players.find(p => p.id === room.playerId);
   const amReady = myPlayer?.isReady ?? false;
+
+  // Total players (fill to 4 with AI if fewer than 4 online)
+  const totalPlayers = room.players.length < 4 ? 4 : room.players.length;
 
   if (!visible) return null;
 
@@ -170,10 +185,10 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
             onChange={(e) => setName(e.target.value)}
           />
 
-          {/* Create Room button */}
+          {/* Create Room button — disabled when code chars entered */}
           <button
             className="lobby-create-btn"
-            disabled={!name.trim()}
+            disabled={hasCodeChars}
             onClick={handleCreate}
           >
             CREATE ROOM
@@ -203,10 +218,10 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
             ))}
           </div>
 
-          {/* Join button */}
+          {/* Join button — enabled only when 4 chars, shakes on error */}
           <button
-            className="lobby-join-btn"
-            disabled={!codeComplete || !name.trim()}
+            className={`lobby-join-btn${shakeJoin ? ' shake' : ''}`}
+            disabled={!codeComplete}
             onClick={handleJoin}
           >
             JOIN
@@ -234,6 +249,14 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
           </div>
           <p className="lobby-share-text">Share this code with friends</p>
 
+          {/* Total players count */}
+          <div className="lobby-player-count">
+            Total Players: {totalPlayers}
+            {room.players.length < 4 && (
+              <span className="lobby-ai-note"> ({4 - room.players.length} AI)</span>
+            )}
+          </div>
+
           {/* Player list */}
           <div className="lobby-player-list">
             {room.players.map((player) => (
@@ -247,58 +270,26 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
                   {player.name}
                   {player.id === room.playerId && ' (You)'}
                 </span>
-                <span className={`lobby-ready-indicator${player.isReady ? ' ready' : ''}`}>
-                  {player.isReady ? '\u2713' : '\u2014'}
+                <span className={`lobby-ready-indicator${(player.isHost || player.isReady) ? ' ready' : ''}`}>
+                  {(player.isHost || player.isReady) ? '\u2713' : '\u2715'}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Ready toggle */}
-          <button
-            className={`lobby-ready-btn${amReady ? ' ready' : ''}`}
-            onClick={() => room.toggleReady()}
-          >
-            {amReady ? 'NOT READY' : 'READY'}
-          </button>
+          {/* Ready toggle — only for non-host players */}
+          {!room.isHost && (
+            <button
+              className={`lobby-ready-btn${amReady ? ' ready' : ''}`}
+              onClick={() => room.toggleReady()}
+            >
+              {amReady ? 'READY \u2713' : 'READY \u2715'}
+            </button>
+          )}
 
-          {/* Host controls */}
+          {/* Host controls — simplified: just START GAME */}
           {room.isHost && (
             <div className="lobby-host-controls">
-              {/* Player count target */}
-              <div className="menu-selector-group">
-                <span className="menu-selector-label">Total Players (incl. AI)</span>
-                <div className="menu-selector">
-                  {TARGET_COUNTS.map((count) => (
-                    <button
-                      key={count}
-                      className={`menu-btn${targetPlayers === count ? ' selected' : ''}`}
-                      disabled={count < room.players.length}
-                      onClick={() => setTargetPlayers(count)}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* AI difficulty */}
-              <div className="menu-selector-group">
-                <span className="menu-selector-label">AI Difficulty</span>
-                <div className="menu-selector">
-                  {DIFFICULTIES.map((d) => (
-                    <button
-                      key={d}
-                      className={`menu-btn${aiDifficulty === d ? ' selected' : ''}`}
-                      onClick={() => setAiDifficulty(d)}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start game */}
               <button
                 className="lobby-start-btn"
                 disabled={!allReady}

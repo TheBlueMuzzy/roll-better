@@ -9,6 +9,12 @@ import type {
 
 const MAX_PLAYERS = 8;
 
+// Player colors — assigned by join order (matches client PLAYER_COLORS)
+const PLAYER_COLORS = [
+  '#e74c3c', '#3498db', '#2ecc71', '#f1c40f',
+  '#9b59b6', '#e67e22', '#e91e8f', '#1abc9c',
+];
+
 export default class RollBetterServer implements Party.Server {
   readonly room: Party.Room;
 
@@ -125,12 +131,13 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Create player
+    // Create player — color assigned by join order, not client-specified
     const isFirstPlayer = this.players.size === 0;
+    const colorIndex = this.players.size;
     const player: RoomPlayer = {
       id: conn.id,
       name: trimmedName,
-      color: color ?? "#ffffff",
+      color: PLAYER_COLORS[colorIndex % PLAYER_COLORS.length],
       isHost: isFirstPlayer,
       isReady: false,
     };
