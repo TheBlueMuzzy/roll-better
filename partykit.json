@@ -1,5 +1,6 @@
 {
   "name": "roll-better",
   "main": "party/server.ts",
-  "compatibilityDate": "2024-12-01"
+  "compatibilityDate": "2024-12-01",
+  "port": 1999
 }
