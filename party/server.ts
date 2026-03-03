@@ -5,7 +5,10 @@ import type {
   ClientMessage,
   ServerMessage,
   GameStartingMessage,
+  LockedDieSync,
+  PlayerSyncState,
 } from "../src/types/protocol";
+import { findAutoLocks } from "../src/utils/matchDetection";
 
 const MAX_PLAYERS = 8;
 
@@ -15,6 +18,28 @@ const PLAYER_COLORS = [
   '#9b59b6', '#e67e22', '#e91e8f', '#1abc9c',
 ];
 
+// ─── Server-Side Game State (not exported) ─────────────────────────
+
+interface ServerPlayerState {
+  id: string;
+  name: string;
+  color: string;
+  score: number;
+  startingDice: number;
+  poolSize: number;
+  lockedDice: LockedDieSync[];
+  isOnline: boolean;
+}
+
+interface ServerGameState {
+  currentRound: number;
+  goalValues: number[];
+  phase: string;
+  players: ServerPlayerState[];
+  rollRequestedBy: Set<string>;
+  unlockResponses: Map<string, { type: "unlock" | "skip"; slotIndices?: number[] }>;
+}
+
 export default class RollBetterServer implements Party.Server {
   readonly room: Party.Room;
 
@@ -22,6 +47,9 @@ export default class RollBetterServer implements Party.Server {
   players: Map<string, RoomPlayer> = new Map();
   hostId: string | null = null;
   status: RoomStatus = "waiting";
+
+  // ─── Game State (null during lobby, initialized on game start) ────
+  gameState: ServerGameState | null = null;
 
   constructor(room: Party.Room) {
     this.room = room;
@@ -221,6 +249,100 @@ export default class RollBetterServer implements Party.Server {
 
     this.room.broadcast(JSON.stringify(startMsg));
     this.log(`Game starting — ${this.players.size} online players, ${targetPlayers} target, AI: ${aiDifficulty}`);
+
+    // ─── Initialize server game state ────────────────────────────────
+    const botCount = targetPlayers - this.players.size;
+    const gamePlayers: ServerPlayerState[] = [];
+
+    // Online players
+    for (const p of this.players.values()) {
+      gamePlayers.push({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        score: 0,
+        startingDice: 5,
+        poolSize: 5,
+        lockedDice: [],
+        isOnline: true,
+      });
+    }
+
+    // Bot players (assigned unused colors)
+    for (let i = 0; i < botCount; i++) {
+      const botIndex = this.players.size + i;
+      gamePlayers.push({
+        id: `bot-${i}`,
+        name: `Bot ${i + 1}`,
+        color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
+        score: 0,
+        startingDice: 5,
+        poolSize: 5,
+        lockedDice: [],
+        isOnline: false,
+      });
+    }
+
+    this.gameState = {
+      currentRound: 0,
+      goalValues,               // reuse from game_starting for round 1
+      phase: "idle",
+      players: gamePlayers,
+      rollRequestedBy: new Set(),
+      unlockResponses: new Map(),
+    };
+
+    // Start round 1 — reuse the goalValues already generated above
+    this.serverInitRound(true);
+  }
+
+  // ─── Game Logic ─────────────────────────────────────────────────
+
+  /**
+   * Initialize a new round. If reuseGoals is true, keep existing goalValues
+   * (used for round 1 where goals were already generated with game_starting).
+   */
+  private serverInitRound(reuseGoals: boolean = false) {
+    if (!this.gameState) return;
+
+    // Generate new goals for rounds after the first
+    if (!reuseGoals) {
+      this.gameState.goalValues = Array.from({ length: 8 }, () =>
+        Math.floor(Math.random() * 6) + 1
+      ).sort((a, b) => a - b);
+    }
+
+    // Reset all players for new round
+    for (const p of this.gameState.players) {
+      p.poolSize = p.startingDice;
+      p.lockedDice = [];
+    }
+
+    this.gameState.phase = "idle";
+    this.gameState.currentRound += 1;
+    this.gameState.rollRequestedBy.clear();
+    this.gameState.unlockResponses.clear();
+
+    // Broadcast round_start to all clients
+    const syncPlayers: PlayerSyncState[] = this.gameState.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      score: p.score,
+      startingDice: p.startingDice,
+      poolSize: p.poolSize,
+      lockedDice: p.lockedDice,
+    }));
+
+    const roundStartMsg: ServerMessage = {
+      type: "round_start",
+      round: this.gameState.currentRound,
+      goalValues: this.gameState.goalValues,
+      players: syncPlayers,
+    };
+
+    this.room.broadcast(JSON.stringify(roundStartMsg));
+    this.log(`Round ${this.gameState.currentRound} started — goals: [${this.gameState.goalValues.join(", ")}]`);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
