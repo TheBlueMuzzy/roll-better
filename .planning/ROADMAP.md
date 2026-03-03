@@ -204,10 +204,12 @@ Plans:
 **Depends on**: v1.0 complete (Phase 13)
 **Research**: Likely (new technology — Partykit/Cloudflare Workers)
 **Research topics**: Partykit setup and deployment, Cloudflare Workers free tier limits, room lifecycle API, message serialization
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: TBD (run /gsd:plan-phase 14 to break down)
+- [ ] 14-01: Partykit project scaffold + message protocol types
+- [ ] 14-02: Room server implementation (player tracking, host assignment, lifecycle)
+- [ ] 14-03: Client connection utility + integration verification
 
 #### Phase 15: Lobby UI + Room Codes
 **Goal**: Jackbox-style 4-letter room codes, lobby screen with player list, ready-up, host start fills empty slots with AI
