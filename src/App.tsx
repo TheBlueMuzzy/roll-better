@@ -119,10 +119,17 @@ function App() {
   }, [setScreen]);
 
   // Online game start handler — called from LobbyScreen when game_starting fires
-  const handleOnlineGameStart = useCallback((_players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayer: { name: string; color: string }) => {
-    // Start game with online settings — use server-assigned name/color for local player
+  const handleOnlineGameStart = useCallback((players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayerId: string) => {
+    // Reorder: local player first, then others (preserving join order)
+    const localPlayer = players.find(p => p.id === localPlayerId);
+    const otherPlayers = players.filter(p => p.id !== localPlayerId);
+    const orderedPlayers = [
+      ...(localPlayer ? [{ name: localPlayer.name, color: localPlayer.color }] : []),
+      ...otherPlayers.map(p => ({ name: p.name, color: p.color })),
+    ];
+
     const difficulty = aiDifficulty as AIDifficulty;
-    initGame(targetPlayers, difficulty, { localPlayer });
+    initGame(targetPlayers, difficulty, orderedPlayers);
     initRound({ goalValues }); // Use server-provided goals so all clients match
     setScreen('game');
     // Start pool spawn animation

@@ -5,7 +5,7 @@ import type { RoomPlayer } from '../types/protocol';
 
 interface LobbyScreenProps {
   visible: boolean;
-  onGameStart: (players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayer: { name: string; color: string }) => void;
+  onGameStart: (players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayerId: string) => void;
   onBack: () => void;
 }
 
@@ -44,14 +44,13 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
 
   // --- Game start detection ---
   useEffect(() => {
-    if (room.gameStartData) {
-      const myPlayer = room.gameStartData.players.find(p => p.id === room.playerId);
+    if (room.gameStartData && room.playerId) {
       onGameStart(
         room.gameStartData.players,
         room.gameStartData.targetPlayers,
         room.gameStartData.aiDifficulty,
         room.gameStartData.goalValues,
-        myPlayer ? { name: myPlayer.name, color: myPlayer.color } : { name: 'You', color: PLAYER_COLORS[0] },
+        room.playerId,
       );
     }
   }, [room.gameStartData, onGameStart, room.playerId]);

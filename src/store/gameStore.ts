@@ -26,7 +26,7 @@ interface GameStore extends GameState {
   setPhase: (phase: GamePhase) => void;
 
   // Game setup
-  initGame: (playerCount: number, aiDifficulty?: AIDifficulty) => void;
+  initGame: (playerCount: number, aiDifficulty?: AIDifficulty, onlinePlayers?: { name: string; color: string }[]) => void;
   initRound: (options?: { skipPhase?: boolean; goalValues?: number[] }) => void;
 
   // Goal transition
@@ -134,26 +134,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium', onlineInfo?: { localPlayer: { name: string; color: string } }) => {
-    // Player 0's name/color: use server-assigned values for online, defaults for offline
-    const p0Name = onlineInfo?.localPlayer.name ?? 'You';
-    const p0Color = onlineInfo?.localPlayer.color ?? PLAYER_COLORS[0];
+  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium', onlinePlayers?: { name: string; color: string }[]) => {
+    // onlinePlayers: ordered array from lobby (local player first, then others).
+    // Indices 0..onlinePlayers.length-1 use lobby names/colors.
+    // Remaining slots filled with AI bots using unused colors.
+    const onlineCount = onlinePlayers?.length ?? 0;
+    const usedColors = new Set(onlinePlayers?.map(p => p.color) ?? []);
+    const botColors = PLAYER_COLORS.filter(c => !usedColors.has(c));
+    let botIdx = 0;
 
-    // Other players get colors from the palette, skipping player 0's color
-    const otherColors = PLAYER_COLORS.filter(c => c !== p0Color);
-
-    const players = Array.from({ length: playerCount }, (_, i) => ({
-      id: `player-${i}`,
-      name: i === 0 ? p0Name : `Player ${i + 1}`,
-      color: i === 0 ? p0Color : otherColors[(i - 1) % otherColors.length],
-      score: 0,
-      startingDice: 2,
-      poolSize: 2,
-      lockedDice: [],
-      selectedForUnlock: [],
-      isAI: i !== 0,
-      difficulty: i !== 0 ? aiDifficulty : undefined,
-    }));
+    const players = Array.from({ length: playerCount }, (_, i) => {
+      if (onlinePlayers && i < onlineCount) {
+        // Online player (index 0 = local human, others = AI locally until Phase 16)
+        return {
+          id: `player-${i}`,
+          name: onlinePlayers[i].name,
+          color: onlinePlayers[i].color,
+          score: 0,
+          startingDice: 2,
+          poolSize: 2,
+          lockedDice: [] as LockedDie[],
+          selectedForUnlock: [] as number[],
+          isAI: i !== 0,
+          difficulty: i !== 0 ? aiDifficulty : undefined,
+        };
+      }
+      // AI bot filling remaining slots
+      const color = botColors[botIdx % botColors.length];
+      botIdx++;
+      return {
+        id: `player-${i}`,
+        name: `Bot ${botIdx}`,
+        color,
+        score: 0,
+        startingDice: 2,
+        poolSize: 2,
+        lockedDice: [] as LockedDie[],
+        selectedForUnlock: [] as number[],
+        isAI: true,
+        difficulty: aiDifficulty,
+      };
+    });
 
     set({ players, phase: 'lobby', currentRound: 0, roundState: initialRoundState, shownTips: [] });
   },
