@@ -405,6 +405,9 @@ function App() {
     }
   }, [setPhase, startAIUnlockAnimations]);
 
+  // Read online mode flag for handleRoll
+  const isOnlineGame = useGameStore((s) => s.isOnlineGame);
+
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
@@ -416,9 +419,13 @@ function App() {
       setVolume(useGameStore.getState().settings.audioVolume);
     }
 
+    if (isOnlineGame) {
+      sendRollRequest(); // Tell server to generate dice
+    }
+
     setPhase('rolling');
-    sceneRef.current?.rollAll();
-  }, [setPhase]);
+    sceneRef.current?.rollAll(); // Visual physics animation (both modes)
+  }, [setPhase, isOnlineGame, sendRollRequest]);
 
   // Shake-to-roll (mobile) — must come after handleRoll is defined
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);

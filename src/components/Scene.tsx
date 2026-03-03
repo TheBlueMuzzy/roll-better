@@ -136,10 +136,17 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       lerpExpectedCount.current = 0;
       aiLerpCompleteCount.current = 0;
       aiLerpExpectedCount.current = 0;
-      // Pass sorted values + positions + rotations directly to store (includes animation computation)
-      useGameStore.getState().setRollResults(values, positions, rotations);
-      // Also notify App via callback (for any non-position-aware consumers)
-      onResults?.(values);
+
+      const state = useGameStore.getState();
+      if (state.isOnlineGame) {
+        // Online: store physics positions, wait for server results merge
+        state.setPhysicsSettledData({ positions, rotations });
+      } else {
+        // Offline: use physics-determined values directly
+        state.setRollResults(values, positions, rotations);
+        // Also notify App via callback (for any non-position-aware consumers)
+        onResults?.(values);
+      }
     }
 
     function handleLerpComplete() {
