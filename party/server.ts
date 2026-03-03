@@ -10,6 +10,7 @@ import type {
   PlayerRollResult,
 } from "../src/types/protocol";
 import { findAutoLocks } from "../src/utils/matchDetection";
+import { getAIUnlockDecision } from "../src/utils/aiDecision";
 
 const MAX_PLAYERS = 8;
 
@@ -30,6 +31,7 @@ interface ServerPlayerState {
   poolSize: number;
   lockedDice: LockedDieSync[];
   isOnline: boolean;
+  difficulty?: string;
 }
 
 interface ServerGameState {
@@ -39,6 +41,7 @@ interface ServerGameState {
   players: ServerPlayerState[];
   rollRequestedBy: Set<string>;
   unlockResponses: Map<string, { type: "unlock" | "skip"; slotIndices?: number[] }>;
+  aiDifficulty: string;
 }
 
 export default class RollBetterServer implements Party.Server {
@@ -51,6 +54,11 @@ export default class RollBetterServer implements Party.Server {
 
   // ─── Game State (null during lobby, initialized on game start) ────
   gameState: ServerGameState | null = null;
+
+  // ─── Timer IDs (for cleanup on room close) ─────────────────────────
+  private lockingTimer: ReturnType<typeof setTimeout> | null = null;
+  private scoringTimer: ReturnType<typeof setTimeout> | null = null;
+  private roundEndTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(room: Party.Room) {
     this.room = room;
@@ -125,6 +133,12 @@ export default class RollBetterServer implements Party.Server {
       case "roll_request":
         this.handleRollRequest(sender);
         break;
+      case "unlock_request":
+        this.handleUnlockRequest(sender, parsed.slotIndices);
+        break;
+      case "skip_unlock":
+        this.handleSkipUnlock(sender);
+        break;
       default:
         this.log(`Warning: unknown message type "${(parsed as { type: string }).type}" from ${sender.id}`);
         break;
@@ -133,6 +147,11 @@ export default class RollBetterServer implements Party.Server {
 
   onClose(conn: Party.Connection) {
     this.removePlayer(conn.id);
+
+    // If no players remain, clean up timers
+    if (this.players.size === 0) {
+      this.cleanupTimers();
+    }
   }
 
   // ─── Message Handlers ─────────────────────────────────────────────
@@ -284,6 +303,7 @@ export default class RollBetterServer implements Party.Server {
         poolSize: 5,
         lockedDice: [],
         isOnline: false,
+        difficulty: aiDifficulty,
       });
     }
 
@@ -294,6 +314,7 @@ export default class RollBetterServer implements Party.Server {
       players: gamePlayers,
       rollRequestedBy: new Set(),
       unlockResponses: new Map(),
+      aiDifficulty,
     };
 
     // Start round 1 — reuse the goalValues already generated above
@@ -423,26 +444,336 @@ export default class RollBetterServer implements Party.Server {
     // Set phase to locking
     this.gameState.phase = "locking";
 
-    // After a delay, advance to next phase
-    setTimeout(() => {
+    // After a delay, check for winner or advance to unlocking
+    this.lockingTimer = setTimeout(() => {
+      this.lockingTimer = null;
       if (!this.gameState || this.gameState.phase !== "locking") return;
-
-      // Check if any player has all 8 goal slots locked → scoring
-      const winner = this.gameState.players.find((p) => p.lockedDice.length >= 8);
-      if (winner) {
-        // Scoring will be handled in 16-02 — for now just set phase
-        this.gameState.phase = "scoring";
-        const phaseMsg: ServerMessage = { type: "phase_change", phase: "scoring" };
-        this.room.broadcast(JSON.stringify(phaseMsg));
-        this.log(`Player ${winner.name} filled all 8 slots — scoring phase`);
-      } else {
-        // Advance to unlocking phase
-        this.gameState.phase = "unlocking";
-        const phaseMsg: ServerMessage = { type: "phase_change", phase: "unlocking" };
-        this.room.broadcast(JSON.stringify(phaseMsg));
-        this.log(`Phase → unlocking`);
-      }
+      this.checkWinnerOrUnlock();
     }, 1000);
+  }
+
+  // ─── Unlock Handlers ────────────────────────────────────────────
+
+  /**
+   * Handle an unlock request from an online player.
+   * Validates slot indices, stores the response, and checks if all have responded.
+   */
+  private handleUnlockRequest(sender: Party.Connection, slotIndices: number[]) {
+    if (!this.gameState) {
+      this.sendToConnection(sender, { type: "error", message: "No active game" });
+      return;
+    }
+
+    if (this.gameState.phase !== "unlocking") {
+      this.sendToConnection(sender, { type: "error", message: "Cannot unlock in current phase" });
+      return;
+    }
+
+    const player = this.gameState.players.find((p) => p.id === sender.id && p.isOnline);
+    if (!player) {
+      this.sendToConnection(sender, { type: "error", message: "You are not an online player in this game" });
+      return;
+    }
+
+    // Validate each slot index: must be a currently locked slot belonging to this player
+    const lockedSlotIndices = new Set(player.lockedDice.map((d) => d.goalSlotIndex));
+    for (const idx of slotIndices) {
+      if (!lockedSlotIndices.has(idx)) {
+        this.sendToConnection(sender, {
+          type: "error",
+          message: `Slot ${idx} is not a locked slot for you`,
+        });
+        return;
+      }
+    }
+
+    // Store response
+    this.gameState.unlockResponses.set(sender.id, { type: "unlock", slotIndices });
+    this.log(`Player ${player.name} chose to unlock slots [${slotIndices.join(", ")}]`);
+
+    // Check if all online players have responded
+    this.checkAllUnlockResponses();
+  }
+
+  /**
+   * Handle a skip-unlock from an online player.
+   * Validates the must-unlock guard, stores the response, checks completion.
+   */
+  private handleSkipUnlock(sender: Party.Connection) {
+    if (!this.gameState) {
+      this.sendToConnection(sender, { type: "error", message: "No active game" });
+      return;
+    }
+
+    if (this.gameState.phase !== "unlocking") {
+      this.sendToConnection(sender, { type: "error", message: "Cannot skip unlock in current phase" });
+      return;
+    }
+
+    const player = this.gameState.players.find((p) => p.id === sender.id && p.isOnline);
+    if (!player) {
+      this.sendToConnection(sender, { type: "error", message: "You are not an online player in this game" });
+      return;
+    }
+
+    // Must-unlock guard: can't skip if poolSize === 0 and not all 8 locked
+    if (player.poolSize === 0 && player.lockedDice.length < 8) {
+      this.sendToConnection(sender, {
+        type: "error",
+        message: "You must unlock at least one die — your pool is empty",
+      });
+      return;
+    }
+
+    // Store response
+    this.gameState.unlockResponses.set(sender.id, { type: "skip" });
+    this.log(`Player ${player.name} skipped unlock`);
+
+    // Check if all online players have responded
+    this.checkAllUnlockResponses();
+  }
+
+  /**
+   * Check if all online players have submitted unlock/skip responses.
+   * If yes, process all unlocks.
+   */
+  private checkAllUnlockResponses() {
+    if (!this.gameState) return;
+
+    const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
+    const allResponded = onlinePlayers.every((p) =>
+      this.gameState!.unlockResponses.has(p.id)
+    );
+
+    if (allResponded) {
+      this.processAllUnlocks();
+    }
+  }
+
+  /**
+   * Process all unlock decisions: AI bots first, then human responses.
+   * Broadcasts unlock_result for each player who unlocked.
+   * Transitions to idle phase.
+   */
+  private processAllUnlocks() {
+    if (!this.gameState) return;
+
+    // ─── AI bot unlock decisions ────────────────────────────────────
+    for (const player of this.gameState.players) {
+      if (player.isOnline) continue; // skip human players
+      if (player.lockedDice.length === 0) continue;
+      if (player.lockedDice.length >= 8) continue;
+
+      const difficulty = player.difficulty ?? this.gameState.aiDifficulty;
+      const slotsToUnlock = getAIUnlockDecision({
+        goalValues: this.gameState.goalValues,
+        lockedDice: player.lockedDice,
+        poolSize: player.poolSize,
+        difficulty: difficulty as "easy" | "medium" | "hard",
+      });
+
+      if (slotsToUnlock.length > 0) {
+        // Apply unlock to server state
+        player.lockedDice = player.lockedDice.filter(
+          (ld) => !slotsToUnlock.includes(ld.goalSlotIndex)
+        );
+        player.poolSize += 2 * slotsToUnlock.length;
+
+        // Broadcast unlock_result for this bot
+        const unlockMsg: ServerMessage = {
+          type: "unlock_result",
+          playerId: player.id,
+          unlockedSlots: slotsToUnlock,
+          newPoolSize: player.poolSize,
+          lockedDice: player.lockedDice,
+        };
+        this.room.broadcast(JSON.stringify(unlockMsg));
+        this.log(`Bot ${player.name} unlocked slots [${slotsToUnlock.join(", ")}] — pool: ${player.poolSize}`);
+      }
+    }
+
+    // ─── Human player unlock decisions ──────────────────────────────
+    for (const [playerId, response] of this.gameState.unlockResponses) {
+      const player = this.gameState.players.find((p) => p.id === playerId);
+      if (!player) continue;
+
+      if (response.type === "unlock" && response.slotIndices && response.slotIndices.length > 0) {
+        const unlockCount = response.slotIndices.length;
+
+        // Remove locked dice at selected slots
+        player.lockedDice = player.lockedDice.filter(
+          (ld) => !response.slotIndices!.includes(ld.goalSlotIndex)
+        );
+        player.poolSize += 2 * unlockCount;
+
+        // Broadcast unlock_result for this player
+        const unlockMsg: ServerMessage = {
+          type: "unlock_result",
+          playerId: player.id,
+          unlockedSlots: response.slotIndices,
+          newPoolSize: player.poolSize,
+          lockedDice: player.lockedDice,
+        };
+        this.room.broadcast(JSON.stringify(unlockMsg));
+        this.log(`Player ${player.name} unlocked ${unlockCount} slots — pool: ${player.poolSize}`);
+      }
+      // 'skip' → no state change, no broadcast needed
+    }
+
+    // Clear responses and transition to idle
+    this.gameState.unlockResponses.clear();
+    this.gameState.phase = "idle";
+    const phaseMsg: ServerMessage = { type: "phase_change", phase: "idle" };
+    this.room.broadcast(JSON.stringify(phaseMsg));
+    this.log("Phase → idle (unlocks processed)");
+  }
+
+  // ─── Scoring & Round Transitions ──────────────────────────────────
+
+  /**
+   * After locking completes, check if any player has won (8 locked dice).
+   * If yes → scoring. If no → unlocking phase.
+   */
+  private checkWinnerOrUnlock() {
+    if (!this.gameState) return;
+
+    const winner = this.gameState.players.find((p) => p.lockedDice.length >= 8);
+    if (winner) {
+      this.handleScoring(winner.id);
+    } else {
+      // Advance to unlocking phase
+      this.gameState.phase = "unlocking";
+      this.gameState.unlockResponses.clear();
+      const phaseMsg: ServerMessage = { type: "phase_change", phase: "unlocking" };
+      this.room.broadcast(JSON.stringify(phaseMsg));
+      this.log("Phase → unlocking");
+    }
+  }
+
+  /**
+   * Compute the round score for the winner, broadcast scoring message,
+   * then transition to handicap/next round after a delay.
+   */
+  private handleScoring(winnerId: string) {
+    if (!this.gameState) return;
+
+    const winner = this.gameState.players.find((p) => p.id === winnerId);
+    if (!winner) return;
+
+    // Compute round score: same formula as gameStore.ts
+    const penalties = [1, 0, 1, 1];
+    let penalty = 0;
+    for (let i = 0; i < winner.poolSize && i < penalties.length; i++) {
+      penalty += penalties[i];
+    }
+    const roundScore = Math.max(0, 8 - penalty);
+
+    // Add score to winner
+    winner.score += roundScore;
+
+    // Set phase to scoring
+    this.gameState.phase = "scoring";
+
+    // Build sync player states for broadcast
+    const syncPlayers: PlayerSyncState[] = this.gameState.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      score: p.score,
+      startingDice: p.startingDice,
+      poolSize: p.poolSize,
+      lockedDice: p.lockedDice,
+    }));
+
+    // Broadcast scoring message
+    const scoringMsg: ServerMessage = {
+      type: "scoring",
+      winnerId,
+      roundScore,
+      players: syncPlayers,
+    };
+    this.room.broadcast(JSON.stringify(scoringMsg));
+    this.log(`Scoring: ${winner.name} won with ${roundScore} points (pool: ${winner.poolSize}) — total: ${winner.score}`);
+
+    // After 2 seconds, apply handicap and move to next round
+    this.scoringTimer = setTimeout(() => {
+      this.scoringTimer = null;
+      this.handleHandicapAndNextRound(winnerId);
+    }, 2000);
+  }
+
+  /**
+   * Apply handicap to all players, check for session end,
+   * then start next round or end session.
+   */
+  private handleHandicapAndNextRound(winnerId: string) {
+    if (!this.gameState) return;
+
+    // Apply handicap
+    for (const player of this.gameState.players) {
+      if (player.id === winnerId) {
+        // Winner: decrease starting dice (min 1)
+        player.startingDice = Math.max(1, player.startingDice - 1);
+      } else {
+        // Others: increase starting dice (max 12)
+        player.startingDice = Math.min(12, player.startingDice + 1);
+      }
+    }
+
+    // Check session end: any player score >= 20
+    const sessionOver = this.gameState.players.some((p) => p.score >= 20);
+
+    if (sessionOver) {
+      // Session end
+      this.gameState.phase = "sessionEnd";
+      const syncPlayers: PlayerSyncState[] = this.gameState.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        score: p.score,
+        startingDice: p.startingDice,
+        poolSize: p.poolSize,
+        lockedDice: p.lockedDice,
+      }));
+      const sessionEndMsg: ServerMessage = {
+        type: "session_end",
+        players: syncPlayers,
+      };
+      this.room.broadcast(JSON.stringify(sessionEndMsg));
+      this.log("Session ended — a player reached 20 points");
+    } else {
+      // Round end → next round
+      this.gameState.phase = "roundEnd";
+      const phaseMsg: ServerMessage = { type: "phase_change", phase: "roundEnd" };
+      this.room.broadcast(JSON.stringify(phaseMsg));
+      this.log("Phase → roundEnd");
+
+      // After 500ms, start next round
+      this.roundEndTimer = setTimeout(() => {
+        this.roundEndTimer = null;
+        this.serverInitRound();
+      }, 500);
+    }
+  }
+
+  // ─── Timer Cleanup ────────────────────────────────────────────────
+
+  /**
+   * Clear all pending timers to prevent callbacks firing after room closes.
+   */
+  private cleanupTimers() {
+    if (this.lockingTimer) {
+      clearTimeout(this.lockingTimer);
+      this.lockingTimer = null;
+    }
+    if (this.scoringTimer) {
+      clearTimeout(this.scoringTimer);
+      this.scoringTimer = null;
+    }
+    if (this.roundEndTimer) {
+      clearTimeout(this.roundEndTimer);
+      this.roundEndTimer = null;
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
