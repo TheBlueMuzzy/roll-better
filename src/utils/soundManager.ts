@@ -8,6 +8,7 @@ let masterGain: GainNode | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 let activeImpacts = 0;
 const MAX_CONCURRENT_IMPACTS = 8;
+let currentVolume = 100; // Track volume for early-return mute check
 
 // --- Lifecycle ---
 
@@ -30,9 +31,15 @@ export function initAudio(): void {
 
 /** Set master volume. Takes 0-100 (from store), maps to 0-1 gain. */
 export function setVolume(v: number): void {
+  currentVolume = v;
   if (!masterGain || !ctx) return;
   const gain = Math.max(0, Math.min(1, v / 100));
   masterGain.gain.setValueAtTime(gain, ctx.currentTime);
+}
+
+/** True when volume is 0 — skip all sound generation for performance. */
+function isMuted(): boolean {
+  return currentVolume <= 0;
 }
 
 // --- Internal helpers ---
@@ -79,7 +86,7 @@ function playNoiseBurst(
  * @param force - normalized 0-1 impact strength
  */
 export function playDiceImpact(force: number): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   // Throttle concurrent impacts
   if (activeImpacts >= MAX_CONCURRENT_IMPACTS) return;
@@ -99,13 +106,13 @@ export function playDiceImpact(force: number): void {
 
 /** Softer, lower-pitched thud when an individual die stops moving. */
 export function playDiceSettle(): void {
-  if (!ctx || !masterGain) return;
-  playNoiseBurst(30, 400, 800, 0.3);
+  if (!ctx || !masterGain || isMuted()) return;
+  playNoiseBurst(30, 400, 800, 0.2);
 }
 
 /** Short click/snap — like a piece snapping into place. */
 export function playLockSnap(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.015; // 15ms
@@ -126,7 +133,7 @@ export function playLockSnap(): void {
 
 /** Very short filtered noise sweep — subtle movement whoosh. */
 export function playWhoosh(): void {
-  if (!ctx || !masterGain || !noiseBuffer) return;
+  if (!ctx || !masterGain || !noiseBuffer || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.03; // 30ms
@@ -154,7 +161,7 @@ export function playWhoosh(): void {
 
 /** Low rumble during mitosis shake phase (600ms, low-pass filtered noise). */
 export function playMitosisRumble(): void {
-  if (!ctx || !masterGain || !noiseBuffer) return;
+  if (!ctx || !masterGain || !noiseBuffer || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.6; // 600ms
@@ -183,7 +190,7 @@ export function playMitosisRumble(): void {
 
 /** Short bright pop on mitosis split (sine 800Hz + noise, 40ms). */
 export function playMitosisPop(): void {
-  if (!ctx || !masterGain || !noiseBuffer) return;
+  if (!ctx || !masterGain || !noiseBuffer || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.04; // 40ms
@@ -206,7 +213,7 @@ export function playMitosisPop(): void {
 
 /** Tiny pop when a die spawns into the pool (sine 1000Hz, 20ms). */
 export function playSpawnPop(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.02; // 20ms
@@ -227,7 +234,7 @@ export function playSpawnPop(): void {
 
 /** Inverse pop when a die exits the pool (sine 600Hz, 25ms). */
 export function playExitPop(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.025; // 25ms
@@ -248,7 +255,7 @@ export function playExitPop(): void {
 
 /** Tiny sine beep for each point increment during score counting. */
 export function playScoreTick(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.008; // 8ms
@@ -269,7 +276,7 @@ export function playScoreTick(): void {
 
 /** Satisfying three-tone ascending chime (C5-E5-G5) — round score tallied. */
 export function playScoreComplete(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const tones = [523, 659, 784]; // C5, E5, G5
@@ -296,7 +303,7 @@ export function playScoreComplete(): void {
 
 /** Ascending arpeggio (C5-E5-G5-C6) — session winner declared. */
 export function playWinFanfare(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const tones = [523, 659, 784, 1047]; // C5, E5, G5, C6
@@ -323,13 +330,13 @@ export function playWinFanfare(): void {
 
 /** Micro click — generic button/selection sound (noise burst, 5ms, bandpass 3kHz). */
 export function playUIClick(): void {
-  if (!ctx || !masterGain || !noiseBuffer) return;
+  if (!ctx || !masterGain || !noiseBuffer || isMuted()) return;
   playNoiseBurst(5, 2500, 3500, 0.15);
 }
 
 /** Soft select tone for die selection in unlock phase (sine 900Hz, 15ms). */
 export function playSelectDie(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.015; // 15ms
@@ -350,7 +357,7 @@ export function playSelectDie(): void {
 
 /** Lower deselect tone for die deselection (sine 600Hz, 15ms). */
 export function playDeselectDie(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.015; // 15ms
@@ -371,7 +378,7 @@ export function playDeselectDie(): void {
 
 /** Soft rising tone for new round start (sine sweep 400-600Hz over 200ms). */
 export function playRoundStart(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const duration = 0.2; // 200ms
@@ -393,7 +400,7 @@ export function playRoundStart(): void {
 
 /** Flat two-tone "no matches" feedback (sine 400Hz then 350Hz, 60ms each). */
 export function playNoMatch(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
   const toneDuration = 0.06; // 60ms each
@@ -425,7 +432,7 @@ export function playNoMatch(): void {
 
 /** Short ascending two-tone chime — signals "results are in." */
 export function playAllSettled(): void {
-  if (!ctx || !masterGain) return;
+  if (!ctx || !masterGain || isMuted()) return;
 
   const now = ctx.currentTime;
 
@@ -434,7 +441,7 @@ export function playAllSettled(): void {
   osc1.type = 'sine';
   osc1.frequency.value = 600;
   const g1 = ctx.createGain();
-  g1.gain.setValueAtTime(0.25, now);
+  g1.gain.setValueAtTime(0.3, now);
   g1.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
   osc1.connect(g1);
   g1.connect(masterGain);
@@ -446,7 +453,7 @@ export function playAllSettled(): void {
   osc2.type = 'sine';
   osc2.frequency.value = 800;
   const g2 = ctx.createGain();
-  g2.gain.setValueAtTime(0.25, now + 0.06);
+  g2.gain.setValueAtTime(0.3, now + 0.06);
   g2.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
   osc2.connect(g2);
   g2.connect(masterGain);

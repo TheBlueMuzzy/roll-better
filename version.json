@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 97,
+  "build": 98,
   "history": [
     {
       "version": "0.1.0",
@@ -132,6 +132,11 @@
       "version": "0.1.0.97",
       "date": "2026-03-03",
       "summary": "UI & score audio: score tick counting, win fanfare, die select/deselect, round start, no-match, UI clicks"
+    },
+    {
+      "version": "0.1.0.98",
+      "date": "2026-03-03",
+      "summary": "Audio sync audit: mute early-return guards, settle thud volume reduction, all-settled chime bump"
     }
   ]
 }
