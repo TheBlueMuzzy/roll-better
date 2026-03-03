@@ -159,8 +159,7 @@ export interface UnlockResultMessage {
 
 export interface ScoringMessage {
   type: "scoring";
-  winnerId: string;
-  roundScore: number;
+  winners: { playerId: string; roundScore: number }[];
   players: PlayerSyncState[];
 }
 

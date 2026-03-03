@@ -59,6 +59,7 @@ export default class RollBetterServer implements Party.Server {
   private lockingTimer: ReturnType<typeof setTimeout> | null = null;
   private scoringTimer: ReturnType<typeof setTimeout> | null = null;
   private roundEndTimer: ReturnType<typeof setTimeout> | null = null;
+  private unlockTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(room: Party.Room) {
     this.room = room;
@@ -284,8 +285,8 @@ export default class RollBetterServer implements Party.Server {
         name: p.name,
         color: p.color,
         score: 0,
-        startingDice: 5,
-        poolSize: 5,
+        startingDice: 2,
+        poolSize: 2,
         lockedDice: [],
         isOnline: true,
       });
@@ -299,8 +300,8 @@ export default class RollBetterServer implements Party.Server {
         name: `Bot ${i + 1}`,
         color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
         score: 0,
-        startingDice: 5,
-        poolSize: 5,
+        startingDice: 2,
+        poolSize: 2,
         lockedDice: [],
         isOnline: false,
         difficulty: aiDifficulty,
@@ -558,6 +559,12 @@ export default class RollBetterServer implements Party.Server {
   private processAllUnlocks() {
     if (!this.gameState) return;
 
+    // Clear AFK timeout — all responses are in
+    if (this.unlockTimeoutTimer) {
+      clearTimeout(this.unlockTimeoutTimer);
+      this.unlockTimeoutTimer = null;
+    }
+
     // ─── AI bot unlock decisions ────────────────────────────────────
     for (const player of this.gameState.players) {
       if (player.isOnline) continue; // skip human players
@@ -631,15 +638,16 @@ export default class RollBetterServer implements Party.Server {
   // ─── Scoring & Round Transitions ──────────────────────────────────
 
   /**
-   * After locking completes, check if any player has won (8 locked dice).
+   * After locking completes, check if any players have won (8 locked dice).
+   * Multiple players can win on the same roll — all get scored.
    * If yes → scoring. If no → unlocking phase.
    */
   private checkWinnerOrUnlock() {
     if (!this.gameState) return;
 
-    const winner = this.gameState.players.find((p) => p.lockedDice.length >= 8);
-    if (winner) {
-      this.handleScoring(winner.id);
+    const winners = this.gameState.players.filter((p) => p.lockedDice.length >= 8);
+    if (winners.length > 0) {
+      this.handleScoring(winners.map((w) => w.id));
     } else {
       // Advance to unlocking phase
       this.gameState.phase = "unlocking";
@@ -647,29 +655,40 @@ export default class RollBetterServer implements Party.Server {
       const phaseMsg: ServerMessage = { type: "phase_change", phase: "unlocking" };
       this.room.broadcast(JSON.stringify(phaseMsg));
       this.log("Phase → unlocking");
+
+      // Start AFK timeout — auto-skip after 20 seconds
+      this.unlockTimeoutTimer = setTimeout(() => {
+        this.unlockTimeoutTimer = null;
+        this.autoSkipUnresponsivePlayers();
+      }, 20_000);
     }
   }
 
   /**
-   * Compute the round score for the winner, broadcast scoring message,
+   * Compute round scores for all winners, broadcast scoring message,
    * then transition to handicap/next round after a delay.
+   * Multiple players can win on the same roll.
    */
-  private handleScoring(winnerId: string) {
+  private handleScoring(winnerIds: string[]) {
     if (!this.gameState) return;
 
-    const winner = this.gameState.players.find((p) => p.id === winnerId);
-    if (!winner) return;
-
-    // Compute round score: same formula as gameStore.ts
+    // Compute round score for each winner
     const penalties = [1, 0, 1, 1];
-    let penalty = 0;
-    for (let i = 0; i < winner.poolSize && i < penalties.length; i++) {
-      penalty += penalties[i];
-    }
-    const roundScore = Math.max(0, 8 - penalty);
+    const winnersData: { playerId: string; roundScore: number }[] = [];
 
-    // Add score to winner
-    winner.score += roundScore;
+    for (const winnerId of winnerIds) {
+      const winner = this.gameState.players.find((p) => p.id === winnerId);
+      if (!winner) continue;
+
+      let penalty = 0;
+      for (let i = 0; i < winner.poolSize && i < penalties.length; i++) {
+        penalty += penalties[i];
+      }
+      const roundScore = Math.max(0, 8 - penalty);
+      winner.score += roundScore;
+      winnersData.push({ playerId: winnerId, roundScore });
+      this.log(`Scoring: ${winner.name} won with ${roundScore} points (pool: ${winner.poolSize}) — total: ${winner.score}`);
+    }
 
     // Set phase to scoring
     this.gameState.phase = "scoring";
@@ -688,30 +707,31 @@ export default class RollBetterServer implements Party.Server {
     // Broadcast scoring message
     const scoringMsg: ServerMessage = {
       type: "scoring",
-      winnerId,
-      roundScore,
+      winners: winnersData,
       players: syncPlayers,
     };
     this.room.broadcast(JSON.stringify(scoringMsg));
-    this.log(`Scoring: ${winner.name} won with ${roundScore} points (pool: ${winner.poolSize}) — total: ${winner.score}`);
 
     // After 2 seconds, apply handicap and move to next round
     this.scoringTimer = setTimeout(() => {
       this.scoringTimer = null;
-      this.handleHandicapAndNextRound(winnerId);
+      this.handleHandicapAndNextRound(winnerIds);
     }, 2000);
   }
 
   /**
    * Apply handicap to all players, check for session end,
    * then start next round or end session.
+   * Multiple winners each get the handicap penalty.
    */
-  private handleHandicapAndNextRound(winnerId: string) {
+  private handleHandicapAndNextRound(winnerIds: string[]) {
     if (!this.gameState) return;
+
+    const winnerSet = new Set(winnerIds);
 
     // Apply handicap
     for (const player of this.gameState.players) {
-      if (player.id === winnerId) {
+      if (winnerSet.has(player.id)) {
         // Winner: decrease starting dice (min 1)
         player.startingDice = Math.max(1, player.startingDice - 1);
       } else {
@@ -756,6 +776,26 @@ export default class RollBetterServer implements Party.Server {
     }
   }
 
+  // ─── AFK Handling ───────────────────────────────────────────────────
+
+  /**
+   * Auto-skip any online players who haven't responded to unlock/skip
+   * within the timeout period (20 seconds).
+   */
+  private autoSkipUnresponsivePlayers() {
+    if (!this.gameState || this.gameState.phase !== "unlocking") return;
+
+    const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
+    for (const player of onlinePlayers) {
+      if (!this.gameState.unlockResponses.has(player.id)) {
+        this.gameState.unlockResponses.set(player.id, { type: "skip" });
+        this.log(`Auto-skipped AFK player: ${player.name}`);
+      }
+    }
+
+    this.checkAllUnlockResponses();
+  }
+
   // ─── Timer Cleanup ────────────────────────────────────────────────
 
   /**
@@ -774,6 +814,10 @@ export default class RollBetterServer implements Party.Server {
       clearTimeout(this.roundEndTimer);
       this.roundEndTimer = null;
     }
+    if (this.unlockTimeoutTimer) {
+      clearTimeout(this.unlockTimeoutTimer);
+      this.unlockTimeoutTimer = null;
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
@@ -787,6 +831,20 @@ export default class RollBetterServer implements Party.Server {
     const wasHost = this.hostId === connectionId;
     this.players.delete(connectionId);
     this.log(`Player left: ${connectionId}`);
+
+    // Mark player offline in game state so unlock collection doesn't stall
+    if (this.gameState) {
+      const gamePlayer = this.gameState.players.find((p) => p.id === connectionId);
+      if (gamePlayer) {
+        gamePlayer.isOnline = false;
+      }
+      // Remove any pending unlock response from this player
+      this.gameState.unlockResponses.delete(connectionId);
+      // If we're waiting for unlock responses, re-check — game might be unblocked now
+      if (this.gameState.phase === "unlocking") {
+        this.checkAllUnlockResponses();
+      }
+    }
 
     // Broadcast player_left to remaining players
     this.room.broadcast(
