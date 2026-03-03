@@ -68,7 +68,7 @@
 3. **Social by default.** Every roll is a performance. Other players see your results. The audience makes the dice thrilling.
 4. **Fair forever.** No pay-to-win, no "rigged" dice. Monetize cosmetics if anything. Trust is the product.
 5. **Catch-up is built in.** The handicap system means no one gets left behind. Losing makes you stronger next round.
-6. **Zero friction.** No account required. Share a 5-character room code. Click and play. Mobile-first, desktop-friendly.
+6. **Zero friction.** No account required. Share a 4-letter room code. Click and play. Mobile-first, desktop-friendly.
 7. **Juice everything.** Every interaction gets feedback — lerps, pops, spawns, sounds. The game should feel alive.
 
 ---
@@ -132,7 +132,7 @@ Each turn has these phases, executed simultaneously for all players:
 ### 4.4 Turn Timing
 - All players roll simultaneously
 - All players see each other's results after everyone's dice settle
-- Unlock phase may have a timer (TBD — prevents one player from stalling). If timer runs out, no dice are unlocked that turn.
+- **Unlock phase timer**: Countdown timer on unlock decisions. When timer expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
 - The pace should feel brisk — no waiting for slow players
 
 ### 4.5 Scoring
@@ -178,7 +178,7 @@ Applied after every round:
 - **Player has pool of 1**: They roll 1 die. If it doesn't match anything unlocked, they have 0 locked and 1 in pool. If they unlock a locked die, pool grows to 2. Starting from 1 is hard but not impossible.
 - **Player has pool of 12 and wins**: They score 0 points (8 - 2*(12-8) = 0). They still "won" the round, so their Z decreases by 1. A hollow victory.
 - **Multiple players hit 20+ on same round**: All are winners. The Winners Screen shows all of them.
-- **Player disconnects mid-round**: Their dice stop rolling. They miss the unlock phase. On reconnect, they resume with current state. If gone too long, treated as AI (TBD).
+- **Player disconnects mid-round**: AI seamlessly takes over for disconnected player (game continues without pause). On reconnect, player takes back control from AI immediately. No data lost — Partykit maintains room state.
 
 ---
 
@@ -189,16 +189,17 @@ Applied after every round:
 - **Phase 2**: Room-based online multiplayer via room codes
 
 **Room Codes:**
-- Format: `##X##` — 2 digits, 1 letter, 2 digits (e.g., `47K12`)
-- Case-insensitive letter
+- Format: 4-letter alphanumeric code (case-insensitive, e.g., `KFBR`)
+- ~1.6M possible codes — more than enough for concurrent rooms
 - Unique per active room, recycled when room closes
+- Zero friction: no accounts, no downloads — just enter a code
 
-**Room Flow:**
-1. **Create**: Host clicks "Create Room" → room is created → room code displayed prominently → host sees "X/Y players joined" (where Y is the room's max, default 8)
-2. **Join**: Player enters 5-character code on main screen → clicks "Join" → enters room lobby
-3. **Lobby**: All players see who's joined. Each player has a "Ready" button. Host sees a "Start Anyway" button that fills empty slots with AI.
-4. **Start conditions**: Everyone clicks Ready OR host clicks "Start Anyway"
-5. **AI backfill**: Remaining slots filled with AI opponents (AI system built later using BMUZ AI tools, `/ai-opponent`)
+**Room Flow (Jackbox-style):**
+1. **Create**: Host taps "Create Room" → Partykit room created → 4-letter code displayed prominently
+2. **Join**: Player enters code on main screen → taps "Join" → enters room lobby
+3. **Lobby**: Player list with names/colors, "Ready" button per player, host sees "Start" button
+4. **Start conditions**: Everyone clicks Ready OR host clicks "Start" (fills empty slots with AI)
+5. **AI backfill**: Remaining slots filled with AI at configured difficulty (4-8 players total)
 
 ### 5.2 AI Opponents (Phase 1 — local)
 - AI makes unlock decisions based on simple heuristics:
@@ -208,16 +209,18 @@ Applied after every round:
 - AI "rolls" use the same RNG as players — no cheating, no rigged dice.
 - AI difficulty selectable in settings (default: Medium)
 
-### 5.3 Networking (Phase 2)
-- **Protocol**: WebSocket (real-time, low latency for simultaneous rolling)
-- **Server**: Lightweight game server (Node.js or similar)
-  - Generates Goal dice (server-authoritative)
-  - Validates rolls (server-authoritative RNG — prevents cheating)
-  - Broadcasts game state to all clients
-  - Manages turn timing / unlock phase timer
-- **Client**: Sends roll requests, unlock decisions. Receives game state updates.
-- **Reconnection**: Player can rejoin with same room code within a round. State preserved.
-- **Latency tolerance**: Game is turn-based with simultaneous action — latency up to 500ms is acceptable. Visual lerps mask network delay.
+### 5.3 Networking (v1.1 — Partykit on Cloudflare)
+- **Protocol**: WebSocket via Partykit (Cloudflare free tier — 100k requests/day)
+- **Server**: Partykit room server (Cloudflare Workers edge runtime)
+  - Host-authoritative game state validation (anti-cheat, Glyphtender pattern)
+  - Server generates roll RESULTS (random numbers) — clients animate dice visually
+  - Broadcasts state updates to all connected clients
+  - Manages turn timing / unlock phase timer + AI takeover on timeout
+  - Handles room lifecycle (create, join, close, cleanup)
+- **Client**: Sends roll requests, unlock decisions. Receives authoritative state + roll results.
+- **Reconnection**: Player can rejoin with same room code. AI surrenders control back to player on reconnect.
+- **Latency tolerance**: Simultaneous turn-based action — latency up to 500ms is acceptable. Visual lerps mask network delay.
+- **No accounts**: Anonymous play only. Persistent identity deferred to future milestone.
 
 ### 5.4 State Management
 Core game state (managed in a global store — Zustand recommended for R3F):
@@ -418,8 +421,9 @@ Trigger sounds on physics collision callbacks. Each bounce plays a progressively
 - **Dice Materials**: MeshPhysicalMaterial with clearcoat, HDRI environment maps from polyhaven
 - **State Management**: Zustand (works natively with R3F, avoids React re-renders for game state)
 - **Audio**: Howler.js (collision-triggered layered sounds)
-- **Networking (Phase 2)**: WebSocket client (socket.io-client or native WebSocket)
-- **Server (Phase 2)**: Node.js with socket.io or ws
+- **Networking (v1.1)**: Partykit WebSocket client (Cloudflare free tier)
+- **Server (v1.1)**: Partykit room server on Cloudflare Workers (edge runtime, no Node.js server needed)
+- **Deployment**: GitHub Pages (static hosting) + Vite PWA plugin (installable, offline-capable)
 
 ### 7.2 Project Structure
 ```
@@ -468,7 +472,7 @@ src/
 - **R3F Golden Rule**: NEVER use React state for per-frame updates. Mutate refs in useFrame. All dice physics, lerps, and animations run in useFrame loops, not React re-renders.
 - **Physics**: Rapier for realistic 3D dice tumbling. Dice are rigid bodies with correct mass/inertia for realistic rolls. Physics runs in the bottom rolling area; locked dice are kinematic (not affected by physics).
 - **Dice values**: Read from physics simulation — the face pointing up after the die settles determines the rolled value. Use dot product of each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome visually and mechanically.
-- **Deterministic on server (Phase 2)**: Server generates random seeds. Client uses seed to run identical physics simulation. Prevents cheating while keeping client-side feel responsive.
+- **Server-authoritative rolls (v1.1)**: Server generates actual roll results (random numbers). Clients receive results and animate dice physics visually to land on those numbers. No physics sync needed — avoids the impossible problem of syncing physics across clients while maintaining anti-cheat.
 - **Animation system**: Central lerp manager handles all dice movement. Queue-based to sequence animations (e.g., lock dice → THEN check winner → THEN show unlock prompt). Use easing functions for polish (ease-out for locks, ease-in-out for spawns).
 - **Initial roll force**: Apply impulse at an OFFSET point (not center of mass) to induce natural rotation. Add random initial angular velocity per die for variety.
 
@@ -484,19 +488,24 @@ src/
 | Sleep threshold | 0.1s | Die must be below velocity for this long to "settle" |
 | Edge bevel | 0.07 | Ratio to die size. Critical for visual quality. |
 
-### 7.4 Phase 1 vs Phase 2 Boundary
-**Phase 1 (local, AI opponents):**
+### 7.4 v1.0 vs v1.1 Boundary
+**v1.0 MVP (local, AI opponents):**
 - All game logic runs client-side in the browser
 - AI opponents use same game logic
 - No server, no networking
 - Room code UI exists but is non-functional (placeholder)
 - Goal: prove the core loop is fun
 
-**Phase 2 (online multiplayer):**
-- Game server handles room creation, state sync, roll validation
-- Client sends actions, receives authoritative state
-- Room codes become functional
-- AI backfill for incomplete rooms
+**v1.1 Online Multiplayer (Partykit):**
+- Partykit room server on Cloudflare handles room creation, state sync, roll validation
+- Host-authoritative: server validates moves before broadcasting
+- Server generates roll results — clients animate physics visually
+- Room codes become functional (4-letter Jackbox-style)
+- AI backfill for incomplete rooms + AI drop-in/drop-out on disconnect
+- Turn timers with AI takeover on timeout
+- Reconnection with seamless AI handoff
+- GitHub Pages deployment + PWA for "install to home screen"
+- Privacy policy + IARC age rating (13+, no data collected)
 
 ---
 
@@ -555,13 +564,22 @@ src/
 - Winners Screen (session results, stats)
 - Screen transitions
 
-### M7: Online Multiplayer (Phase 2)
-- WebSocket server
-- Room creation / join with ##X## codes
-- Lobby screen (player list, ready, start anyway)
-- State sync between clients
-- AI backfill for empty slots
-- Reconnection handling
+### M7: Online Multiplayer (v1.1 — Partykit)
+- Partykit room server on Cloudflare free tier
+- Room creation / join with 4-letter Jackbox-style codes
+- Lobby screen (player list with names/colors, ready-up, host start, AI fill)
+- Host-authoritative state sync (server generates roll results, clients animate)
+- Dice sync + simultaneous play across clients
+- Turn timers with AI takeover on timeout
+- AI drop-in/drop-out (disconnect → AI takes over, reconnect → player resumes)
+- Connection resilience + reconnection handling
+
+### M8: Deployment & Compliance
+- GitHub Pages deployment (static hosting, auto-updates on push)
+- PWA setup (installable, offline-capable, service worker caching)
+- Privacy policy (no data collected)
+- IARC age rating (13+, sidesteps COPPA)
+- Multi-device integration testing
 
 ---
 
@@ -622,5 +640,8 @@ None yet.
 - **Session**: A series of rounds played until someone reaches 20 points
 - **Round**: One Goal, rolled repeatedly until someone locks all 8
 - **Turn**: One roll cycle within a round (roll → lock → check → unlock → repeat)
-- **Room code**: 5-character code (##X##) used to join an online game
+- **Room code**: 4-letter alphanumeric code (e.g., KFBR) used to join an online game — Jackbox-style, zero friction
+- **AI takeover**: When a player disconnects or times out on unlock, AI seamlessly controls their dice until they reconnect
+- **Partykit**: WebSocket room server running on Cloudflare's free tier edge network
+- **PWA**: Progressive Web App — installable to home screen, works offline
 - **AI backfill**: AI opponents that fill empty player slots when the host starts early

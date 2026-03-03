@@ -2,11 +2,16 @@
 
 ## Overview
 
-Build a premium browser-based multiplayer dice-matching game from scratch. Start with a single beautiful 3D die, layer on physics and game logic, add AI opponents, then polish with mobile-specific features and audio. Phase 1 delivers local AI gameplay; online multiplayer is a future milestone.
+Build a premium browser-based multiplayer dice-matching game from scratch. Start with a single beautiful 3D die, layer on physics and game logic, add AI opponents, then polish with mobile-specific features and audio. v1.0 delivers local AI gameplay; v1.1 adds real-time online multiplayer via Partykit.
 
 ## Domain Expertise
 
 None (no expertise skill files available)
+
+## Milestones
+
+- 🚧 **v1.0 MVP** - Phases 1-13 (in progress)
+- 📋 **v1.1 Online Multiplayer** - Phases 14-21 (planned)
 
 ## Phases
 
@@ -21,7 +26,16 @@ None (no expertise skill files available)
 - [x] **Phase 9: Multi-Player Display** *(Complete — 2026-03-02)* — Multiple player rows, icons, Goal indicators
 - [x] **Phase 10: Screens & Flow** *(Complete — 2026-03-02)* — Main Menu, Settings, Winners Screen, transitions
 - [x] **Phase 11: Mobile Polish** *(Complete — 2026-03-02)* — Shake-to-roll, haptics, touch optimization, performance
-- [ ] **Phase 12: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
+- [x] **Phase 12: Responsive UI** *(Complete — 2026-03-02)* — HUD, overlays, modals adapt to all phone sizes
+- [ ] **Phase 13: Audio & Juice** — Layered dice sounds, UI audio, final animation polish
+- [ ] **Phase 14: Partykit Server Setup** — Cloudflare free tier WebSocket rooms, create/join/close lifecycle
+- [ ] **Phase 15: Lobby UI + Room Codes** — Jackbox-style 4-letter codes, player list, ready-up, AI fill
+- [ ] **Phase 16: State Sync Protocol** — Game state → Partykit room → all clients
+- [ ] **Phase 17: Dice Sync + Simultaneous Play** — Roll results, auto-lock, visual sync across clients
+- [ ] **Phase 18: Unlock + Scoring Sync** — Unlock decisions, scoring, round transitions + turn timers
+- [ ] **Phase 19: Connection Resilience** — Disconnect/reconnect, AI drop-in/drop-out replacement
+- [ ] **Phase 20: GitHub Pages + PWA** — Deploy to public URL, installable, auto-updates
+- [ ] **Phase 21: Compliance + Integration Testing** — Privacy policy, IARC, multi-device edge cases
 
 ## Phase Details
 
@@ -176,23 +190,116 @@ Plans:
 - [ ] 13-02: UI sounds (lock click, bonus chime, score counting tones, win fanfare, round-end tone)
 - [ ] 13-03: Final juice pass (animation timing polish, roll prompt glow, visual effects tuning)
 
+### 🚧 v1.1 Online Multiplayer (Planned)
+
+**Milestone Goal:** Take Roll Better from local AI play to real-time online multiplayer with friends, deployed and publicly playable.
+
+**Key architectural decision:** Dice physics runs client-side (visual). Server determines roll RESULTS (random numbers). Clients animate dice rolling, but the actual values come from the server. This avoids syncing physics across clients (impossible) while maintaining anti-cheat.
+
+**Constraints:** Free tier only (Partykit/Cloudflare 100k req/day). No accounts. 4-8 players. Host-authoritative validation.
+
+#### Phase 14: Partykit Server Setup
+**Goal**: Cloudflare free tier WebSocket rooms — server project, room create/join/close lifecycle, basic message protocol
+**Depends on**: v1.0 complete (Phase 13)
+**Research**: Likely (new technology — Partykit/Cloudflare Workers)
+**Research topics**: Partykit setup and deployment, Cloudflare Workers free tier limits, room lifecycle API, message serialization
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: TBD (run /gsd:plan-phase 14 to break down)
+
+#### Phase 15: Lobby UI + Room Codes
+**Goal**: Jackbox-style 4-letter room codes, lobby screen with player list, ready-up, host start fills empty slots with AI
+**Depends on**: Phase 14
+**Research**: Unlikely (internal UI patterns, extends existing Main Menu)
+**Plans**: TBD
+
+Plans:
+- [ ] 15-01: TBD
+
+#### Phase 16: State Sync Protocol
+**Goal**: Game state → Partykit room → all clients. Host-authoritative validation pattern. Server generates roll results.
+**Depends on**: Phase 14
+**Research**: Likely (real-time/websocket state sync architecture, Glyphtender patterns)
+**Research topics**: Partykit message protocol, host-authoritative state patterns, serialization format, state reconciliation
+**Plans**: TBD
+
+Plans:
+- [ ] 16-01: TBD
+
+#### Phase 17: Dice Sync + Simultaneous Play
+**Goal**: Roll results from server, auto-lock sync, visual dice animations across all clients simultaneously
+**Depends on**: Phase 16
+**Research**: Likely (server-side RNG vs client physics split, syncing animations without syncing physics)
+**Research topics**: Server-side random number generation, client-side physics animation to target results, timing coordination across clients
+**Plans**: TBD
+
+Plans:
+- [ ] 17-01: TBD
+
+#### Phase 18: Unlock + Scoring Sync
+**Goal**: Unlock decisions, scoring, round transitions synced across clients. Turn timers with AI takeover on timeout.
+**Depends on**: Phase 17
+**Research**: Unlikely (extends Phase 16-17 sync patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 18-01: TBD
+
+#### Phase 19: Connection Resilience
+**Goal**: Disconnect/reconnect handling. AI seamlessly takes over for disconnected players. Player takes back control on reconnect.
+**Depends on**: Phase 18
+**Research**: Likely (WebSocket reconnection strategies, stateful session recovery)
+**Research topics**: WebSocket reconnection patterns, Partykit connection lifecycle events, state recovery on rejoin, AI handoff protocol
+**Plans**: TBD
+
+Plans:
+- [ ] 19-01: TBD
+
+#### Phase 20: GitHub Pages + PWA
+**Goal**: Deploy to GitHub Pages with public URL. PWA setup for "install to home screen". Auto-updates on push.
+**Depends on**: Phase 19 (full multiplayer working)
+**Research**: Likely (first deployment + PWA setup)
+**Research topics**: GitHub Pages SPA routing (hash vs history), Vite PWA plugin setup, service worker caching strategy, GitHub Actions CI/CD
+**Plans**: TBD
+
+Plans:
+- [ ] 20-01: TBD
+
+#### Phase 21: Compliance + Integration Testing
+**Goal**: Privacy policy (no data collected), IARC age rating (13+), multi-device integration testing, edge case verification
+**Depends on**: Phase 20
+**Research**: Unlikely (documentation + manual testing)
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 
-| Phase | Plans Complete | Status | Completed |
-|-------|---------------|--------|-----------|
-| 1. Foundation | 2/2 | Complete | 2026-02-28 |
-| 2. Premium Die | 3/3 | Complete | 2026-02-28 |
-| 3. Dice Rolling | 3/3 | Complete | 2026-02-28 |
-| 4. Game Board Layout | 3/3 | Complete | 2026-03-01 |
-| 5. Core Game Logic | 4/4 | Complete | 2026-03-01 |
-| 6. Lerp & Animation | 3/3 | Complete | 2026-03-01 |
-| 7. Unlock Interaction | 3/3 | Complete | 2026-03-02 |
-| 8. AI Opponents | 2/2 | Complete | 2026-03-02 |
-| 9. Multi-Player Display | 6/6 | Complete | 2026-03-02 |
-| 10. Screens & Flow | 3/3 | Complete | 2026-03-02 |
-| 11. Mobile Polish | 3/3 | Complete | 2026-03-02 |
-| 12. Responsive UI | 4/4 | Complete | 2026-03-02 |
-| 13. Audio & Juice | 0/3 | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|---------------|--------|-----------|
+| 1. Foundation | v1.0 | 2/2 | Complete | 2026-02-28 |
+| 2. Premium Die | v1.0 | 3/3 | Complete | 2026-02-28 |
+| 3. Dice Rolling | v1.0 | 3/3 | Complete | 2026-02-28 |
+| 4. Game Board Layout | v1.0 | 3/3 | Complete | 2026-03-01 |
+| 5. Core Game Logic | v1.0 | 4/4 | Complete | 2026-03-01 |
+| 6. Lerp & Animation | v1.0 | 3/3 | Complete | 2026-03-01 |
+| 7. Unlock Interaction | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 8. AI Opponents | v1.0 | 2/2 | Complete | 2026-03-02 |
+| 9. Multi-Player Display | v1.0 | 6/6 | Complete | 2026-03-02 |
+| 10. Screens & Flow | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 11. Mobile Polish | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 12. Responsive UI | v1.0 | 4/4 | Complete | 2026-03-02 |
+| 13. Audio & Juice | v1.0 | 0/3 | Not started | - |
+| 14. Partykit Server Setup | v1.1 | 0/? | Not started | - |
+| 15. Lobby UI + Room Codes | v1.1 | 0/? | Not started | - |
+| 16. State Sync Protocol | v1.1 | 0/? | Not started | - |
+| 17. Dice Sync + Simultaneous Play | v1.1 | 0/? | Not started | - |
+| 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
+| 19. Connection Resilience | v1.1 | 0/? | Not started | - |
+| 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |
+| 21. Compliance + Integration Testing | v1.1 | 0/? | Not started | - |
