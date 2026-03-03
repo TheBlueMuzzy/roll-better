@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { createPartyConnection, sendMessage, parseServerMessage } from "../utils/partyClient";
+import { createPartyConnection, sendMessage, parseServerMessage, setGameSocket } from "../utils/partyClient";
 import type { RoomPlayer, RoomStatus } from "../types/protocol";
 import type PartySocket from "partysocket";
 
@@ -150,6 +150,8 @@ export function useRoom(): UseRoomReturn {
             aiDifficulty: msg.aiDifficulty,
             goalValues: msg.goalValues,
           });
+          // Store socket for game-phase access (useOnlineGame reads it)
+          setGameSocket(socketRef.current);
           break;
 
         case "error":

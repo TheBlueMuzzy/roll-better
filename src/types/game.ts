@@ -106,4 +106,7 @@ export interface GameState {
   settings: Settings;
   shownTips: string[];
   gamePrefs: GamePrefs;
+  // Online mode
+  isOnlineGame: boolean;
+  onlinePlayerId: string | null;
 }

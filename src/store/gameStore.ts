@@ -73,6 +73,10 @@ interface GameStore extends GameState {
   setHapticsEnabled: (enabled: boolean) => void;
   setTipsEnabled: (enabled: boolean) => void;
   setConfirmationEnabled: (enabled: boolean) => void;
+
+  // Online mode
+  setOnlineMode: (playerId: string) => void;
+  clearOnlineMode: () => void;
 }
 
 const initialRoundState = {
@@ -123,6 +127,8 @@ const initialState: GameState = {
   settings: defaultSettings,
   shownTips: [],
   gamePrefs: defaultGamePrefs,
+  isOnlineGame: false,
+  onlinePlayerId: null,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -750,6 +756,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setConfirmationEnabled: (enabled: boolean) => {
     set({ settings: { ...get().settings, confirmationEnabled: enabled } });
+  },
+
+  // --- Online mode ---
+  setOnlineMode: (playerId: string) => {
+    set({ isOnlineGame: true, onlinePlayerId: playerId });
+  },
+  clearOnlineMode: () => {
+    set({ isOnlineGame: false, onlinePlayerId: null });
   },
 }));
 

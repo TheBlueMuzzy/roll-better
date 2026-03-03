@@ -11,6 +11,7 @@ import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
+import { setGameSocket } from './utils/partyClient';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
 import { useAccelerometerGravity } from './hooks/useAccelerometerGravity';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
@@ -109,6 +110,8 @@ function App() {
 
   // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
+    useGameStore.getState().clearOnlineMode();
+    setGameSocket(null);
     setPhase('lobby');
     setScreen('menu');
   }, [setPhase, setScreen]);
@@ -131,6 +134,7 @@ function App() {
     const difficulty = aiDifficulty as AIDifficulty;
     initGame(targetPlayers, difficulty, orderedPlayers);
     initRound({ goalValues }); // Use server-provided goals so all clients match
+    useGameStore.getState().setOnlineMode(localPlayerId);
     setScreen('game');
     // Start pool spawn animation
     const state = useGameStore.getState();
