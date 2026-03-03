@@ -4,6 +4,7 @@ import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
 import { getFaceUp, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
+import { playDiceImpact, playDiceSettle } from '../utils/soundManager';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
@@ -114,6 +115,12 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         friction={0.5}
         angularDamping={0.3}
         linearDamping={0.1}
+        onContactForce={(payload) => {
+          if (isRolling.current) {
+            const normalizedForce = Math.max(0, Math.min(1, payload.totalForceMagnitude / 500));
+            playDiceImpact(normalizedForce);
+          }
+        }}
         onSleep={() => {
           if (isRolling.current) {
             isRolling.current = false;
@@ -132,6 +139,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
             }
 
             onSettle?.();
+            playDiceSettle();
           }
         }}
         onWake={() => {

@@ -16,6 +16,7 @@ import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
+import { initAudio, setVolume } from './utils/soundManager';
 import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
@@ -28,6 +29,7 @@ function App() {
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
 
+  const audioInited = useRef(false);
   const showTip = useGameStore((s) => s.showTip);
 
   /** Try to show a tip — only if tips enabled, not already shown, and no tip currently active */
@@ -55,6 +57,12 @@ function App() {
 
   // Performance settings
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
+
+  // Audio volume — sync to SoundManager whenever it changes
+  const audioVolume = useGameStore((s) => s.settings.audioVolume);
+  useEffect(() => {
+    setVolume(audioVolume);
+  }, [audioVolume]);
 
   // Tip-related store reads
   const currentRound = useGameStore((s) => s.currentRound);
@@ -354,6 +362,13 @@ function App() {
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
+
+    // Init audio on first user interaction (autoplay policy)
+    if (!audioInited.current) {
+      audioInited.current = true;
+      initAudio();
+      setVolume(useGameStore.getState().settings.audioVolume);
+    }
 
     setPhase('rolling');
     sceneRef.current?.rollAll();

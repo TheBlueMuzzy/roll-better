@@ -5,6 +5,7 @@ import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
 import type { Group } from 'three';
+import { playAllSettled } from '../utils/soundManager';
 
 // Center of the rolling zone — spawn grid is offset to this Z
 const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
@@ -252,6 +253,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       const sortedPositions = paired.map((p) => p.position);
       const sortedRotations = paired.map((p) => p.rotation);
 
+      playAllSettled();
       onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
     }, [onAllSettled, count]);
 
