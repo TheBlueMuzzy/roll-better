@@ -1,17 +1,17 @@
 # Project State
 
 ## Current Status
-Phase 13 in progress. Plan 13-02 (lock/unlock/pool animation sounds) complete. 2 plans remain in phase.
+Phase 13 in progress. Plan 13-03 (UI & score audio) complete. 1 plan remains in phase.
 
 ## Version
-0.1.0.95
+0.1.0.97
 
 ## Current Position
 
 Phase: 13 of 21 (Audio & Juice)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-03 — Completed 13-02-PLAN.md
+Last activity: 2026-03-03 — Completed 13-03-PLAN.md
 
 Progress: ████████████████████████████████████████░░ 57% (12/21 phases)
 
@@ -144,6 +144,9 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 - Audio: totalForceMagnitude (scalar) for Rapier contact force normalization
 - Audio: One-shot sound guard pattern (boolean ref in useFrame) for animation sounds
 - Audio: Phase-boundary triggers via elapsed time checks for multi-phase animations (MitosisDie)
+- Audio: RAF-integrated score ticks throttled to ~10/sec (100ms intervals) inside animateScore loop
+- Audio: Multi-oscillator scheduling with audioCtx.currentTime offsets for chime/fanfare note sequences
+- Audio: Noise-burst UI click pattern (random buffer + bandpass 3000Hz filter)
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -157,5 +160,5 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea (accele
 
 ## Session Continuity
 Last session: 2026-03-03
-Stopped at: Plan 13-02 complete (lock/unlock/pool animation sounds)
-Resume file: None — continue with Phase 13, Plan 13-03
+Stopped at: Plan 13-03 complete (UI & score audio)
+Resume file: None — continue with Phase 13, Plan 13-04

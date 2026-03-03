@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 95,
+  "build": 97,
   "history": [
     {
       "version": "0.1.0",
@@ -127,6 +127,11 @@
       "version": "0.1.0.95",
       "date": "2026-03-03",
       "summary": "Lock/unlock/pool animation sounds: whoosh+snap on locks, rumble+pop on mitosis, spawn/exit pops"
+    },
+    {
+      "version": "0.1.0.97",
+      "date": "2026-03-03",
+      "summary": "UI & score audio: score tick counting, win fanfare, die select/deselect, round start, no-match, UI clicks"
     }
   ]
 }
