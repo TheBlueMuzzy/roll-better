@@ -46,6 +46,17 @@ export function useOnlineGame(): UseOnlineGameReturn {
           break;
         }
 
+        case "player_lock_result": {
+          console.log("[useOnlineGame] player_lock_result received", msg.playerId);
+          useGameStore.getState().addPendingLockReveal({
+            playerId: msg.playerId,
+            newLocks: msg.newLocks,
+            poolSize: msg.poolSize,
+            lockedDice: msg.lockedDice,
+          });
+          break;
+        }
+
         case "unlock_result":
           console.log("[useOnlineGame] unlock_result received", msg);
           useGameStore.getState().applyOnlineUnlockResult(

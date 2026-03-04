@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
-import type { UnlockResultMessage } from '../types/protocol';
+import type { UnlockResultMessage, LockedDieSync } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -19,6 +19,14 @@ export const PLAYER_COLORS = [
   '#e91e8f', // pink
   '#1abc9c', // cyan
 ];
+
+/** Data for a single other-player's lock result (from server relay) */
+interface PlayerLockResultData {
+  playerId: string;
+  newLocks: LockedDieSync[];
+  poolSize: number;
+  lockedDice: LockedDieSync[];
+}
 
 interface GameStore extends GameState {
   // Existing actions
@@ -84,6 +92,13 @@ interface GameStore extends GameState {
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
   setPendingUnlockResult: (result: UnlockResultMessage | null) => void;
+
+  // Buffered other-player lock reveals (revealed after own locks complete)
+  pendingLockReveals: PlayerLockResultData[];
+  addPendingLockReveal: (data: PlayerLockResultData) => void;
+  flushPendingLockReveals: () => void;
+  hasLocalPlayerLocked: boolean;
+  setLocalPlayerLocked: (locked: boolean) => void;
 }
 
 const initialRoundState = {
@@ -139,9 +154,67 @@ const initialState: GameState = {
   onlinePlayerIds: [],
 };
 
+// --- Internal helper for other-player lock reveal (with animation) ---
+
+type StoreGet = () => GameStore;
+type StoreSet = (partial: Partial<GameStore> | ((state: GameStore) => Partial<GameStore>)) => void;
+
+function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLockResultData) {
+  const state = get();
+  const playerIndex = state.onlinePlayerIds.indexOf(data.playerId);
+  if (playerIndex === -1 || playerIndex === 0) return; // Skip unknown or self
+
+  const players = [...state.players];
+  const otherPlayer = { ...players[playerIndex] };
+  otherPlayer.lockedDice = data.lockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
+  otherPlayer.poolSize = data.poolSize;
+  players[playerIndex] = otherPlayer;
+
+  // Build profile-emerge animations for new locks
+  const aiLockAnimations = [...state.roundState.aiLockAnimations];
+  const aiAnimatingSlotIndices = { ...state.roundState.aiAnimatingSlotIndices };
+  const profileX = getSlotX(0) - PROFILE_X_OFFSET;
+  const rowZ = -3.77 + playerIndex * 0.9;
+  const slotsAnimating: number[] = [];
+  let delay = aiLockAnimations.length > 0
+    ? aiLockAnimations[aiLockAnimations.length - 1].delay + 0.3
+    : 0;
+
+  for (const lock of data.newLocks) {
+    aiLockAnimations.push({
+      fromPos: [profileX, DIE_SIZE / 2, rowZ],
+      toPos: [getSlotX(lock.goalSlotIndex), DIE_SIZE / 2, rowZ],
+      fromRotation: [0, 0, 0],
+      value: lock.value,
+      delay,
+      fromScale: 0,
+      toScale: 1,
+      playerId: otherPlayer.id,
+    });
+    slotsAnimating.push(lock.goalSlotIndex);
+    delay += 0.25 + Math.random() * 0.25;
+  }
+
+  aiAnimatingSlotIndices[otherPlayer.id] = [
+    ...(aiAnimatingSlotIndices[otherPlayer.id] || []),
+    ...slotsAnimating,
+  ];
+
+  set({
+    players,
+    roundState: {
+      ...state.roundState,
+      aiLockAnimations,
+      aiAnimatingSlotIndices,
+    },
+  });
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   pendingUnlockResult: null,
+  pendingLockReveals: [],
+  hasLocalPlayerLocked: false,
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -236,7 +309,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
-    set(updates);
+    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [] });
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -458,6 +531,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    // Determine if local player locked immediately (no lock animations to play)
+    const localLockedNow = newLocks.length === 0;
+
     // Update round state and set phase to locking (for UI feedback)
     set({
       players,
@@ -478,7 +554,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         aiAnimatingSlotIndices,
       },
       phase: 'locking',
+      // Reset buffered reveals for this roll cycle
+      hasLocalPlayerLocked: localLockedNow,
+      pendingLockReveals: [],
     });
+
+    // If no lock animations needed, flush any already-buffered reveals immediately
+    if (localLockedNow && state.isOnlineGame) {
+      get().flushPendingLockReveals();
+    }
   },
 
   clearLockAnimations: () => {
@@ -774,7 +858,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [] });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
@@ -801,6 +885,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // --- Pending server data (online game sync) ---
   setPendingUnlockResult: (result) => set({ pendingUnlockResult: result }),
+
+  // --- Buffered other-player lock reveals ---
+  addPendingLockReveal: (data: PlayerLockResultData) => {
+    const state = get();
+    if (state.hasLocalPlayerLocked) {
+      // Local player already locked — apply immediately (with animation)
+      applyOtherPlayerLockReveal(get, set, data);
+    } else {
+      // Buffer until local player's lock animation completes
+      set({ pendingLockReveals: [...state.pendingLockReveals, data] });
+    }
+  },
+
+  flushPendingLockReveals: () => {
+    const state = get();
+    const reveals = state.pendingLockReveals;
+    if (reveals.length === 0) return;
+    // Clear buffer first, then apply each
+    set({ pendingLockReveals: [] });
+    for (const data of reveals) {
+      applyOtherPlayerLockReveal(get, set, data);
+    }
+  },
+
+  setLocalPlayerLocked: (locked: boolean) => {
+    set({ hasLocalPlayerLocked: locked });
+    if (locked) {
+      // Flush any buffered reveals
+      get().flushPendingLockReveals();
+    }
+  },
 }));
 
 /** Check if a tip should be shown (tips enabled + not already shown this session) */

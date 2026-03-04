@@ -156,6 +156,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       lerpCompleteCount.current++;
       if (lerpCompleteCount.current >= lerpExpectedCount.current && lerpExpectedCount.current > 0) {
         clearLockAnimations();
+        // Signal that local player's lock animation is done — flush buffered reveals
+        useGameStore.getState().setLocalPlayerLocked(true);
       }
     }
 

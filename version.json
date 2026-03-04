@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 119,
+  "build": 120,
   "history": [
     {
       "version": "0.1.0",
@@ -222,6 +222,11 @@
       "version": "0.1.0.119",
       "date": "2026-03-03",
       "summary": "Client sends physics values to server, applies own locks locally, removes batch online roll infrastructure"
+    },
+    {
+      "version": "0.1.0.120",
+      "date": "2026-03-03",
+      "summary": "Buffered reveal of other players' locks: addPendingLockReveal, flush on local lock complete, profile-emerge animations"
     }
   ]
 }
