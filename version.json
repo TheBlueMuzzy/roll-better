@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
-  "version": "0.1.0",
-  "build": 124,
+  "version": "0.2.0",
+  "build": 0,
   "history": [
     {
       "version": "0.1.0",
@@ -247,6 +247,11 @@
       "version": "0.1.0.124",
       "date": "2026-03-04",
       "summary": "Restart game flow, scoring sync, faster other-player lock animations"
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-03-04",
+      "summary": "Milestone: Online multiplayer — PartyKit WebSocket server, lobby system, synchronized gameplay, restart flow"
     }
   ]
 }
