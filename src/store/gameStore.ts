@@ -255,7 +255,8 @@ function applyOtherPlayerUnlockReveal(get: StoreGet, set: StoreSet, data: Unlock
       // Find the value of the die being unlocked (from the PREVIOUS locked dice, before removal)
       const prevPlayer = state.players[playerIndex];
       const lockedEntry = prevPlayer.lockedDice.find(ld => ld.goalSlotIndex === slotIndex);
-      const value = lockedEntry?.value ?? 1;
+      // Fallback to goal value (locks always match their goal slot) if lockedDice wasn't populated
+      const value = lockedEntry?.value ?? state.roundState.goalValues[slotIndex] ?? 1;
 
       aiUnlockAnimations.push({
         playerId: otherPlayer.id,
@@ -640,11 +641,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         aiAnimatingSlotIndices,
       },
       phase: 'locking',
-      // Reset buffered reveals for this roll cycle
+      // Update local lock status for this roll cycle (controls buffering of other-player reveals)
       hasLocalPlayerLocked: localLockedNow,
-      pendingLockReveals: [],
       hasSubmittedUnlock: false,
-      pendingUnlockReveals: [],
+      // NOTE: Do NOT clear pendingLockReveals or pendingUnlockReveals here.
+      // Reveals may have arrived during physics settling — clearing would lose them.
+      // They are cleared in initRound (new round) and flushPending* (when applied).
     });
 
     // If no lock animations needed, flush any already-buffered reveals immediately

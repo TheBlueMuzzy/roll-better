@@ -34,6 +34,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
     }
 
     let deferredPhaseInterval: ReturnType<typeof setInterval> | null = null;
+    let deferredPhaseTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const handler = (event: MessageEvent) => {
       const msg = parseServerMessage(event.data as string);
@@ -65,6 +66,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
             console.log("[useOnlineGame] phase_change deferred:", state.phase, "->", newPhase, "(animations in progress)");
             // Clear any previous deferred phase poll
             if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
+            if (deferredPhaseTimeout) clearTimeout(deferredPhaseTimeout);
             // Poll until animations clear, then apply
             deferredPhaseInterval = setInterval(() => {
               const s = useGameStore.getState();
@@ -76,10 +78,27 @@ export function useOnlineGame(): UseOnlineGameReturn {
               if (!stillAnimating) {
                 clearInterval(deferredPhaseInterval!);
                 deferredPhaseInterval = null;
+                if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
                 console.log("[useOnlineGame] deferred phase_change applied:", s.phase, "->", newPhase);
                 s.setPhase(newPhase);
               }
             }, 100);
+            // Safety: force-apply after 5s to prevent infinite polling
+            deferredPhaseTimeout = setTimeout(() => {
+              if (deferredPhaseInterval) {
+                clearInterval(deferredPhaseInterval);
+                deferredPhaseInterval = null;
+                deferredPhaseTimeout = null;
+                const s = useGameStore.getState();
+                console.warn("[useOnlineGame] deferred phase_change FORCED after 5s timeout:", s.phase, "->", newPhase);
+                // Clear any stale animation state that was blocking
+                s.clearLockAnimations();
+                s.clearAILockAnimations();
+                s.clearUnlockAnimations();
+                s.clearAIUnlockAnimations();
+                s.setPhase(newPhase);
+              }
+            }, 5000);
           } else {
             console.log("[useOnlineGame] phase_change:", state.phase, "->", newPhase);
             state.setPhase(newPhase);
@@ -161,6 +180,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
     return () => {
       socket.removeEventListener("message", handler);
       if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
+      if (deferredPhaseTimeout) clearTimeout(deferredPhaseTimeout);
     };
   }, [isOnlineGame]);
 
