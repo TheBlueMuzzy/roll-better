@@ -98,9 +98,19 @@ export function useOnlineGame(): UseOnlineGameReturn {
           console.log("[useOnlineGame] round_start (Phase 18 scope)", msg);
           break;
 
-        case "scoring":
-          console.log("[useOnlineGame] scoring (Phase 18 scope)", msg);
+        case "scoring": {
+          const scoringState = useGameStore.getState();
+          const localId = scoringState.onlinePlayerIds[0];
+          const localWinner = msg.winners.find((w: { playerId: string; roundScore: number }) => w.playerId === localId);
+          console.log(
+            "[useOnlineGame] scoring — winners:",
+            msg.winners.map((w: { playerId: string; roundScore: number }) => w.playerId),
+            "local roundScore:",
+            localWinner ? localWinner.roundScore : 0,
+          );
+          scoringState.applyOnlineScoring(msg.winners, msg.players);
           break;
+        }
 
         case "session_end":
           console.log("[useOnlineGame] session_end (Phase 18 scope)", msg);

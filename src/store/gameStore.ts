@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
-import type { UnlockResultMessage, LockedDieSync } from '../types/protocol';
+import type { UnlockResultMessage, LockedDieSync, PlayerSyncState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -96,6 +96,8 @@ interface GameStore extends GameState {
   clearOnlineMode: () => void;
   setOnlinePlayerIds: (ids: string[]) => void;
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => void;
+  applyOnlineScoring: (winners: { playerId: string; roundScore: number }[], serverPlayers: PlayerSyncState[]) => void;
+  applyOnlineSessionEnd: (serverPlayers: PlayerSyncState[]) => void;
 
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
@@ -958,6 +960,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Route through buffering (same pattern as lock reveals)
     get().addPendingUnlockReveal({ playerId, unlockedSlots, newPoolSize, lockedDice: serverLockedDice });
+  },
+
+  applyOnlineScoring: (winners: { playerId: string; roundScore: number }[], serverPlayers: PlayerSyncState[]) => {
+    const state = get();
+    // Map server player data to local players using onlinePlayerIds
+    const players = state.players.map((p, i) => {
+      const serverId = state.onlinePlayerIds[i];
+      const serverPlayer = serverPlayers.find(sp => sp.id === serverId);
+      if (serverPlayer) {
+        return { ...p, score: serverPlayer.score };
+      }
+      return p;
+    });
+
+    // Determine local player's roundScore: find onlinePlayerIds[0] in winners
+    const localServerId = state.onlinePlayerIds[0];
+    const localWinner = winners.find(w => w.playerId === localServerId);
+    const localRoundScore = localWinner ? localWinner.roundScore : 0;
+
+    set({
+      players,
+      phase: 'scoring',
+      roundState: {
+        ...state.roundState,
+        roundScore: localRoundScore,
+      },
+    });
+  },
+
+  applyOnlineSessionEnd: (serverPlayers: PlayerSyncState[]) => {
+    const state = get();
+    // Map server player data to local players using onlinePlayerIds
+    const players = state.players.map((p, i) => {
+      const serverId = state.onlinePlayerIds[i];
+      const serverPlayer = serverPlayers.find(sp => sp.id === serverId);
+      if (serverPlayer) {
+        return { ...p, score: serverPlayer.score };
+      }
+      return p;
+    });
+
+    set({
+      players,
+      phase: 'sessionEnd',
+      screen: 'winners',
+    });
   },
 
   // --- Pending server data (online game sync) ---
