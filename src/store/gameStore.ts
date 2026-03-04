@@ -98,6 +98,7 @@ interface GameStore extends GameState {
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => void;
   applyOnlineScoring: (winners: { playerId: string; roundScore: number }[], serverPlayers: PlayerSyncState[]) => void;
   applyOnlineSessionEnd: (serverPlayers: PlayerSyncState[]) => void;
+  applyServerPlayerSync: (serverPlayers: PlayerSyncState[]) => void;
 
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
@@ -952,6 +953,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
   },
+  applyServerPlayerSync: (serverPlayers: PlayerSyncState[]) => {
+    const state = get();
+    const players = state.players.map((p, i) => {
+      const serverId = state.onlinePlayerIds[i];
+      const serverPlayer = serverPlayers.find(sp => sp.id === serverId);
+      if (serverPlayer) {
+        return {
+          ...p,
+          startingDice: serverPlayer.startingDice,
+          score: serverPlayer.score,
+        };
+      }
+      return p;
+    });
+    set({ players });
+  },
+
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
     const state = get();
     const playerIndex = state.onlinePlayerIds.indexOf(playerId);

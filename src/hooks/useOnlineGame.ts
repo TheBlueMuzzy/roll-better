@@ -1,7 +1,9 @@
 import { useEffect, useCallback } from "react";
 import { useGameStore } from "../store/gameStore";
 import { getGameSocket, sendMessage, parseServerMessage } from "../utils/partyClient";
+import { getSpawnPositions } from "../components/DicePool";
 import type { GamePhase } from "../types/game";
+import type { PlayerSyncState } from "../types/protocol";
 
 // ─── Return Type ─────────────────────────────────────────────────────
 
@@ -42,6 +44,15 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const newPhase = msg.phase as GamePhase;
           const state = useGameStore.getState();
           if (newPhase === state.phase) break;
+
+          // roundEnd triggers exit animations immediately — never deferred
+          if (newPhase === 'roundEnd') {
+            console.log("[useOnlineGame] phase_change roundEnd — triggering exit animations");
+            state.setPoolExiting(true);
+            state.setGoalTransition('exiting');
+            state.setPhase('roundEnd');
+            break;
+          }
 
           // Defer phase transition if animations are still playing
           const hasAnimations =
@@ -94,9 +105,36 @@ export function useOnlineGame(): UseOnlineGameReturn {
           );
           break;
 
-        case "round_start":
-          console.log("[useOnlineGame] round_start (Phase 18 scope)", msg);
+        case "round_start": {
+          console.log("[useOnlineGame] round_start — round", msg.round, "goals:", msg.goalValues);
+          const rsState = useGameStore.getState();
+
+          // Apply server player sync (handicap-adjusted startingDice + scores)
+          rsState.applyServerPlayerSync(msg.players as PlayerSyncState[]);
+
+          // Init round with server-provided goals (skipPhase so we control timing)
+          useGameStore.getState().initRound({ goalValues: msg.goalValues, skipPhase: true });
+
+          // Start enter animations: goal dice fly in
+          useGameStore.getState().setGoalTransition('entering');
+
+          // Spawn pool dice from avatar to pool positions
+          const updatedState = useGameStore.getState();
+          const localPlayer = updatedState.players[0];
+          if (localPlayer && localPlayer.poolSize > 0) {
+            const spawnPositions = getSpawnPositions(localPlayer.poolSize);
+            useGameStore.getState().setPoolSpawning(true, spawnPositions);
+          }
+
+          // After 1500ms: settle animations and go idle
+          setTimeout(() => {
+            const s = useGameStore.getState();
+            s.setGoalTransition('none');
+            s.setPoolSpawning(false);
+            s.setPhase('idle');
+          }, 1500);
           break;
+        }
 
         case "scoring": {
           const scoringState = useGameStore.getState();
