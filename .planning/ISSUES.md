@@ -166,6 +166,52 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Medium
 - **Suggested phase:** Same fix pass as ISS-001/ISS-002
 
+### BUG-002: Online reveal buffering broken — data loss in setRollResults
+
+- **Priority:** P0 — breaks online multiplayer
+- **Discovered:** 2026-03-04 during 18-02 checkpoint testing
+- **Status:** FIXED — commit 45316e2
+- **Reported by:** User (multiple symptoms in one session)
+
+#### Symptoms Observed
+
+1. **P2 sees P1's locks before P2 has rolled** — lock reveals supposed to buffer until local player rolls, but appear immediately
+2. **AI lock dice don't animate on P1's screen** — sometimes "just appear" instead of profile-emerge animation
+3. **AI unlock dice show value 1** — all AI dice animating out display as 1 instead of their actual value
+4. **Game freeze** — game stuck after a lock at score 5,0,8,0 (deferred phase_change polling forever)
+
+#### Root Cause: `setRollResults` wiped buffered reveals (gameStore.ts)
+
+`setRollResults` included `pendingLockReveals: []` and `pendingUnlockReveals: []` in its `set()` call. Timeline:
+
+1. P1 settles → server relays P1's lock results to P2
+2. P2 hasn't rolled yet → result buffered in `pendingLockReveals`
+3. P2 rolls → physics settle → `setRollResults` fires
+4. **`pendingLockReveals: []` wipes the buffer** → P1's results lost
+5. `hasLocalPlayerLocked` set to `true` (if local player locked) → no buffering gate
+6. Any future reveals from P1 apply immediately (no buffer = instant reveal)
+
+**Secondary bug:** `applyOtherPlayerUnlockReveal` used `lockedEntry?.value ?? 1` — when lock reveals were lost (Bug A), bot `lockedDice` was empty in store, so all unlock animations showed face value 1.
+
+**Tertiary bug:** Deferred phase polling (`deferredPhaseInterval`) had no safety timeout. If stale animation state blocked clearing, the interval polled forever → game freeze.
+
+#### Fixes Applied (commit 45316e2)
+
+| Fix | File | Change |
+|-----|------|--------|
+| Stop clearing buffers in setRollResults | `gameStore.ts` | Removed `pendingLockReveals: []` and `pendingUnlockReveals: []` from `set()` call. Buffers now only clear in `initRound` (new round) and `flushPending*` (when applied). |
+| Smart unlock value fallback | `gameStore.ts` | Changed `?? 1` to `?? goalValues[slotIndex] ?? 1` — locks always match their goal slot. |
+| Deferred phase safety timeout | `useOnlineGame.ts` | Added 5s timeout that force-clears stale animations and applies the phase change. |
+
+#### Investigation Note
+
+Initial theory blamed `lerpExpectedCount` refs in Scene.tsx not resetting between rounds. This was **incorrect** — `handleAllSettled` (Scene.tsx:136-139) DOES reset all refs to 0 before each roll. The actual root cause was the data-clearing in setRollResults.
+
+#### Related Issues
+- BUG-001 (canted dice) — separate issue, unrelated
+
+---
+
 ## Closed Enhancements
 
 [Moved here when addressed]
