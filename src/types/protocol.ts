@@ -55,6 +55,10 @@ export interface SkipUnlockMessage {
   type: "skip_unlock";
 }
 
+export interface RestartGameMessage {
+  type: "restart_game";
+}
+
 /** All messages the client can send to the server */
 export type ClientMessage =
   | JoinMessage
@@ -63,7 +67,8 @@ export type ClientMessage =
   | StartGameMessage
   | RollResultMessage
   | UnlockRequestMessage
-  | SkipUnlockMessage;
+  | SkipUnlockMessage
+  | RestartGameMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 

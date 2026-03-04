@@ -195,7 +195,7 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
   const rowZ = -3.77 + playerIndex * 0.9;
   const slotsAnimating: number[] = [];
   let delay = aiLockAnimations.length > 0
-    ? aiLockAnimations[aiLockAnimations.length - 1].delay + 0.3
+    ? aiLockAnimations[aiLockAnimations.length - 1].delay + 0.15
     : 0;
 
   for (const lock of data.newLocks) {
@@ -210,7 +210,7 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
       playerId: otherPlayer.id,
     });
     slotsAnimating.push(lock.goalSlotIndex);
-    delay += 0.25 + Math.random() * 0.25;
+    delay += 0.1 + Math.random() * 0.1;
   }
 
   aiAnimatingSlotIndices[otherPlayer.id] = [

@@ -130,8 +130,9 @@ Each turn has these phases, executed simultaneously for all players:
 - Repeat until a winner is found
 
 ### 4.4 Turn Timing
-- All players roll simultaneously
-- All players see each other's results after everyone's dice settle
+- All players roll simultaneously — each taps on their own screen when ready
+- Each player sees their OWN results immediately. Other players' results are hidden until you've rolled and locked in, then revealed with animation (see §5.3.1 for full data flow)
+- Same pattern for unlocking: your choice applies immediately, others' choices revealed only after you've acted
 - **Unlock phase timer**: Countdown timer on unlock decisions. When timer expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
 - The pace should feel brisk — no waiting for slow players
 
@@ -140,16 +141,19 @@ When 1+ players lock all 8 dice matching the Goal:
 
 **Points calculation:**
 - Base: **8 points**
-- Penalty: **-2 points per die in pool beyond 8**
-- Formula: `points = max(0, 8 - 2 * (poolSize - 8))`
+- Penalty: per-die penalties for remaining pool dice: `[1, 0, 1, 1]`
+- Formula: `points = max(0, 8 - sum(penalties[0..remainingPool-1]))`
+- Remaining pool = dice NOT locked (total dice - 8 locked)
 
-| Pool Size | Points |
-|-----------|--------|
-| 8         | 8 (perfect) |
-| 9         | 6 |
-| 10        | 4 |
-| 11        | 2 |
-| 12        | 0 |
+| Remaining Pool | Penalty | Points |
+|----------------|---------|--------|
+| 0              | 0       | 8 (perfect) |
+| 1              | 1       | 7 |
+| 2              | 1       | 7 |
+| 3              | 2       | 6 |
+| 4              | 3       | 5 |
+
+**Strategic note:** Winning with 5 points while opponents get 0 is still a strong play. Early rounds favor aiming for 8 (perfect locks). As the session progresses, players who are behind benefit from aggressive unlocking — more dice means faster wins even at lower scores. The core tension: a fast sloppy win (5 pts) beats a slow perfect attempt that never completes (0 pts).
 
 - All players who complete the Goal on the same turn score
 - Players who did NOT complete the Goal score 0 for that round
@@ -212,15 +216,51 @@ Applied after every round:
 ### 5.3 Networking (v1.1 — Partykit on Cloudflare)
 - **Protocol**: WebSocket via Partykit (Cloudflare free tier — 100k requests/day)
 - **Server**: Partykit room server (Cloudflare Workers edge runtime)
-  - Host-authoritative game state validation (anti-cheat, Glyphtender pattern)
-  - Server generates roll RESULTS (random numbers) — clients animate dice visually
-  - Broadcasts state updates to all connected clients
-  - Manages turn timing / unlock phase timer + AI takeover on timeout
+  - Validates moves and computes locks (runs `findAutoLocks` on reported values)
+  - Relays each player's results to other players as they arrive (no batching)
+  - Manages phase transitions (advances phase when all players have acted)
+  - Manages unlock phase timer + AI takeover on timeout
   - Handles room lifecycle (create, join, close, cleanup)
-- **Client**: Sends roll requests, unlock decisions. Receives authoritative state + roll results.
+- **Client**: Rolls physics dice locally, sends settled values to server. Receives other players' results from server. Applies own results locally without waiting for server response.
 - **Reconnection**: Player can rejoin with same room code. AI surrenders control back to player on reconnect.
 - **Latency tolerance**: Simultaneous turn-based action — latency up to 500ms is acceptable. Visual lerps mask network delay.
 - **No accounts**: Anonymous play only. Persistent identity deferred to future milestone.
+
+#### 5.3.1 Online Data Flow — Rolling Phase
+The online experience must feel identical to local play. The server is invisible plumbing — same animations, same timing, same player agency. Each player controls their own game.
+
+**Per-player flow (no batching, no waiting for others):**
+1. Player taps to roll → physics dice tumble and settle on their screen (identical to offline)
+2. Client reads face values from physics → applies own locks locally and immediately (same code path as offline — player sees their locks animate without any server round-trip)
+3. Client sends settled values to server in parallel: `{type: "roll_result", values: [3, 1]}`
+4. Server receives values → runs `findAutoLocks` → sends that player's lock result to all OTHER clients (not back to sender — sender already applied locally)
+5. Other clients receive the lock result:
+   - If the receiving player has NOT yet rolled → **buffer the result silently**. Show nothing. The player is still looking at "Tap to Roll."
+   - If the receiving player HAS already rolled and locked in → **reveal immediately with animation** (profile-emerge pattern: dice scale from 0→1 and fly from profile icon to row slots)
+6. When all players have rolled and locked → server sends `phase_change: "unlocking"`
+
+**Reveal timing (client-side buffering):**
+- You never see another player's locks until your own lock animation has completed
+- After your locks finish animating, all buffered results from players who rolled before you are revealed at once (each animated)
+- Players who roll after you — their results appear immediately as they arrive (each animated)
+- Last player to roll sees everyone else's locks reveal in a burst after their own locks animate
+
+#### 5.3.2 Online Data Flow — Unlocking Phase
+Same pattern as rolling — each player's choice flows independently through the server.
+
+1. Player selects locked dice and taps UNLOCK (or taps SKIP) → client applies own unlock locally and immediately (same code path as offline)
+2. Client sends choice to server: `{type: "unlock_request", slotIndices: [2]}` or `{type: "skip_unlock"}`
+3. Server validates → sends result to all OTHER clients
+4. Other clients receive the result:
+   - If the receiving player has NOT yet chosen → **buffer silently**
+   - If the receiving player HAS already chosen → **reveal immediately with animation**
+5. When all players have responded → server sends `phase_change: "idle"` → next roll cycle
+
+#### 5.3.3 Design Principles for Online Play
+- **The local experience is the source of truth.** Online is an invisible layer on top. If you turned off the network, each player's own experience would look identical to offline.
+- **No player waits for any other player to act.** You tap, your dice roll, your locks animate. You never see a loading spinner or "waiting for other players" during your own actions.
+- **Information is private until you've acted.** You don't see what others rolled/locked/unlocked until you've done the same. This prevents influence and preserves the feeling of playing your own game.
+- **Every reveal is animated.** "Immediately" means "with the standard animation" (profile-emerge for locks, appropriate animation for unlocks). Nothing pops into position.
 
 ### 5.4 State Management
 Core game state (managed in a global store — Zustand recommended for R3F):
@@ -471,8 +511,8 @@ src/
 ### 7.3 Key Technical Decisions
 - **R3F Golden Rule**: NEVER use React state for per-frame updates. Mutate refs in useFrame. All dice physics, lerps, and animations run in useFrame loops, not React re-renders.
 - **Physics**: Rapier for realistic 3D dice tumbling. Dice are rigid bodies with correct mass/inertia for realistic rolls. Physics runs in the bottom rolling area; locked dice are kinematic (not affected by physics).
-- **Dice values**: Read from physics simulation — the face pointing up after the die settles determines the rolled value. Use dot product of each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome visually and mechanically.
-- **Server-authoritative rolls (v1.1)**: Server generates actual roll results (random numbers). Clients receive results and animate dice physics visually to land on those numbers. No physics sync needed — avoids the impossible problem of syncing physics across clients while maintaining anti-cheat.
+- **Dice values**: Read from physics simulation — the face pointing up after the die settles determines the rolled value. Use dot product of each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome visually and mechanically. This is true for BOTH offline and online play.
+- **Client-authoritative values, server-authoritative locking (v1.1)**: Each client rolls physics dice locally and reports settled values to the server. Server computes locks via `findAutoLocks` and relays results to other players. The physics the player sees ARE the values that get used — no mismatch between display and game state. No physics sync needed across clients.
 - **Animation system**: Central lerp manager handles all dice movement. Queue-based to sequence animations (e.g., lock dice → THEN check winner → THEN show unlock prompt). Use easing functions for polish (ease-out for locks, ease-in-out for spawns).
 - **Initial roll force**: Apply impulse at an OFFSET point (not center of mass) to induce natural rotation. Add random initial angular velocity per die for variety.
 
@@ -497,9 +537,11 @@ src/
 - Goal: prove the core loop is fun
 
 **v1.1 Online Multiplayer (Partykit):**
-- Partykit room server on Cloudflare handles room creation, state sync, roll validation
-- Host-authoritative: server validates moves before broadcasting
-- Server generates roll results — clients animate physics visually
+- Partykit room server on Cloudflare handles room creation, lock computation, result relay
+- Client-authoritative values: each player's physics determines their dice values
+- Server-authoritative locking: server runs `findAutoLocks` on reported values, relays results
+- Per-player data flow: each player's results relay independently (no batching/waiting)
+- Client-side buffering: other players' results hidden until you've acted, then animated reveal
 - Room codes become functional (4-letter Jackbox-style)
 - AI backfill for incomplete rooms + AI drop-in/drop-out on disconnect
 - Turn timers with AI takeover on timeout
@@ -568,7 +610,8 @@ src/
 - Partykit room server on Cloudflare free tier
 - Room creation / join with 4-letter Jackbox-style codes
 - Lobby screen (player list with names/colors, ready-up, host start, AI fill)
-- Host-authoritative state sync (server generates roll results, clients animate)
+- Client-authoritative dice values (physics determines results, server computes locks)
+- Per-player result relay with client-side buffering (see §5.3.1–5.3.3)
 - Dice sync + simultaneous play across clients
 - Turn timers with AI takeover on timeout
 - AI drop-in/drop-out (disconnect → AI takes over, reconnect → player resumes)

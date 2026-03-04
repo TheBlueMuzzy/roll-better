@@ -11,7 +11,7 @@ import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
-import { setGameSocket } from './utils/partyClient';
+import { getGameSocket, setGameSocket, sendMessage } from './utils/partyClient';
 import { useShakeToRoll } from './hooks/useShakeToRoll';
 import { useAccelerometerGravity } from './hooks/useAccelerometerGravity';
 import { useOnlineGame } from './hooks/useOnlineGame';
@@ -100,6 +100,16 @@ function App() {
 
   // Play Again handler — replay with stored game preferences
   const handlePlayAgain = useCallback(() => {
+    // Online: send restart_game to server, wait for game_starting response
+    if (isOnlineGame) {
+      const socket = getGameSocket();
+      if (socket) {
+        sendMessage(socket, { type: "restart_game" });
+      }
+      return; // useOnlineGame will handle game_starting and set up the new game
+    }
+
+    // Offline: initialize locally
     const { gamePrefs } = useGameStore.getState();
     initGame(gamePrefs.playerCount, gamePrefs.aiDifficulty);
     initRound();
@@ -113,10 +123,13 @@ function App() {
       const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
       setTimeout(() => setPoolSpawning(false), spawnDuration);
     }
-  }, [initGame, initRound, setScreen, setPoolSpawning]);
+  }, [isOnlineGame, initGame, initRound, setScreen, setPoolSpawning]);
 
   // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
+    // Close WebSocket explicitly so server detects disconnect and migrates host
+    const socket = getGameSocket();
+    if (socket) socket.close();
     useGameStore.getState().clearOnlineMode();
     setGameSocket(null);
     setPhase('lobby');

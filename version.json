@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 123,
+  "build": 124,
   "history": [
     {
       "version": "0.1.0",
@@ -242,6 +242,11 @@
       "version": "0.1.0.123",
       "date": "2026-03-04",
       "summary": "Fix online sync bugs: buffered reveals, unlock values, deferred phase timeout"
+    },
+    {
+      "version": "0.1.0.124",
+      "date": "2026-03-04",
+      "summary": "Restart game flow, scoring sync, faster other-player lock animations"
     }
   ]
 }

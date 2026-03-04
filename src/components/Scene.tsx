@@ -57,6 +57,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const aiAnimatingSlotIndices = useGameStore((s) => s.roundState.aiAnimatingSlotIndices);
     const clearAILockAnimations = useGameStore((s) => s.clearAILockAnimations);
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
+    const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
     const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
     const player = players[0];
 
@@ -280,8 +281,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           shakingSlot={shakingSlot}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
-          canUnlock={(12 - player.poolSize - player.lockedDice.length) > 0}
-          maxUnlocks={Math.max(0, 12 - player.poolSize - player.lockedDice.length)}
+          canUnlock={!hasSubmittedUnlock && (12 - player.poolSize - player.lockedDice.length) > 0}
+          maxUnlocks={hasSubmittedUnlock ? 0 : Math.max(0, 12 - player.poolSize - player.lockedDice.length)}
         />
 
         {/* AI player rows — below human row (outside Physics) */}

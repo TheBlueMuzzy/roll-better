@@ -35,12 +35,12 @@
 
 ## Scoring (when someone wins a round)
 - **8 points max** per round
-- **-2 points** for each die in your pool beyond 8
-  - Pool of 8 → 8 pts (perfect)
-  - Pool of 9 → 6 pts
-  - Pool of 10 → 4 pts
-  - Pool of 11 → 2 pts
-  - Pool of 12 → 0 pts
+- Penalty per remaining pool die (not locked): penalties = `[1, 0, 1, 1]`
+  - 0 remaining → 8 pts (perfect)
+  - 1 remaining → 7 pts
+  - 2 remaining → 7 pts
+  - 3 remaining → 6 pts
+  - 4 remaining → 5 pts
 - **Scoring animation**: Locked dice lerp to your pool. Goal dice lerp "points" to your point display, counting up (1 per die, capped at your actual max based on pool size)
 - All players who complete the Goal on the same turn score
 

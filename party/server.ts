@@ -139,6 +139,9 @@ export default class RollBetterServer implements Party.Server {
       case "skip_unlock":
         this.handleSkipUnlock(sender);
         break;
+      case "restart_game":
+        this.handleRestartGame(sender);
+        break;
       default:
         this.log(`Warning: unknown message type "${(parsed as { type: string }).type}" from ${sender.id}`);
         break;
@@ -318,6 +321,94 @@ export default class RollBetterServer implements Party.Server {
     };
 
     // Start round 1 — reuse the goalValues already generated above
+    this.serverInitRound(true);
+  }
+
+  /**
+   * Handle a restart request after session end.
+   * Any remaining player can trigger a restart — reuses the previous game's settings.
+   */
+  private handleRestartGame(conn: Party.Connection) {
+    if (!this.gameState || this.gameState.phase !== "sessionEnd") {
+      this.sendToConnection(conn, {
+        type: "error",
+        message: "Can only restart after a session ends",
+      });
+      return;
+    }
+
+    if (!this.players.has(conn.id)) {
+      this.sendToConnection(conn, {
+        type: "error",
+        message: "You are not in this room",
+      });
+      return;
+    }
+
+    // Clean up any stale timers
+    this.cleanupTimers();
+
+    // Reuse settings from previous game
+    const targetPlayers = this.gameState.players.length; // same total player count
+    const aiDifficulty = this.gameState.aiDifficulty;
+
+    // Generate new goals
+    const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
+      .sort((a, b) => a - b);
+
+    const startMsg: GameStartingMessage = {
+      type: "game_starting",
+      players: Array.from(this.players.values()),
+      targetPlayers,
+      aiDifficulty,
+      goalValues,
+    };
+
+    this.room.broadcast(JSON.stringify(startMsg));
+    this.log(`Game restarting — ${this.players.size} online players, ${targetPlayers} target, AI: ${aiDifficulty}`);
+
+    // Build fresh game state
+    const botCount = targetPlayers - this.players.size;
+    const gamePlayers: ServerPlayerState[] = [];
+
+    for (const p of this.players.values()) {
+      gamePlayers.push({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        score: 0,
+        startingDice: 2,
+        poolSize: 2,
+        lockedDice: [],
+        isOnline: true,
+      });
+    }
+
+    for (let i = 0; i < botCount; i++) {
+      const botIndex = this.players.size + i;
+      gamePlayers.push({
+        id: `bot-${i}`,
+        name: `Bot ${i + 1}`,
+        color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
+        score: 0,
+        startingDice: 2,
+        poolSize: 2,
+        lockedDice: [],
+        isOnline: false,
+        difficulty: aiDifficulty,
+      });
+    }
+
+    this.gameState = {
+      currentRound: 0,
+      goalValues,
+      phase: "idle",
+      players: gamePlayers,
+      rollRequestedBy: new Set(),
+      unlockResponses: new Map(),
+      aiDifficulty,
+    };
+
     this.serverInitRound(true);
   }
 
