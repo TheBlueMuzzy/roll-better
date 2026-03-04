@@ -113,7 +113,8 @@ export function useOnlineGame(): UseOnlineGameReturn {
         }
 
         case "session_end":
-          console.log("[useOnlineGame] session_end (Phase 18 scope)", msg);
+          console.log("[useOnlineGame] session_end — transitioning to winners screen");
+          useGameStore.getState().applyOnlineSessionEnd(msg.players);
           break;
       }
     };
