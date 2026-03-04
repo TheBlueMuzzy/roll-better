@@ -30,6 +30,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
   const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
+  const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
 
   // --- Score counting animation ---
   const scoreRef = useRef<HTMLSpanElement>(null);
@@ -105,7 +106,9 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
-    if (mustUnlock && selectedCount === 0) {
+    if (hasSubmittedUnlock) {
+      statusText = 'Waiting for others...';
+    } else if (mustUnlock && selectedCount === 0) {
       statusText = 'No dice left — unlock 1+';
     } else if (atUnlockCap) {
       statusText = `${selectedCount} selected (max 12 dice)`;
@@ -157,7 +160,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
       </div>
 
       {/* Unlock/Skip button — centered in pool area during unlock phase, hidden during animations */}
-      {phase === 'unlocking' && !animationsInProgress && (
+      {phase === 'unlocking' && !animationsInProgress && !hasSubmittedUnlock && (
         <button
           className={`hud-skip-btn${mustUnlock && selectedCount === 0 ? ' hud-skip-btn--disabled' : ''}`}
           onClick={onConfirmUnlock}

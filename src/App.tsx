@@ -353,16 +353,20 @@ function App() {
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
     if (isOnlineGame) {
-      // Online: send to server, don't process locally
       if (player.selectedForUnlock.length > 0) {
+        // Send to server immediately (server waits for all)
         sendUnlockRequest(player.selectedForUnlock);
-        useGameStore.getState().skipUnlock(0); // Clear selection UI
+        // Mark as submitted so HUD shows "Waiting..." and prevents re-interaction
+        useGameStore.getState().setHasSubmittedUnlock(true);
+        // Fall through to the animated path below (same as offline)
       } else if (mustUnlock) {
         return; // Can't skip — must select at least 1
       } else {
         sendSkipUnlock();
+        useGameStore.getState().skipUnlock(0);
+        useGameStore.getState().setHasSubmittedUnlock(true);
+        return; // Skip path: no animation, just wait for server
       }
-      return; // Don't fall through to local processing
     }
 
     if (player.selectedForUnlock.length > 0) {
@@ -424,8 +428,10 @@ function App() {
       setTimeout(() => {
         useGameStore.getState().confirmUnlock(0);
         useGameStore.getState().clearUnlockAnimations();
-        // After human unlock animations complete, start AI unlock animations
-        startAIUnlockAnimations();
+        // Online: server handles AI unlocks and phase transition
+        if (!isOnlineGame) {
+          startAIUnlockAnimations();
+        }
       }, totalWait);
 
     } else if (mustUnlock) {

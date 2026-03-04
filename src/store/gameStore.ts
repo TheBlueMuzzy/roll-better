@@ -99,6 +99,10 @@ interface GameStore extends GameState {
   flushPendingLockReveals: () => void;
   hasLocalPlayerLocked: boolean;
   setLocalPlayerLocked: (locked: boolean) => void;
+
+  // Online unlock tracking
+  hasSubmittedUnlock: boolean;
+  setHasSubmittedUnlock: (submitted: boolean) => void;
 }
 
 const initialRoundState = {
@@ -215,6 +219,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingUnlockResult: null,
   pendingLockReveals: [],
   hasLocalPlayerLocked: false,
+  hasSubmittedUnlock: false,
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -309,7 +314,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
-    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [] });
+    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false });
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -557,6 +562,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Reset buffered reveals for this roll cycle
       hasLocalPlayerLocked: localLockedNow,
       pendingLockReveals: [],
+      hasSubmittedUnlock: false,
     });
 
     // If no lock animations needed, flush any already-buffered reveals immediately
@@ -601,6 +607,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => {
     const state = get();
+    // Prevent re-selection after submitting unlock choice (online)
+    if (state.hasSubmittedUnlock) return;
     const players = [...state.players];
     const player = { ...players[playerIndex] };
 
@@ -858,18 +866,43 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
   },
-  applyOnlineUnlockResult: (playerId: string, _unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
+  applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
     const state = get();
     const playerIndex = state.onlinePlayerIds.indexOf(playerId);
-    if (playerIndex === -1) return; // Bot or unknown — server manages
+    if (playerIndex === -1) return; // Unknown — ignore
+    if (playerIndex === 0) return; // Self — already applied locally via confirmUnlock
 
     const players = [...state.players];
     const player = { ...players[playerIndex] };
+
+    // Build AI-unlock-style animations for the unlocked slots (dice shrink toward profile)
+    const aiUnlockAnimations = [...state.roundState.aiUnlockAnimations];
+    const profileX = getSlotX(0) - PROFILE_X_OFFSET;
+    const rowZ = -3.77 + playerIndex * 0.9;
+    let animDelay = aiUnlockAnimations.length > 0
+      ? aiUnlockAnimations[aiUnlockAnimations.length - 1].delay + 0.3
+      : 0;
+
+    for (const slotIndex of unlockedSlots) {
+      const lockedEntry = player.lockedDice.find(ld => ld.goalSlotIndex === slotIndex);
+      if (!lockedEntry) continue;
+      aiUnlockAnimations.push({
+        playerId: player.id,
+        slotIndex,
+        value: lockedEntry.value,
+        fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, rowZ],
+        toPos: [profileX, 0, rowZ],
+        delay: animDelay,
+      });
+      animDelay += 0.15 + Math.random() * 0.15;
+    }
+
+    // Update player state from server
     player.lockedDice = serverLockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
     player.poolSize = newPoolSize;
     player.selectedForUnlock = [];
@@ -877,10 +910,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     console.log(
       `[applyOnlineUnlockResult] player=${playerId} index=${playerIndex} ` +
-      `pool=${newPoolSize} locks=${serverLockedDice.length}`,
+      `pool=${newPoolSize} locks=${serverLockedDice.length} unlocked=${unlockedSlots.length}`,
     );
 
-    set({ players });
+    set({
+      players,
+      roundState: {
+        ...state.roundState,
+        aiUnlockAnimations,
+      },
+    });
+
+    // Auto-clear animations after they've played
+    if (unlockedSlots.length > 0) {
+      const lastAnimDelay = aiUnlockAnimations[aiUnlockAnimations.length - 1].delay;
+      setTimeout(() => {
+        const s = get();
+        set({
+          roundState: {
+            ...s.roundState,
+            aiUnlockAnimations: s.roundState.aiUnlockAnimations.filter(
+              a => a.playerId !== playerId
+            ),
+          },
+        });
+      }, (lastAnimDelay * 1000) + 600);
+    }
   },
 
   // --- Pending server data (online game sync) ---
@@ -915,6 +970,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Flush any buffered reveals
       get().flushPendingLockReveals();
     }
+  },
+
+  // Online unlock tracking
+  setHasSubmittedUnlock: (submitted: boolean) => {
+    set({ hasSubmittedUnlock: submitted });
   },
 }));
 
