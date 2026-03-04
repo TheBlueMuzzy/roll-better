@@ -41,8 +41,9 @@ export interface StartGameMessage {
 
 // ─── Game Action Messages (Client → Server) ─────────────────────────
 
-export interface RollRequestMessage {
-  type: "roll_request";
+export interface RollResultMessage {
+  type: "roll_result";
+  values: number[];  // physics-determined dice values from client
 }
 
 export interface UnlockRequestMessage {
@@ -60,7 +61,7 @@ export type ClientMessage =
   | LeaveMessage
   | ReadyMessage
   | StartGameMessage
-  | RollRequestMessage
+  | RollResultMessage
   | UnlockRequestMessage
   | SkipUnlockMessage;
 
@@ -168,6 +169,16 @@ export interface SessionEndMessage {
   players: PlayerSyncState[];
 }
 
+/** Per-player lock result broadcast from server to other clients */
+export interface PlayerLockResultMessage {
+  type: "player_lock_result";
+  playerId: string;
+  rolled: number[];
+  newLocks: LockedDieSync[];
+  poolSize: number;
+  lockedDice: LockedDieSync[];
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -181,4 +192,5 @@ export type ServerMessage =
   | RoundStartMessage
   | UnlockResultMessage
   | ScoringMessage
-  | SessionEndMessage;
+  | SessionEndMessage
+  | PlayerLockResultMessage;

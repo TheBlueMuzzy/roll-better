@@ -7,7 +7,6 @@ import type {
   GameStartingMessage,
   LockedDieSync,
   PlayerSyncState,
-  PlayerRollResult,
 } from "../src/types/protocol";
 import { findAutoLocks } from "../src/utils/matchDetection";
 import { getAIUnlockDecision } from "../src/utils/aiDecision";
@@ -131,8 +130,8 @@ export default class RollBetterServer implements Party.Server {
       case "start_game":
         this.handleStartGame(sender, parsed.targetPlayers, parsed.aiDifficulty);
         break;
-      case "roll_request":
-        this.handleRollRequest(sender);
+      case "roll_result":
+        this.handleRollResult(sender, parsed.values);
         break;
       case "unlock_request":
         this.handleUnlockRequest(sender, parsed.slotIndices);
@@ -372,102 +371,117 @@ export default class RollBetterServer implements Party.Server {
   }
 
   /**
-   * Handle a roll request from any connected player.
-   * Generates dice rolls for ALL players (online + bots), computes auto-locks,
-   * and broadcasts results.
+   * Handle a roll result from a connected player.
+   * Client sends its physics-determined dice values after they settle.
+   * Server computes locks and relays to other clients (per-player, no batching).
    */
-  private handleRollRequest(sender: Party.Connection) {
-    // Validate: game must be active
+  private handleRollResult(sender: Party.Connection, values: number[]) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
     }
 
-    // Must be in idle phase to accept roll requests
-    if (this.gameState.phase !== "idle") {
-      return; // Silently ignore — player may have double-tapped or tapped during transition
+    // Allow rolling during idle OR rolling phase (other players may still be rolling)
+    if (this.gameState.phase !== "idle" && this.gameState.phase !== "rolling") {
+      return; // Silently ignore during other phases
     }
 
-    // Sender must be an online player in the game
-    const senderInGame = this.gameState.players.some((p) => p.id === sender.id && p.isOnline);
-    if (!senderInGame) {
+    // Find this player in game state
+    const player = this.gameState.players.find(p => p.id === sender.id && p.isOnline);
+    if (!player) {
       this.sendToConnection(sender, { type: "error", message: "You are not in this game" });
       return;
     }
 
-    // Duplicate guard: ignore if this player already sent a roll request
+    // Duplicate guard: ignore if this player already rolled this cycle
     if (this.gameState.rollRequestedBy.has(sender.id)) {
       return;
     }
 
-    // Record this player's roll request
-    this.gameState.rollRequestedBy.add(sender.id);
-    this.log(`Roll request from ${sender.id} (${this.gameState.rollRequestedBy.size}/${this.getOnlinePlayerCount()} online players)`);
-
-    // Wait for ALL online players to send roll_request before executing
-    if (this.gameState.rollRequestedBy.size < this.getOnlinePlayerCount()) {
-      return; // Still waiting for other players
+    // Validate values array length matches player's pool size
+    if (values.length !== player.poolSize) {
+      this.sendToConnection(sender, { type: "error", message: "Invalid dice count" });
+      return;
     }
 
-    // All online players have tapped — execute the roll
-    this.executeRoll();
+    // Validate each value is 1-6
+    if (values.some(v => v < 1 || v > 6 || !Number.isInteger(v))) {
+      this.sendToConnection(sender, { type: "error", message: "Invalid dice values" });
+      return;
+    }
+
+    // Transition to rolling phase on first roll_result received
+    if (this.gameState.phase === "idle") {
+      this.gameState.phase = "rolling";
+    }
+
+    // Record that this player has rolled
+    this.gameState.rollRequestedBy.add(sender.id);
+
+    // Compute locks for THIS player using client-reported values
+    const newLocks = findAutoLocks(this.gameState.goalValues, values, player.lockedDice);
+
+    // Update server state for this player
+    player.lockedDice = [...player.lockedDice, ...newLocks].sort(
+      (a, b) => a.goalSlotIndex - b.goalSlotIndex
+    );
+    player.poolSize -= newLocks.length;
+
+    // Send this player's lock result to all OTHER clients (sender already applied locally)
+    const lockResult: ServerMessage = {
+      type: "player_lock_result",
+      playerId: player.id,
+      rolled: values,
+      newLocks,
+      poolSize: player.poolSize,
+      lockedDice: player.lockedDice,
+    };
+    this.broadcastExcept(lockResult, [sender.id]);
+    this.log(`Player ${player.name} rolled [${values}] — ${newLocks.length} locks, pool: ${player.poolSize}`);
+
+    // Check if ALL players (online + bots) have rolled
+    this.checkAllRolled();
   }
 
-  /** Count online players in the current game */
-  private getOnlinePlayerCount(): number {
-    if (!this.gameState) return 0;
-    return this.gameState.players.filter((p) => p.isOnline).length;
-  }
-
-  /** Execute roll for ALL players (called once all online players have sent roll_request) */
-  private executeRoll() {
+  /**
+   * Check if all online players have submitted roll results.
+   * If yes, roll for bots, then transition to locking.
+   */
+  private checkAllRolled() {
     if (!this.gameState) return;
 
-    this.gameState.phase = "rolling";
-    this.gameState.rollRequestedBy.clear();
+    const onlinePlayers = this.gameState.players.filter(p => p.isOnline);
+    const allOnlineRolled = onlinePlayers.every(p => this.gameState!.rollRequestedBy.has(p.id));
+    if (!allOnlineRolled) return; // Still waiting for online players
 
-    const playerResults: PlayerRollResult[] = [];
-
-    for (const player of this.gameState.players) {
-      // Generate random dice values for this player's pool
-      const rolled: number[] = Array.from({ length: player.poolSize }, () =>
+    // All online players have rolled — now roll for bots
+    for (const bot of this.gameState.players.filter(p => !p.isOnline)) {
+      const botValues = Array.from({ length: bot.poolSize }, () =>
         Math.floor(Math.random() * 6) + 1
       );
-
-      // Compute auto-locks using shared pure function
-      const newLocks = findAutoLocks(
-        this.gameState.goalValues,
-        rolled,
-        player.lockedDice
-      );
-
-      // Update server state: add new locks, reduce pool
-      player.lockedDice = [...player.lockedDice, ...newLocks].sort(
+      const botLocks = findAutoLocks(this.gameState.goalValues, botValues, bot.lockedDice);
+      bot.lockedDice = [...bot.lockedDice, ...botLocks].sort(
         (a, b) => a.goalSlotIndex - b.goalSlotIndex
       );
-      player.poolSize -= newLocks.length;
+      bot.poolSize -= botLocks.length;
 
-      playerResults.push({
-        playerId: player.id,
-        rolled,
-        newLocks,
-        poolSize: player.poolSize,
-        lockedDice: player.lockedDice,
-      });
+      // Broadcast bot results to ALL clients
+      const botResult: ServerMessage = {
+        type: "player_lock_result",
+        playerId: bot.id,
+        rolled: botValues,
+        newLocks: botLocks,
+        poolSize: bot.poolSize,
+        lockedDice: bot.lockedDice,
+      };
+      this.room.broadcast(JSON.stringify(botResult));
+      this.log(`Bot ${bot.name} rolled [${botValues}] — ${botLocks.length} locks`);
     }
 
-    // Broadcast roll results to all clients
-    const rollMsg: ServerMessage = {
-      type: "roll_results",
-      playerResults,
-    };
-    this.room.broadcast(JSON.stringify(rollMsg));
-    this.log(`Roll executed — ${playerResults.length} players rolled`);
-
-    // Set phase to locking
+    // All rolled — transition to locking, then check winner/unlock after delay
     this.gameState.phase = "locking";
+    this.gameState.rollRequestedBy.clear();
 
-    // After a delay, check for winner or advance to unlocking
     this.lockingTimer = setTimeout(() => {
       this.lockingTimer = null;
       if (!this.gameState || this.gameState.phase !== "locking") return;

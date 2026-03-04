@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 117,
+  "build": 118,
   "history": [
     {
       "version": "0.1.0",
@@ -212,6 +212,11 @@
       "version": "0.1.0.117",
       "date": "2026-03-03",
       "summary": "Wire online roll flow: sendRollRequest on roll, physics-settle routing, lock animations for all players"
+    },
+    {
+      "version": "0.1.0.118",
+      "date": "2026-03-03",
+      "summary": "Server per-player roll processing: client-authoritative values, no batching, no server random generation"
     }
   ]
 }
