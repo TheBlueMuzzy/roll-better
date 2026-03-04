@@ -195,7 +195,7 @@ Plans:
 
 **Milestone Goal:** Take Roll Better from local AI play to real-time online multiplayer with friends, deployed and publicly playable.
 
-**Key architectural decision:** Dice physics runs client-side (visual). Server determines roll RESULTS (random numbers). Clients animate dice rolling, but the actual values come from the server. This avoids syncing physics across clients (impossible) while maintaining anti-cheat.
+**Key architectural decision:** Client-authoritative dice — each client rolls physics locally and reports settled values to server. Server computes locks via findAutoLocks and relays results to other clients. Per-player relay (no batching). Client-side buffered reveals (results hidden until you've acted, then animated).
 
 **Constraints:** Free tier only (Partykit/Cloudflare 100k req/day). No accounts. 4-8 players. Host-authoritative validation.
 
@@ -234,16 +234,16 @@ Plans:
 - [x] 16-02: Server unlock/scoring handlers + verification
 
 #### Phase 17: Dice Sync + Simultaneous Play
-**Goal**: Roll results from server, auto-lock sync, visual dice animations across all clients simultaneously
+**Goal**: Client-authoritative dice values, per-player relay (no batching), buffered reveals with animation, simultaneous play across all clients
 **Depends on**: Phase 16
-**Research**: Likely (server-side RNG vs client physics split, syncing animations without syncing physics)
-**Research topics**: Server-side random number generation, client-side physics animation to target results, timing coordination across clients
-**Plans**: 3 plans
+**Research**: Likely (client-authoritative vs server-authoritative, per-player relay, buffered reveal pattern)
+**Plans**: 4 plans
 
 Plans:
 - [x] 17-01: Online infrastructure (module-level socket, online mode flags, useOnlineGame hook)
 - [x] 17-02: Dice roll sync (server roll results + physics positions merge, lock animations)
-- [ ] 17-03: Phase + unlock sync + verification (server-driven phases, unlock/skip to server, checkpoint)
+- [x] 17-03: Phase + unlock sync (server-driven phases, unlock/skip to server) — superseded by 17-04
+- [x] 17-04: Online roll pipeline rework (client-authoritative values, per-player relay, buffered reveals)
 
 #### Phase 18: Unlock + Scoring Sync
 **Goal**: Unlock decisions, scoring, round transitions synced across clients. Turn timers with AI takeover on timeout.
@@ -306,7 +306,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 14. Partykit Server Setup | v1.1 | 3/3 | Complete | 2026-03-03 |
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
 | 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
-| 17. Dice Sync + Simultaneous Play | v1.1 | 2/3 | In progress | - |
+| 17. Dice Sync + Simultaneous Play | v1.1 | 4/4 | Complete | 2026-03-04 |
 | 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
 | 19. Connection Resilience | v1.1 | 0/? | Not started | - |
 | 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |

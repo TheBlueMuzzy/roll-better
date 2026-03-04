@@ -157,6 +157,15 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Large — core Phase 16 (State Sync Protocol) scope
 - **Suggested phase:** Phase 16
 
+### ISS-005: Dice can intersect and get permanently stuck (never settle)
+
+- **Discovered:** Phase 17 Task 4 checkpoint (2026-03-04)
+- **Type:** Physics edge case
+- **Description:** Two dice can clip into each other and become stuck, oscillating forever. Physics reports them as never settling, so the game appears permanently in "rolling" state. Related to ISS-002 (canting). Fix options: (a) timeout — if dice don't settle within N seconds, force-read faces or re-roll stuck dice, (b) detect overlapping dice and give separation impulse, (c) reduce restitution to minimize bounce energy.
+- **Impact:** Low (rare, but game-breaking when it happens)
+- **Effort:** Medium
+- **Suggested phase:** Same fix pass as ISS-001/ISS-002
+
 ## Closed Enhancements
 
 [Moved here when addressed]
