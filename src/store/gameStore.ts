@@ -28,6 +28,14 @@ interface PlayerLockResultData {
   lockedDice: LockedDieSync[];
 }
 
+/** Data for a single other-player's unlock result (from server relay) */
+interface UnlockRevealData {
+  playerId: string;
+  unlockedSlots: number[];
+  newPoolSize: number;
+  lockedDice: { goalSlotIndex: number; value: number }[];
+}
+
 interface GameStore extends GameState {
   // Existing actions
   reset: () => void;
@@ -100,7 +108,10 @@ interface GameStore extends GameState {
   hasLocalPlayerLocked: boolean;
   setLocalPlayerLocked: (locked: boolean) => void;
 
-  // Online unlock tracking
+  // Buffered other-player unlock reveals (revealed after own unlock choice)
+  pendingUnlockReveals: UnlockRevealData[];
+  addPendingUnlockReveal: (data: UnlockRevealData) => void;
+  flushPendingUnlockReveals: () => void;
   hasSubmittedUnlock: boolean;
   setHasSubmittedUnlock: (submitted: boolean) => void;
 }
@@ -214,12 +225,79 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
   });
 }
 
+// --- Internal helper for other-player unlock reveal (with AI-unlock-style animation) ---
+
+function applyOtherPlayerUnlockReveal(get: StoreGet, set: StoreSet, data: UnlockRevealData) {
+  const state = get();
+  const playerIndex = state.onlinePlayerIds.indexOf(data.playerId);
+  if (playerIndex === -1 || playerIndex === 0) return; // Skip unknown or self
+
+  // Update player state: apply server's authoritative locked dice + pool size
+  const players = [...state.players];
+  const otherPlayer = { ...players[playerIndex] };
+  otherPlayer.lockedDice = data.lockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
+  otherPlayer.poolSize = data.newPoolSize;
+  players[playerIndex] = otherPlayer;
+
+  // Build AI-unlock-style animations (shrink from slot → profile icon)
+  if (data.unlockedSlots.length > 0) {
+    const aiUnlockAnimations = [...state.roundState.aiUnlockAnimations];
+    const profileX = getSlotX(0) - PROFILE_X_OFFSET;
+    const rowZ = -3.77 + playerIndex * 0.9;
+    let delay = aiUnlockAnimations.length > 0
+      ? aiUnlockAnimations[aiUnlockAnimations.length - 1].delay + 0.3
+      : 0;
+
+    for (const slotIndex of data.unlockedSlots) {
+      // Find the value of the die being unlocked (from the PREVIOUS locked dice, before removal)
+      const prevPlayer = state.players[playerIndex];
+      const lockedEntry = prevPlayer.lockedDice.find(ld => ld.goalSlotIndex === slotIndex);
+      const value = lockedEntry?.value ?? 1;
+
+      aiUnlockAnimations.push({
+        playerId: otherPlayer.id,
+        slotIndex,
+        value,
+        fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, rowZ],
+        toPos: [profileX, 0, rowZ],
+        delay,
+      });
+      delay += 0.15 + Math.random() * 0.15;
+    }
+
+    set({
+      players,
+      roundState: {
+        ...state.roundState,
+        aiUnlockAnimations,
+      },
+    });
+
+    // Auto-clear animations after they finish
+    const lastDelay = aiUnlockAnimations[aiUnlockAnimations.length - 1].delay;
+    const totalWait = (lastDelay * 1000) + 600;
+    setTimeout(() => {
+      const s = get();
+      set({
+        roundState: {
+          ...s.roundState,
+          aiUnlockAnimations: [],
+        },
+      });
+    }, totalWait);
+  } else {
+    // Skip (no slots unlocked) — just update player state
+    set({ players });
+  }
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   pendingUnlockResult: null,
   pendingLockReveals: [],
   hasLocalPlayerLocked: false,
   hasSubmittedUnlock: false,
+  pendingUnlockReveals: [],
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
 
@@ -314,7 +392,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
-    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false });
+    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false, pendingUnlockReveals: [] });
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -563,6 +641,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       hasLocalPlayerLocked: localLockedNow,
       pendingLockReveals: [],
       hasSubmittedUnlock: false,
+      pendingUnlockReveals: [],
     });
 
     // If no lock animations needed, flush any already-buffered reveals immediately
@@ -866,7 +945,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false });
+    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingUnlockReveals: [] });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
@@ -877,65 +956,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (playerIndex === -1) return; // Unknown — ignore
     if (playerIndex === 0) return; // Self — already applied locally via confirmUnlock
 
-    const players = [...state.players];
-    const player = { ...players[playerIndex] };
-
-    // Build AI-unlock-style animations for the unlocked slots (dice shrink toward profile)
-    const aiUnlockAnimations = [...state.roundState.aiUnlockAnimations];
-    const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-    const rowZ = -3.77 + playerIndex * 0.9;
-    let animDelay = aiUnlockAnimations.length > 0
-      ? aiUnlockAnimations[aiUnlockAnimations.length - 1].delay + 0.3
-      : 0;
-
-    for (const slotIndex of unlockedSlots) {
-      const lockedEntry = player.lockedDice.find(ld => ld.goalSlotIndex === slotIndex);
-      if (!lockedEntry) continue;
-      aiUnlockAnimations.push({
-        playerId: player.id,
-        slotIndex,
-        value: lockedEntry.value,
-        fromPos: [getSlotX(slotIndex), DIE_SIZE / 2, rowZ],
-        toPos: [profileX, 0, rowZ],
-        delay: animDelay,
-      });
-      animDelay += 0.15 + Math.random() * 0.15;
-    }
-
-    // Update player state from server
-    player.lockedDice = serverLockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
-    player.poolSize = newPoolSize;
-    player.selectedForUnlock = [];
-    players[playerIndex] = player;
-
-    console.log(
-      `[applyOnlineUnlockResult] player=${playerId} index=${playerIndex} ` +
-      `pool=${newPoolSize} locks=${serverLockedDice.length} unlocked=${unlockedSlots.length}`,
-    );
-
-    set({
-      players,
-      roundState: {
-        ...state.roundState,
-        aiUnlockAnimations,
-      },
-    });
-
-    // Auto-clear animations after they've played
-    if (unlockedSlots.length > 0) {
-      const lastAnimDelay = aiUnlockAnimations[aiUnlockAnimations.length - 1].delay;
-      setTimeout(() => {
-        const s = get();
-        set({
-          roundState: {
-            ...s.roundState,
-            aiUnlockAnimations: s.roundState.aiUnlockAnimations.filter(
-              a => a.playerId !== playerId
-            ),
-          },
-        });
-      }, (lastAnimDelay * 1000) + 600);
-    }
+    // Route through buffering (same pattern as lock reveals)
+    get().addPendingUnlockReveal({ playerId, unlockedSlots, newPoolSize, lockedDice: serverLockedDice });
   },
 
   // --- Pending server data (online game sync) ---
@@ -972,9 +994,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
+  // --- Buffered other-player unlock reveals ---
+  addPendingUnlockReveal: (data: UnlockRevealData) => {
+    const state = get();
+    if (state.hasSubmittedUnlock) {
+      // Local player already submitted unlock — apply immediately (with animation)
+      applyOtherPlayerUnlockReveal(get, set, data);
+    } else {
+      // Buffer until local player submits their unlock choice
+      set({ pendingUnlockReveals: [...state.pendingUnlockReveals, data] });
+    }
+  },
+
+  flushPendingUnlockReveals: () => {
+    const state = get();
+    const reveals = state.pendingUnlockReveals;
+    if (reveals.length === 0) return;
+    // Clear buffer first, then apply each
+    set({ pendingUnlockReveals: [] });
+    for (const data of reveals) {
+      applyOtherPlayerUnlockReveal(get, set, data);
+    }
+  },
+
   // Online unlock tracking
   setHasSubmittedUnlock: (submitted: boolean) => {
     set({ hasSubmittedUnlock: submitted });
+    if (submitted) {
+      // Flush any buffered unlock reveals (same pattern as setLocalPlayerLocked)
+      get().flushPendingUnlockReveals();
+    }
   },
 }));
 

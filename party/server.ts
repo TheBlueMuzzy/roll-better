@@ -512,6 +512,9 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
+    // Duplicate guard
+    if (this.gameState.unlockResponses.has(sender.id)) return;
+
     // Validate each slot index: must be a currently locked slot belonging to this player
     const lockedSlotIndices = new Set(player.lockedDice.map((d) => d.goalSlotIndex));
     for (const idx of slotIndices) {
@@ -524,9 +527,26 @@ export default class RollBetterServer implements Party.Server {
       }
     }
 
-    // Store response
+    // Apply unlock to server state immediately
+    const unlockCount = slotIndices.length;
+    player.lockedDice = player.lockedDice.filter(
+      (ld) => !slotIndices.includes(ld.goalSlotIndex)
+    );
+    player.poolSize += 2 * unlockCount;
+
+    // Relay to OTHER clients immediately (sender already applied locally)
+    const unlockMsg: ServerMessage = {
+      type: "unlock_result",
+      playerId: player.id,
+      unlockedSlots: slotIndices,
+      newPoolSize: player.poolSize,
+      lockedDice: player.lockedDice,
+    };
+    this.broadcastExcept(unlockMsg, [sender.id]);
+    this.log(`Player ${player.name} unlocked ${unlockCount} slots — pool: ${player.poolSize}`);
+
+    // Record that this player has responded
     this.gameState.unlockResponses.set(sender.id, { type: "unlock", slotIndices });
-    this.log(`Player ${player.name} chose to unlock slots [${slotIndices.join(", ")}]`);
 
     // Check if all online players have responded
     this.checkAllUnlockResponses();
@@ -553,6 +573,9 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
+    // Duplicate guard
+    if (this.gameState.unlockResponses.has(sender.id)) return;
+
     // Must-unlock guard: can't skip if poolSize === 0 and not all 8 locked
     if (player.poolSize === 0 && player.lockedDice.length < 8) {
       this.sendToConnection(sender, {
@@ -562,7 +585,7 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Store response
+    // No broadcast needed for skip — no state change
     this.gameState.unlockResponses.set(sender.id, { type: "skip" });
     this.log(`Player ${player.name} skipped unlock`);
 
@@ -601,9 +624,10 @@ export default class RollBetterServer implements Party.Server {
       this.unlockTimeoutTimer = null;
     }
 
-    // ─── AI bot unlock decisions ────────────────────────────────────
+    // Human unlock results were already relayed per-player in handleUnlockRequest.
+    // Now process bot unlocks and broadcast to ALL clients.
     for (const player of this.gameState.players) {
-      if (player.isOnline) continue; // skip human players
+      if (player.isOnline) continue; // skip human players (already processed)
       if (player.lockedDice.length === 0) continue;
       if (player.lockedDice.length >= 8) continue;
 
@@ -616,13 +640,11 @@ export default class RollBetterServer implements Party.Server {
       });
 
       if (slotsToUnlock.length > 0) {
-        // Apply unlock to server state
         player.lockedDice = player.lockedDice.filter(
           (ld) => !slotsToUnlock.includes(ld.goalSlotIndex)
         );
         player.poolSize += 2 * slotsToUnlock.length;
 
-        // Broadcast unlock_result for this bot
         const unlockMsg: ServerMessage = {
           type: "unlock_result",
           playerId: player.id,
@@ -633,34 +655,6 @@ export default class RollBetterServer implements Party.Server {
         this.room.broadcast(JSON.stringify(unlockMsg));
         this.log(`Bot ${player.name} unlocked slots [${slotsToUnlock.join(", ")}] — pool: ${player.poolSize}`);
       }
-    }
-
-    // ─── Human player unlock decisions ──────────────────────────────
-    for (const [playerId, response] of this.gameState.unlockResponses) {
-      const player = this.gameState.players.find((p) => p.id === playerId);
-      if (!player) continue;
-
-      if (response.type === "unlock" && response.slotIndices && response.slotIndices.length > 0) {
-        const unlockCount = response.slotIndices.length;
-
-        // Remove locked dice at selected slots
-        player.lockedDice = player.lockedDice.filter(
-          (ld) => !response.slotIndices!.includes(ld.goalSlotIndex)
-        );
-        player.poolSize += 2 * unlockCount;
-
-        // Broadcast unlock_result for this player
-        const unlockMsg: ServerMessage = {
-          type: "unlock_result",
-          playerId: player.id,
-          unlockedSlots: response.slotIndices,
-          newPoolSize: player.poolSize,
-          lockedDice: player.lockedDice,
-        };
-        this.room.broadcast(JSON.stringify(unlockMsg));
-        this.log(`Player ${player.name} unlocked ${unlockCount} slots — pool: ${player.poolSize}`);
-      }
-      // 'skip' → no state change, no broadcast needed
     }
 
     // Clear responses and transition to idle
@@ -824,6 +818,11 @@ export default class RollBetterServer implements Party.Server {
     const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
     for (const player of onlinePlayers) {
       if (!this.gameState.unlockResponses.has(player.id)) {
+        // Must-unlock guard: can't auto-skip if pool is empty and not all 8 locked
+        if (player.poolSize === 0 && player.lockedDice.length < 8) {
+          this.log(`Cannot auto-skip ${player.name} — must unlock (pool empty)`);
+          continue;
+        }
         this.gameState.unlockResponses.set(player.id, { type: "skip" });
         this.log(`Auto-skipped AFK player: ${player.name}`);
       }
