@@ -31,6 +31,8 @@ export function useOnlineGame(): UseOnlineGameReturn {
       return;
     }
 
+    let deferredPhaseInterval: ReturnType<typeof setInterval> | null = null;
+
     const handler = (event: MessageEvent) => {
       const msg = parseServerMessage(event.data as string);
       if (!msg) return;
@@ -39,7 +41,35 @@ export function useOnlineGame(): UseOnlineGameReturn {
         case "phase_change": {
           const newPhase = msg.phase as GamePhase;
           const state = useGameStore.getState();
-          if (newPhase !== state.phase) {
+          if (newPhase === state.phase) break;
+
+          // Defer phase transition if animations are still playing
+          const hasAnimations =
+            state.roundState.aiUnlockAnimations.length > 0 ||
+            state.roundState.aiLockAnimations.length > 0 ||
+            state.roundState.lockAnimations.length > 0 ||
+            state.roundState.unlockAnimations.length > 0;
+
+          if (hasAnimations) {
+            console.log("[useOnlineGame] phase_change deferred:", state.phase, "->", newPhase, "(animations in progress)");
+            // Clear any previous deferred phase poll
+            if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
+            // Poll until animations clear, then apply
+            deferredPhaseInterval = setInterval(() => {
+              const s = useGameStore.getState();
+              const stillAnimating =
+                s.roundState.aiUnlockAnimations.length > 0 ||
+                s.roundState.aiLockAnimations.length > 0 ||
+                s.roundState.lockAnimations.length > 0 ||
+                s.roundState.unlockAnimations.length > 0;
+              if (!stillAnimating) {
+                clearInterval(deferredPhaseInterval!);
+                deferredPhaseInterval = null;
+                console.log("[useOnlineGame] deferred phase_change applied:", s.phase, "->", newPhase);
+                s.setPhase(newPhase);
+              }
+            }, 100);
+          } else {
             console.log("[useOnlineGame] phase_change:", state.phase, "->", newPhase);
             state.setPhase(newPhase);
           }
@@ -81,6 +111,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
     socket.addEventListener("message", handler);
     return () => {
       socket.removeEventListener("message", handler);
+      if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
     };
   }, [isOnlineGame]);
 
