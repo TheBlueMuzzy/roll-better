@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.1.0",
-  "build": 118,
+  "build": 119,
   "history": [
     {
       "version": "0.1.0",
@@ -217,6 +217,11 @@
       "version": "0.1.0.118",
       "date": "2026-03-03",
       "summary": "Server per-player roll processing: client-authoritative values, no batching, no server random generation"
+    },
+    {
+      "version": "0.1.0.119",
+      "date": "2026-03-03",
+      "summary": "Client sends physics values to server, applies own locks locally, removes batch online roll infrastructure"
     }
   ]
 }

@@ -60,7 +60,7 @@ function App() {
   const setPoolSpawning = useGameStore((s) => s.setPoolSpawning);
 
   // Online game hook — message routing + action senders
-  const { sendRollRequest, sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
+  const { sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
 
   // Read online mode flag (used by phase useEffects, handleRoll, handleConfirmUnlock)
   const isOnlineGame = useGameStore((s) => s.isOnlineGame);
@@ -449,13 +449,10 @@ function App() {
       setVolume(useGameStore.getState().settings.audioVolume);
     }
 
-    if (isOnlineGame) {
-      sendRollRequest(); // Tell server to generate dice
-    }
-
+    // No sendRollRequest — values are sent after physics settle (Scene.tsx)
     setPhase('rolling');
     sceneRef.current?.rollAll(); // Visual physics animation (both modes)
-  }, [setPhase, isOnlineGame, sendRollRequest]);
+  }, [setPhase]);
 
   // Shake-to-roll (mobile) — must come after handleRoll is defined
   const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);

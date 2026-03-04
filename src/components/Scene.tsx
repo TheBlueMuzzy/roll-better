@@ -14,6 +14,7 @@ import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
 import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
+import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { playSelectDie, playDeselectDie } from '../utils/soundManager';
 
 // --- Public API exposed via ref ---
@@ -138,14 +139,16 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       aiLerpExpectedCount.current = 0;
 
       const state = useGameStore.getState();
+      // Both online and offline: apply own results locally via setRollResults
+      state.setRollResults(values, positions, rotations);
+      onResults?.(values);
+
+      // Online: also send values to server for relay to other players
       if (state.isOnlineGame) {
-        // Online: store physics positions, wait for server results merge
-        state.setPhysicsSettledData({ positions, rotations });
-      } else {
-        // Offline: use physics-determined values directly
-        state.setRollResults(values, positions, rotations);
-        // Also notify App via callback (for any non-position-aware consumers)
-        onResults?.(values);
+        const socket = getGameSocket();
+        if (socket) {
+          sendMessage(socket, { type: "roll_result", values });
+        }
       }
     }
 

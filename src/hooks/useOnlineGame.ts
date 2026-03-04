@@ -6,14 +6,12 @@ import type { GamePhase } from "../types/game";
 // ─── Return Type ─────────────────────────────────────────────────────
 
 interface UseOnlineGameReturn {
-  sendRollRequest: () => void;
   sendUnlockRequest: (slotIndices: number[]) => void;
   sendSkipUnlock: () => void;
 }
 
 // No-op return for offline games
 const offlineReturn: UseOnlineGameReturn = {
-  sendRollRequest: () => {},
   sendUnlockRequest: () => {},
   sendSkipUnlock: () => {},
 };
@@ -38,35 +36,12 @@ export function useOnlineGame(): UseOnlineGameReturn {
       if (!msg) return;
 
       switch (msg.type) {
-        case "roll_results": {
-          console.log("[useOnlineGame] roll_results received", msg.playerResults);
-          const rollState = useGameStore.getState();
-          rollState.setPendingServerResults(msg.playerResults);
-
-          // Server waits for all players to tap before broadcasting results,
-          // so each client should already be in 'rolling' phase with physics running.
-          if (rollState.phase !== 'rolling') {
-            console.warn("[useOnlineGame] Received roll_results but not in rolling phase — unexpected");
-          }
-          break;
-        }
-
         case "phase_change": {
           const newPhase = msg.phase as GamePhase;
           const state = useGameStore.getState();
-
-          // If roll results haven't been applied yet (physics still settling),
-          // defer phase changes that would skip past locking. The deferred phase
-          // will be applied after applyOnlineRollResults runs + lock animation.
-          if (state.pendingServerResults && (newPhase === 'unlocking' || newPhase === 'scoring')) {
-            console.log("[useOnlineGame] Deferring phase_change to", newPhase, "— roll results pending");
-            useGameStore.setState({ deferredPhase: newPhase });
-            break;
-          }
-
           if (newPhase !== state.phase) {
             console.log("[useOnlineGame] phase_change:", state.phase, "->", newPhase);
-            useGameStore.getState().setPhase(newPhase);
+            state.setPhase(newPhase);
           }
           break;
         }
@@ -99,15 +74,6 @@ export function useOnlineGame(): UseOnlineGameReturn {
   }, [isOnlineGame]);
 
   // Action senders
-  const sendRollRequest = useCallback(() => {
-    const socket = getGameSocket();
-    if (!socket) {
-      console.warn("[useOnlineGame] sendRollRequest: no socket");
-      return;
-    }
-    sendMessage(socket, { type: "roll_request" });
-  }, []);
-
   const sendUnlockRequest = useCallback((slotIndices: number[]) => {
     const socket = getGameSocket();
     if (!socket) {
@@ -130,7 +96,6 @@ export function useOnlineGame(): UseOnlineGameReturn {
   if (!isOnlineGame) return offlineReturn;
 
   return {
-    sendRollRequest,
     sendUnlockRequest,
     sendSkipUnlock,
   };
