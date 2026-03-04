@@ -59,6 +59,7 @@ export default class RollBetterServer implements Party.Server {
   private scoringTimer: ReturnType<typeof setTimeout> | null = null;
   private roundEndTimer: ReturnType<typeof setTimeout> | null = null;
   private unlockTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private rollingTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(room: Party.Room) {
     this.room = room;
@@ -504,6 +505,12 @@ export default class RollBetterServer implements Party.Server {
     // Transition to rolling phase on first roll_result received
     if (this.gameState.phase === "idle") {
       this.gameState.phase = "rolling";
+
+      // Start rolling AFK timeout — 20 seconds for all players to submit
+      this.rollingTimeoutTimer = setTimeout(() => {
+        this.rollingTimeoutTimer = null;
+        this.autoRollUnresponsivePlayers();
+      }, 20_000);
     }
 
     // Record that this player has rolled
@@ -544,6 +551,12 @@ export default class RollBetterServer implements Party.Server {
     const onlinePlayers = this.gameState.players.filter(p => p.isOnline);
     const allOnlineRolled = onlinePlayers.every(p => this.gameState!.rollRequestedBy.has(p.id));
     if (!allOnlineRolled) return; // Still waiting for online players
+
+    // Clear rolling AFK timeout — all online players submitted
+    if (this.rollingTimeoutTimer) {
+      clearTimeout(this.rollingTimeoutTimer);
+      this.rollingTimeoutTimer = null;
+    }
 
     // All online players have rolled — now roll for bots
     for (const bot of this.gameState.players.filter(p => !p.isOnline)) {
@@ -922,6 +935,51 @@ export default class RollBetterServer implements Party.Server {
     this.checkAllUnlockResponses();
   }
 
+  /**
+   * Auto-roll random dice for any online players who haven't submitted
+   * roll results within the timeout period (20 seconds).
+   */
+  private autoRollUnresponsivePlayers() {
+    if (!this.gameState || this.gameState.phase !== "rolling") return;
+
+    const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
+    for (const player of onlinePlayers) {
+      if (this.gameState.rollRequestedBy.has(player.id)) continue;
+
+      // Generate random dice values for the AFK player
+      const values = Array.from({ length: player.poolSize }, () =>
+        Math.floor(Math.random() * 6) + 1
+      );
+
+      // Record that this player has rolled
+      this.gameState.rollRequestedBy.add(player.id);
+
+      // Compute locks using the random values
+      const newLocks = findAutoLocks(this.gameState.goalValues, values, player.lockedDice);
+
+      // Update server state
+      player.lockedDice = [...player.lockedDice, ...newLocks].sort(
+        (a, b) => a.goalSlotIndex - b.goalSlotIndex
+      );
+      player.poolSize -= newLocks.length;
+
+      // Broadcast to ALL clients (AFK player didn't submit locally, so include them)
+      const lockResult: ServerMessage = {
+        type: "player_lock_result",
+        playerId: player.id,
+        rolled: values,
+        newLocks,
+        poolSize: player.poolSize,
+        lockedDice: player.lockedDice,
+      };
+      this.room.broadcast(JSON.stringify(lockResult));
+      this.log(`Auto-rolled for AFK player: ${player.name} — [${values}] — ${newLocks.length} locks`);
+    }
+
+    // All AFK players handled — check if ready to proceed
+    this.checkAllRolled();
+  }
+
   // ─── Timer Cleanup ────────────────────────────────────────────────
 
   /**
@@ -943,6 +1001,10 @@ export default class RollBetterServer implements Party.Server {
     if (this.unlockTimeoutTimer) {
       clearTimeout(this.unlockTimeoutTimer);
       this.unlockTimeoutTimer = null;
+    }
+    if (this.rollingTimeoutTimer) {
+      clearTimeout(this.rollingTimeoutTimer);
+      this.rollingTimeoutTimer = null;
     }
   }
 
@@ -969,6 +1031,10 @@ export default class RollBetterServer implements Party.Server {
       // If we're waiting for unlock responses, re-check — game might be unblocked now
       if (this.gameState.phase === "unlocking") {
         this.checkAllUnlockResponses();
+      }
+      // If we're waiting for roll results, re-check — remaining online players may all be done
+      if (this.gameState.phase === "rolling" || this.gameState.phase === "idle") {
+        this.checkAllRolled();
       }
     }
 
