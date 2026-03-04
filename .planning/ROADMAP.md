@@ -249,10 +249,12 @@ Plans:
 **Goal**: Unlock decisions, scoring, round transitions synced across clients. Turn timers with AI takeover on timeout.
 **Depends on**: Phase 17
 **Research**: Unlikely (extends Phase 16-17 sync patterns)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 18-01: TBD
+- [x] 18-01: Scoring + session end sync (applyOnlineScoring, applyOnlineSessionEnd)
+- [ ] 18-02: Round transitions (exit/enter animations, new round data)
+- [ ] 18-03: TBD
 
 #### Phase 19: Connection Resilience
 **Goal**: Disconnect/reconnect handling. AI seamlessly takes over for disconnected players. Player takes back control on reconnect.
@@ -307,7 +309,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
 | 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 4/4 | Complete | 2026-03-04 |
-| 18. Unlock + Scoring Sync | v1.1 | 0/? | Not started | - |
+| 18. Unlock + Scoring Sync | v1.1 | 1/3 | In progress | - |
 | 19. Connection Resilience | v1.1 | 0/? | Not started | - |
 | 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |
 | 21. Compliance + Integration Testing | v1.1 | 0/? | Not started | - |

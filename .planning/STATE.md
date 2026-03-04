@@ -1,42 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 17, Plan 4 (online roll/unlock rework) — Checkpoint verification pending. Per-player relay implemented for both rolling and unlocking. Buffered reveals for locks and unlocks. Ready for 2-player testing.
+Phase 18, Plan 1 complete (scoring + session end sync) — applyOnlineScoring and applyOnlineSessionEnd store actions. Online scoring triggers HUD counting animation, session end shows winners screen.
 
 ## Version
 0.1.0.122
 
 ## Current Position
 
-Phase: 17 of 21 (Dice Sync + Simultaneous Play)
-Plan: 4 of 4 in current phase
-Status: In progress — Task 4 checkpoint (human-verify)
-Last activity: 2026-03-04 — Tasks 1-3 done + unlock relay rework + buffered unlock reveals
+Phase: 18 of 21 (Unlock + Scoring Sync)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-04 — Completed 18-01-PLAN.md
 
-Progress: ██████████████████████████████████████████████████████░ 85%
+Progress: ███████████████████████████████████████████████████████░ 87%
 
 ## Last Session
-2026-03-04 — Plan 17-04 execution:
+2026-03-04 — Plan 18-01 execution:
 
-### Tasks 1-3 (completed by subagent):
-- **Task 1** (commit 95b8185): Server per-player roll processing — replaced handleRollRequest/executeRoll with handleRollResult, per-player relay via broadcastExcept
-- **Task 2** (commit 96def5a): Client sends physics values, applies own locks locally — removed batch infrastructure
-- **Task 3** (commit 829a75f): Client buffered lock reveals — addPendingLockReveal, flushPendingLockReveals, profile-emerge animations
-
-### Bugs found during checkpoint, fixed:
-- **Online unlock animation missing** (commit d3db664): Online path skipped mitosis animation. Fixed: online falls through to same animation code as offline.
-- **UI reset after unlock** (commit d3db664): skipUnlock cleared selection, button came back. Fixed: hasSubmittedUnlock flag, HUD hides button + shows "Waiting for others..."
-- **Server unlock batching** (commit 563d9ed): Server waited for all unlock responses before processing — should use per-player relay like rolling. Fixed: handleUnlockRequest now broadcasts immediately via broadcastExcept.
-- **Client unlock buffering** (commit 563d9ed): addPendingUnlockReveal/flushPendingUnlockReveals implemented — same buffer/flush pattern as lock reveals. setHasSubmittedUnlock flushes pending reveals.
-- **AFK auto-skip must-unlock** (commit 563d9ed): autoSkipUnresponsivePlayers now guards against skipping players with poolSize=0 who must unlock.
-
-### Architecture confirmed:
-- **Per-player relay** for BOTH rolling AND unlocking — server never batches
-- **Client-side buffering** for BOTH lock AND unlock reveals — flush when local action completes
-- **Same animations online/offline** — mitosis for self, profile-emerge for locks, AI-unlock-style shrink for unlocks
-- Online = invisible plumbing — identical player experience
+- **Task 1** (commit d80a5ad): applyOnlineScoring store action — maps server PlayerSyncState[] to local players via onlinePlayerIds, sets phase='scoring' + roundScore
+- **Task 2** (commit 3d98fb1): applyOnlineSessionEnd store action — syncs final scores, sets phase='sessionEnd' + screen='winners'
 
 ## Previous Sessions
+- 17-04: Per-player relay for rolling + unlocking, buffered reveals, checkpoint fixes
 - 17-03: Server wait-for-all rolling, disconnect safety, onlinePlayerIds mapping
 - 17-02: Timing barrier, roll results merge, physics settle routing
 - 17-01: Module-level socket, online mode flags, useOnlineGame hook
@@ -98,6 +84,7 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 - **Per-player relay (no batching)**: Server processes each player's result individually and immediately broadcasts via broadcastExcept. Applies to BOTH rolling AND unlocking.
 - **Client-side buffered reveals**: Other players' results stored in pendingLockReveals / pendingUnlockReveals. Flushed (with animation) after local player's own action. Same pattern for both.
 - **Reveal animations**: Profile-emerge (scale 0→1, fly from profile to slot) for locks. AI-unlock-style (shrink, fly to profile) for unlocks. Always animated, never pop-in.
+- **Server-authoritative scoring**: Client trusts server scores, extracts local roundScore from winners array for HUD animation
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
@@ -110,6 +97,6 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 
 ## Session Continuity
 Last session: 2026-03-04
-Stopped at: Plan 17-04, Task 4 checkpoint — waiting for user verification
-Commits this session: 95b8185, 96def5a, 829a75f, d3db664, 563d9ed
+Stopped at: Completed 18-01-PLAN.md
+Commits this session: d80a5ad, 3d98fb1
 Resume file: None
