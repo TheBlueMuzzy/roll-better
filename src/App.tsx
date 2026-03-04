@@ -154,7 +154,7 @@ function App() {
     const difficulty = aiDifficulty as AIDifficulty;
     initGame(targetPlayers, difficulty, orderedPlayers);
     initRound({ goalValues }); // Use server-provided goals so all clients match
-    useGameStore.getState().setOnlineMode(localPlayerId);
+    useGameStore.getState().setOnlineMode(localPlayerId, localPlayer?.isHost ?? false);
 
     // Build server-to-local player ID mapping
     // Index in this array = player index in store (local first, then others, then bots)

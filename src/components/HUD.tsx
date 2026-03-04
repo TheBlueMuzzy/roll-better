@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
+import { RollingCountdown } from './RollingCountdown';
 
 interface HUDProps {
   onRoll: () => void;
@@ -137,6 +138,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
 
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
+        <RollingCountdown />
         {/* During unlocking: status text only (buttons rendered centered below) */}
         {phase === 'unlocking' ? (
           <span className="hud-status">{statusText}</span>

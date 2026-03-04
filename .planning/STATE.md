@@ -1,27 +1,39 @@
 # Project State
 
 ## Current Status
-Phase 18, Plan 1 complete (scoring + session end sync) — applyOnlineScoring and applyOnlineSessionEnd store actions. Online scoring triggers HUD counting animation, session end shows winners screen.
+18-03 implemented: Client-driven rolling AFK countdown timer. Server-side `setTimeout(20_000)` was unreliable in PartyKit's workerd runtime. Solution: host client runs a visible 20s countdown bar, sends `rolling_timeout` to server when it hits zero. Server clears its fallback timer and auto-rolls AFK players. Server timer stays as silent fallback if host disconnects. Awaiting manual playtest verification.
 
 ## Version
-0.1.0.122
+0.2.0.2
 
 ## Current Position
 
 Phase: 18 of 21 (Unlock + Scoring Sync)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-04 — Completed 18-01-PLAN.md
+Plan: 18-03 complete (UAT passed)
+Status: Phase 18 complete
+Last activity: 2026-03-04 — 18-03 client-driven countdown built
 
-Progress: ███████████████████████████████████████████████████████░ 87%
+Progress: ██████████████████████████████████████████████████████████░ 93%
 
 ## Last Session
-2026-03-04 — Plan 18-01 execution:
+2026-03-04 — 18-03 client-driven rolling AFK countdown:
 
-- **Task 1** (commit d80a5ad): applyOnlineScoring store action — maps server PlayerSyncState[] to local players via onlinePlayerIds, sets phase='scoring' + roundScore
-- **Task 2** (commit 3d98fb1): applyOnlineSessionEnd store action — syncs final scores, sets phase='sessionEnd' + screen='winners'
+- Added `isOnlineHost` to game state, passed through from lobby
+- New `RollingCountdown` component: 20s countdown bar during online rolling phase
+- Host client sends `rolling_timeout` message when bar hits zero
+- Server handles `rolling_timeout`: validates host + phase, clears fallback timer, auto-rolls AFK players
+- Server-side `setTimeout(20_000)` retained as silent fallback
+- Version bumped to 0.2.0.2
+
+### Previous Session
+2026-03-04 — Phase 18 completion + release:
+
+- **18-02** (commits d66365e, 45316e2, b7d6ef5): Online round transitions — roundEnd exit animations, round_start enter transitions, 3 sync bugfixes
+- **Extra** (commit a4078b6): Restart game flow, scoring sync fix, faster other-player lock animations
+- **Release** (commit 691a0ca): v0.2.0 tagged — Online Multiplayer milestone
 
 ## Previous Sessions
+- 18-01: Scoring + session end sync (applyOnlineScoring, applyOnlineSessionEnd)
 - 17-04: Per-player relay for rolling + unlocking, buffered reveals, checkpoint fixes
 - 17-03: Server wait-for-all rolling, disconnect safety, onlinePlayerIds mapping
 - 17-02: Timing barrier, roll results merge, physics settle routing
@@ -85,18 +97,29 @@ Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferre
 - **Client-side buffered reveals**: Other players' results stored in pendingLockReveals / pendingUnlockReveals. Flushed (with animation) after local player's own action. Same pattern for both.
 - **Reveal animations**: Profile-emerge (scale 0→1, fly from profile to slot) for locks. AI-unlock-style (shrink, fly to profile) for unlocks. Always animated, never pop-in.
 - **Server-authoritative scoring**: Client trusts server scores, extracts local roundScore from winners array for HUD animation
+- **Deferred phase safety**: 5s timeout on deferred phase_change polling prevents infinite loops from stale animation state
+- **Restart game flow**: Any remaining player can restart after session end, server handles restart_game message
 
 ## Known Issues
 - **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
+- **BUG-002 (fixed):** Buffered reveals lost during physics settling — setRollResults was clearing pending buffers. Fixed in 45316e2.
 - ISS-001: Settle detection feels slow (number delay after die stops moving)
 - ISS-002: Dice can cant against walls or other dice, blocking face detection
+- **18-03 complete**: Client-driven rolling AFK countdown — UAT passed all 5 tests (2026-03-04).
 
 ### Roadmap Evolution
 
 - Milestone v1.1 Online Multiplayer created: real-time multiplayer via Partykit, 8 phases (Phase 14-21)
+- v0.2.0 released mid-milestone after Phase 18 Plan 02 — playable online multiplayer shipped
+
+## Future Plans
+- Phase 18-03: Rolling AFK timer + disconnect safety during rolling phase
+- Phase 19: Connection resilience (disconnect/reconnect, AI drop-in replacement)
+- Phase 20: GitHub Pages + PWA deployment
+- Phase 21: Compliance + integration testing
 
 ## Session Continuity
 Last session: 2026-03-04
-Stopped at: Completed 18-01-PLAN.md
-Commits this session: d80a5ad, 3d98fb1
+Stopped at: Phase 18 complete — all 3 plans done, UAT passed
+Commits this session: ec5e126 (feat: rolling AFK timeout), pending (client-driven countdown)
 Resume file: None

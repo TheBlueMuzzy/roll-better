@@ -143,6 +143,9 @@ export default class RollBetterServer implements Party.Server {
       case "restart_game":
         this.handleRestartGame(sender);
         break;
+      case "rolling_timeout":
+        this.handleRollingTimeout(sender);
+        break;
       default:
         this.log(`Warning: unknown message type "${(parsed as { type: string }).type}" from ${sender.id}`);
         break;
@@ -908,6 +911,29 @@ export default class RollBetterServer implements Party.Server {
         this.serverInitRound();
       }, 500);
     }
+  }
+
+  // ─── Client-Driven Rolling Timeout ──────────────────────────────────
+
+  /**
+   * Handle a rolling_timeout message from the host client.
+   * The host's countdown bar reached zero — auto-roll any AFK players.
+   */
+  private handleRollingTimeout(sender: Party.Connection) {
+    if (!this.gameState || this.gameState.phase !== "rolling") return;
+
+    // Only the host can trigger this
+    if (sender.id !== this.hostId) return;
+
+    this.log("Host sent rolling_timeout — auto-rolling AFK players");
+
+    // Clear server-side fallback timer (host beat it to the punch)
+    if (this.rollingTimeoutTimer) {
+      clearTimeout(this.rollingTimeoutTimer);
+      this.rollingTimeoutTimer = null;
+    }
+
+    this.autoRollUnresponsivePlayers();
   }
 
   // ─── AFK Handling ───────────────────────────────────────────────────

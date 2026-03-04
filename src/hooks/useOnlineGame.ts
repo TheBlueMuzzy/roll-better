@@ -206,7 +206,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const difficulty = msg.aiDifficulty as AIDifficulty;
           store.initGame(msg.targetPlayers, difficulty, orderedPlayers);
           useGameStore.getState().initRound({ goalValues: msg.goalValues });
-          useGameStore.getState().setOnlineMode(localId);
+          useGameStore.getState().setOnlineMode(localId, localPlayer?.isHost ?? false);
 
           // Rebuild server-to-local player ID mapping
           const serverPlayerIds = [localId, ...otherPlayers.map((p: RoomPlayer) => p.id)];

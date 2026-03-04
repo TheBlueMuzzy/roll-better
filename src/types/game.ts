@@ -108,6 +108,7 @@ export interface GameState {
   gamePrefs: GamePrefs;
   // Online mode
   isOnlineGame: boolean;
+  isOnlineHost: boolean;
   onlinePlayerId: string | null;
   onlinePlayerIds: string[];
 }

@@ -59,6 +59,10 @@ export interface RestartGameMessage {
   type: "restart_game";
 }
 
+export interface RollingTimeoutMessage {
+  type: "rolling_timeout";
+}
+
 /** All messages the client can send to the server */
 export type ClientMessage =
   | JoinMessage
@@ -68,7 +72,8 @@ export type ClientMessage =
   | RollResultMessage
   | UnlockRequestMessage
   | SkipUnlockMessage
-  | RestartGameMessage;
+  | RestartGameMessage
+  | RollingTimeoutMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 

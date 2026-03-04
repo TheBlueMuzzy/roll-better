@@ -92,7 +92,7 @@ interface GameStore extends GameState {
   setConfirmationEnabled: (enabled: boolean) => void;
 
   // Online mode
-  setOnlineMode: (playerId: string) => void;
+  setOnlineMode: (playerId: string, isHost?: boolean) => void;
   clearOnlineMode: () => void;
   setOnlinePlayerIds: (ids: string[]) => void;
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => void;
@@ -168,6 +168,7 @@ const initialState: GameState = {
   shownTips: [],
   gamePrefs: defaultGamePrefs,
   isOnlineGame: false,
+  isOnlineHost: false,
   onlinePlayerId: null,
   onlinePlayerIds: [],
 };
@@ -946,11 +947,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // --- Online mode ---
-  setOnlineMode: (playerId: string) => {
-    set({ isOnlineGame: true, onlinePlayerId: playerId });
+  setOnlineMode: (playerId: string, isHost: boolean = false) => {
+    set({ isOnlineGame: true, isOnlineHost: isHost, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingUnlockReveals: [] });
+    set({ isOnlineGame: false, isOnlineHost: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingUnlockReveals: [] });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });

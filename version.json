@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 0,
+  "build": 2,
   "history": [
     {
       "version": "0.1.0",
@@ -252,6 +252,11 @@
       "version": "0.2.0",
       "date": "2026-03-04",
       "summary": "Milestone: Online multiplayer — PartyKit WebSocket server, lobby system, synchronized gameplay, restart flow"
+    },
+    {
+      "version": "0.2.0.2",
+      "date": "2026-03-04",
+      "summary": "Client-driven rolling AFK countdown: visible timer bar, host sends timeout, server fallback stays"
     }
   ]
 }
