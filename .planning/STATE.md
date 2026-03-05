@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-v1.2 Polish milestone created. 5 phases (22-26) planned. Ready to plan Phase 22.
+Phase 22 Plan 01 complete. Main menu restructured — difficulty selector removed, How to Play + Upgrades added.
 
 ## Version
-0.2.0.11
+0.2.0.12
 
 ## Project Reference
 
@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 Phase: 22 of 26 (Main Menu Restructure)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-05 — Milestone v1.2 created
+Plan: 1 of 1 in current phase
+Status: Phase complete
+Last activity: 2026-03-05 — Completed 22-01-PLAN.md
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██░░░░░░░░ 20%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -55,5 +55,5 @@ Progress: ░░░░░░░░░░ 0%
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Milestone v1.2 initialization
+Stopped at: Completed 22-01-PLAN.md — Phase 22 complete
 Resume file: None

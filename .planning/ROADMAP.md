@@ -57,7 +57,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 **Plans**: TBD
 
 Plans:
-- [ ] 22-01: TBD (run /gsd:plan-phase 22 to break down)
+- [x] 22-01: Simplify main menu (remove difficulty, add How to Play + Upgrades)
 
 #### Phase 23: Settings & Controls Cleanup
 
@@ -126,7 +126,7 @@ Plans:
 | 19. Connection Resilience | v1.1 | 3/3 | Complete | 2026-03-05 |
 | 20. GitHub Pages + PWA | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 21. Compliance + Integration Testing | v1.1 | 1/1 | Complete | 2026-03-05 |
-| 22. Main Menu Restructure | v1.2 | 0/? | Not started | - |
+| 22. Main Menu Restructure | v1.2 | 1/1 | Complete | 2026-03-05 |
 | 23. Settings & Controls Cleanup | v1.2 | 0/? | Not started | - |
 | 24. AI Difficulty Randomization | v1.2 | 0/? | Not started | - |
 | 25. Multiplayer Screen Rework | v1.2 | 0/? | Not started | - |
