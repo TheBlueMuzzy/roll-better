@@ -6,8 +6,9 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 ## Milestones
 
-- [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
-- [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
+- ✅ [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
+- ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
+- 🚧 **v1.2 Polish** — Phases 22-26 (in progress)
 
 ## Phases
 
@@ -44,9 +45,63 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
+### v1.2 Polish (In Progress)
+
+**Milestone Goal:** Clean up UI/UX rough edges — simplify menus, fix control issues, rework multiplayer screen flow.
+
+#### Phase 22: Main Menu Restructure
+
+**Goal**: Simplify main menu — remove unused selectors, add Upgrades section, relocate How to Play
+**Depends on**: Previous milestone complete
+**Research**: Unlikely (internal UI patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: TBD (run /gsd:plan-phase 22 to break down)
+
+#### Phase 23: Settings & Controls Cleanup
+
+**Goal**: Move settings to gear icon (bottom-right), fix audio slider, remove shake-to-roll, wire confirmation toggle
+**Depends on**: Phase 22
+**Research**: Unlikely (internal UI patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 23-01: TBD
+
+#### Phase 24: AI Difficulty Randomization
+
+**Goal**: Remove manual difficulty selection, randomly assign Easy/Medium/Hard per AI at room fill time
+**Depends on**: Phase 23
+**Research**: Unlikely (internal logic)
+**Plans**: TBD
+
+Plans:
+- [ ] 24-01: TBD
+
+#### Phase 25: Multiplayer Screen Rework
+
+**Goal**: Redesign Play > Multiplayer flow and screen layout
+**Depends on**: Phase 24
+**Research**: Unlikely (needs design discussion on what the rework looks like)
+**Plans**: TBD
+
+Plans:
+- [ ] 25-01: TBD
+
+#### Phase 26: How to Play Content Refresh
+
+**Goal**: Update How to Play slides to reflect all v1.2 changes (removed features, new UI layout)
+**Depends on**: Phase 25
+**Research**: Unlikely (content update)
+**Plans**: TBD
+
+Plans:
+- [ ] 26-01: TBD
+
 ## Progress
 
-**All milestones complete.** 21 phases, 63 plans shipped.
+**v1.0 + v1.1 complete.** 21 phases, 63 plans shipped. v1.2 in progress.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -71,3 +126,8 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 | 19. Connection Resilience | v1.1 | 3/3 | Complete | 2026-03-05 |
 | 20. GitHub Pages + PWA | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 21. Compliance + Integration Testing | v1.1 | 1/1 | Complete | 2026-03-05 |
+| 22. Main Menu Restructure | v1.2 | 0/? | Not started | - |
+| 23. Settings & Controls Cleanup | v1.2 | 0/? | Not started | - |
+| 24. AI Difficulty Randomization | v1.2 | 0/? | Not started | - |
+| 25. Multiplayer Screen Rework | v1.2 | 0/? | Not started | - |
+| 26. How to Play Content Refresh | v1.2 | 0/? | Not started | - |

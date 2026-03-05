@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.1 Online Multiplayer shipped. All 21 phases complete. Game publicly playable.
+v1.2 Polish milestone created. 5 phases (22-26) planned. Ready to plan Phase 22.
 
 ## Version
 0.2.0.11
@@ -11,16 +11,16 @@ v1.1 Online Multiplayer shipped. All 21 phases complete. Game publicly playable.
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** Milestone complete — planning next milestone.
+**Current focus:** v1.2 Polish — UI/UX cleanup, menu simplification, multiplayer screen rework.
 
 ## Current Position
 
-Phase: 21 of 21 (all complete)
-Plan: All shipped
-Status: v1.1 milestone complete
-Last activity: 2026-03-05 — v1.1 milestone shipped
+Phase: 22 of 26 (Main Menu Restructure)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-05 — Milestone v1.2 created
 
-Progress: ██████████████████████████████████████████████████████████████████ 100%
+Progress: ░░░░░░░░░░ 0%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -41,7 +41,19 @@ Progress: ███████████████████████�
 - **PartyKit**: `localhost:1999` (Claude manages)
 - `.env` must NOT set `VITE_PARTY_HOST` for local dev (defaults to localhost:1999)
 
+## Accumulated Context
+
+### Decisions
+- v1.2 scope: UI/UX polish only. Drag-to-unlock and hold-to-gather-roll deferred to v1.3.
+- AI difficulty: removing manual selection, randomizing per AI at fill time.
+- Shake-to-roll: being removed entirely.
+- Confirmation toggle: wiring to actual behavior (may be structurally tied to drag — evaluate during Phase 23).
+
+### Roadmap Evolution
+- Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
+
 ## Session Continuity
+
 Last session: 2026-03-05
-Stopped at: v1.1 milestone complete
+Stopped at: Milestone v1.2 initialization
 Resume file: None
