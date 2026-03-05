@@ -111,4 +111,5 @@ export interface GameState {
   isOnlineHost: boolean;
   onlinePlayerId: string | null;
   onlinePlayerIds: string[];
+  isOnlineDisconnected: boolean;
 }

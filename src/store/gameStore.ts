@@ -103,6 +103,9 @@ interface GameStore extends GameState {
   setGoalValues: (goalValues: number[]) => void;
   setCurrentRound: (round: number) => void;
 
+  // Online disconnect tracking
+  setOnlineDisconnected: (disconnected: boolean) => void;
+
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
   setPendingUnlockResult: (result: UnlockResultMessage | null) => void;
@@ -176,6 +179,7 @@ const initialState: GameState = {
   isOnlineHost: false,
   onlinePlayerId: null,
   onlinePlayerIds: [],
+  isOnlineDisconnected: false,
 };
 
 // --- Internal helper for other-player lock reveal (with animation) ---
@@ -980,7 +984,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, isOnlineHost: isHost, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, isOnlineHost: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [] });
+    set({ isOnlineGame: false, isOnlineHost: false, onlinePlayerId: null, onlinePlayerIds: [], isOnlineDisconnected: false, pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [] });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
@@ -1104,6 +1108,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       screen: 'winners',
     });
   },
+
+  // --- Online disconnect tracking ---
+  setOnlineDisconnected: (disconnected) => set({ isOnlineDisconnected: disconnected }),
 
   // --- Pending server data (online game sync) ---
   setPendingUnlockResult: (result) => set({ pendingUnlockResult: result }),

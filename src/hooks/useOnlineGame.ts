@@ -364,7 +364,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
 
         case "player_reconnected":
           console.log(`[useOnlineGame] Player reconnected: ${msg.playerName} (${msg.playerId})`);
-          // For now, just log. Plan 19-03 adds toast UI.
+          window.dispatchEvent(new CustomEvent('player-reconnected', { detail: { name: msg.playerName } }));
           break;
 
         case "game_starting": {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPartyConnection, sendMessage, parseServerMessage, setGameSocket } from "../utils/partyClient";
+import { useGameStore } from "../store/gameStore";
 import type { RoomPlayer, RoomStatus } from "../types/protocol";
 import type PartySocket from "partysocket";
 
@@ -161,6 +162,7 @@ export function useRoom(): UseRoomReturn {
         case "rejoin_state":
           // Server confirmed rejoin — update room connection state
           setIsConnected(true);
+          useGameStore.getState().setOnlineDisconnected(false);
           // Game state sync is handled by useOnlineGame
           break;
 
@@ -184,6 +186,7 @@ export function useRoom(): UseRoomReturn {
         // During game: DON'T reset — PartySocket will auto-reconnect
         // Just mark as disconnected so UI can show "Reconnecting..."
         setIsConnected(false);
+        useGameStore.getState().setOnlineDisconnected(true);
       } else {
         // During lobby/menu: reset as before
         const hadRecentError = Date.now() - lastErrorTimeRef.current < 500;
@@ -198,6 +201,7 @@ export function useRoom(): UseRoomReturn {
       if (gameActiveRef.current) {
         // Reconnected during game — server will send connected + rejoin_state
         setIsConnected(true);
+        useGameStore.getState().setOnlineDisconnected(false);
       }
     };
   }, [resetState, setErrorWithAutoClear]);

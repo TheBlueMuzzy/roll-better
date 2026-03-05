@@ -32,6 +32,8 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
+  const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
+  const [reconnectToast, setReconnectToast] = useState<string | null>(null);
 
   const audioInited = useRef(false);
   const showTip = useGameStore((s) => s.showTip);
@@ -67,6 +69,17 @@ function App() {
 
   // Performance settings
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
+
+  // Reconnect toast listener
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const name = (e as CustomEvent).detail.name;
+      setReconnectToast(`${name} reconnected`);
+      setTimeout(() => setReconnectToast(null), 3000);
+    };
+    window.addEventListener('player-reconnected', handler);
+    return () => window.removeEventListener('player-reconnected', handler);
+  }, []);
 
   // Audio volume — sync to SoundManager whenever it changes
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
@@ -553,6 +566,17 @@ function App() {
           />
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
+          )}
+          {isOnlineDisconnected && (
+            <div className="connection-overlay">
+              <div className="connection-overlay-content">
+                <div className="connection-spinner" />
+                <span>Reconnecting...</span>
+              </div>
+            </div>
+          )}
+          {reconnectToast && (
+            <div className="reconnect-toast">{reconnectToast}</div>
           )}
         </div>
       )}
