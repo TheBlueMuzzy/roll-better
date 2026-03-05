@@ -166,6 +166,12 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
               </button>
             </div>
           )}
+
+          <div className="settings-privacy-link">
+            <a href="privacy.html" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>
+          </div>
         </div>
       </div>
     </div>

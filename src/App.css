@@ -415,6 +415,21 @@ body {
   background: #c0392b;
 }
 
+/* --- Privacy link in settings --- */
+
+.settings-privacy-link {
+  text-align: center;
+  margin-top: 8px;
+}
+.settings-privacy-link a {
+  color: #888;
+  font-size: var(--fs-xs);
+  text-decoration: none;
+}
+.settings-privacy-link a:hover {
+  text-decoration: underline;
+}
+
 /* --- Build version overlay --- */
 
 /* --- How to Play button in settings --- */
