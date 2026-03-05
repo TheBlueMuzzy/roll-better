@@ -96,8 +96,8 @@ function App() {
   const playerLockedCount = useGameStore((s) => s.players[0]?.lockedDice.length ?? 0);
 
   // Play button handler — called from MainMenu
-  const handlePlay = useCallback((playerCount: number, difficulty: AIDifficulty) => {
-    initGame(playerCount, difficulty);
+  const handlePlay = useCallback((playerCount: number) => {
+    initGame(playerCount, 'medium');
     initRound();
     setScreen('game');
     // Start pool spawn animation
@@ -536,7 +536,7 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenSettings={() => setSettingsOpen(true)} />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenHowToPlay={() => { playUIClick(); setHowToPlayOpen(true); }} onOpenSettings={() => setSettingsOpen(true)} />
       <LobbyScreen
         visible={screen === 'lobby'}
         onGameStart={handleOnlineGameStart}

@@ -1,34 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playUIClick } from '../utils/soundManager';
-import type { AIDifficulty } from '../types/game';
 
 interface MainMenuProps {
   visible: boolean;
-  onPlay: (playerCount: number, difficulty: AIDifficulty) => void;
+  onPlay: (playerCount: number) => void;
   onPlayOnline: () => void;
+  onOpenHowToPlay: () => void;
   onOpenSettings: () => void;
 }
 
 const PLAYER_COUNTS = [2, 3, 4];
-const DIFFICULTIES: { label: string; value: AIDifficulty }[] = [
-  { label: 'Easy', value: 'easy' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Hard', value: 'hard' },
-];
 
-export function MainMenu({ visible, onPlay, onPlayOnline, onOpenSettings }: MainMenuProps) {
+export function MainMenu({ visible, onPlay, onPlayOnline, onOpenHowToPlay, onOpenSettings }: MainMenuProps) {
   const gamePrefs = useGameStore((s) => s.gamePrefs);
   const setGamePrefs = useGameStore((s) => s.setGamePrefs);
 
   const [playerCount, setPlayerCount] = useState(gamePrefs.playerCount);
-  const [difficulty, setDifficulty] = useState<AIDifficulty>(gamePrefs.aiDifficulty);
 
   // Sync local state when gamePrefs change (e.g. returning to menu after Play Again)
   useEffect(() => {
     setPlayerCount(gamePrefs.playerCount);
-    setDifficulty(gamePrefs.aiDifficulty);
-  }, [gamePrefs.playerCount, gamePrefs.aiDifficulty]);
+  }, [gamePrefs.playerCount]);
 
   // mount → rAF → add class pattern (same as TipBanner)
   const [showClass, setShowClass] = useState(false);
@@ -62,26 +55,10 @@ export function MainMenu({ visible, onPlay, onPlayOnline, onOpenSettings }: Main
         </div>
       </div>
 
-      {/* Difficulty selector */}
-      <div className="menu-selector-group">
-        <span className="menu-selector-label">Difficulty</span>
-        <div className="menu-selector">
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d.value}
-              className={`menu-btn${difficulty === d.value ? ' selected' : ''}`}
-              onClick={() => setDifficulty(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Play button */}
       <button className="menu-play" onClick={() => {
-        setGamePrefs({ playerCount, aiDifficulty: difficulty });
-        onPlay(playerCount, difficulty);
+        setGamePrefs({ playerCount });
+        onPlay(playerCount);
       }}>
         PLAY
       </button>
@@ -91,10 +68,19 @@ export function MainMenu({ visible, onPlay, onPlayOnline, onOpenSettings }: Main
         PLAY ONLINE
       </button>
 
-      {/* Settings link */}
-      <button className="menu-settings-link" onClick={() => { playUIClick(); onOpenSettings(); }}>
-        Settings
-      </button>
+      {/* Link buttons */}
+      <div className="menu-links">
+        <button className="menu-link-btn" onClick={() => { playUIClick(); onOpenHowToPlay(); }}>
+          {'\u{1F4D6}'} How to Play
+        </button>
+        <button className="menu-link-btn menu-upgrades-btn" disabled={true}>
+          Upgrades
+          <span className="menu-coming-soon-label">Coming Soon</span>
+        </button>
+        <button className="menu-settings-link" onClick={() => { playUIClick(); onOpenSettings(); }}>
+          Settings
+        </button>
+      </div>
     </div>
   );
 }
