@@ -63,6 +63,10 @@ export interface RollingTimeoutMessage {
   type: "rolling_timeout";
 }
 
+export interface PhaseSyncRequestMessage {
+  type: "phase_sync_request";
+}
+
 /** All messages the client can send to the server */
 export type ClientMessage =
   | JoinMessage
@@ -73,7 +77,8 @@ export type ClientMessage =
   | UnlockRequestMessage
   | SkipUnlockMessage
   | RestartGameMessage
-  | RollingTimeoutMessage;
+  | RollingTimeoutMessage
+  | PhaseSyncRequestMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 
@@ -151,6 +156,7 @@ export interface RollResultsMessage {
 export interface PhaseChangeMessage {
   type: "phase_change";
   phase: string;
+  players?: PlayerSyncState[];  // Full snapshot for state recovery
 }
 
 export interface RoundStartMessage {
@@ -189,6 +195,13 @@ export interface PlayerLockResultMessage {
   lockedDice: LockedDieSync[];
 }
 
+export interface PhaseSyncMessage {
+  type: "phase_sync";
+  phase: string;
+  players?: PlayerSyncState[];
+  goalValues?: number[];
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -203,4 +216,5 @@ export type ServerMessage =
   | UnlockResultMessage
   | ScoringMessage
   | SessionEndMessage
-  | PlayerLockResultMessage;
+  | PlayerLockResultMessage
+  | PhaseSyncMessage;

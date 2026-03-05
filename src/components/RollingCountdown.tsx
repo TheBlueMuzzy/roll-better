@@ -1,26 +1,24 @@
 import { useRef, useEffect, useState } from 'react';
-import { useGameStore } from '../store/gameStore';
-import { getGameSocket, sendMessage } from '../utils/partyClient';
 
 const TIMEOUT_MS = 20_000;
 
-export function RollingCountdown() {
-  const phase = useGameStore((s) => s.phase);
-  const isOnlineGame = useGameStore((s) => s.isOnlineGame);
-  const isOnlineHost = useGameStore((s) => s.isOnlineHost);
+interface RollingCountdownProps {
+  active: boolean;
+  onTimeout: () => void;
+}
 
+export function RollingCountdown({ active, onTimeout }: RollingCountdownProps) {
   const [fraction, setFraction] = useState(1);
   const startRef = useRef<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sentRef = useRef(false);
-
-  const isRolling = phase === 'rolling' && isOnlineGame;
+  const firedRef = useRef(false);
+  const onTimeoutRef = useRef(onTimeout);
+  onTimeoutRef.current = onTimeout;
 
   useEffect(() => {
-    if (!isRolling) {
-      // Reset when leaving rolling phase
+    if (!active) {
       setFraction(1);
-      sentRef.current = false;
+      firedRef.current = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -28,9 +26,8 @@ export function RollingCountdown() {
       return;
     }
 
-    // Start countdown
     startRef.current = Date.now();
-    sentRef.current = false;
+    firedRef.current = false;
 
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startRef.current;
@@ -42,15 +39,9 @@ export function RollingCountdown() {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-
-        // Host sends rolling_timeout to server
-        if (isOnlineHost && !sentRef.current) {
-          sentRef.current = true;
-          const socket = getGameSocket();
-          if (socket) {
-            sendMessage(socket, { type: 'rolling_timeout' });
-            console.log('[RollingCountdown] Host sent rolling_timeout');
-          }
+        if (!firedRef.current) {
+          firedRef.current = true;
+          onTimeoutRef.current();
         }
       }
     }, 100);
@@ -61,9 +52,9 @@ export function RollingCountdown() {
         intervalRef.current = null;
       }
     };
-  }, [isRolling, isOnlineHost]);
+  }, [active]);
 
-  if (!isRolling) return null;
+  if (!active) return null;
 
   return (
     <div className="rolling-countdown">

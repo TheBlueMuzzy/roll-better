@@ -365,7 +365,8 @@ function App() {
     const player = state.players[0];
     const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
 
-    if (isOnlineGame) {
+    if (isOnlineGame && !state.hasSubmittedUnlock) {
+      // Only send to server if not already submitted (AFK auto-unlock sets this before triggering)
       if (player.selectedForUnlock.length > 0) {
         // Send to server immediately (server waits for all)
         sendUnlockRequest(player.selectedForUnlock);
@@ -456,6 +457,17 @@ function App() {
       startAIUnlockAnimations();
     }
   }, [setPhase, startAIUnlockAnimations, isOnlineGame, sendUnlockRequest, sendSkipUnlock]);
+
+  // AFK auto-unlock: server chose slots for us — trigger same animation pipeline as manual unlock
+  const pendingAfkUnlock = useGameStore((s) => s.pendingAfkUnlock);
+  useEffect(() => {
+    if (!pendingAfkUnlock) return;
+    // Mark as submitted so handleConfirmUnlock skips sending to server (already processed)
+    useGameStore.getState().setHasSubmittedUnlock(true);
+    useGameStore.getState().clearPendingAfkUnlock();
+    // Small delay to let React render the selectedForUnlock state first
+    setTimeout(() => handleConfirmUnlock(), 50);
+  }, [pendingAfkUnlock, handleConfirmUnlock]);
 
   // Tap to Roll: only works during idle
   const handleRoll = useCallback(() => {

@@ -1,125 +1,107 @@
 # Project State
 
 ## Current Status
-18-03 implemented: Client-driven rolling AFK countdown timer. Server-side `setTimeout(20_000)` was unreliable in PartyKit's workerd runtime. Solution: host client runs a visible 20s countdown bar, sends `rolling_timeout` to server when it hits zero. Server clears its fallback timer and auto-rolls AFK players. Server timer stays as silent fallback if host disconnects. Awaiting manual playtest verification.
+All Phase 18 fixes complete. Snapshot sync, AFK auto-unlock, pool cap, delta animation validation, and local AFK unlock animation all working. Ready for commit + playtest.
 
 ## Version
-0.2.0.2
+0.2.0.5
 
 ## Current Position
 
 Phase: 18 of 21 (Unlock + Scoring Sync)
-Plan: 18-03 complete (UAT passed)
-Status: Phase 18 complete
-Last activity: 2026-03-04 — 18-03 client-driven countdown built
+Plan: All plans complete — ready for Phase 19
+Status: Phase 18 complete pending final playtest
+Last activity: 2026-03-05
 
-Progress: ██████████████████████████████████████████████████████████░ 93%
+Progress: █████████████████████████████████████████████████████████████ 100%
 
-## Last Session
-2026-03-04 — 18-03 client-driven rolling AFK countdown:
+## Resume Command
+Run `/gsd:resume-work` — or just read this file and continue with "Next Steps" below.
 
-- Added `isOnlineHost` to game state, passed through from lobby
-- New `RollingCountdown` component: 20s countdown bar during online rolling phase
-- Host client sends `rolling_timeout` message when bar hits zero
-- Server handles `rolling_timeout`: validates host + phase, clears fallback timer, auto-rolls AFK players
-- Server-side `setTimeout(20_000)` retained as silent fallback
-- Version bumped to 0.2.0.2
+## Next Steps (in order)
 
-### Previous Session
-2026-03-04 — Phase 18 completion + release:
+### 1. Fix delta animation validation (Option 2 — bulletproof)
+- **Problem**: Other players' lock/unlock delta messages sometimes show stale data briefly (extra locked die appears then disappears). Snapshot corrects it on phase_change, but the visual glitch is ugly.
+- **Fix approach**: Validate delta animations against current client state before displaying:
+  - Don't animate a lock if that goal slot is already occupied by that player
+  - Don't show a die that doesn't exist in the server snapshot
+  - Compare incoming `player_lock_result` against `syncAllPlayerState` data
+- **Files**: `src/hooks/useOnlineGame.ts` (delta handlers), `src/store/gameStore.ts` (pending reveal buffers)
 
-- **18-02** (commits d66365e, 45316e2, b7d6ef5): Online round transitions — roundEnd exit animations, round_start enter transitions, 3 sync bugfixes
-- **Extra** (commit a4078b6): Restart game flow, scoring sync fix, faster other-player lock animations
-- **Release** (commit 691a0ca): v0.2.0 tagged — Online Multiplayer milestone
+### 2. Fix AFK auto-unlock animation
+- **Problem**: When server auto-unlocks an AFK player's dice, client doesn't animate — dice just pop into pool
+- **Fix**: Client needs to detect `unlock_result` for its OWN player (from AFK timeout) and trigger the unlock animation
+- **Files**: `src/hooks/useOnlineGame.ts` (unlock_result handler)
+
+### 3. Commit all changes
+- Files modified this session: `.env`, `party/server.ts`
+- Files modified last session (uncommitted): `protocol.ts`, `server.ts`, `gameStore.ts`, `useOnlineGame.ts`
+- Bump version, commit with summary of all fixes
+
+## Session 2026-03-05 — All Fixes Applied
+
+### Fix 1: .env pointing to cloud server
+- `.env` had `VITE_PARTY_HOST=roll-better.thebluemuzzy.partykit.dev` — ALL previous playtests hit deployed cloud server, not local PartyKit
+- Commented out the env var → defaults to `localhost:1999`
+- **Lesson**: ALWAYS check `.env` first when server changes seem invisible
+
+### Fix 2: AFK auto-unlock initial implementation (party/server.ts)
+- `autoSkipUnresponsivePlayers()` only blocked skip when `poolSize === 0`
+- Players with poolSize > 0 but tiny total dice were skipped without unlocking → stuck forever
+- Initial fix: unlock ALL dice when locked < 8 (too aggressive, caused Fix 4)
+
+### Fix 3: Zombie PartyKit processes
+- Multiple old PartyKit processes (3 PIDs) were LISTENING on port 1999
+- New PartyKit bound the port but old process was stealing connections
+- Fix: `taskkill /F` all PIDs, then start fresh single instance
+- Also cleared Vite dep cache (`rm -rf node_modules/.vite`)
+
+### Fix 4: Smart AFK unlock (total dice target = 8)
+- **Problem v1**: Fix 2 unlocked ALL locked dice → pools exploded to 15+
+- **Problem v2**: Math was wrong — used `(8 - poolSize) / 2` but each unlock adds 1 to TOTAL, not 2
+- **Correct formula**: `totalDice = pool + locked`. If `totalDice < 8`: unlock `min(8 - totalDice, locked)` dice. If `totalDice >= 8`: skip entirely (keep locks, go for max points)
+- **AFK unlock rule**: total < 8 → unlock to reach 8. total >= 8 → always skip.
+
+### Fix 5: Pool-12 cap on manual unlocks (party/server.ts)
+- Manual unlock had no pool cap — player reached 15 dice
+- `handleUnlockRequest` now caps unlocks at `floor((12 - poolSize) / 2)`. Excess rejected.
+
+### Playtest Results (room DYER, all fixes)
+- Snapshot sync: self-healing confirmed (stale delta → snapshot corrects)
+- AFK roll timer: working every round
+- AFK auto-unlock: correct math, only unlocks when total < 8
+- Manual unlock: working, pool capped at 12
+- Scoring: Snooze got perfect 8 points, round transition to new goals worked
+- Manual play mixed with AFK: no stalls, no desyncs
+- **Animation issues noted**: AFK unlock has no animation, delta locks show briefly stale data
+
+### Known Issues
+- **Delta animation glitches**: Stale delta data briefly visible before snapshot corrects (Fix: validate deltas against state — Next Step #1)
+- **Missing AFK unlock animation**: Dice pop into pool without animation (Fix: detect own-player unlock_result — Next Step #2)
+- **PartyKit restart pattern**: Clients auto-reconnect to empty room after restart. Must refresh tabs and create new room.
+
+## Dev Server Setup
+- **Vite**: `http://localhost:5173` (Claude manages, `--host` for LAN)
+- **PartyKit**: `localhost:1999` (Claude manages)
+- **Phone**: `http://192.168.1.152:5173`
+- `.env` must NOT set `VITE_PARTY_HOST` for local dev (defaults to localhost:1999)
+- Claude runs both servers as background tasks — no manual terminal management
 
 ## Previous Sessions
-- 18-01: Scoring + session end sync (applyOnlineScoring, applyOnlineSessionEnd)
-- 17-04: Per-player relay for rolling + unlocking, buffered reveals, checkpoint fixes
-- 17-03: Server wait-for-all rolling, disconnect safety, onlinePlayerIds mapping
-- 17-02: Timing barrier, roll results merge, physics settle routing
-- 17-01: Module-level socket, online mode flags, useOnlineGame hook
+- 2026-03-04: Snapshot state sync implementation (protocol.ts, server.ts, gameStore.ts, useOnlineGame.ts)
+- 2026-03-04: AFK system bugfixes (BUG-003, server lockingTimer removal)
+- 2026-03-04: Phase 18 completion + v0.2.0 release
+- Earlier: Phases 17-18 (online multiplayer buildout)
 
-## RESOLVED: Shake-to-Roll on Phone
-Shake-to-roll trigger works (confirmed 2026-03-03). Gravity-mapping idea deferred to VISION.md.
-**Dev server**: `http://localhost:5174/` (PC) / `http://192.168.1.152:5174/` (phone)
+## Key Architecture
+- **Snapshot + Delta hybrid**: Every phase_change carries full PlayerSyncState[]. Deltas (player_lock_result, unlock_result) are animation triggers only. Snapshots are source of truth.
+- **Watchdog**: Detects stalls >5s in transient phases, requests phase_sync from server (carries full state + goalValues). Self-heals to idle after 3 failures.
+- **AFK timers**: 20s for both rolling and unlocking. Client-driven countdown display, server-enforced timeout.
+- **Pool cap**: Max 12 dice. Server enforces on manual unlock. AFK auto-unlock targets 8 total (well under cap).
 
-## Research Files
-- `.planning/research/competitors.md` — 10 competitor deep-dives
-- `.planning/research/references.md` — personas, design theory, art direction
-- `.planning/research/core-rules.md` — complete rules (v2, unlock flow updated)
-- `.planning/research/dice-visuals.md` — 3D dice rendering research
-
-## Key Decisions
-- Auto-lock then choose to unlock
-- Scoring: penalties [1,0,1,1], roundScore = max(0, 8 - penalty sum)
-- Handicap every round (floor 1, ceiling 12)
-- 2-8 players, 20-point sessions
-- Phase 1: local AI, Phase 2: WebSocket rooms (##X## codes)
-- Premium 3D dice: MeshPhysicalMaterial + clearcoat + HDRI + AccumulativeShadows
-- Physics: Rapier, gravity -50, restitution 0.35 (die), face-up detection via dot product
-- PhysicsDie: forwardRef + useImperativeHandle for roll API, settle detection via sleep events
-- Settle detection: per-die boolean array with onUnsettled callback + 500ms fallback timer
-- Pure physics determines roll results (no fake RNG) — online: client-authoritative values sent to server
-- Vite v7 scaffold (latest stable)
-- Camera locked top-down at [0, 12, 0.01], fov 50
-- Explicit CuboidColliders over auto-colliders for reliable high-gravity physics
-- CCD on dynamic bodies to prevent tunneling
-- Viewport: 9:16 portrait aspect ratio (mobile-first)
-- Pip color: near-black (#1a1a1a) on cream — user direction for visibility
-- Build version overlay: non-negotiable, position:absolute inside game viewport
-- DIE_SIZE = arena_width / 9.5 ≈ 0.589
-- Results sorted ascending — required for future lerp-to-row feature
-- Wall height 8, ROLLING_Z_MIN = -1.7, Placement zone floor #4a3020
-- GoalRow Z = -4.67, PlayerRow Z = -3.77
-- SLOT_SPACING = 0.62, getSlotX centering (i - 2.5), PROFILE_X_OFFSET = 0.10
-- HUD as HTML sibling to Canvas — forwardRef on Scene to expose rollAll
-- Phase flow: idle → rolling → locking → unlocking → idle (loop), locking → scoring → roundEnd (on win)
-- SIMULTANEOUS PLAY — all players roll/lock/unlock in same phases together (NOT turn-based)
-- Round ends when ANY player(s) complete the goal — multiple can win same roll
-- Vitest for testing (Vite-native, zero config)
-- findAutoLocks: pure function shared client/server
-- Room server: Players Map keyed by connection ID, first player = host, host migration on disconnect
-- Partykit dev port pinned to 1999 in partykit.json
-- Protocol types standalone (no game.ts imports)
-- Server-authoritative color assignment: PLAYER_COLORS[joinOrderIndex]
-- Server-generated goalValues broadcast in game_starting
-- Online game auto-fill: < 4 players → fill to 4 with AI; >= 4 → no AI
-- Server unlock: per-player relay pattern (like rolling), 20s AFK timeout with must-unlock guard
-- Multi-winner scoring: winners[] array in ScoringMessage
-- Session end: highest score wins, ties are ties (client determines from player states)
-- Starting dice = 2 (matches PRD/client)
-- Disconnect-safe: removePlayer updates both room players and gameState players
-- addEventListener('message') coexists with useRoom onmessage — no conflict
-- Module-level socket singleton for cross-hook access (not React ref)
-- onlinePlayerIds mapping: client index → server ID (connection IDs for humans, bot-N for bots)
-- **Client-authoritative dice**: Each client rolls physics, reports settled values to server. Server computes locks via findAutoLocks and relays to others.
-- **Per-player relay (no batching)**: Server processes each player's result individually and immediately broadcasts via broadcastExcept. Applies to BOTH rolling AND unlocking.
-- **Client-side buffered reveals**: Other players' results stored in pendingLockReveals / pendingUnlockReveals. Flushed (with animation) after local player's own action. Same pattern for both.
-- **Reveal animations**: Profile-emerge (scale 0→1, fly from profile to slot) for locks. AI-unlock-style (shrink, fly to profile) for unlocks. Always animated, never pop-in.
-- **Server-authoritative scoring**: Client trusts server scores, extracts local roundScore from winners array for HUD animation
-- **Deferred phase safety**: 5s timeout on deferred phase_change polling prevents infinite loops from stale animation state
-- **Restart game flow**: Any remaining player can restart after session end, server handles restart_game message
-
-## Known Issues
-- **BUG-001 (P0 — partially mitigated):** getFaceUp may misread canted dice. Visual symptom fixed (generation keys), root cause (ISS-002 canting) deferred.
-- **BUG-002 (fixed):** Buffered reveals lost during physics settling — setRollResults was clearing pending buffers. Fixed in 45316e2.
-- ISS-001: Settle detection feels slow (number delay after die stops moving)
-- ISS-002: Dice can cant against walls or other dice, blocking face detection
-- **18-03 complete**: Client-driven rolling AFK countdown — UAT passed all 5 tests (2026-03-04).
-
-### Roadmap Evolution
-
-- Milestone v1.1 Online Multiplayer created: real-time multiplayer via Partykit, 8 phases (Phase 14-21)
-- v0.2.0 released mid-milestone after Phase 18 Plan 02 — playable online multiplayer shipped
-
-## Future Plans
-- Phase 18-03: Rolling AFK timer + disconnect safety during rolling phase
-- Phase 19: Connection resilience (disconnect/reconnect, AI drop-in replacement)
-- Phase 20: GitHub Pages + PWA deployment
-- Phase 21: Compliance + integration testing
-
-## Session Continuity
-Last session: 2026-03-04
-Stopped at: Phase 18 complete — all 3 plans done, UAT passed
-Commits this session: ec5e126 (feat: rolling AFK timeout), pending (client-driven countdown)
-Resume file: None
+## Uncommitted Changes
+- `.env` — cloud server URL commented out
+- `party/server.ts` — snapshot sync, AFK auto-unlock (smart formula), pool-12 cap, extensive debug logging
+- `src/types/protocol.ts` — PlayerSyncState in PhaseChangeMessage/PhaseSyncMessage
+- `src/store/gameStore.ts` — syncAllPlayerState, setGoalValues
+- `src/hooks/useOnlineGame.ts` — snapshot application in phase_change/phase_sync handlers, watchdog cleanup

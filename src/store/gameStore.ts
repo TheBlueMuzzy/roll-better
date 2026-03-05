@@ -99,6 +99,8 @@ interface GameStore extends GameState {
   applyOnlineScoring: (winners: { playerId: string; roundScore: number }[], serverPlayers: PlayerSyncState[]) => void;
   applyOnlineSessionEnd: (serverPlayers: PlayerSyncState[]) => void;
   applyServerPlayerSync: (serverPlayers: PlayerSyncState[]) => void;
+  syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => void;
+  setGoalValues: (goalValues: number[]) => void;
 
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
@@ -116,6 +118,8 @@ interface GameStore extends GameState {
   addPendingUnlockReveal: (data: UnlockRevealData) => void;
   flushPendingUnlockReveals: () => void;
   hasSubmittedUnlock: boolean;
+  pendingAfkUnlock: boolean;
+  clearPendingAfkUnlock: () => void;
   setHasSubmittedUnlock: (submitted: boolean) => void;
 }
 
@@ -185,11 +189,22 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
 
   const players = [...state.players];
   const otherPlayer = { ...players[playerIndex] };
-  otherPlayer.lockedDice = data.lockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
+
+  // Only ADD new locks to existing lockedDice — don't full-replace from delta
+  // (delta lockedDice can be stale; snapshot in phase_change is authoritative)
+  const existingSlots = new Set(otherPlayer.lockedDice.map(ld => ld.goalSlotIndex));
+  const validNewLocks = data.newLocks.filter(lock => !existingSlots.has(lock.goalSlotIndex));
+
+  if (validNewLocks.length > 0) {
+    otherPlayer.lockedDice = [
+      ...otherPlayer.lockedDice,
+      ...validNewLocks.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value })),
+    ];
+  }
   otherPlayer.poolSize = data.poolSize;
   players[playerIndex] = otherPlayer;
 
-  // Build profile-emerge animations for new locks
+  // Build profile-emerge animations only for validated new locks
   const aiLockAnimations = [...state.roundState.aiLockAnimations];
   const aiAnimatingSlotIndices = { ...state.roundState.aiAnimatingSlotIndices };
   const profileX = getSlotX(0) - PROFILE_X_OFFSET;
@@ -199,7 +214,7 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
     ? aiLockAnimations[aiLockAnimations.length - 1].delay + 0.15
     : 0;
 
-  for (const lock of data.newLocks) {
+  for (const lock of validNewLocks) {
     aiLockAnimations.push({
       fromPos: [profileX, DIE_SIZE / 2, rowZ],
       toPos: [getSlotX(lock.goalSlotIndex), DIE_SIZE / 2, rowZ],
@@ -236,15 +251,21 @@ function applyOtherPlayerUnlockReveal(get: StoreGet, set: StoreSet, data: Unlock
   const playerIndex = state.onlinePlayerIds.indexOf(data.playerId);
   if (playerIndex === -1 || playerIndex === 0) return; // Skip unknown or self
 
-  // Update player state: apply server's authoritative locked dice + pool size
+  // Only unlock slots that actually exist in client's current locked dice
+  const prevPlayer = state.players[playerIndex];
+  const currentLockedSlots = new Set(prevPlayer.lockedDice.map(ld => ld.goalSlotIndex));
+  const validUnlockedSlots = data.unlockedSlots.filter(slot => currentLockedSlots.has(slot));
+
+  // Update player state: remove validated unlocked slots, update pool size
   const players = [...state.players];
   const otherPlayer = { ...players[playerIndex] };
-  otherPlayer.lockedDice = data.lockedDice.map(ld => ({ goalSlotIndex: ld.goalSlotIndex, value: ld.value }));
+  const unlockSet = new Set(validUnlockedSlots);
+  otherPlayer.lockedDice = otherPlayer.lockedDice.filter(ld => !unlockSet.has(ld.goalSlotIndex));
   otherPlayer.poolSize = data.newPoolSize;
   players[playerIndex] = otherPlayer;
 
   // Build AI-unlock-style animations (shrink from slot → profile icon)
-  if (data.unlockedSlots.length > 0) {
+  if (validUnlockedSlots.length > 0) {
     const aiUnlockAnimations = [...state.roundState.aiUnlockAnimations];
     const profileX = getSlotX(0) - PROFILE_X_OFFSET;
     const rowZ = -3.77 + playerIndex * 0.9;
@@ -252,9 +273,8 @@ function applyOtherPlayerUnlockReveal(get: StoreGet, set: StoreSet, data: Unlock
       ? aiUnlockAnimations[aiUnlockAnimations.length - 1].delay + 0.3
       : 0;
 
-    for (const slotIndex of data.unlockedSlots) {
+    for (const slotIndex of validUnlockedSlots) {
       // Find the value of the die being unlocked (from the PREVIOUS locked dice, before removal)
-      const prevPlayer = state.players[playerIndex];
       const lockedEntry = prevPlayer.lockedDice.find(ld => ld.goalSlotIndex === slotIndex);
       // Fallback to goal value (locks always match their goal slot) if lockedDice wasn't populated
       const value = lockedEntry?.value ?? state.roundState.goalValues[slotIndex] ?? 1;
@@ -302,6 +322,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingLockReveals: [],
   hasLocalPlayerLocked: false,
   hasSubmittedUnlock: false,
+  pendingAfkUnlock: false,
   pendingUnlockReveals: [],
 
   reset: () => set({ ...initialState, settings: get().settings, gamePrefs: get().gamePrefs }),
@@ -397,7 +418,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
-    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false, pendingUnlockReveals: [] });
+    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [] });
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -645,6 +666,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Update local lock status for this roll cycle (controls buffering of other-player reveals)
       hasLocalPlayerLocked: localLockedNow,
       hasSubmittedUnlock: false,
+      pendingAfkUnlock: false,
       // NOTE: Do NOT clear pendingLockReveals or pendingUnlockReveals here.
       // Reveals may have arrived during physics settling — clearing would lose them.
       // They are cleared in initRound (new round) and flushPending* (when applied).
@@ -951,7 +973,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isOnlineGame: true, isOnlineHost: isHost, onlinePlayerId: playerId });
   },
   clearOnlineMode: () => {
-    set({ isOnlineGame: false, isOnlineHost: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingUnlockReveals: [] });
+    set({ isOnlineGame: false, isOnlineHost: false, onlinePlayerId: null, onlinePlayerIds: [], pendingLockReveals: [], hasLocalPlayerLocked: false, hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [] });
   },
   setOnlinePlayerIds: (ids: string[]) => {
     set({ onlinePlayerIds: ids });
@@ -973,11 +995,48 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ players });
   },
 
+  syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => {
+    const state = get();
+    const players = state.players.map((p, i) => {
+      const serverId = state.onlinePlayerIds[i];
+      const sp = serverPlayers.find(s => s.id === serverId);
+      if (!sp) return p;
+      return {
+        ...p,
+        poolSize: sp.poolSize,
+        lockedDice: sp.lockedDice.map(ld => ({ ...ld })),
+        score: sp.score,
+        startingDice: sp.startingDice,
+      };
+    });
+    set({ players });
+  },
+
+  setGoalValues: (goalValues: number[]) => {
+    const state = get();
+    set({ roundState: { ...state.roundState, goalValues } });
+  },
+
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
     const state = get();
     const playerIndex = state.onlinePlayerIds.indexOf(playerId);
     if (playerIndex === -1) return; // Unknown — ignore
-    if (playerIndex === 0) return; // Self — already applied locally via confirmUnlock
+
+    if (playerIndex === 0) {
+      // Self — check if this is an AFK auto-unlock (server-initiated, not player-initiated)
+      if (state.hasSubmittedUnlock) return; // Player already submitted locally via confirmUnlock
+
+      // AFK auto-unlock: server chose which slots to unlock.
+      // Set selectedForUnlock + flag so App.tsx can trigger the mitosis animation pipeline.
+      console.log("[applyOnlineUnlockResult] AFK auto-unlock for local player, slots:", unlockedSlots);
+      const players = [...state.players];
+      const player = { ...players[0] };
+      player.selectedForUnlock = [...unlockedSlots];
+      players[0] = player;
+
+      set({ players, pendingAfkUnlock: true });
+      return;
+    }
 
     // Route through buffering (same pattern as lock reveals)
     get().addPendingUnlockReveal({ playerId, unlockedSlots, newPoolSize, lockedDice: serverLockedDice });
@@ -1085,6 +1144,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       applyOtherPlayerUnlockReveal(get, set, data);
     }
   },
+
+  clearPendingAfkUnlock: () => set({ pendingAfkUnlock: false }),
 
   // Online unlock tracking
   setHasSubmittedUnlock: (submitted: boolean) => {

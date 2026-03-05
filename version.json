@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 2,
+  "build": 5,
   "history": [
     {
       "version": "0.1.0",
@@ -257,6 +257,21 @@
       "version": "0.2.0.2",
       "date": "2026-03-04",
       "summary": "Client-driven rolling AFK countdown: visible timer bar, host sends timeout, server fallback stays"
+    },
+    {
+      "version": "0.2.0.3",
+      "date": "2026-03-04",
+      "summary": "Fix locking stall: watchdog self-heals locally, server timeout race fix, applyServerAutoRoll"
+    },
+    {
+      "version": "0.2.0.4",
+      "date": "2026-03-04",
+      "summary": "Snapshot state sync: full player state on every phase transition, simplified watchdog, self-healing desync recovery"
+    },
+    {
+      "version": "0.2.0.5",
+      "date": "2026-03-04",
+      "summary": "Fix delta animation glitches + AFK auto-unlock animation for local player"
     }
   ]
 }

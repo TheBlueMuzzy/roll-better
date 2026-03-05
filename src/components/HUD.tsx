@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 import { RollingCountdown } from './RollingCountdown';
+import { getAIUnlockDecision } from '../utils/aiDecision';
 
 interface HUDProps {
   onRoll: () => void;
@@ -18,6 +19,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
   const lastLockCount = useGameStore((s) => s.roundState.lastLockCount);
   const roundScore = useGameStore((s) => s.roundState.roundScore);
   const players = useGameStore((s) => s.players);
+  const isOnlineGame = useGameStore((s) => s.isOnlineGame);
 
   const player = players[0];
   const score = player?.score ?? 0;
@@ -32,6 +34,55 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
   const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
+
+  // --- AFK countdown logic ---
+  const showIdleCountdown = isOnlineGame && phase === 'idle';
+  const showUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
+
+  const handleIdleTimeout = useCallback(() => {
+    console.log('[HUD] AFK idle timeout — auto-rolling');
+    onRoll();
+  }, [onRoll]);
+
+  const handleUnlockTimeout = useCallback(() => {
+    const state = useGameStore.getState();
+    const p = state.players[0];
+    if (!p) return;
+
+    // Clear any manual selections first — AFK AI takes over completely
+    for (const slot of p.selectedForUnlock) {
+      useGameStore.getState().toggleUnlockSelection(0, slot);
+    }
+
+    // Re-read player state after clearing selections
+    const fresh = useGameStore.getState().players[0];
+    if (!fresh) return;
+
+    const totalDice = fresh.poolSize + fresh.lockedDice.length;
+
+    if (totalDice < 8 && fresh.lockedDice.length > 0) {
+      // Unlock as many as possible without exceeding 8 total dice
+      // Each unlock adds 1 net die (removes 1 locked, adds 2 to pool)
+      const maxUnlocks = Math.min(fresh.lockedDice.length, 8 - totalDice);
+      const slotsToUnlock = fresh.lockedDice.slice(0, maxUnlocks).map(ld => ld.goalSlotIndex);
+      for (const slot of slotsToUnlock) {
+        useGameStore.getState().toggleUnlockSelection(0, slot);
+      }
+      console.log('[HUD] AFK unlock timeout — unlocking', slotsToUnlock.length, 'to reach 8 dice');
+    } else if (fresh.poolSize === 0 && fresh.lockedDice.length < 8) {
+      // Must unlock at least 1 (no dice to roll)
+      const slot = fresh.lockedDice[0]?.goalSlotIndex;
+      if (slot !== undefined) {
+        useGameStore.getState().toggleUnlockSelection(0, slot);
+      }
+      console.log('[HUD] AFK unlock timeout — must-unlock 1');
+    } else {
+      console.log('[HUD] AFK unlock timeout — auto-skipping');
+    }
+
+    // Trigger the confirm/skip (same as pressing the button)
+    onConfirmUnlock();
+  }, [onConfirmUnlock]);
 
   // --- Score counting animation ---
   const scoreRef = useRef<HTMLSpanElement>(null);
@@ -138,7 +189,8 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings, onRequestShakePer
 
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
-        <RollingCountdown />
+        <RollingCountdown active={showIdleCountdown} onTimeout={handleIdleTimeout} />
+        <RollingCountdown active={showUnlockCountdown} onTimeout={handleUnlockTimeout} />
         {/* During unlocking: status text only (buttons rendered centered below) */}
         {phase === 'unlocking' ? (
           <span className="hud-status">{statusText}</span>

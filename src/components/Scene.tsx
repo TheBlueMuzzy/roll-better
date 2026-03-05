@@ -59,6 +59,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
     const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
+    const clearAIUnlockAnimations = useGameStore((s) => s.clearAIUnlockAnimations);
     const player = players[0];
 
     // Track how many lerp animations have completed (human)
@@ -68,6 +69,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     // Track how many AI lerp animations have completed
     const aiLerpCompleteCount = useRef(0);
     const aiLerpExpectedCount = useRef(0);
+
+    // Track how many AI unlock animations have completed
+    const aiUnlockCompleteCount = useRef(0);
+    const aiUnlockExpectedCount = useRef(0);
 
     // Compute locked values array (8 slots, null if empty, value if locked)
     const lockedValues = useMemo(() => {
@@ -133,11 +138,13 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     function handleAllSettled(values: number[], positions: [number, number, number][], rotations: [number, number, number][]) {
       console.log('All dice settled:', values);
-      // Reset lerp tracking for this roll (human + AI)
+      // Reset lerp tracking for this roll (human + AI + AI unlock)
       lerpCompleteCount.current = 0;
       lerpExpectedCount.current = 0;
       aiLerpCompleteCount.current = 0;
       aiLerpExpectedCount.current = 0;
+      aiUnlockCompleteCount.current = 0;
+      aiUnlockExpectedCount.current = 0;
 
       const state = useGameStore.getState();
       // Both online and offline: apply own results locally via setRollResults
@@ -179,6 +186,19 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     if (aiLockAnimations.length > 0 && aiLerpExpectedCount.current === 0) {
       aiLerpExpectedCount.current = aiLockAnimations.length;
       aiLerpCompleteCount.current = 0;
+    }
+
+    function handleAIUnlockComplete() {
+      aiUnlockCompleteCount.current++;
+      if (aiUnlockCompleteCount.current >= aiUnlockExpectedCount.current && aiUnlockExpectedCount.current > 0) {
+        clearAIUnlockAnimations();
+      }
+    }
+
+    // Sync expected AI unlock count when aiUnlockAnimations changes
+    if (aiUnlockAnimations.length > 0 && aiUnlockExpectedCount.current === 0) {
+      aiUnlockExpectedCount.current = aiUnlockAnimations.length;
+      aiUnlockCompleteCount.current = 0;
     }
 
     function handleFloorClick() {
@@ -455,6 +475,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
               duration={0.5}
               fromScale={1}
               toScale={0}
+              onComplete={handleAIUnlockComplete}
             />
           );
         })}

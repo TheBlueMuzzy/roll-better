@@ -19,6 +19,8 @@ const offlineReturn: UseOnlineGameReturn = {
   sendSkipUnlock: () => {},
 };
 
+// Phases that should transition automatically (client shouldn't stay in these long)
+const TRANSIENT_PHASES = new Set(['locking', 'scoring', 'roundEnd']);
 // ─── Hook ────────────────────────────────────────────────────────────
 
 export function useOnlineGame(): UseOnlineGameReturn {
@@ -37,6 +39,62 @@ export function useOnlineGame(): UseOnlineGameReturn {
     let deferredPhaseInterval: ReturnType<typeof setInterval> | null = null;
     let deferredPhaseTimeout: ReturnType<typeof setTimeout> | null = null;
 
+    // ─── Watchdog: detect stalls in transient phases ───────────────
+    let watchdogInterval: ReturnType<typeof setInterval> | null = null;
+    let lastPhase: string = '';
+    let phaseEnteredAt: number = 0;
+    let watchdogFireCount: number = 0;
+
+    watchdogInterval = setInterval(() => {
+      const s = useGameStore.getState();
+      if (!s.isOnlineGame) return;
+
+      // Track phase entry time
+      if (s.phase !== lastPhase) {
+        lastPhase = s.phase;
+        phaseEnteredAt = Date.now();
+        watchdogFireCount = 0;
+      }
+
+      // Check for stall in transient phases (>5s)
+      if (TRANSIENT_PHASES.has(s.phase) && Date.now() - phaseEnteredAt > 5000) {
+        watchdogFireCount++;
+        console.warn(
+          `[WATCHDOG] Stall #${watchdogFireCount}: phase="${s.phase}" for ${((Date.now() - phaseEnteredAt) / 1000).toFixed(1)}s`,
+        );
+
+        // Force-clear ALL animation arrays
+        s.clearLockAnimations();
+        s.clearAILockAnimations();
+        s.clearUnlockAnimations();
+        s.clearAIUnlockAnimations();
+
+        // Clear deferred phase polling
+        if (deferredPhaseInterval) { clearInterval(deferredPhaseInterval); deferredPhaseInterval = null; }
+        if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
+
+        if (watchdogFireCount >= 3) {
+          // Self-heal: server isn't responding (crash/disconnect/lost messages)
+          // Force client to idle — next phase_change or round_start snapshot will re-sync
+          console.warn("[WATCHDOG] Self-healing: forcing to idle after 3 stalls");
+          s.setLocalPlayerLocked(false);
+          s.setHasSubmittedUnlock(false);
+          sendMessage(socket, { type: "skip_unlock" }); // unblock server if waiting
+          s.setPhase('idle');
+          watchdogFireCount = 0;
+          phaseEnteredAt = Date.now();
+          lastPhase = 'idle';
+        } else {
+          // First attempts: ask server for full state — snapshot will fix desync
+          console.warn("[WATCHDOG] Requesting phase sync from server");
+          sendMessage(socket, { type: "phase_sync_request" });
+          phaseEnteredAt = Date.now();
+        }
+      }
+    }, 1000);
+
+    // ─── Message handler ────────────────────────────────────────────
+
     const handler = (event: MessageEvent) => {
       const msg = parseServerMessage(event.data as string);
       if (!msg) return;
@@ -46,6 +104,11 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const newPhase = msg.phase as GamePhase;
           const state = useGameStore.getState();
           if (newPhase === state.phase) break;
+
+          // Apply player snapshot if present (state recovery on every phase transition)
+          if (msg.players) {
+            useGameStore.getState().syncAllPlayerState(msg.players);
+          }
 
           // roundEnd triggers exit animations immediately — never deferred
           if (newPhase === 'roundEnd') {
@@ -64,7 +127,15 @@ export function useOnlineGame(): UseOnlineGameReturn {
             state.roundState.unlockAnimations.length > 0;
 
           if (hasAnimations) {
-            console.log("[useOnlineGame] phase_change deferred:", state.phase, "->", newPhase, "(animations in progress)");
+            console.log(
+              "[useOnlineGame] phase_change deferred:", state.phase, "->", newPhase,
+              "anims:", {
+                lock: state.roundState.lockAnimations.length,
+                aiLock: state.roundState.aiLockAnimations.length,
+                unlock: state.roundState.unlockAnimations.length,
+                aiUnlock: state.roundState.aiUnlockAnimations.length,
+              },
+            );
             // Clear any previous deferred phase poll
             if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
             if (deferredPhaseTimeout) clearTimeout(deferredPhaseTimeout);
@@ -120,7 +191,43 @@ export function useOnlineGame(): UseOnlineGameReturn {
           break;
         }
 
+        case "phase_sync": {
+          // Watchdog response: server sent full state snapshot
+          const serverPhase = msg.phase as GamePhase;
+          const clientPhase = useGameStore.getState().phase;
+          console.log(`[WATCHDOG] phase_sync: server="${serverPhase}" client="${clientPhase}"`);
+
+          // Apply player snapshot if present
+          if (msg.players) {
+            useGameStore.getState().syncAllPlayerState(msg.players);
+          }
+          // Apply goal values in case round_start was missed
+          if (msg.goalValues) {
+            useGameStore.getState().setGoalValues(msg.goalValues);
+          }
+
+          if (serverPhase !== clientPhase) {
+            console.warn(`[WATCHDOG] Phase mismatch — forcing client to "${serverPhase}"`);
+            const s = useGameStore.getState();
+            // Clear all animation state
+            s.clearLockAnimations();
+            s.clearAILockAnimations();
+            s.clearUnlockAnimations();
+            s.clearAIUnlockAnimations();
+            // Clear any deferred phase poll
+            if (deferredPhaseInterval) { clearInterval(deferredPhaseInterval); deferredPhaseInterval = null; }
+            if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
+            // Reset buffering flags
+            s.setLocalPlayerLocked(false);
+            s.setHasSubmittedUnlock(false);
+            // Force phase
+            s.setPhase(serverPhase);
+          }
+          break;
+        }
+
         case "player_lock_result": {
+          // Buffer all lock results (snapshot in next phase_change corrects any desync)
           console.log("[useOnlineGame] player_lock_result received", msg.playerId);
           useGameStore.getState().addPendingLockReveal({
             playerId: msg.playerId,
@@ -236,6 +343,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
       socket.removeEventListener("message", handler);
       if (deferredPhaseInterval) clearInterval(deferredPhaseInterval);
       if (deferredPhaseTimeout) clearTimeout(deferredPhaseTimeout);
+      if (watchdogInterval) clearInterval(watchdogInterval);
     };
   }, [isOnlineGame]);
 
