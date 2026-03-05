@@ -101,6 +101,7 @@ interface GameStore extends GameState {
   applyServerPlayerSync: (serverPlayers: PlayerSyncState[]) => void;
   syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => void;
   setGoalValues: (goalValues: number[]) => void;
+  setCurrentRound: (round: number) => void;
 
   // Pending server data (online game sync)
   pendingUnlockResult: UnlockResultMessage | null;
@@ -1030,6 +1031,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     set({ roundState: { ...state.roundState, goalValues } });
   },
+
+  setCurrentRound: (round: number) => set({ currentRound: round }),
 
   applyOnlineUnlockResult: (playerId: string, unlockedSlots: number[], newPoolSize: number, serverLockedDice: { goalSlotIndex: number; value: number }[]) => {
     const state = get();

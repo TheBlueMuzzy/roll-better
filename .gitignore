@@ -32,6 +32,9 @@ lerna-debug.log*
 # Claude
 .claude/settings.local.json
 
+# PartyKit local state
+.partykit/
+
 # Project
 .planning/STATE.md.bak
 proto/results/

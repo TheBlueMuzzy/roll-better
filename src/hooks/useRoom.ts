@@ -68,6 +68,9 @@ export function useRoom(): UseRoomReturn {
   // Track intentional closes (leave, room-not-found) to suppress "Connection lost"
   const intentionalCloseRef = useRef(false);
 
+  // Track whether we're in an active game (game_starting received)
+  const gameActiveRef = useRef(false);
+
   // Track recent server errors to prevent onclose overwriting them
   const lastErrorTimeRef = useRef(0);
 
@@ -152,6 +155,17 @@ export function useRoom(): UseRoomReturn {
           });
           // Store socket for game-phase access (useOnlineGame reads it)
           setGameSocket(socketRef.current);
+          gameActiveRef.current = true;
+          break;
+
+        case "rejoin_state":
+          // Server confirmed rejoin — update room connection state
+          setIsConnected(true);
+          // Game state sync is handled by useOnlineGame
+          break;
+
+        case "player_reconnected":
+          // Handled by useOnlineGame for toast notifications
           break;
 
         case "error":
@@ -163,13 +177,27 @@ export function useRoom(): UseRoomReturn {
     socket.onclose = () => {
       if (intentionalCloseRef.current) {
         intentionalCloseRef.current = false;
+        gameActiveRef.current = false;
         return;
       }
-      // Don't overwrite a recent server error (e.g., "Room is full")
-      const hadRecentError = Date.now() - lastErrorTimeRef.current < 500;
-      resetState();
-      if (!hadRecentError) {
-        setErrorWithAutoClear("Connection lost");
+      if (gameActiveRef.current) {
+        // During game: DON'T reset — PartySocket will auto-reconnect
+        // Just mark as disconnected so UI can show "Reconnecting..."
+        setIsConnected(false);
+      } else {
+        // During lobby/menu: reset as before
+        const hadRecentError = Date.now() - lastErrorTimeRef.current < 500;
+        resetState();
+        if (!hadRecentError) {
+          setErrorWithAutoClear("Connection lost");
+        }
+      }
+    };
+
+    socket.onopen = () => {
+      if (gameActiveRef.current) {
+        // Reconnected during game — server will send connected + rejoin_state
+        setIsConnected(true);
       }
     };
   }, [resetState, setErrorWithAutoClear]);
@@ -218,6 +246,7 @@ export function useRoom(): UseRoomReturn {
   const leave = useCallback(() => {
     if (socketRef.current) {
       intentionalCloseRef.current = true;
+      gameActiveRef.current = false;
       sendMessage(socketRef.current, { type: "leave" });
       socketRef.current.close();
       socketRef.current = null;

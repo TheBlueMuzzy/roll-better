@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 19 (Connection Resilience) in progress. Plan 19-01 complete — stable client ID, server rejoin detection, keepalive grace period. Ready for 19-02 (client reconnection flow).
+Phase 19 (Connection Resilience) in progress. Plans 19-01 and 19-02 complete. Ready for 19-03 (UI feedback — reconnecting overlay, toast notifications).
 
 ## Version
 0.2.0.6
@@ -9,14 +9,20 @@ Phase 19 (Connection Resilience) in progress. Plan 19-01 complete — stable cli
 ## Current Position
 
 Phase: 19 of 21 (Connection Resilience)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 complete. Ready for 19-03.
 Status: In progress
-Last activity: 2026-03-05 - Completed 19-01-PLAN.md
+Last activity: 2026-03-05 - Completed 19-02-PLAN.md (client-side reconnection handling)
 
-Progress: █████████████████████████████████████████████████████████████ 100%
+Progress: ████████████████████████████████████████░░░░░░░░░░░░░░░░░░░░░ 66%
 
 ## Resume Command
-Run `/gsd:execute-plan .planning/phases/19-connection-resilience/19-02-PLAN.md`
+Plan and execute 19-03 (UI feedback for reconnection)
+
+## What Was Built (19-02)
+- **useRoom gameActiveRef**: Tracks active game state; onclose during game preserves state (no reset), onopen restores isConnected
+- **useOnlineGame rejoin_state**: Full state restoration — goals, players, phase, round, animations cleared, watchdog reset
+- **gameStore setCurrentRound**: Syncs round number from server on rejoin
+- **player_reconnected**: Logged in useOnlineGame (toast UI in 19-03)
 
 ## What Was Built (19-01)
 - **Stable client ID**: sessionStorage-based ID passed to PartySocket constructor via `getStableClientId()`

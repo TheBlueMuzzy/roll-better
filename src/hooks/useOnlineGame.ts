@@ -310,6 +310,63 @@ export function useOnlineGame(): UseOnlineGameReturn {
           useGameStore.getState().applyOnlineSessionEnd(msg.players);
           break;
 
+        case "rejoin_state": {
+          console.log("[useOnlineGame] rejoin_state — restoring game state", {
+            phase: msg.phase,
+            round: msg.round,
+            goalValues: msg.goalValues,
+            players: msg.players?.length,
+          });
+
+          const store = useGameStore.getState();
+
+          // Apply goal values (in case round changed while disconnected)
+          if (msg.goalValues) {
+            store.setGoalValues(msg.goalValues);
+          }
+
+          // Sync all player states from server snapshot
+          if (msg.players) {
+            store.syncAllPlayerState(msg.players);
+          }
+
+          // Clear ALL animation state (we missed the animations while disconnected)
+          store.clearLockAnimations();
+          store.clearAILockAnimations();
+          store.clearUnlockAnimations();
+          store.clearAIUnlockAnimations();
+
+          // Clear any deferred phase polling
+          if (deferredPhaseInterval) { clearInterval(deferredPhaseInterval); deferredPhaseInterval = null; }
+          if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
+
+          // Reset buffering flags
+          store.setLocalPlayerLocked(false);
+          store.setHasSubmittedUnlock(false);
+
+          // Force phase to match server
+          const rejoinPhase = msg.phase as GamePhase;
+          if (store.phase !== rejoinPhase) {
+            console.log(`[useOnlineGame] rejoin phase sync: "${store.phase}" -> "${rejoinPhase}"`);
+            store.setPhase(rejoinPhase);
+          }
+
+          // Sync round number — player may have missed entire rounds while disconnected
+          store.setCurrentRound(msg.round);
+
+          // Reset watchdog state so it doesn't self-heal based on stale pre-disconnect timing
+          lastPhase = rejoinPhase;
+          phaseEnteredAt = Date.now();
+          watchdogFireCount = 0;
+
+          break;
+        }
+
+        case "player_reconnected":
+          console.log(`[useOnlineGame] Player reconnected: ${msg.playerName} (${msg.playerId})`);
+          // For now, just log. Plan 19-03 adds toast UI.
+          break;
+
         case "game_starting": {
           // Restart: server sent game_starting during an active online session
           console.log("[useOnlineGame] game_starting (restart) — re-initializing game");
