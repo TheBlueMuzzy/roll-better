@@ -202,6 +202,20 @@ export interface PhaseSyncMessage {
   goalValues?: number[];
 }
 
+export interface RejoinStateMessage {
+  type: "rejoin_state";
+  phase: string;
+  round: number;
+  goalValues: number[];
+  players: PlayerSyncState[];
+}
+
+export interface PlayerReconnectedMessage {
+  type: "player_reconnected";
+  playerId: string;
+  playerName: string;
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -217,4 +231,6 @@ export type ServerMessage =
   | ScoringMessage
   | SessionEndMessage
   | PlayerLockResultMessage
-  | PhaseSyncMessage;
+  | PhaseSyncMessage
+  | RejoinStateMessage
+  | PlayerReconnectedMessage;

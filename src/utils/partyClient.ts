@@ -5,6 +5,30 @@ import type { ClientMessage, ServerMessage } from "../types/protocol";
 const PARTY_HOST =
   import.meta.env.VITE_PARTY_HOST ?? "localhost:1999";
 
+// ─── Stable Client ID ────────────────────────────────────────────────
+// Each browser tab gets a persistent ID via sessionStorage so PartySocket
+// reconnections reuse the same conn.id on the server.
+const SESSION_KEY = "rb-client-id";
+
+function generateId(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz0123456789";
+  let id = "";
+  for (let i = 0; i < 16; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return id;
+}
+
+/** Get the stable client ID for this tab session (creates one if missing). */
+export function getStableClientId(): string {
+  let id = sessionStorage.getItem(SESSION_KEY);
+  if (!id) {
+    id = generateId();
+    sessionStorage.setItem(SESSION_KEY, id);
+  }
+  return id;
+}
+
 // ─── Module-Level Game Socket ────────────────────────────────────────
 // Persists the game-phase socket outside React lifecycle so hooks like
 // useOnlineGame can access it independently of useRoom.
@@ -16,7 +40,7 @@ export function getGameSocket(): PartySocket | null { return gameSocket; }
 
 /** Create a PartySocket connection to a room. Caller manages lifecycle. */
 export function createPartyConnection(roomId: string): PartySocket {
-  return new PartySocket({ host: PARTY_HOST, room: roomId });
+  return new PartySocket({ host: PARTY_HOST, room: roomId, id: getStableClientId() });
 }
 
 // ─── Message Helpers ──────────────────────────────────────────────────

@@ -127,9 +127,12 @@ function App() {
 
   // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
-    // Close WebSocket explicitly so server detects disconnect and migrates host
+    // Send intentional "leave" so server can distinguish from network drop
     const socket = getGameSocket();
-    if (socket) socket.close();
+    if (socket) {
+      sendMessage(socket, { type: "leave" });
+      socket.close();
+    }
     useGameStore.getState().clearOnlineMode();
     setGameSocket(null);
     setPhase('lobby');
