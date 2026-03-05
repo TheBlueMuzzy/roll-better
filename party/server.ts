@@ -30,6 +30,7 @@ interface ServerPlayerState {
   poolSize: number;
   lockedDice: LockedDieSync[];
   isOnline: boolean;
+  intentionalLeave?: boolean;
   difficulty?: string;
 }
 
@@ -61,6 +62,7 @@ export default class RollBetterServer implements Party.Server {
   private roundEndTimer: ReturnType<typeof setTimeout> | null = null;
   private unlockTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private rollingTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private keepaliveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(room: Party.Room) {
     this.room = room;
@@ -79,7 +81,78 @@ export default class RollBetterServer implements Party.Server {
   // ─── Connection Lifecycle ──────────────────────────────────────────
 
   onConnect(conn: Party.Connection) {
-    this.log(`[CONNECT] id=${conn.id.slice(0, 8)} players=${this.players.size} status=${this.status} hasGame=${!!this.gameState}`);
+    this.log(`[CONNECT] id=${conn.id.slice(0, 8)} players=${this.players.size} status=${this.status as string} hasGame=${!!this.gameState}`);
+
+    // ─── Rejoin Detection ──────────────────────────────────────────────
+    // If a game is active and this connection ID matches an offline player
+    // who didn't intentionally leave, restore them into the game.
+    if (this.gameState && ((this.status as string) === "playing" || (this.status as string) === "waiting_for_rejoin")) {
+      const gamePlayer = this.gameState.players.find(
+        (p) => p.id === conn.id && !p.isOnline && p.intentionalLeave !== true
+      );
+      if (gamePlayer) {
+        // Restore player to online
+        gamePlayer.isOnline = true;
+
+        // Re-add to players Map
+        this.players.set(conn.id, {
+          id: conn.id,
+          name: gamePlayer.name,
+          color: gamePlayer.color,
+          isHost: conn.id === this.hostId,
+          isReady: true,
+        });
+
+        // Cancel keepalive timer if room was waiting for rejoin
+        if ((this.status as string) === "waiting_for_rejoin") {
+          this.status = "playing";
+          if (this.keepaliveTimer) {
+            clearTimeout(this.keepaliveTimer);
+            this.keepaliveTimer = null;
+          }
+          this.log(`[KEEPALIVE] Cancelled — player rejoined`);
+        }
+
+        // Send connected ack (useRoom needs this)
+        this.sendToConnection(conn, {
+          type: "connected",
+          roomId: this.room.id,
+          playerId: conn.id,
+        });
+
+        // Send rejoin_state with full game snapshot
+        this.sendToConnection(conn, {
+          type: "rejoin_state",
+          phase: this.gameState.phase,
+          round: this.gameState.currentRound,
+          goalValues: this.gameState.goalValues,
+          players: this.buildPlayerSnapshot(),
+        } as any);
+
+        // Broadcast player_reconnected to everyone except the rejoining player
+        this.broadcastExcept(
+          {
+            type: "player_reconnected",
+            playerId: conn.id,
+            playerName: gamePlayer.name,
+          } as any,
+          [conn.id]
+        );
+
+        this.log(`[REJOIN] Player ${gamePlayer.name} reconnected`);
+        return; // Skip normal onConnect flow
+      }
+
+      // Non-rejoin connection during waiting_for_rejoin: reject
+      if ((this.status as string) === "waiting_for_rejoin") {
+        this.sendToConnection(conn, {
+          type: "error",
+          message: "Game in progress",
+        });
+        conn.close();
+        return;
+      }
+    }
 
     // Reject if room is closed or full
     if (this.status === "closed") {
@@ -142,7 +215,7 @@ export default class RollBetterServer implements Party.Server {
         this.handleJoin(sender, parsed.name, parsed.color);
         break;
       case "leave":
-        this.removePlayer(sender.id);
+        this.removePlayer(sender.id, true);
         break;
       case "ready":
         this.handleReady(sender);
@@ -1121,11 +1194,15 @@ export default class RollBetterServer implements Party.Server {
       clearTimeout(this.rollingTimeoutTimer);
       this.rollingTimeoutTimer = null;
     }
+    if (this.keepaliveTimer) {
+      clearTimeout(this.keepaliveTimer);
+      this.keepaliveTimer = null;
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
 
-  private removePlayer(connectionId: string) {
+  private removePlayer(connectionId: string, intentional: boolean = false) {
     // Guard: player might have connected but never sent "join"
     if (!this.players.has(connectionId)) {
       return;
@@ -1133,13 +1210,16 @@ export default class RollBetterServer implements Party.Server {
 
     const wasHost = this.hostId === connectionId;
     this.players.delete(connectionId);
-    this.log(`Player left: ${connectionId}`);
+    this.log(`Player left: ${connectionId} (intentional=${intentional})`);
 
     // Mark player offline in game state so unlock collection doesn't stall
     if (this.gameState) {
       const gamePlayer = this.gameState.players.find((p) => p.id === connectionId);
       if (gamePlayer) {
         gamePlayer.isOnline = false;
+        if (intentional) {
+          gamePlayer.intentionalLeave = true;
+        }
       }
       // Remove any pending unlock response from this player
       this.gameState.unlockResponses.delete(connectionId);
@@ -1169,12 +1249,34 @@ export default class RollBetterServer implements Party.Server {
 
         // Broadcast fresh room_state so everyone sees host change
         this.broadcastRoomState();
+      } else if (this.gameState && (this.status as string) === "playing") {
+        // Room empty during active game — keep alive for 60s waiting for rejoin
+        (this.status as any) = "waiting_for_rejoin";
+        this.keepaliveTimer = setTimeout(() => {
+          this.keepaliveTimer = null;
+          this.status = "closed";
+          this.gameState = null;
+          this.cleanupTimers();
+          this.log(`[KEEPALIVE] Room expired — no rejoin within 60s`);
+        }, 60_000);
+        this.log(`[KEEPALIVE] Room empty — waiting 60s for rejoin`);
       } else {
         // Last player left — close the room
         this.hostId = null;
         this.status = "closed";
         this.log(`Room closed (last player left)`);
       }
+    } else if (this.players.size === 0 && this.gameState && (this.status as string) === "playing") {
+      // Non-host was the last player — same keepalive logic
+      (this.status as any) = "waiting_for_rejoin";
+      this.keepaliveTimer = setTimeout(() => {
+        this.keepaliveTimer = null;
+        this.status = "closed";
+        this.gameState = null;
+        this.cleanupTimers();
+        this.log(`[KEEPALIVE] Room expired — no rejoin within 60s`);
+      }, 60_000);
+      this.log(`[KEEPALIVE] Room empty — waiting 60s for rejoin`);
     }
   }
 
