@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 import { RollingCountdown } from './RollingCountdown';
-import { getAIUnlockDecision } from '../utils/aiDecision';
+
 
 interface HUDProps {
   onRoll: () => void;
