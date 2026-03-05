@@ -61,13 +61,14 @@ Plans:
 
 #### Phase 23: Settings & Controls Cleanup
 
-**Goal**: Move settings to gear icon (bottom-right), fix audio slider, remove shake-to-roll, wire confirmation toggle
+**Goal**: Move settings to gear icon (bottom-right), fix audio slider, remove shake-to-roll, clean up Settings panel
 **Depends on**: Phase 22
 **Research**: Unlikely (internal UI patterns)
-**Plans**: TBD
+**Plans**: 2
 
 Plans:
-- [ ] 23-01: TBD
+- [ ] 23-01: Remove shake-to-roll and clean up Settings (remove H2P from settings)
+- [ ] 23-02: Settings gear icon on main menu + audio slider fix + verification
 
 #### Phase 24: AI Difficulty Randomization
 
