@@ -261,10 +261,12 @@ Plans:
 **Depends on**: Phase 18
 **Research**: Likely (WebSocket reconnection strategies, stateful session recovery)
 **Research topics**: WebSocket reconnection patterns, Partykit connection lifecycle events, state recovery on rejoin, AI handoff protocol
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 19-01: TBD
+- [ ] 19-01: Stable client ID + server rejoin protocol (stable sessionStorage ID, server auto-rejoin in onConnect, room keepalive grace period)
+- [ ] 19-02: Client reconnection flow (useRoom preserves game state on disconnect, useOnlineGame handles rejoin_state sync)
+- [ ] 19-03: Connection status UI (ConnectionBanner "Reconnecting...", disconnect/reconnect toast notifications)
 
 #### Phase 20: GitHub Pages + PWA
 **Goal**: Deploy to GitHub Pages with public URL. PWA setup for "install to home screen". Auto-updates on push.
