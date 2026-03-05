@@ -745,6 +745,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const slotsToUnlock = player.selectedForUnlock;
 
     // Get values of dice being unlocked (before removing them)
+    // If snapshot already removed these locks, unlockedValues will be empty
     const unlockedValues = player.lockedDice
       .filter((ld) => slotsToUnlock.includes(ld.goalSlotIndex))
       .map((ld) => ld.value);
@@ -769,12 +770,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
-    // Remove locked dice at selected slots
-    player.lockedDice = player.lockedDice.filter(
-      (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
+    // Only modify lockedDice/poolSize if snapshot hasn't already done it
+    // (online: phase_change snapshot can arrive before this timer fires)
+    const slotsStillLocked = slotsToUnlock.filter(
+      slot => player.lockedDice.some(ld => ld.goalSlotIndex === slot)
     );
-    // Each unlocked slot returns 1 die (the locked die) + 1 bonus die from goal
-    player.poolSize = player.poolSize + slotsToUnlock.length * 2;
+    if (slotsStillLocked.length > 0) {
+      player.lockedDice = player.lockedDice.filter(
+        (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
+      );
+      player.poolSize = player.poolSize + slotsStillLocked.length * 2;
+    }
     player.selectedForUnlock = [];
 
     players[playerIndex] = player;
@@ -997,10 +1003,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => {
     const state = get();
+    // Skip local player's poolSize/lockedDice if unlock animation is in progress
+    // (confirmUnlock owns those fields until animation completes — snapshot would stomp the handoff)
+    const localUnlockInProgress = state.hasSubmittedUnlock &&
+      (state.roundState.unlockAnimations.length > 0 || state.players[0]?.selectedForUnlock.length > 0);
     const players = state.players.map((p, i) => {
       const serverId = state.onlinePlayerIds[i];
       const sp = serverPlayers.find(s => s.id === serverId);
       if (!sp) return p;
+      if (i === 0 && localUnlockInProgress) {
+        // Only sync score/startingDice — let confirmUnlock handle poolSize/lockedDice
+        return { ...p, score: sp.score, startingDice: sp.startingDice };
+      }
       return {
         ...p,
         poolSize: sp.poolSize,

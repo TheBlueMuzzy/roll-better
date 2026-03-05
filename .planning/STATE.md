@@ -1,16 +1,20 @@
 # Project State
 
 ## Current Status
-All Phase 18 fixes complete. Snapshot sync, AFK auto-unlock, pool cap, delta animation validation, and local AFK unlock animation all working. Ready for commit + playtest.
+Deployed with hotfixes for double-dice unlock bug. Three layers of protection:
+1. Deferred snapshot: phase_change snapshot waits for animations to finish before applying
+2. Guard in confirmUnlock: checks if lockedDice slots still exist before modifying poolSize
+3. Guard in syncAllPlayerState: skips local player's poolSize/lockedDice while unlock animation is active
+
+Playtest in progress — Muzzy testing with friends on deployed build.
 
 ## Version
-0.2.0.5
+0.2.0.6
 
 ## Current Position
 
 Phase: 18 of 21 (Unlock + Scoring Sync)
-Plan: All plans complete — ready for Phase 19
-Status: Phase 18 complete pending final playtest
+Status: Deployed, playtesting with friends
 Last activity: 2026-03-05
 
 Progress: █████████████████████████████████████████████████████████████ 100%
@@ -20,23 +24,30 @@ Run `/gsd:resume-work` — or just read this file and continue with "Next Steps"
 
 ## Next Steps (in order)
 
-### 1. Fix delta animation validation (Option 2 — bulletproof)
-- **Problem**: Other players' lock/unlock delta messages sometimes show stale data briefly (extra locked die appears then disappears). Snapshot corrects it on phase_change, but the visual glitch is ugly.
-- **Fix approach**: Validate delta animations against current client state before displaying:
-  - Don't animate a lock if that goal slot is already occupied by that player
-  - Don't show a die that doesn't exist in the server snapshot
-  - Compare incoming `player_lock_result` against `syncAllPlayerState` data
-- **Files**: `src/hooks/useOnlineGame.ts` (delta handlers), `src/store/gameStore.ts` (pending reveal buffers)
+### 1. Gather playtest feedback from friends
+- Deployed to: `https://thebluemuzzy.github.io/roll-better/`
+- PartyKit server: `https://roll-better.thebluemuzzy.partykit.dev`
+- Watch for connection issues, desync, stalls, or confusing UX
 
-### 2. Fix AFK auto-unlock animation
-- **Problem**: When server auto-unlocks an AFK player's dice, client doesn't animate — dice just pop into pool
-- **Fix**: Client needs to detect `unlock_result` for its OWN player (from AFK timeout) and trigger the unlock animation
-- **Files**: `src/hooks/useOnlineGame.ts` (unlock_result handler)
+### 2. Commit hotfixes
+- Files changed: `useOnlineGame.ts` (deferred snapshot), `gameStore.ts` (confirmUnlock guard, syncAllPlayerState guard, AFK auto-unlock, delta validation), `App.tsx` (AFK unlock effect)
 
-### 3. Commit all changes
-- Files modified this session: `.env`, `party/server.ts`
-- Files modified last session (uncommitted): `protocol.ts`, `server.ts`, `gameStore.ts`, `useOnlineGame.ts`
-- Bump version, commit with summary of all fixes
+### 3. Begin Phase 19: Connection Resilience
+- Disconnect/reconnect handling
+- AI drop-in/drop-out replacement
+
+## Decisions Made This Session
+- **Snapshot deferral**: phase_change snapshot application now deferred alongside the phase transition when animations are playing, preventing poolSize from changing mid-animation
+- **Local player ownership during unlock**: syncAllPlayerState skips local player's poolSize/lockedDice while hasSubmittedUnlock is true and unlock animations are active — confirmUnlock owns those fields
+- **Delta validation**: lock/unlock deltas filtered against client state (only add new locks, only unlock existing slots) to prevent stale visual glitches
+- **AFK auto-unlock**: sets selectedForUnlock + triggers handleConfirmUnlock for full mitosis animation (same path as manual unlock)
+
+## Deploy Process
+1. Uncomment `VITE_PARTY_HOST` in `.env`
+2. `npm run build`
+3. `npx partykit deploy` (if server changed)
+4. `npx gh-pages -d dist`
+5. Re-comment `VITE_PARTY_HOST` in `.env`
 
 ## Session 2026-03-05 — All Fixes Applied
 

@@ -105,13 +105,12 @@ export function useOnlineGame(): UseOnlineGameReturn {
           const state = useGameStore.getState();
           if (newPhase === state.phase) break;
 
-          // Apply player snapshot if present (state recovery on every phase transition)
-          if (msg.players) {
-            useGameStore.getState().syncAllPlayerState(msg.players);
-          }
-
           // roundEnd triggers exit animations immediately — never deferred
           if (newPhase === 'roundEnd') {
+            // Apply snapshot immediately for roundEnd
+            if (msg.players) {
+              useGameStore.getState().syncAllPlayerState(msg.players);
+            }
             console.log("[useOnlineGame] phase_change roundEnd — triggering exit animations");
             state.setPoolExiting(true);
             state.setGoalTransition('exiting');
@@ -119,12 +118,16 @@ export function useOnlineGame(): UseOnlineGameReturn {
             break;
           }
 
-          // Defer phase transition if animations are still playing
+          // Defer phase transition AND snapshot if animations are still playing
+          // (applying snapshot mid-animation causes poolSize to change, spawning extra dice)
           const hasAnimations =
             state.roundState.aiUnlockAnimations.length > 0 ||
             state.roundState.aiLockAnimations.length > 0 ||
             state.roundState.lockAnimations.length > 0 ||
             state.roundState.unlockAnimations.length > 0;
+
+          // Capture snapshot for deferred application
+          const snapshotPlayers = msg.players;
 
           if (hasAnimations) {
             console.log(
@@ -152,6 +155,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
                 deferredPhaseInterval = null;
                 if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
                 console.log("[useOnlineGame] deferred phase_change applied:", s.phase, "->", newPhase);
+                // Apply deferred snapshot now that animations are done
+                if (snapshotPlayers) {
+                  useGameStore.getState().syncAllPlayerState(snapshotPlayers);
+                }
                 if (newPhase === 'idle') {
                   s.setLocalPlayerLocked(false);
                   s.setHasSubmittedUnlock(false);
@@ -172,6 +179,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
                 s.clearAILockAnimations();
                 s.clearUnlockAnimations();
                 s.clearAIUnlockAnimations();
+                // Apply deferred snapshot
+                if (snapshotPlayers) {
+                  useGameStore.getState().syncAllPlayerState(snapshotPlayers);
+                }
                 if (newPhase === 'idle') {
                   s.setLocalPlayerLocked(false);
                   s.setHasSubmittedUnlock(false);
@@ -181,6 +192,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
             }, 5000);
           } else {
             console.log("[useOnlineGame] phase_change:", state.phase, "->", newPhase);
+            // Apply snapshot immediately (no animations blocking)
+            if (snapshotPlayers) {
+              useGameStore.getState().syncAllPlayerState(snapshotPlayers);
+            }
             // Reset buffering flags when cycling back to idle (new roll cycle within same round)
             if (newPhase === 'idle') {
               state.setLocalPlayerLocked(false);
