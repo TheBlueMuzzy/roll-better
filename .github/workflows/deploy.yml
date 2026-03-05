@@ -39,6 +39,7 @@ jobs:
         run: npx vite build
         env:
           NODE_ENV: production
+          VITE_PARTY_HOST: roll-better.thebluemuzzy.partykit.dev
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
