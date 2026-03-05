@@ -1,22 +1,29 @@
 # Project State
 
 ## Current Status
-Phase 19 (Connection Resilience) complete. All 3 plans done. Ready for Phase 20 (GitHub Pages + PWA).
+Phase 20 (GitHub Pages + PWA) complete. PWA installable, auto-updates on deploy. Ready for Phase 21.
 
 ## Version
 0.2.0.7
 
 ## Current Position
 
-Phase: 19 of 21 (Connection Resilience)
-Plan: 3 of 3 complete
+Phase: 20 of 21 (GitHub Pages + PWA)
+Plan: 1 of 1 complete
 Status: Phase complete
-Last activity: 2026-03-05 - Completed 19-03-PLAN.md (connection status UI)
+Last activity: 2026-03-05 - Completed 20-01-PLAN.md (PWA setup)
 
-Progress: ██████████████████████████████████████████████░░░░░░░░░░░░░░░░░░░ 76%
+Progress: █████████████████████████████████████████████████░░░░░░░░░░░░░░░ 81%
 
 ## Resume Command
-Plan and execute Phase 20 (GitHub Pages + PWA)
+Plan and execute Phase 21 (Compliance + Integration Testing)
+
+## What Was Built (20-01)
+- **vite-plugin-pwa**: registerType autoUpdate, workbox precaching, PartyKit NetworkOnly exclusion
+- **Manifest**: standalone display, portrait orientation, dark theme (#1a1a2e)
+- **Icons**: favicon.svg (dice face showing 5), pwa-192x192.png, pwa-512x512.png (placeholders)
+- **index.html**: theme-color, apple-touch-icon, description meta tags
+- **Deviation**: Added maximumFileSizeToCacheInBytes 5MB (Three.js bundle ~3.5MB exceeds default 2MB)
 
 ## What Was Built (19-03)
 - **isOnlineDisconnected**: Zustand state tracks game-active disconnect, wired from useRoom onclose/onopen/rejoin_state
@@ -56,10 +63,11 @@ Plan and execute Phase 20 (GitHub Pages + PWA)
 
 ## Session Continuity
 Last session: 2026-03-05
-Stopped at: Completed 19-03-PLAN.md (Phase 19 complete)
+Stopped at: Completed 20-01-PLAN.md (Phase 20 complete)
 Resume file: None
 
 ## Previous Sessions
+- 2026-03-05: Phase 20-01 (PWA setup — manifest, service worker, icons)
 - 2026-03-05: Phase 19-03 (connection status UI)
 - 2026-03-05: Phase 19-01/19-02 (stable client ID, reconnection handling)
 - 2026-03-05: Phase 18 playtest hotfixes (deferred snapshot, unlock guards, AFK auto-unlock)
