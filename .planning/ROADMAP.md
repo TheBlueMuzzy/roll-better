@@ -33,7 +33,7 @@ None (no expertise skill files available)
 - [x] **Phase 16: State Sync Protocol** *(Complete — 2026-03-03)* — Game state → Partykit room → all clients
 - [x] **Phase 17: Dice Sync + Simultaneous Play** *(Complete — 2026-03-04)* — Roll results, auto-lock, visual sync across clients
 - [x] **Phase 18: Unlock + Scoring Sync** *(Complete — 2026-03-04)* — Unlock decisions, scoring, round transitions + turn timers
-- [ ] **Phase 19: Connection Resilience** *(In progress — 1/3 plans done)* — Disconnect/reconnect, AI drop-in/drop-out replacement
+- [x] **Phase 19: Connection Resilience** *(Complete — 2026-03-05)* — Disconnect/reconnect, connection status UI
 - [ ] **Phase 20: GitHub Pages + PWA** — Deploy to public URL, installable, auto-updates
 - [ ] **Phase 21: Compliance + Integration Testing** — Privacy policy, IARC, multi-device edge cases
 
@@ -265,8 +265,8 @@ Plans:
 
 Plans:
 - [x] 19-01: Stable client ID + server rejoin protocol (stable sessionStorage ID, server auto-rejoin in onConnect, room keepalive grace period)
-- [ ] 19-02: Client reconnection flow (useRoom preserves game state on disconnect, useOnlineGame handles rejoin_state sync)
-- [ ] 19-03: Connection status UI (ConnectionBanner "Reconnecting...", disconnect/reconnect toast notifications)
+- [x] 19-02: Client reconnection flow (useRoom preserves game state on disconnect, useOnlineGame handles rejoin_state sync)
+- [x] 19-03: Connection status UI (reconnecting overlay with spinner, reconnect toast notifications)
 
 #### Phase 20: GitHub Pages + PWA
 **Goal**: Deploy to GitHub Pages with public URL. PWA setup for "install to home screen". Auto-updates on push.
@@ -312,6 +312,6 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 4/4 | Complete | 2026-03-04 |
 | 18. Unlock + Scoring Sync | v1.1 | 3/3 | Complete | 2026-03-04 |
-| 19. Connection Resilience | v1.1 | 1/3 | In progress | - |
+| 19. Connection Resilience | v1.1 | 3/3 | Complete | 2026-03-05 |
 | 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |
 | 21. Compliance + Integration Testing | v1.1 | 0/? | Not started | - |

@@ -1,22 +1,28 @@
 # Project State
 
 ## Current Status
-Phase 19 (Connection Resilience) in progress. Plans 19-01 and 19-02 complete. Ready for 19-03 (UI feedback — reconnecting overlay, toast notifications).
+Phase 19 (Connection Resilience) complete. All 3 plans done. Ready for Phase 20 (GitHub Pages + PWA).
 
 ## Version
-0.2.0.6
+0.2.0.7
 
 ## Current Position
 
 Phase: 19 of 21 (Connection Resilience)
-Plan: 2 of 3 complete. Ready for 19-03.
-Status: In progress
-Last activity: 2026-03-05 - Completed 19-02-PLAN.md (client-side reconnection handling)
+Plan: 3 of 3 complete
+Status: Phase complete
+Last activity: 2026-03-05 - Completed 19-03-PLAN.md (connection status UI)
 
-Progress: ████████████████████████████████████████░░░░░░░░░░░░░░░░░░░░░ 66%
+Progress: ██████████████████████████████████████████████░░░░░░░░░░░░░░░░░░░ 76%
 
 ## Resume Command
-Plan and execute 19-03 (UI feedback for reconnection)
+Plan and execute Phase 20 (GitHub Pages + PWA)
+
+## What Was Built (19-03)
+- **isOnlineDisconnected**: Zustand state tracks game-active disconnect, wired from useRoom onclose/onopen/rejoin_state
+- **Reconnecting overlay**: Fixed overlay with spinner shown when isOnlineDisconnected is true
+- **Reconnect toast**: CustomEvent from useOnlineGame dispatches player name, App.tsx shows green toast for 3s
+- **clearOnlineMode**: Resets isOnlineDisconnected on leaving game
 
 ## What Was Built (19-02)
 - **useRoom gameActiveRef**: Tracks active game state; onclose during game preserves state (no reset), onopen restores isConnected
@@ -24,18 +30,12 @@ Plan and execute 19-03 (UI feedback for reconnection)
 - **gameStore setCurrentRound**: Syncs round number from server on rejoin
 - **player_reconnected**: Logged in useOnlineGame (toast UI in 19-03)
 
-## What Was Built (19-01)
-- **Stable client ID**: sessionStorage-based ID passed to PartySocket constructor via `getStableClientId()`
-- **Protocol types**: RejoinStateMessage (full game snapshot) and PlayerReconnectedMessage
-- **Intentional leave**: handleMenu sends "leave" before socket.close(); server tracks intentionalLeave flag
-- **Server rejoin**: onConnect detects returning players (same conn.id, offline, not intentionalLeave), restores slot, sends rejoin_state
-- **Keepalive**: Empty room stays alive 60s during active game for reconnection
-
 ## Decisions Made
 - **sessionStorage for client ID**: Each tab gets unique ID (PartyKit requirement: unique per connection, not per user)
 - **intentionalLeave flag**: Only explicit exits prevent rejoin; network drops allow reconnection
 - **60s keepalive**: Balances reconnection window vs resource cleanup
-- **Server-internal status**: "waiting_for_rejoin" not exposed in protocol RoomStatus type
+- **Zustand for disconnect state**: useRoom needs getState() outside React render
+- **CustomEvent for toast**: Decouples useOnlineGame from App.tsx
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -43,7 +43,7 @@ Plan and execute 19-03 (UI feedback for reconnection)
 
 ## Key Architecture
 - **Snapshot + Delta hybrid**: Every phase_change carries full PlayerSyncState[]
-- **Stable client ID**: sessionStorage → PartySocket `id` option → same conn.id on reconnect
+- **Stable client ID**: sessionStorage -> PartySocket `id` option -> same conn.id on reconnect
 - **Rejoin protocol**: Server detects offline player with matching conn.id, sends rejoin_state with full game snapshot
 - **Keepalive**: Empty room during active game survives 60s for reconnection
 - **AFK timers**: 20s for both rolling and unlocking. Client-driven countdown, server-enforced timeout.
@@ -56,10 +56,11 @@ Plan and execute 19-03 (UI feedback for reconnection)
 
 ## Session Continuity
 Last session: 2026-03-05
-Stopped at: Completed 19-01-PLAN.md
+Stopped at: Completed 19-03-PLAN.md (Phase 19 complete)
 Resume file: None
 
 ## Previous Sessions
-- 2026-03-05: Phase 19-01 (stable client ID, server rejoin, keepalive)
+- 2026-03-05: Phase 19-03 (connection status UI)
+- 2026-03-05: Phase 19-01/19-02 (stable client ID, reconnection handling)
 - 2026-03-05: Phase 18 playtest hotfixes (deferred snapshot, unlock guards, AFK auto-unlock)
 - 2026-03-04: Phases 17-18 (online multiplayer buildout)
