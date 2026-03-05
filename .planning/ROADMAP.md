@@ -32,8 +32,8 @@ None (no expertise skill files available)
 - [x] **Phase 15: Lobby UI + Room Codes** *(Complete — 2026-03-03)* — Jackbox-style 4-letter codes, player list, ready-up, AI fill
 - [x] **Phase 16: State Sync Protocol** *(Complete — 2026-03-03)* — Game state → Partykit room → all clients
 - [x] **Phase 17: Dice Sync + Simultaneous Play** *(Complete — 2026-03-04)* — Roll results, auto-lock, visual sync across clients
-- [ ] **Phase 18: Unlock + Scoring Sync** *(In progress — 2/3 plans done, v0.2.0 released)* — Unlock decisions, scoring, round transitions + turn timers
-- [ ] **Phase 19: Connection Resilience** — Disconnect/reconnect, AI drop-in/drop-out replacement
+- [x] **Phase 18: Unlock + Scoring Sync** *(Complete — 2026-03-04)* — Unlock decisions, scoring, round transitions + turn timers
+- [ ] **Phase 19: Connection Resilience** *(In progress — 1/3 plans done)* — Disconnect/reconnect, AI drop-in/drop-out replacement
 - [ ] **Phase 20: GitHub Pages + PWA** — Deploy to public URL, installable, auto-updates
 - [ ] **Phase 21: Compliance + Integration Testing** — Privacy policy, IARC, multi-device edge cases
 
@@ -254,7 +254,7 @@ Plans:
 Plans:
 - [x] 18-01: Scoring + session end sync (applyOnlineScoring, applyOnlineSessionEnd)
 - [x] 18-02: Round transitions (exit/enter animations, new round data, 3 bugfixes)
-- [ ] 18-03: Rolling AFK timer + disconnect-safe rolling phase
+- [x] 18-03: Rolling AFK timer + disconnect-safe rolling phase
 
 #### Phase 19: Connection Resilience
 **Goal**: Disconnect/reconnect handling. AI seamlessly takes over for disconnected players. Player takes back control on reconnect.
@@ -264,7 +264,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 19-01: Stable client ID + server rejoin protocol (stable sessionStorage ID, server auto-rejoin in onConnect, room keepalive grace period)
+- [x] 19-01: Stable client ID + server rejoin protocol (stable sessionStorage ID, server auto-rejoin in onConnect, room keepalive grace period)
 - [ ] 19-02: Client reconnection flow (useRoom preserves game state on disconnect, useOnlineGame handles rejoin_state sync)
 - [ ] 19-03: Connection status UI (ConnectionBanner "Reconnecting...", disconnect/reconnect toast notifications)
 
@@ -311,7 +311,7 @@ Phases execute in numeric order: 1 → 2 → ... → 13 → 14 → ... → 21
 | 15. Lobby UI + Room Codes | v1.1 | 4/4 | Complete | 2026-03-03 |
 | 16. State Sync Protocol | v1.1 | 2/2 | Complete | 2026-03-03 |
 | 17. Dice Sync + Simultaneous Play | v1.1 | 4/4 | Complete | 2026-03-04 |
-| 18. Unlock + Scoring Sync | v1.1 | 2/3 | In progress (v0.2.0 released) | 2026-03-04 |
-| 19. Connection Resilience | v1.1 | 0/? | Not started | - |
+| 18. Unlock + Scoring Sync | v1.1 | 3/3 | Complete | 2026-03-04 |
+| 19. Connection Resilience | v1.1 | 1/3 | In progress | - |
 | 20. GitHub Pages + PWA | v1.1 | 0/? | Not started | - |
 | 21. Compliance + Integration Testing | v1.1 | 0/? | Not started | - |
