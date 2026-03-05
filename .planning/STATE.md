@@ -1,22 +1,27 @@
 # Project State
 
 ## Current Status
-Phase 20 (GitHub Pages + PWA) complete. PWA installable, auto-updates on deploy. Ready for Phase 21.
+Phase 21 (Compliance + Integration Testing) complete. Privacy policy page, Settings link, IARC assessment all done. All 21 phases complete.
 
 ## Version
 0.2.0.7
 
 ## Current Position
 
-Phase: 20 of 21 (GitHub Pages + PWA)
+Phase: 21 of 21 (Compliance + Integration Testing)
 Plan: 1 of 1 complete
 Status: Phase complete
-Last activity: 2026-03-05 - Completed 20-01-PLAN.md (PWA setup)
+Last activity: 2026-03-05 - Completed 21-01-PLAN.md (Privacy & Compliance)
 
-Progress: █████████████████████████████████████████████████░░░░░░░░░░░░░░░ 81%
+Progress: ██████████████████████████████████████████████████████████████████ 100%
 
 ## Resume Command
-Plan and execute Phase 21 (Compliance + Integration Testing)
+All phases complete. Run `/gsd:complete-milestone` to archive v1.1.
+
+## What Was Built (21-01)
+- **public/privacy.html**: Standalone dark-themed privacy policy page — zero data collection statement
+- **Settings privacy link**: "Privacy Policy" link at bottom of Settings panel, opens in new tab
+- **IARC-ASSESSMENT.md**: All content categories evaluated, recommended rating 3+ (ESRB Everyone, PEGI 3)
 
 ## What Was Built (20-01)
 - **vite-plugin-pwa**: registerType autoUpdate, workbox precaching, PartyKit NetworkOnly exclusion
@@ -25,24 +30,14 @@ Plan and execute Phase 21 (Compliance + Integration Testing)
 - **index.html**: theme-color, apple-touch-icon, description meta tags
 - **Deviation**: Added maximumFileSizeToCacheInBytes 5MB (Three.js bundle ~3.5MB exceeds default 2MB)
 
-## What Was Built (19-03)
-- **isOnlineDisconnected**: Zustand state tracks game-active disconnect, wired from useRoom onclose/onopen/rejoin_state
-- **Reconnecting overlay**: Fixed overlay with spinner shown when isOnlineDisconnected is true
-- **Reconnect toast**: CustomEvent from useOnlineGame dispatches player name, App.tsx shows green toast for 3s
-- **clearOnlineMode**: Resets isOnlineDisconnected on leaving game
-
-## What Was Built (19-02)
-- **useRoom gameActiveRef**: Tracks active game state; onclose during game preserves state (no reset), onopen restores isConnected
-- **useOnlineGame rejoin_state**: Full state restoration — goals, players, phase, round, animations cleared, watchdog reset
-- **gameStore setCurrentRound**: Syncs round number from server on rejoin
-- **player_reconnected**: Logged in useOnlineGame (toast UI in 19-03)
-
 ## Decisions Made
 - **sessionStorage for client ID**: Each tab gets unique ID (PartyKit requirement: unique per connection, not per user)
 - **intentionalLeave flag**: Only explicit exits prevent rejoin; network drops allow reconnection
 - **60s keepalive**: Balances reconnection window vs resource cleanup
 - **Zustand for disconnect state**: useRoom needs getState() outside React render
 - **CustomEvent for toast**: Decouples useOnlineGame from App.tsx
+- **Static HTML for privacy**: Crawlable, no JS required — better for compliance
+- **IARC 3+**: Content warrants lower than initially conservative 13+
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -63,10 +58,11 @@ Plan and execute Phase 21 (Compliance + Integration Testing)
 
 ## Session Continuity
 Last session: 2026-03-05
-Stopped at: Completed 20-01-PLAN.md (Phase 20 complete)
+Stopped at: Completed 21-01-PLAN.md (Phase 21 complete — all phases done)
 Resume file: None
 
 ## Previous Sessions
+- 2026-03-05: Phase 21-01 (privacy policy, IARC assessment)
 - 2026-03-05: Phase 20-01 (PWA setup — manifest, service worker, icons)
 - 2026-03-05: Phase 19-03 (connection status UI)
 - 2026-03-05: Phase 19-01/19-02 (stable client ID, reconnection handling)
