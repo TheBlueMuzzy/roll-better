@@ -751,6 +751,44 @@ body {
   color: rgba(255, 255, 255, 0.3);
 }
 
+.menu-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-xs);
+  margin-top: var(--sp-lg);
+}
+
+.menu-link-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--fs-sm);
+  font-family: inherit;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.menu-link-btn:active {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.menu-upgrades-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.menu-coming-soon-label {
+  display: block;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .menu-settings-link {
   background: none;
   border: none;
@@ -758,7 +796,6 @@ body {
   font-size: var(--fs-sm);
   font-family: inherit;
   cursor: pointer;
-  margin-top: var(--sp-lg);
   padding: var(--sp-xs) var(--sp-md);
   letter-spacing: 0.05em;
   transition: color 0.15s;
