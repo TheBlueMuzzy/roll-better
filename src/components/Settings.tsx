@@ -63,6 +63,7 @@ export function Settings({ open, onClose }: SettingsProps) {
               step={1}
               value={audioVolume}
               onChange={(e) => setAudioVolume(Number(e.target.value))}
+              style={{ background: `linear-gradient(to right, rgba(255,255,255,0.7) ${audioVolume}%, rgba(255,255,255,0.2) ${audioVolume}%)` }}
             />
           </div>
 
