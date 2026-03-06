@@ -1,26 +1,26 @@
 # Project State
 
 ## Current Status
-Phase 25 complete. LobbyScreen merged into MainMenu with inline Create/Join flows.
+Phase 26 complete. How to Play slides reviewed — all 6 accurate for v1.2, no changes needed. v1.2 milestone complete.
 
 ## Version
-0.2.0.16
+0.2.0.17
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** v1.2 Polish — UI/UX cleanup, menu simplification, multiplayer screen rework.
+**Current focus:** v1.2 Polish — complete. All UI/UX cleanup, menu simplification, multiplayer screen rework done.
 
 ## Current Position
 
-Phase: 25 of 26 (Multiplayer Screen Rework)
+Phase: 26 of 26 (How to Play Content Refresh)
 Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-06 — Completed 25-01-PLAN.md
+Status: Phase complete — v1.2 milestone complete
+Last activity: 2026-03-06 — Completed 26-01-PLAN.md
 
-Progress: █████████░ 80%
+Progress: ██████████ 100%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -53,13 +53,15 @@ Progress: █████████░ 80%
 - Slider fill: CSS --fill variable on track pseudo-elements for proper thumb centering (Phase 23-02).
 - randomDifficulty() duplicated in server.ts (PartyKit bundles separately from src/) (Phase 24-01).
 - Multiplayer screen: 4-state machine (idle/creating/joining/joined) for inline online flow (Phase 25-01).
-- How to Play: ? icon button bottom-left (mirrors gear pattern) (Phase 25-01).
+- How to Play: ? icon bottom-left (mirrors gear pattern) (Phase 25-01).
+- HTP content: No multiplayer slide needed — HTP teaches core mechanics, not mode options (Phase 26-01).
 
 ### Roadmap Evolution
 - Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
+- Milestone v1.2 complete: All 5 phases shipped (2026-03-06)
 
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 25-01-PLAN.md, Phase 25 complete
+Stopped at: Completed 26-01-PLAN.md, Phase 26 complete, v1.2 milestone complete
 Resume file: None

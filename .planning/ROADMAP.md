@@ -8,7 +8,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 - ✅ [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
-- 🚧 **v1.2 Polish** — Phases 22-26 (in progress)
+- ✅ **v1.2 Polish** — Phases 22-26 — SHIPPED 2026-03-06
 
 ## Phases
 
@@ -45,7 +45,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
-### v1.2 Polish (In Progress)
+### v1.2 Polish (Complete)
 
 **Milestone Goal:** Clean up UI/UX rough edges — simplify menus, fix control issues, rework multiplayer screen flow.
 
@@ -98,7 +98,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 26-01: TBD
+- [x] 26-01: Review HTP slides for v1.2 accuracy (no changes needed)
 
 ## Progress
 
@@ -131,4 +131,4 @@ Plans:
 | 23. Settings & Controls Cleanup | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
-| 26. How to Play Content Refresh | v1.2 | 0/? | Not started | - |
+| 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
