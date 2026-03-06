@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { MainMenu } from './components/MainMenu';
-import { LobbyScreen } from './components/LobbyScreen';
 import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { Settings } from './components/Settings';
@@ -146,14 +145,10 @@ function App() {
     }
     useGameStore.getState().clearOnlineMode();
     setGameSocket(null);
-    setPhase('lobby');
+    setPhase('idle');
     setScreen('menu');
   }, [setPhase, setScreen]);
 
-  // Play Online handler — navigate to lobby screen
-  const handlePlayOnline = useCallback(() => {
-    setScreen('lobby');
-  }, [setScreen]);
 
   // Online game start handler — called from LobbyScreen when game_starting fires
   const handleOnlineGameStart = useCallback((players: RoomPlayer[], targetPlayers: number, goalValues: number[], localPlayerId: string) => {
@@ -525,12 +520,7 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
-      <LobbyScreen
-        visible={screen === 'lobby'}
-        onGameStart={handleOnlineGameStart}
-        onBack={() => setScreen('menu')}
-      />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas

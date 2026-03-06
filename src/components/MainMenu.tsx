@@ -200,7 +200,6 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
 
       {/* Play Local button */}
       <button className="menu-play" onClick={() => {
-        const gamePrefs = useGameStore.getState().gamePrefs;
         useGameStore.getState().setGamePrefs({ playerCount: 4 });
         onPlay(4);
       }}>
