@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getAIUnlockDecision } from './aiDecision';
+import { getAIUnlockDecision, randomDifficulty } from './aiDecision';
 import type { AIDecisionInput } from './aiDecision';
 import type { LockedDie } from '../types/game';
 
@@ -131,6 +131,20 @@ describe('getAIUnlockDecision — universal constraints', () => {
     const result = getAIUnlockDecision(input);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(input.poolSize + result.length * 2).toBeLessThanOrEqual(12);
+  });
+});
+
+// ─── RANDOM DIFFICULTY ────────────────────────────────────────
+
+describe('randomDifficulty', () => {
+  it('returns only valid difficulty values and covers at least 2 of 3', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      const d = randomDifficulty();
+      expect(['easy', 'medium', 'hard']).toContain(d);
+      seen.add(d);
+    }
+    expect(seen.size).toBeGreaterThanOrEqual(2);
   });
 });
 
