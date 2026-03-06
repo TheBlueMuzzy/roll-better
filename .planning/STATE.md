@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 23 Plan 02 in progress (checkpoint). Gear icon on main menu, audio slider filled track. Fixed gear position (menu-backdrop fixed→absolute) and slider thumb alignment (CSS variable on track pseudo-elements).
+Phase 23 complete. Settings & Controls Cleanup done — shake-to-roll removed, Settings panel cleaned, gear icon on menu, audio slider fixed.
 
 ## Version
 0.2.0.15
@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 Phase: 23 of 26 (Settings & Controls Cleanup)
-Plan: 2 of 2 in current phase (checkpoint)
-Status: In progress
-Last activity: 2026-03-06 — Executing 23-02-PLAN.md (awaiting verification)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-06 — Completed 23-02-PLAN.md
 
-Progress: ██░░░░░░░░ 25%
+Progress: ██████░░░░ 40%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -49,6 +49,8 @@ Progress: ██░░░░░░░░ 25%
 - Shake-to-roll: removed entirely (Phase 23-01).
 - Confirmation toggle: wiring to actual behavior (may be structurally tied to drag — evaluate during Phase 23).
 - How to Play: removed from Settings panel, main menu is sole access point (Phase 23-01).
+- menu-backdrop: position:absolute (not fixed) to stay within #root 9:16 bounds (Phase 23-02).
+- Slider fill: CSS --fill variable on track pseudo-elements for proper thumb centering (Phase 23-02).
 
 ### Roadmap Evolution
 - Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
@@ -56,5 +58,5 @@ Progress: ██░░░░░░░░ 25%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: 23-02 checkpoint — awaiting human-verify after fixing gear position + slider thumb
+Stopped at: Completed 23-02-PLAN.md (Phase 23 complete)
 Resume file: None
