@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 13,
+  "build": 14,
   "history": [
     {
       "version": "0.1.0",
@@ -287,6 +287,11 @@
       "version": "0.2.0.11",
       "date": "2026-03-05",
       "summary": "Privacy policy page, Settings link, IARC self-assessment documentation"
+    },
+    {
+      "version": "0.2.0.14",
+      "date": "2026-03-06",
+      "summary": "Settings gear icon on main menu, audio slider filled track"
     }
   ]
 }
