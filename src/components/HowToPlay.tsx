@@ -35,11 +35,6 @@ const SLIDES: Slide[] = [
     text: 'After each round, winners start with fewer dice and losers get more. Every round is anyone\u2019s game!',
   },
   {
-    title: 'Play Online',
-    icon: '\uD83C\uDF10',
-    text: 'Create a game and share the 4-letter room code, or join a friend\u2019s. Everyone rolls at the same time \u2014 race each other in real time!',
-  },
-  {
     title: 'Race to 20',
     icon: '\u{1F3C6}',
     text: 'First player to reach 20 points wins the session. Play smart \u2014 speed vs. efficiency is the core tension.',
