@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-Phase 25 planning complete. Multiplayer Screen Rework plan created — merge LobbyScreen into MainMenu with inline Create/Join flows.
+Phase 25 complete. LobbyScreen merged into MainMenu with inline Create/Join flows.
 
 ## Version
-0.2.0.15
+0.2.0.16
 
 ## Project Reference
 
@@ -17,10 +17,10 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 Phase: 25 of 26 (Multiplayer Screen Rework)
 Plan: 1 of 1 in current phase
-Status: Plan created, ready for execution
-Last activity: 2026-03-06 — Created 25-01-PLAN.md
+Status: Phase complete
+Last activity: 2026-03-06 — Completed 25-01-PLAN.md
 
-Progress: ████████░░ 60%
+Progress: █████████░ 80%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -52,6 +52,8 @@ Progress: ████████░░ 60%
 - menu-backdrop: position:absolute (not fixed) to stay within #root 9:16 bounds (Phase 23-02).
 - Slider fill: CSS --fill variable on track pseudo-elements for proper thumb centering (Phase 23-02).
 - randomDifficulty() duplicated in server.ts (PartyKit bundles separately from src/) (Phase 24-01).
+- Multiplayer screen: 4-state machine (idle/creating/joining/joined) for inline online flow (Phase 25-01).
+- How to Play: ? icon button bottom-left (mirrors gear pattern) (Phase 25-01).
 
 ### Roadmap Evolution
 - Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
@@ -59,5 +61,5 @@ Progress: ████████░░ 60%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Phase 25 plan created, awaiting execution
-Resume file: .planning/phases/25-multiplayer-screen-rework/25-01-PLAN.md
+Stopped at: Completed 25-01-PLAN.md, Phase 25 complete
+Resume file: None

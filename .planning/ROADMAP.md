@@ -88,7 +88,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 25-01: TBD
+- [x] 25-01: Merge LobbyScreen into MainMenu with inline Create/Join flows
 
 #### Phase 26: How to Play Content Refresh
 
@@ -130,5 +130,5 @@ Plans:
 | 22. Main Menu Restructure | v1.2 | 1/1 | Complete | 2026-03-05 |
 | 23. Settings & Controls Cleanup | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
-| 25. Multiplayer Screen Rework | v1.2 | 0/? | Not started | - |
+| 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 26. How to Play Content Refresh | v1.2 | 0/? | Not started | - |
