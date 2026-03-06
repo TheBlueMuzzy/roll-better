@@ -95,7 +95,7 @@ export interface GamePrefs {
 }
 
 export interface GameState {
-  screen: 'menu' | 'lobby' | 'game' | 'winners';
+  screen: 'menu' | 'game' | 'winners';
   phase: GamePhase;
   players: Player[];
   currentRound: number;
