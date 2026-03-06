@@ -295,11 +295,22 @@ body {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: clamp(4px, 0.5vw, 6px);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  height: calc(var(--touch-target) * 0.45);
+  background: transparent;
   outline: none;
   margin-top: 10px;
+}
+
+.settings-slider::-webkit-slider-runnable-track {
+  height: clamp(4px, 0.5vw, 6px);
+  border-radius: 3px;
+  background: linear-gradient(to right, rgba(255,255,255,0.7) var(--fill), rgba(255,255,255,0.2) var(--fill));
+}
+
+.settings-slider::-moz-range-track {
+  height: clamp(4px, 0.5vw, 6px);
+  border-radius: 3px;
+  background: linear-gradient(to right, rgba(255,255,255,0.7) var(--fill), rgba(255,255,255,0.2) var(--fill));
 }
 
 .settings-slider::-webkit-slider-thumb {
@@ -310,6 +321,7 @@ body {
   border-radius: 50%;
   background: #ffffff;
   cursor: pointer;
+  margin-top: calc((clamp(4px, 0.5vw, 6px) - var(--touch-target) * 0.45) / 2);
 }
 
 .settings-slider::-moz-range-thumb {
@@ -319,11 +331,6 @@ body {
   background: #ffffff;
   border: none;
   cursor: pointer;
-}
-
-.settings-slider::-webkit-slider-runnable-track {
-  height: clamp(4px, 0.5vw, 6px);
-  border-radius: 2px;
 }
 
 /* Segmented control (performance) */
@@ -632,7 +639,7 @@ body {
 /* --- Main Menu overlay --- */
 
 .menu-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: #1a1a1a;
   z-index: 70;
