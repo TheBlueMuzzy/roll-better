@@ -18,7 +18,7 @@ import { DIE_SIZE } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
-import type { UnlockAnimation, AIUnlockAnimation, AIDifficulty } from './types/game';
+import type { UnlockAnimation, AIUnlockAnimation } from './types/game';
 import type { RoomPlayer } from './types/protocol';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
@@ -95,7 +95,7 @@ function App() {
 
   // Play button handler — called from MainMenu
   const handlePlay = useCallback((playerCount: number) => {
-    initGame(playerCount, 'medium');
+    initGame(playerCount);
     initRound();
     setScreen('game');
     // Start pool spawn animation
@@ -122,7 +122,7 @@ function App() {
 
     // Offline: initialize locally
     const { gamePrefs } = useGameStore.getState();
-    initGame(gamePrefs.playerCount, gamePrefs.aiDifficulty);
+    initGame(gamePrefs.playerCount);
     initRound();
     setScreen('game');
     // Start pool spawn animation (same as handlePlay)
@@ -156,7 +156,7 @@ function App() {
   }, [setScreen]);
 
   // Online game start handler — called from LobbyScreen when game_starting fires
-  const handleOnlineGameStart = useCallback((players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayerId: string) => {
+  const handleOnlineGameStart = useCallback((players: RoomPlayer[], targetPlayers: number, goalValues: number[], localPlayerId: string) => {
     // Reorder: local player first, then others (preserving join order)
     const localPlayer = players.find(p => p.id === localPlayerId);
     const otherPlayers = players.filter(p => p.id !== localPlayerId);
@@ -165,8 +165,7 @@ function App() {
       ...otherPlayers.map(p => ({ name: p.name, color: p.color })),
     ];
 
-    const difficulty = aiDifficulty as AIDifficulty;
-    initGame(targetPlayers, difficulty, orderedPlayers);
+    initGame(targetPlayers, orderedPlayers);
     initRound({ goalValues }); // Use server-provided goals so all clients match
     useGameStore.getState().setOnlineMode(localPlayerId, localPlayer?.isHost ?? false);
 

@@ -36,7 +36,6 @@ export interface ReadyMessage {
 export interface StartGameMessage {
   type: "start_game";
   targetPlayers: number;
-  aiDifficulty: string;
 }
 
 // ─── Game Action Messages (Client → Server) ─────────────────────────
@@ -114,7 +113,6 @@ export interface GameStartingMessage {
   type: "game_starting";
   players: RoomPlayer[];
   targetPlayers: number;
-  aiDifficulty: string;
   goalValues: number[];
 }
 

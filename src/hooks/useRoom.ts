@@ -21,7 +21,6 @@ function generateRoomCode(): string {
 interface GameStartData {
   players: RoomPlayer[];
   targetPlayers: number;
-  aiDifficulty: string;
   goalValues: number[];
 }
 
@@ -39,7 +38,7 @@ interface UseRoomReturn {
   joinRoom: (code: string, playerName: string, color: string) => void;
   leave: () => void;
   toggleReady: () => void;
-  startGame: (targetPlayers: number, aiDifficulty: string) => void;
+  startGame: (targetPlayers: number) => void;
 }
 
 // ─── Hook ──────────────────────────────────────────────────────────────
@@ -151,7 +150,6 @@ export function useRoom(): UseRoomReturn {
           setGameStartData({
             players: msg.players,
             targetPlayers: msg.targetPlayers,
-            aiDifficulty: msg.aiDifficulty,
             goalValues: msg.goalValues,
           });
           // Store socket for game-phase access (useOnlineGame reads it)
@@ -264,12 +262,11 @@ export function useRoom(): UseRoomReturn {
     }
   }, [isConnected]);
 
-  const startGame = useCallback((targetPlayers: number, aiDifficulty: string) => {
+  const startGame = useCallback((targetPlayers: number) => {
     if (socketRef.current && isConnected) {
       sendMessage(socketRef.current, {
         type: "start_game",
         targetPlayers,
-        aiDifficulty,
       });
     }
   }, [isConnected]);

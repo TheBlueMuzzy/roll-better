@@ -13,6 +13,11 @@ import { getAIUnlockDecision } from "../src/utils/aiDecision";
 
 const MAX_PLAYERS = 8;
 
+const AI_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+function randomDifficulty(): string {
+  return AI_DIFFICULTIES[Math.floor(Math.random() * AI_DIFFICULTIES.length)];
+}
+
 // Player colors — assigned by join order (matches client PLAYER_COLORS)
 const PLAYER_COLORS = [
   '#e74c3c', '#3498db', '#2ecc71', '#f1c40f',
@@ -41,7 +46,6 @@ interface ServerGameState {
   players: ServerPlayerState[];
   rollRequestedBy: Set<string>;
   unlockResponses: Map<string, { type: "unlock" | "skip"; slotIndices?: number[] }>;
-  aiDifficulty: string;
 }
 
 export default class RollBetterServer implements Party.Server {
@@ -221,7 +225,7 @@ export default class RollBetterServer implements Party.Server {
         this.handleReady(sender);
         break;
       case "start_game":
-        this.handleStartGame(sender, parsed.targetPlayers, parsed.aiDifficulty);
+        this.handleStartGame(sender, parsed.targetPlayers);
         break;
       case "roll_result":
         this.handleRollResult(sender, parsed.values);
@@ -341,8 +345,7 @@ export default class RollBetterServer implements Party.Server {
 
   private handleStartGame(
     conn: Party.Connection,
-    targetPlayers: number,
-    aiDifficulty: string
+    targetPlayers: number
   ) {
     // Only the host can start the game
     if (conn.id !== this.hostId) {
@@ -384,12 +387,11 @@ export default class RollBetterServer implements Party.Server {
       type: "game_starting",
       players: Array.from(this.players.values()),
       targetPlayers,
-      aiDifficulty,
       goalValues,
     };
 
     this.room.broadcast(JSON.stringify(startMsg));
-    this.log(`Game starting — ${this.players.size} online players, ${targetPlayers} target, AI: ${aiDifficulty}`);
+    this.log(`Game starting — ${this.players.size} online players, ${targetPlayers} target`);
 
     // ─── Initialize server game state ────────────────────────────────
     const botCount = targetPlayers - this.players.size;
@@ -421,7 +423,7 @@ export default class RollBetterServer implements Party.Server {
         poolSize: 2,
         lockedDice: [],
         isOnline: false,
-        difficulty: aiDifficulty,
+        difficulty: randomDifficulty(),
       });
     }
 
@@ -432,7 +434,6 @@ export default class RollBetterServer implements Party.Server {
       players: gamePlayers,
       rollRequestedBy: new Set(),
       unlockResponses: new Map(),
-      aiDifficulty,
     };
 
     // Start round 1 — reuse the goalValues already generated above
@@ -465,7 +466,6 @@ export default class RollBetterServer implements Party.Server {
 
     // Reuse settings from previous game
     const targetPlayers = this.gameState.players.length; // same total player count
-    const aiDifficulty = this.gameState.aiDifficulty;
 
     // Generate new goals
     const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
@@ -475,12 +475,11 @@ export default class RollBetterServer implements Party.Server {
       type: "game_starting",
       players: Array.from(this.players.values()),
       targetPlayers,
-      aiDifficulty,
       goalValues,
     };
 
     this.room.broadcast(JSON.stringify(startMsg));
-    this.log(`Game restarting — ${this.players.size} online players, ${targetPlayers} target, AI: ${aiDifficulty}`);
+    this.log(`Game restarting — ${this.players.size} online players, ${targetPlayers} target`);
 
     // Build fresh game state
     const botCount = targetPlayers - this.players.size;
@@ -510,7 +509,7 @@ export default class RollBetterServer implements Party.Server {
         poolSize: 2,
         lockedDice: [],
         isOnline: false,
-        difficulty: aiDifficulty,
+        difficulty: randomDifficulty(),
       });
     }
 
@@ -521,7 +520,6 @@ export default class RollBetterServer implements Party.Server {
       players: gamePlayers,
       rollRequestedBy: new Set(),
       unlockResponses: new Map(),
-      aiDifficulty,
     };
 
     this.serverInitRound(true);
@@ -873,7 +871,7 @@ export default class RollBetterServer implements Party.Server {
       if (player.lockedDice.length === 0) continue;
       if (player.lockedDice.length >= 8) continue;
 
-      const difficulty = player.difficulty ?? this.gameState.aiDifficulty;
+      const difficulty = player.difficulty ?? 'medium';
       const slotsToUnlock = getAIUnlockDecision({
         goalValues: this.gameState.goalValues,
         lockedDice: player.lockedDice,

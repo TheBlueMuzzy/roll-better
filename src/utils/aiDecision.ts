@@ -2,6 +2,11 @@ import type { LockedDie, AIDifficulty } from '../types/game';
 
 export type { AIDifficulty };
 
+const DIFFICULTIES: AIDifficulty[] = ['easy', 'medium', 'hard'];
+export function randomDifficulty(): AIDifficulty {
+  return DIFFICULTIES[Math.floor(Math.random() * DIFFICULTIES.length)];
+}
+
 export interface AIDecisionInput {
   goalValues: number[];          // 8 sorted goal values
   lockedDice: LockedDie[];       // currently locked dice

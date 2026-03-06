@@ -5,7 +5,7 @@ import type { RoomPlayer } from '../types/protocol';
 
 interface LobbyScreenProps {
   visible: boolean;
-  onGameStart: (players: RoomPlayer[], targetPlayers: number, aiDifficulty: string, goalValues: number[], localPlayerId: string) => void;
+  onGameStart: (players: RoomPlayer[], targetPlayers: number, goalValues: number[], localPlayerId: string) => void;
   onBack: () => void;
 }
 
@@ -48,7 +48,6 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
       onGameStart(
         room.gameStartData.players,
         room.gameStartData.targetPlayers,
-        room.gameStartData.aiDifficulty,
         room.gameStartData.goalValues,
         room.playerId,
       );
@@ -151,7 +150,7 @@ export function LobbyScreen({ visible, onGameStart, onBack }: LobbyScreenProps) 
   const handleStart = () => {
     const online = room.players.length;
     const total = online < 4 ? 4 : online;
-    room.startGame(total, 'hard');
+    room.startGame(total);
   };
 
   // Determine which view to show

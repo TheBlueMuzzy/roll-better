@@ -92,7 +92,6 @@ export interface Settings {
 
 export interface GamePrefs {
   playerCount: number;       // last-used, default 3
-  aiDifficulty: AIDifficulty;  // last-used, default 'medium'
 }
 
 export interface GameState {

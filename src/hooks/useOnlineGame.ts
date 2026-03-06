@@ -4,7 +4,6 @@ import { getGameSocket, sendMessage, parseServerMessage } from "../utils/partyCl
 import { getSpawnPositions } from "../components/DicePool";
 import type { GamePhase } from "../types/game";
 import type { PlayerSyncState, RoomPlayer } from "../types/protocol";
-import type { AIDifficulty } from "../types/game";
 
 // ─── Return Type ─────────────────────────────────────────────────────
 
@@ -382,8 +381,7 @@ export function useOnlineGame(): UseOnlineGameReturn {
             ...otherPlayers.map((p: RoomPlayer) => ({ name: p.name, color: p.color })),
           ];
 
-          const difficulty = msg.aiDifficulty as AIDifficulty;
-          store.initGame(msg.targetPlayers, difficulty, orderedPlayers);
+          store.initGame(msg.targetPlayers, orderedPlayers);
           useGameStore.getState().initRound({ goalValues: msg.goalValues });
           useGameStore.getState().setOnlineMode(localId, localPlayer?.isHost ?? false);
 

@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, AIDifficulty } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
-import { getAIUnlockDecision } from '../utils/aiDecision';
+import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 export const PLAYER_COLORS = [
@@ -43,7 +43,7 @@ interface GameStore extends GameState {
   setPhase: (phase: GamePhase) => void;
 
   // Game setup
-  initGame: (playerCount: number, aiDifficulty?: AIDifficulty, onlinePlayers?: { name: string; color: string }[]) => void;
+  initGame: (playerCount: number, onlinePlayers?: { name: string; color: string }[]) => void;
   initRound: (options?: { skipPhase?: boolean; goalValues?: number[] }) => void;
 
   // Goal transition
@@ -160,7 +160,6 @@ const defaultSettings: Settings = {
 
 const defaultGamePrefs: GamePrefs = {
   playerCount: 3,
-  aiDifficulty: 'medium',
 };
 
 const initialState: GameState = {
@@ -334,7 +333,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => set({ phase }),
 
-  initGame: (playerCount: number, aiDifficulty: AIDifficulty = 'medium', onlinePlayers?: { name: string; color: string }[]) => {
+  initGame: (playerCount: number, onlinePlayers?: { name: string; color: string }[]) => {
     // onlinePlayers: ordered array from lobby (local player first, then others).
     // Indices 0..onlinePlayers.length-1 use lobby names/colors.
     // Remaining slots filled with AI bots using unused colors.
@@ -356,7 +355,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           lockedDice: [] as LockedDie[],
           selectedForUnlock: [] as number[],
           isAI: i !== 0,
-          difficulty: i !== 0 ? aiDifficulty : undefined,
+          difficulty: i !== 0 ? randomDifficulty() : undefined,
         };
       }
       // AI bot filling remaining slots
@@ -372,7 +371,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lockedDice: [] as LockedDie[],
         selectedForUnlock: [] as number[],
         isAI: true,
-        difficulty: aiDifficulty,
+        difficulty: randomDifficulty(),
       };
     });
 
