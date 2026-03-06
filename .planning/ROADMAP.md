@@ -78,7 +78,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 24-01: TBD
+- [x] 24-01: Randomize AI difficulty assignment per bot
 
 #### Phase 25: Multiplayer Screen Rework
 
@@ -129,6 +129,6 @@ Plans:
 | 21. Compliance + Integration Testing | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 22. Main Menu Restructure | v1.2 | 1/1 | Complete | 2026-03-05 |
 | 23. Settings & Controls Cleanup | v1.2 | 2/2 | Complete | 2026-03-06 |
-| 24. AI Difficulty Randomization | v1.2 | 0/? | Not started | - |
+| 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 25. Multiplayer Screen Rework | v1.2 | 0/? | Not started | - |
 | 26. How to Play Content Refresh | v1.2 | 0/? | Not started | - |

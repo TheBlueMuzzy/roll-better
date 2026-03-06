@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 23 complete. Settings & Controls Cleanup done — shake-to-roll removed, Settings panel cleaned, gear icon on menu, audio slider fixed.
+Phase 24 complete. AI difficulty randomization done — each bot gets random Easy/Medium/Hard at creation, aiDifficulty removed from protocol and prefs.
 
 ## Version
 0.2.0.15
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 ## Current Position
 
-Phase: 23 of 26 (Settings & Controls Cleanup)
-Plan: 2 of 2 in current phase
+Phase: 24 of 26 (AI Difficulty Randomization)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-03-06 — Completed 23-02-PLAN.md
+Last activity: 2026-03-06 — Completed 24-01-PLAN.md
 
-Progress: ██████░░░░ 40%
+Progress: ███████░░░ 50%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -51,6 +51,7 @@ Progress: ██████░░░░ 40%
 - How to Play: removed from Settings panel, main menu is sole access point (Phase 23-01).
 - menu-backdrop: position:absolute (not fixed) to stay within #root 9:16 bounds (Phase 23-02).
 - Slider fill: CSS --fill variable on track pseudo-elements for proper thumb centering (Phase 23-02).
+- randomDifficulty() duplicated in server.ts (PartyKit bundles separately from src/) (Phase 24-01).
 
 ### Roadmap Evolution
 - Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
@@ -58,5 +59,5 @@ Progress: ██████░░░░ 40%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 23-02-PLAN.md (Phase 23 complete)
+Stopped at: Completed 24-01-PLAN.md (Phase 24 complete)
 Resume file: None
