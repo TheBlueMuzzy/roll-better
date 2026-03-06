@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-Phase 24 complete. AI difficulty randomization done — each bot gets random Easy/Medium/Hard at creation, aiDifficulty removed from protocol and prefs.
+Phase 25 planning complete. Multiplayer Screen Rework plan created — merge LobbyScreen into MainMenu with inline Create/Join flows.
 
 ## Version
 0.2.0.15
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 ## Current Position
 
-Phase: 24 of 26 (AI Difficulty Randomization)
+Phase: 25 of 26 (Multiplayer Screen Rework)
 Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-06 — Completed 24-01-PLAN.md
+Status: Plan created, ready for execution
+Last activity: 2026-03-06 — Created 25-01-PLAN.md
 
-Progress: ███████░░░ 50%
+Progress: ████████░░ 60%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -59,5 +59,5 @@ Progress: ███████░░░ 50%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 24-01-PLAN.md (Phase 24 complete)
-Resume file: None
+Stopped at: Phase 25 plan created, awaiting execution
+Resume file: .planning/phases/25-multiplayer-screen-rework/25-01-PLAN.md
