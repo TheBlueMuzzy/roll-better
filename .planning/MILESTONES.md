@@ -1,5 +1,33 @@
 # Project Milestones: Roll Better
 
+## v1.2 Polish (Shipped: 2026-03-06)
+
+**Delivered:** UI/UX polish pass — simplified menus, removed shake-to-roll, randomized AI difficulty, merged lobby into main menu with inline Create/Join flow, and verified How to Play accuracy.
+
+**Phases completed:** 22-26 (6 plans total)
+
+**Key accomplishments:**
+
+- Simplified main menu: removed difficulty selector, added How to Play + Upgrades buttons
+- Removed shake-to-roll entirely, cleaned up Settings panel
+- Settings gear icon (bottom-right) + audio slider with visible filled track
+- AI difficulty randomly assigned per bot (no manual selection)
+- Merged LobbyScreen into MainMenu with inline 4-state Create/Join flow
+- Verified How to Play content accuracy for all v1.2 changes
+
+**Stats:**
+
+- 37 files created/modified (2,791 insertions, 1,305 deletions)
+- 9,134 lines of TypeScript/CSS (total project)
+- 5 phases, 6 plans, 33 commits
+- 2 days from start to ship (2026-03-05 to 2026-03-06)
+
+**Git range:** v1.1 to v1.2
+
+**What's next:** TBD — next milestone to be determined.
+
+---
+
 ## v1.1 Online Multiplayer (Shipped: 2026-03-05)
 
 **Delivered:** Real-time online multiplayer with PartyKit WebSockets, Jackbox-style room codes, disconnect/reconnect resilience, PWA deployment, and compliance documentation.

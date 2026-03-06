@@ -8,7 +8,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 - ✅ [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
-- ✅ **v1.2 Polish** — Phases 22-26 — SHIPPED 2026-03-06
+- ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
 
 ## Phases
 
@@ -45,64 +45,20 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
-### v1.2 Polish (Complete)
+<details>
+<summary>v1.2 Polish (Phases 22-26) — SHIPPED 2026-03-06</summary>
 
-**Milestone Goal:** Clean up UI/UX rough edges — simplify menus, fix control issues, rework multiplayer screen flow.
+- [x] **Phase 22: Main Menu Restructure** *(2026-03-05)* — Simplified menu, removed difficulty selector, added How to Play + Upgrades
+- [x] **Phase 23: Settings & Controls Cleanup** *(2026-03-06)* — Removed shake-to-roll, gear icon, audio slider fix
+- [x] **Phase 24: AI Difficulty Randomization** *(2026-03-06)* — Random Easy/Medium/Hard per bot
+- [x] **Phase 25: Multiplayer Screen Rework** *(2026-03-06)* — Merged LobbyScreen into MainMenu with inline Create/Join
+- [x] **Phase 26: How to Play Content Refresh** *(2026-03-06)* — Verified HTP accuracy, no changes needed
 
-#### Phase 22: Main Menu Restructure
-
-**Goal**: Simplify main menu — remove unused selectors, add Upgrades section, relocate How to Play
-**Depends on**: Previous milestone complete
-**Research**: Unlikely (internal UI patterns)
-**Plans**: TBD
-
-Plans:
-- [x] 22-01: Simplify main menu (remove difficulty, add How to Play + Upgrades)
-
-#### Phase 23: Settings & Controls Cleanup
-
-**Goal**: Move settings to gear icon (bottom-right), fix audio slider, remove shake-to-roll, clean up Settings panel
-**Depends on**: Phase 22
-**Research**: Unlikely (internal UI patterns)
-**Plans**: 2
-
-Plans:
-- [x] 23-01: Remove shake-to-roll and clean up Settings (remove H2P from settings)
-- [x] 23-02: Settings gear icon on main menu + audio slider fix + verification
-
-#### Phase 24: AI Difficulty Randomization
-
-**Goal**: Remove manual difficulty selection, randomly assign Easy/Medium/Hard per AI at room fill time
-**Depends on**: Phase 23
-**Research**: Unlikely (internal logic)
-**Plans**: TBD
-
-Plans:
-- [x] 24-01: Randomize AI difficulty assignment per bot
-
-#### Phase 25: Multiplayer Screen Rework
-
-**Goal**: Redesign Play > Multiplayer flow and screen layout
-**Depends on**: Phase 24
-**Research**: Unlikely (needs design discussion on what the rework looks like)
-**Plans**: TBD
-
-Plans:
-- [x] 25-01: Merge LobbyScreen into MainMenu with inline Create/Join flows
-
-#### Phase 26: How to Play Content Refresh
-
-**Goal**: Update How to Play slides to reflect all v1.2 changes (removed features, new UI layout)
-**Depends on**: Phase 25
-**Research**: Unlikely (content update)
-**Plans**: TBD
-
-Plans:
-- [x] 26-01: Review HTP slides for v1.2 accuracy (no changes needed)
+</details>
 
 ## Progress
 
-**v1.0 + v1.1 complete.** 21 phases, 63 plans shipped. v1.2 in progress.
+**v1.0 + v1.1 + v1.2 complete.** 26 phases, 69 plans shipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -132,3 +88,4 @@ Plans:
 | 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
+

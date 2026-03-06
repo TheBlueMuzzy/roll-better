@@ -23,7 +23,6 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 - Session to 20 points, multi-winner support — v1.0
 - Game board layout: Goal row, player rows, dice pool area (portrait, mobile-first) — v1.0
 - AI opponents (Easy/Medium/Hard heuristics, same RNG as players) — v1.0
-- Shake-to-roll on mobile (accelerometer), tap-to-roll on desktop — v1.0
 - Main Menu, Settings, Winners Screen with transitions — v1.0
 - Dark wood rolling surface with bumpers — v1.0
 - AccumulativeShadows + warm lighting + HDRI environment — v1.0
@@ -33,6 +32,10 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 - Disconnect/reconnect with AI takeover and state recovery — v1.1
 - GitHub Pages deployment with PWA (installable, auto-updates) — v1.1
 - Privacy policy (zero data collection) — v1.1
+- Simplified main menu with grouped secondary actions — v1.2
+- Settings gear icon with audio slider visible fill — v1.2
+- Randomized AI difficulty per bot (no manual selection) — v1.2
+- Inline Create/Join online flow (merged lobby into main menu) — v1.2
 
 ### Active
 
@@ -40,7 +43,10 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 
 ### Out of Scope
 
+- Shake-to-roll (removed in v1.2 — unreliable, not core to experience)
 - Mouse-based dice rolling on PC (future)
+- Drag-to-unlock interaction (future)
+- Hold-to-gather-roll (future)
 - Daily challenge mode (future)
 - Shareable result cards / social media (future)
 - Spectator mode (future)
@@ -53,7 +59,7 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 
 ## Context
 
-**Current state:** v1.1 shipped (2026-03-05). 10,864 LOC TypeScript/CSS. Publicly playable at thebluemuzzy.github.io/roll-better/. PWA installable. Online multiplayer working on free Cloudflare tier.
+**Current state:** v1.2 shipped (2026-03-06). 9,134 LOC TypeScript/CSS (net reduction from code cleanup). Publicly playable at thebluemuzzy.github.io/roll-better/. PWA installable. Online multiplayer working on free Cloudflare tier.
 
 **Tech stack:** React 18 / TypeScript / Vite / R3F / @react-three/rapier / @react-three/drei / Zustand / Web Audio API / PartyKit / vite-plugin-pwa
 
@@ -66,6 +72,7 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 **Known technical debt:**
 - Procedural audio stubs (hooks wired, sounds stripped pending art pass)
 - PWA icons are placeholders
+- randomDifficulty() duplicated between client and server (PartyKit bundle limitation)
 
 ## Constraints
 
@@ -96,6 +103,11 @@ The dice roll IS the product. Every design decision serves the moment of the rol
 | 60s keepalive grace period | Balances reconnection window vs server resource cleanup | Good |
 | Snapshot sync on phase changes | Full state on every transition — self-healing, no desync accumulation | Good |
 | Static HTML privacy page | Crawlable, no JS required — better for compliance | Good |
+| Remove shake-to-roll | Unreliable on many devices, not core to experience | Good |
+| Randomize AI difficulty per bot | Removes unnecessary player choice, more varied games | Good |
+| Merge lobby into main menu | Single screen reduces navigation, inline flow feels smoother | Good |
+| 4-state machine for online flow | Clean state management: idle/creating/joining/joined | Good |
+| HTP covers mechanics only | Mode selection isn't gameplay instruction | Good |
 
 ---
-*Last updated: 2026-03-05 after v1.1 milestone*
+*Last updated: 2026-03-06 after v1.2 milestone*

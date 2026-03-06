@@ -1,26 +1,26 @@
 # Project State
 
 ## Current Status
-Phase 26 complete. v1.2 milestone complete. UAT found/fixed JOIN button inactive bug (f858c41). Room timeout issue logged (UAT-001).
+v1.2 milestone complete and archived. All 26 phases shipped across 3 milestones.
 
 ## Version
 0.2.0.18
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-05)
+See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** v1.2 Polish — complete. All UI/UX cleanup, menu simplification, multiplayer screen rework done.
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 26 of 26 (How to Play Content Refresh)
-Plan: 1 of 1 in current phase
-Status: Phase complete — v1.2 milestone complete
-Last activity: 2026-03-06 — Completed 26-01-PLAN.md
+Phase: 26 of 26 (all phases complete)
+Plan: N/A
+Status: Ready to plan next milestone
+Last activity: 2026-03-06 — v1.2 milestone archived
 
-Progress: ██████████ 100%
+Progress: 26/26 phases complete
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -44,24 +44,18 @@ Progress: ██████████ 100%
 ## Accumulated Context
 
 ### Decisions
-- v1.2 scope: UI/UX polish only. Drag-to-unlock and hold-to-gather-roll deferred to v1.3.
-- AI difficulty: removing manual selection, randomizing per AI at fill time.
-- Shake-to-roll: removed entirely (Phase 23-01).
-- Confirmation toggle: wiring to actual behavior (may be structurally tied to drag — evaluate during Phase 23).
-- How to Play: removed from Settings panel, main menu is sole access point (Phase 23-01).
-- menu-backdrop: position:absolute (not fixed) to stay within #root 9:16 bounds (Phase 23-02).
-- Slider fill: CSS --fill variable on track pseudo-elements for proper thumb centering (Phase 23-02).
-- randomDifficulty() duplicated in server.ts (PartyKit bundles separately from src/) (Phase 24-01).
-- Multiplayer screen: 4-state machine (idle/creating/joining/joined) for inline online flow (Phase 25-01).
-- How to Play: ? icon bottom-left (mirrors gear pattern) (Phase 25-01).
-- HTP content: No multiplayer slide needed — HTP teaches core mechanics, not mode options (Phase 26-01).
+- v1.2 shipped: UI/UX polish complete. All decisions archived in milestones/v1.2-ROADMAP.md.
+
+### Open Issues
+- UAT-001: Room timeout issue (logged, not blocking)
 
 ### Roadmap Evolution
-- Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
-- Milestone v1.2 complete: All 5 phases shipped (2026-03-06)
+- v1.0 MVP: Phases 1-13 (shipped 2026-03-03)
+- v1.1 Online Multiplayer: Phases 14-21 (shipped 2026-03-05)
+- v1.2 Polish: Phases 22-26 (shipped 2026-03-06)
 
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Fixing AFK unlock timer race condition. Server unlock timeout changed from 20s to 25s (matching rolling timeout pattern). Testing in progress.
+Stopped at: v1.2 milestone archived. Next milestone TBD.
 Resume file: None
