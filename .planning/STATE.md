@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-Phase 22 Plan 01 complete. Main menu restructured — difficulty selector removed, How to Play + Upgrades added.
+Phase 23 Plan 01 complete. Shake-to-roll removed entirely, Settings panel cleaned up (How to Play button removed).
 
 ## Version
-0.2.0.12
+0.2.0.13
 
 ## Project Reference
 
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 ## Current Position
 
-Phase: 22 of 26 (Main Menu Restructure)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-05 — Completed 22-01-PLAN.md
+Phase: 23 of 26 (Settings & Controls Cleanup)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-06 — Completed 23-01-PLAN.md
 
-Progress: ██░░░░░░░░ 20%
+Progress: ██░░░░░░░░ 25%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -46,14 +46,15 @@ Progress: ██░░░░░░░░ 20%
 ### Decisions
 - v1.2 scope: UI/UX polish only. Drag-to-unlock and hold-to-gather-roll deferred to v1.3.
 - AI difficulty: removing manual selection, randomizing per AI at fill time.
-- Shake-to-roll: being removed entirely.
+- Shake-to-roll: removed entirely (Phase 23-01).
 - Confirmation toggle: wiring to actual behavior (may be structurally tied to drag — evaluate during Phase 23).
+- How to Play: removed from Settings panel, main menu is sole access point (Phase 23-01).
 
 ### Roadmap Evolution
 - Milestone v1.2 created: UI/UX polish, 5 phases (Phase 22-26)
 
 ## Session Continuity
 
-Last session: 2026-03-05
-Stopped at: Completed 22-01-PLAN.md — Phase 22 complete
+Last session: 2026-03-06
+Stopped at: Completed 23-01-PLAN.md
 Resume file: None

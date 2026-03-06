@@ -67,7 +67,7 @@ Plans:
 **Plans**: 2
 
 Plans:
-- [ ] 23-01: Remove shake-to-roll and clean up Settings (remove H2P from settings)
+- [x] 23-01: Remove shake-to-roll and clean up Settings (remove H2P from settings)
 - [ ] 23-02: Settings gear icon on main menu + audio slider fix + verification
 
 #### Phase 24: AI Difficulty Randomization
@@ -128,7 +128,7 @@ Plans:
 | 20. GitHub Pages + PWA | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 21. Compliance + Integration Testing | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 22. Main Menu Restructure | v1.2 | 1/1 | Complete | 2026-03-05 |
-| 23. Settings & Controls Cleanup | v1.2 | 0/? | Not started | - |
+| 23. Settings & Controls Cleanup | v1.2 | 1/2 | In progress | - |
 | 24. AI Difficulty Randomization | v1.2 | 0/? | Not started | - |
 | 25. Multiplayer Screen Rework | v1.2 | 0/? | Not started | - |
 | 26. How to Play Content Refresh | v1.2 | 0/? | Not started | - |
