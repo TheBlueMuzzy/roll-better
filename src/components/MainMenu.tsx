@@ -237,7 +237,7 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
           </button>
         ) : (
           <button
-            className={`menu-online-btn${onlineMode === 'creating' ? '' : ''}${onlineMode === 'joined' ? ' inactive' : ''}`}
+            className={`menu-online-btn${onlineMode === 'creating' ? ' inactive' : ''}${onlineMode === 'joined' ? ' inactive' : ''}`}
             onClick={handleJoin}
           >
             JOIN
