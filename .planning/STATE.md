@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-Phase 23 Plan 01 complete. Shake-to-roll removed entirely, Settings panel cleaned up (How to Play button removed).
+Phase 23 Plan 02 in progress (checkpoint). Gear icon on main menu, audio slider filled track. Fixed gear position (menu-backdrop fixed→absolute) and slider thumb alignment (CSS variable on track pseudo-elements).
 
 ## Version
-0.2.0.13
+0.2.0.15
 
 ## Project Reference
 
@@ -16,9 +16,9 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 Phase: 23 of 26 (Settings & Controls Cleanup)
-Plan: 1 of 2 in current phase
+Plan: 2 of 2 in current phase (checkpoint)
 Status: In progress
-Last activity: 2026-03-06 — Completed 23-01-PLAN.md
+Last activity: 2026-03-06 — Executing 23-02-PLAN.md (awaiting verification)
 
 Progress: ██░░░░░░░░ 25%
 
@@ -56,5 +56,5 @@ Progress: ██░░░░░░░░ 25%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 23-01-PLAN.md
+Stopped at: 23-02 checkpoint — awaiting human-verify after fixing gear position + slider thumb
 Resume file: None
