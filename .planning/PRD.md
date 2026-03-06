@@ -1,7 +1,7 @@
 # Roll Better — Product Requirements Document
 
 > Living document. Updated each design phase.
-> Current phase: **Discover** (with early Design capture from Muzzy's notes)
+> Current status: **v0.2 — Online multiplayer complete, core loop stable**
 > Full rules reference: `.planning/research/core-rules.md`
 
 ---
@@ -11,7 +11,7 @@
 - **Elevator pitch**: A browser-based multiplayer dice-matching game where you race to match a shared Goal by locking in rolls, with a push-your-luck pool mechanic — grow your dice pool to match faster, but every extra die tanks your score.
 - **Target feeling**: "That roll was INSANE!" — thrilling, lucky, social spectacle. The dopamine of watching your dice land exactly where you need them.
 - **Platform**: Web (React + TypeScript + Vite + Three.js/R3F)
-- **Players**: 2–8 per session
+- **Players**: 2–4 per session (offline), 2–8 per session (online, AI backfill)
 - **Target audience**: Casual/mobile gamers who play Wordle, Yahtzee, and board games with friends — people who want quick, thrilling multiplayer rounds without downloading an app.
 
 ---
@@ -78,14 +78,15 @@
 ### 4.1 Session Structure
 - A **session** = a series of **rounds** played until 1+ players reach **20 points**
 - Players who cross 20 on the same round all win
-- 2–8 players per session
+- **Offline**: 2–4 players (1 human + AI), selectable from main menu
+- **Online**: 2–8 players (humans + AI backfill when host starts)
 - AI fills remaining slots when host starts early
 
 ### 4.2 Round Setup
 1. **Goal Generation**: Roll 8 standard six-sided dice. Sort by number ascending.
    - Example Goal: [1, 1, 2, 3, 3, 3, 5, 6]
    - Goal dice are white and positioned horizontally at the top of the screen
-   - Goal dice roll across the screen with 3D physics, then lerp to their sorted positions
+   - Goal dice emerge from the star icon with a scale-up + tumble animation, then lerp to their sorted positions
 2. **Pool Reset**: Each player's dice pool resets to their current **starting dice count** (Z value)
    - Default starting count: 2
    - Modified by handicap each round (see 4.6)
@@ -94,38 +95,40 @@
 ### 4.3 Turn Flow (simultaneous, all players)
 Each turn has these phases, executed simultaneously for all players:
 
-**Phase 1 — Roll**
-- "Roll Better" prompt appears on screen
-- Mobile: shake phone to roll
-- PC: click roll button (mouse-based rolling planned for future)
-- 3D dice roll with physics across the entire screen, except the Goal row area
-- Dice tumble, bounce, and settle naturally
+**Phase 1 — Roll (`idle` → `rolling`)**
+- "ROLL BETTER" status text appears in the HUD
+- Mobile: shake phone to roll (accelerometer-based, toggleable in settings)
+- PC: tap/click the ROLL button in the HUD
+- 3D dice roll with physics in the rolling area (bottom portion of screen)
+- Dice tumble, bounce off invisible walls, and settle naturally
+- **AFK timer**: 30-second countdown appears if the player hasn't rolled. When it expires, the game auto-rolls for them.
 
-**Phase 2 — Auto-Lock**
-- After dice settle, the game identifies which rolled dice match Goal numbers
-- Matching dice are eligible to lock. Each matching die automatically lerps to its corresponding slot under the Goal die it matches
+**Phase 2 — Auto-Lock (`rolling` → `locking`)**
+- After all dice settle, the game runs `findAutoLocks()` to identify which rolled dice match unfilled Goal slots
+- Matching dice automatically lerp from their settled positions to the corresponding Goal slots (staggered ~100ms apart, ~400ms each)
 - **Lock-in limit**: Up to the Goal's count per number. If the Goal has three 3s, you can lock at most three 3s.
-- **Optional skip**: Player may choose NOT to lock a matching die. It stays in the rolling pool. (Implementation: tap a locking die mid-lerp to cancel? Or a brief confirmation window? TBD — needs UX testing.)
-- Non-matching dice lerp back to the dice pool at the bottom of the screen
+- Auto-locking is fully automatic — there is no way to skip or cancel a lock
+- Non-matching dice remain in the pool (a scale-down exit animation plays, then they respawn at pool positions for the next roll)
 
-**Phase 3 — Winner Check**
-- After all players' dice have settled into locked/pool positions
-- Check: does any player have exactly 8 locked dice that match the Goal?
+**Phase 3 — Winner Check (during `locking`)**
+- After lock animations complete, check: does any player have all 8 slots locked?
 - If YES → proceed to **Scoring** (4.5), then start a new round
 - If NO → proceed to Phase 4
 
-**Phase 4 — Unlock Phase**
-- Message appears: "Drag dice to unlock" (or "Tap dice to unlock" if tap mode enabled)
-- Player may drag any number of their locked dice down to the bottom area
-- For each die unlocked:
-  1. The locked die lerps from its slot back to the player's dice pool
-  2. A **bonus die** (in the player's color) lerps FROM the Goal die it was under TO the player's dice pool
-  3. Visual effect: looks like the Goal die is "spawning" a new die of your color
-- If using tap mode: locked die lerps to pool, then bonus die lerps to pool sequentially
-- Player's pool size increases by 1 for each die unlocked (returned die + 1 bonus = net +1 to pool)
-- Player may also choose to unlock zero dice (keep all locked)
+**Phase 4 — Unlock Phase (`unlocking`)**
+- Status text shows "TAP DICE TO UNLOCK"
+- Player taps locked dice in their row to toggle selection (selected dice show a pulsing ring)
+- HUD shows "UNLOCK X" button (where X = number selected) or "SKIP" button
+- For each die unlocked, a **mitosis animation** plays:
+  1. The locked die in its slot splits into 2 dice (the original + a bonus die)
+  2. Both dice arc-lerp from the slot position down to the pool area (~1.7s total)
+  3. Net effect: locked -= 1, pool += 2 (net +1 total dice)
+- **Must-unlock rule**: If pool size is 0 and locked < 8, the player MUST unlock at least 1 die (can't roll with 0 dice)
+- **Pool cap**: Total dice (pool + locked) cannot exceed 12. Unlock buttons show "MAX 12 DICE" when at cap.
+- Player may also skip (unlock zero dice) if they have dice in their pool
+- **AFK timer**: 30-second countdown on unlock decisions. When it expires, AI makes the decision automatically for that turn only.
 
-**Phase 5 — Next Turn**
+**Phase 5 — Next Turn (`idle`)**
 - Return to Phase 1 with updated pool/locked state
 - Repeat until a winner is found
 
@@ -133,7 +136,8 @@ Each turn has these phases, executed simultaneously for all players:
 - All players roll simultaneously — each taps on their own screen when ready
 - Each player sees their OWN results immediately. Other players' results are hidden until you've rolled and locked in, then revealed with animation (see §5.3.1 for full data flow)
 - Same pattern for unlocking: your choice applies immediately, others' choices revealed only after you've acted
-- **Unlock phase timer**: Countdown timer on unlock decisions. When timer expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
+- **Rolling AFK timer**: 30-second countdown. When it expires, auto-roll triggers. Client-driven with server-side fallback.
+- **Unlock phase timer**: 30-second countdown. When it expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
 - The pace should feel brisk — no waiting for slow players
 
 ### 4.5 Scoring
@@ -143,15 +147,15 @@ When 1+ players lock all 8 dice matching the Goal:
 - Base: **8 points**
 - Penalty: per-die penalties for remaining pool dice: `[1, 0, 1, 1]`
 - Formula: `points = max(0, 8 - sum(penalties[0..remainingPool-1]))`
-- Remaining pool = dice NOT locked (total dice - 8 locked)
+- Remaining pool = dice NOT locked (total dice - 8 locked). Max remaining pool is 4 (since total cap is 12).
 
-| Remaining Pool | Penalty | Points |
-|----------------|---------|--------|
-| 0              | 0       | 8 (perfect) |
-| 1              | 1       | 7 |
-| 2              | 1       | 7 |
-| 3              | 2       | 6 |
-| 4              | 3       | 5 |
+| Remaining Pool | Cumulative Penalty | Points |
+|----------------|-------------------|--------|
+| 0              | 0                 | 8 (perfect) |
+| 1              | 1                 | 7 |
+| 2              | 1                 | 7 |
+| 3              | 2                 | 6 |
+| 4              | 3                 | 5 |
 
 **Strategic note:** Winning with 5 points while opponents get 0 is still a strong play. Early rounds favor aiming for 8 (perfect locks). As the session progresses, players who are behind benefit from aggressive unlocking — more dice means faster wins even at lower scores. The core tension: a fast sloppy win (5 pts) beats a slow perfect attempt that never completes (0 pts).
 
@@ -159,67 +163,71 @@ When 1+ players lock all 8 dice matching the Goal:
 - Players who did NOT complete the Goal score 0 for that round
 
 **Scoring animation:**
-1. Winning player(s)' locked dice lerp from their slots back to the player's dice pool
-2. Goal dice lerp "point tokens" toward the winning player(s)' score display
-3. Score counter counts up: +1 per token, capped at the player's actual points for that round
-4. Non-winning players see their locked dice simply return to pool (no points)
+1. Score counter in HUD counts up from old score to new score with cubic ease-out (1500ms)
+2. Each tick plays an ascending tone; completion plays a fanfare
+3. Score display does a scale-pop (1→1.15→1) on completion
 
 ### 4.6 Handicap System (between rounds)
 Applied after every round:
 
 - **Won** this round (locked all 8) → starting dice count (Z) **decreases by 1** (minimum 1)
 - **Failed** this round (didn't complete) → starting dice count (Z) **increases by 1** (maximum 12)
-- Z value in HUD does a **scale pop animation** and increments/decrements
 - Next round: pool resets to new Z value
 
 ### 4.7 Session End
 - When 1+ players have **20 or more total points**, the session ends
 - All players who crossed 20 on the final round are declared winners
-- Transition to **Winners Screen**
+- Transition to **Winners Screen** showing final rankings (sorted by score descending)
+- **Play Again**: Returns to game with same player count + difficulty (offline) or restarts with bots filling empty slots (online)
+- **Back to Menu**: Returns to main menu
 
 ### 4.8 Edge Cases
 - **All Goal dice are the same number** (e.g., eight 3s): Rare but valid. Players only need to roll 3s. Still plays normally.
 - **Player has pool of 1**: They roll 1 die. If it doesn't match anything unlocked, they have 0 locked and 1 in pool. If they unlock a locked die, pool grows to 2. Starting from 1 is hard but not impossible.
-- **Player has pool of 12 and wins**: They score 0 points (8 - 2*(12-8) = 0). They still "won" the round, so their Z decreases by 1. A hollow victory.
+- **Player has 0 pool dice and < 8 locked**: Must-unlock rule forces at least 1 unlock before next roll.
+- **Player at 12 total dice and wins**: They score 5 points (8 - 3 penalty for 4 remaining pool). Their Z still decreases by 1. Functional but low-scoring.
 - **Multiple players hit 20+ on same round**: All are winners. The Winners Screen shows all of them.
-- **Player disconnects mid-round**: AI seamlessly takes over for disconnected player (game continues without pause). On reconnect, player takes back control from AI immediately. No data lost — Partykit maintains room state.
+- **Player disconnects mid-round (online)**: AI seamlessly takes over for disconnected player (game continues without pause). On reconnect, player takes back control from AI immediately. No data lost — PartyKit maintains room state.
+- **Host exits to menu, remaining player hits Play Again (online)**: Game restarts with bots filling all empty slots. Works correctly.
 
 ---
 
 ## 5. Game Systems
 
 ### 5.1 Multiplayer Architecture
-- **Phase 1**: AI opponents only (local game logic, AI makes unlock decisions)
-- **Phase 2**: Room-based online multiplayer via room codes
+Both modes are fully implemented:
+- **Offline**: AI opponents only (local game logic, AI makes unlock decisions). Selectable from main menu with player count (2–4) and difficulty (Easy/Medium/Hard).
+- **Online**: Room-based multiplayer via PartyKit WebSocket server with room codes.
 
 **Room Codes:**
-- Format: 4-letter alphanumeric code (case-insensitive, e.g., `KFBR`)
-- ~1.6M possible codes — more than enough for concurrent rooms
+- Format: 4-letter alphabetic code (excludes I and O for readability, e.g., `QRPD`)
+- Case-insensitive
 - Unique per active room, recycled when room closes
 - Zero friction: no accounts, no downloads — just enter a code
 
 **Room Flow (Jackbox-style):**
-1. **Create**: Host taps "Create Room" → Partykit room created → 4-letter code displayed prominently
-2. **Join**: Player enters code on main screen → taps "Join" → enters room lobby
-3. **Lobby**: Player list with names/colors, "Ready" button per player, host sees "Start" button
-4. **Start conditions**: Everyone clicks Ready OR host clicks "Start" (fills empty slots with AI)
-5. **AI backfill**: Remaining slots filled with AI at configured difficulty (4-8 players total)
+1. **Create**: Host taps "CREATE ROOM" → PartyKit room created → 4-letter code displayed prominently
+2. **Join**: Player enters code on lobby screen → taps "JOIN" → enters room lobby
+3. **Lobby**: Player list with names/colors, "READY" toggle per player, host sees "START GAME" button
+4. **Start conditions**: Host clicks "START GAME" (host can configure target player count and AI difficulty)
+5. **AI backfill**: Remaining slots filled with AI at configured difficulty
 
-### 5.2 AI Opponents (Phase 1 — local)
-- AI makes unlock decisions based on simple heuristics:
-  - **Easy AI**: Randomly unlocks 0-2 dice per turn. No strategy.
-  - **Medium AI**: Unlocks dice that are hardest to re-roll (faces with fewer Goal matches). Balances pool growth vs. progress.
-  - **Hard AI**: Calculates optimal unlock strategy based on probability of completing the Goal from current state. Tries to minimize pool size.
-- AI "rolls" use the same RNG as players — no cheating, no rigged dice.
-- AI difficulty selectable in settings (default: Medium)
+### 5.2 AI Opponents
+AI makes unlock decisions based on difficulty-specific strategies. AI "rolls" use the same physics RNG as players — no cheating, no rigged dice.
 
-### 5.3 Networking (v1.1 — Partykit on Cloudflare)
-- **Protocol**: WebSocket via Partykit (Cloudflare free tier — 100k requests/day)
-- **Server**: Partykit room server (Cloudflare Workers edge runtime)
+- **Easy AI**: 40% chance to skip unlock entirely (unless must-unlock rule applies). When unlocking, picks 1 random locked die.
+- **Medium AI**: Skips if pool size ≥ half of remaining slots needed (unless must-unlock). Scores each locked die by how frequently its value appears in remaining Goal slots. Unlocks 1–2 of the worst candidates (least useful to keep). Respects 12-die cap.
+- **Hard AI**: Never unlocks if ≤2 remaining slots (unless must-unlock). Calculates expected match rate: `poolSize × (uniqueRemainingValues / 6) / remainingSlots`. Only unlocks if match rate < 0.5 (pool is inefficient). Unlocks by ascending frequency (sacrifices dice least likely to re-match), simulating one-at-a-time until match rate ≥ 0.5.
+
+AI difficulty is selectable from main menu (offline) or lobby settings (online). Default: Medium.
+
+### 5.3 Networking (PartyKit on Cloudflare)
+- **Protocol**: WebSocket via PartyKit (Cloudflare free tier)
+- **Server**: PartyKit room server (Cloudflare Workers edge runtime)
   - Validates moves and computes locks (runs `findAutoLocks` on reported values)
   - Relays each player's results to other players as they arrive (no batching)
   - Manages phase transitions (advances phase when all players have acted)
-  - Manages unlock phase timer + AI takeover on timeout
+  - Manages AFK timers + AI takeover on timeout (both rolling and unlock phases)
   - Handles room lifecycle (create, join, close, cleanup)
 - **Client**: Rolls physics dice locally, sends settled values to server. Receives other players' results from server. Applies own results locally without waiting for server response.
 - **Reconnection**: Player can rejoin with same room code. AI surrenders control back to player on reconnect.
@@ -256,38 +264,90 @@ Same pattern as rolling — each player's choice flows independently through the
    - If the receiving player HAS already chosen → **reveal immediately with animation**
 5. When all players have responded → server sends `phase_change: "idle"` → next roll cycle
 
-#### 5.3.3 Design Principles for Online Play
+#### 5.3.3 Deferred Snapshot Application
+When the server sends a `phase_change` while animations are still playing on the client:
+- The client **captures** the player snapshot from the message
+- **Defers** applying the phase transition and snapshot until all animations complete
+- Polls every 100ms: when animations clear, applies the snapshot + phase change
+- Safety timeout: force-applies after 5 seconds to prevent permanent stalls
+- **Why**: Applying a snapshot mid-animation can change pool sizes, causing extra dice to spawn or disappear
+
+#### 5.3.4 Watchdog & Phase Sync
+A heartbeat runs every 1 second to detect stalls:
+- If the game has been in a transient phase (`locking`, `scoring`, `roundEnd`) for >5 seconds, the client requests a `phase_sync_request` from the server
+- Server responds with `phase_sync: { phase, players, goalValues }` — authoritative state
+- If client phase ≠ server phase: force-sync, clear all animations
+- After 3 consecutive stalls: force to `idle` (self-healing)
+
+#### 5.3.5 Design Principles for Online Play
 - **The local experience is the source of truth.** Online is an invisible layer on top. If you turned off the network, each player's own experience would look identical to offline.
 - **No player waits for any other player to act.** You tap, your dice roll, your locks animate. You never see a loading spinner or "waiting for other players" during your own actions.
 - **Information is private until you've acted.** You don't see what others rolled/locked/unlocked until you've done the same. This prevents influence and preserves the feeling of playing your own game.
 - **Every reveal is animated.** "Immediately" means "with the standard animation" (profile-emerge for locks, appropriate animation for unlocks). Nothing pops into position.
 
 ### 5.4 State Management
-Core game state (managed in a global store — Zustand recommended for R3F):
+Core game state managed in Zustand (`src/store/gameStore.ts`):
 
 ```
 GameState {
-  phase: 'lobby' | 'rolling' | 'locking' | 'winner-check' | 'unlocking' | 'scoring' | 'round-end' | 'session-end'
-  round: number
-  goal: number[8]              // The 8 Goal dice values, sorted
+  // Navigation
+  screen: 'menu' | 'lobby' | 'game' | 'winners'
+  phase: 'lobby' | 'rolling' | 'locking' | 'unlocking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd'
 
-  players: Player[] {
-    id: string
-    name: string
-    color: string              // Hex color, randomly assigned
-    isAI: boolean
-    isHost: boolean
-    pool: number[]             // Dice values currently in rolling pool
-    locked: (number | null)[8] // 8 slots, null if empty, die value if locked
-    poolSize: number           // Total dice available (pool + locked)
-    startingDice: number       // Z value — starting count this round
-    score: number              // Total points across all rounds this session
-    isReady: boolean           // Lobby ready state
+  // Game
+  players: Player[]
+  currentRound: number
+  sessionTargetScore: number         // Default 20
+
+  // Round state
+  roundState: {
+    goalValues: number[8]            // Sorted ascending
+    rollResults: number[] | null
+    rollNumber: number
+    lastLockCount: number
+    roundScore: number
+    lockAnimations: LockAnimation[]
+    unlockAnimations: UnlockAnimation[]
+    aiLockAnimations: LockAnimation[]
+    aiUnlockAnimations: AIUnlockAnimation[]
+    poolExiting: boolean
+    poolSpawning: boolean
+    goalTransition: 'none' | 'exiting' | 'entering'
   }
 
-  roomCode: string | null
-  maxPlayers: number           // 2-8, default 8
-  winThreshold: number         // Default 20
+  // Player shape
+  Player {
+    id: string
+    name: string
+    color: string                    // Hex color from curated palette
+    isAI: boolean
+    isHost: boolean
+    poolSize: number                 // Dice in rolling pool
+    lockedDice: (number | null)[8]   // 8 slots, null if empty
+    startingDice: number             // Z value
+    score: number                    // Total session points
+    selectedForUnlock: boolean[8]    // Toggle state during unlock phase
+    isReady: boolean                 // Lobby ready state
+  }
+
+  // Settings
+  settings: {
+    audioVolume: number              // 0–100
+    performanceMode: 'advanced' | 'simple'
+    shakeToRollEnabled: boolean
+    hapticsEnabled: boolean
+    tipsEnabled: boolean
+    confirmationEnabled: boolean
+  }
+
+  // Online
+  isOnlineGame: boolean
+  isOnlineHost: boolean
+  onlinePlayerId: string | null
+  onlinePlayerIds: string[]          // Maps server IDs to local player indices
+  pendingLockReveals: PlayerLockResultData[]
+  pendingUnlockReveals: UnlockRevealData[]
+  hasSubmittedUnlock: boolean
 }
 ```
 
@@ -299,153 +359,154 @@ GameState {
 
 **All screens are portrait-oriented (mobile-first).** Desktop uses centered portrait layout with background fill.
 
+#### Main Menu
+- Game title "Roll Better"
+- **Offline**: Player count selector (2, 3, 4) + AI difficulty selector (Easy, Medium, Hard) + PLAY button
+- **Online**: CREATE ROOM and JOIN ROOM buttons → transitions to Lobby screen
+- Settings gear icon → opens settings modal
+- Build version overlay in lower-left corner (`vX.Y.Z.B`)
+
+#### Lobby Screen (Online)
+- Room code displayed prominently (large, copyable)
+- Player list with names, colors, ready state
+- Host controls: target player count, AI difficulty, START GAME button
+- Each player has a READY toggle
+
 #### Game Screen (Play Area) — top to bottom:
 
 **A. Goal Row (top ~15% of screen)**
 - 8 white dice in a horizontal row, sorted by number ascending
 - Dice are 3D rendered, resting face-up showing their value
-- Below each Goal die: a **colored circle indicator** showing which player has the most dice locked in that column
-  - 1 player leading: solid circle in their color
-  - 2-way tie: circle split into 2 colors (half and half)
-  - 3-way tie: 3 equal wedges (120° each)
+- Below each Goal die: a **colored wedge indicator** showing which players have dice locked in that column
+  - 1 player: solid circle in their color
+  - 2-way tie: circle split into 2 colors
   - N-way tie: N equal wedges
   - No one locked: gray/empty circle
-- Goal dice have a subtle glow or pedestal to distinguish from player dice
+- Far left: star icon (Goal profile) with score display
 
 **B. Player Rows (middle ~50% of screen)**
 - **Your row** is always the topmost player row (closest to Goal)
-- Other players' rows below yours, ordered by score (highest first) or join order (TBD)
+- Other players' rows below yours
 - Each row:
-  - **Left side**: Player icon (avatar/color swatch)
+  - **Left side**: Player icon (color swatch)
     - Center of icon: current **total score** (large, readable)
-    - Bottom of icon: **X/Y/Z** in small text
-      - X = current pool size
-      - Y = max pool (12)
-      - Z = starting dice count this round
+    - Below icon: **X/Y/Z** in small text (pool / max / starting)
   - **Right side**: 8 dice slots in a horizontal row, aligned with the Goal dice above
-    - Empty slots: subtle outline or shadow
+    - Empty slots: subtle shadow/outline
     - Locked dice: 3D dice in player's color, face-up showing value
-    - When another player locks dice: dice lerp FROM their player icon INTO their row slots
+    - During unlock phase: selected dice show pulsing ring, unselectable dice (at pool cap) show no ring
+    - When another player locks dice (online): dice lerp FROM their player icon INTO their row slots
 
 **C. Dice Pool & Rolling Area (bottom ~35% of screen)**
-- Your unlocked dice sit here
-- This is also where 3D dice physics rolling happens
-- Dice roll across the full screen except the Goal row, then settle and lerp to positions:
-  - Matching dice → lerp up to your row slots (auto-lock)
-  - Non-matching dice → lerp back down to pool area
-- **HUD overlay (lower-left corner)**:
-  - Score (your total points, large)
-  - X / Y / Z display below score
-- **Roll prompt**: "Roll Better" text appears center of rolling area when it's time to roll
+- Your unlocked dice sit here between rolls
+- This is where 3D dice physics rolling happens
+- Invisible walls contain dice within the rolling area
+- After rolling, dice settle and animate:
+  - Matching dice → lerp up to your row slots (auto-lock, staggered)
+  - Non-matching dice → scale-down exit, then respawn at pool positions
+- **HUD overlay**: Status text (phase-dependent), action buttons (ROLL / UNLOCK X / SKIP), AFK countdown bar
+- **Contextual tip banner**: Shows tutorial hints (e.g., "Tap locked dice to unlock them") — toggleable in settings
+
+#### Winners Screen
+- Final rankings sorted by score (descending)
+- Each player shown with color, name, final score
+- Winner(s) highlighted
+- **PLAY AGAIN** button (restarts with same settings)
+- **MENU** button (returns to main menu)
 
 ### 6.2 Visual Style — Premium 3D Dice
 > Full visual research: `.planning/research/dice-visuals.md`
 > Target quality: Beat True Dice Roller (Steam, 96% positive) and Mighty Dice in a browser.
 
 **Dice Geometry:**
-- High-segment RoundedBoxGeometry OR Blender-modeled .glb export
-- **Edge bevel radius: 0.07** relative to die size — essential for realism (sharp edges look CG)
-- Pips/numbers: sculpted into geometry (cosine impulse function for pips) OR UV-mapped high-contrast textures
-- Numbers must be readable at small screen sizes (mobile) — high contrast, clean font
+- drei `RoundedBox` with args `[1, 1, 1]`, smoothness 4
+- **Edge bevel radius: 0.07** — essential for realism (sharp edges look CG)
+- Pips: flat circle geometry (radius 0.08, 16 segments) positioned on each face with standard pip layouts
+- Pip color: near-black (`#1a1a1a`) for high contrast on cream/colored surfaces
 
-**Dice Materials (MeshPhysicalMaterial):**
-- Goal dice (white): metalness 0, roughness 0.35, clearcoat 1.0, clearcoatRoughness 0.1 — polished plastic look
-- Player dice (colored): same material properties, tinted per player. Colors from a curated colorblind-friendly palette.
-- Environment map is **mandatory** — reflections sell the material. Use HDRI via drei `<Environment preset="studio" />`
-- Optional normal map for subtle surface texture (micro-scratches, slight grain)
+**Dice Materials (meshPhysicalMaterial):**
+- Goal dice (white/cream `#e8e0d4`): metalness 0, roughness 0.35, clearcoat 1.0, clearcoatRoughness 0.1 — polished plastic look
+- Player dice (colored): same material properties, tinted per player color
+- Pip material: MeshPhysicalMaterial with clearcoat 0.8, clearcoatRoughness 0.15
+- Environment map intensity 1.0 for reflections
 
-**Lighting:**
-- HDRI environment map for global illumination and reflections (polyhaven.com source)
-- Primary warm spotlight (~0xefdfd5, intensity 0.7) for main shadows
-- Ambient fill light
-- Camera-attached point light for consistent specular highlights as dice move
+**Player Colors (curated palette):**
+```
+red: #c0392b, blue: #2980b9, green: #27ae60, purple: #8e44ad,
+orange: #d35400, yellow: #f39c12, teal: #16a085, pink: #e84393
+```
+- Goal dice: always cream/white
+- Player dice look like painted versions of the same premium material
 
-**Shadows:**
-- AccumulativeShadows + RandomizedLight from drei (soft, realistic, performant)
-- Shadow opacity: 0.15-0.3 — subtle grounding, not dark blobs
-- Shadows ground the dice to the surface and sell the 3D illusion
+**Lighting & Shadows:**
+- Performance mode toggle: "Advanced" (shadows enabled) vs "Simple" (no shadows)
+- Environment map for global illumination and reflections
+- Directional lighting for primary shadows
+- Shadows ground the dice to the surface
 
 **Rolling Surface:**
-- Dark wood table aesthetic (medium restitution, warm feel, shows shadows well)
-- Subtle texture — not perfectly flat, but not distracting
-- Slightly raised edges/bumpers to contain dice (like a physical dice tray)
-
-**Player Colors:**
-- Randomly assigned from a curated palette of 8 distinct, colorblind-friendly colors
-- Goal dice: always white (clean, neutral, authoritative)
-- Player dice should look like painted/colored versions of the same premium material
+- Physics floor at y=0 with restitution 0.5
+- Invisible boundary walls (restitution 0.3) containing dice in the rolling area
+- Asymmetric rolling zone (dice can roll into player row area but walls prevent escape)
 
 **Background:**
-- Clean, dark, uncluttered. Subtle vignette at edges.
-- The dice and the game board are the ONLY visual focus. No decorative elements.
+- Clean, dark, uncluttered
+- The dice and the game board are the ONLY visual focus
 
 **Typography:**
-- Clean sans-serif (Inter, Manrope, or similar)
+- Clean sans-serif
 - Scores: large, high-contrast, readable at a glance
 - X/Y/Z: small but legible
-- "Roll Better" prompt: bold, centered, slightly animated (pulse or glow)
+- Status text: bold, centered in HUD area
 
-**Animations (all lerped):**
-- Goal dice: roll across screen with 3D physics → lerp to sorted positions (ease-out)
-- Player dice: roll with physics → settle → lerp to lock slots (ease-out, ~400ms) or pool (ease-in-out, ~300ms)
-- Unlock: die lerps from slot → pool (ease-in-out, ~300ms). Bonus die spawns from Goal die with slight delay → lerps to pool (ease-out, ~400ms)
-- Score: point tokens lerp from Goal → player score display (staggered, ~150ms apart), counter counts up with ascending tone
-- Handicap: Z value scale-pops (1.0 → 1.3 → 1.0, ease-out-back, ~400ms) and changes
-- Round transition: old Goal dice roll off-screen, brief pause, new Goal dice roll in from top
-- Other players' locks: dice lerp from their player icon → their row slots (shows other players' progress live)
+**Animations:**
+- **Goal entry**: Each die emerges from star icon (scale 0→1), lerps to sorted position with tumble rotation, staggered ~40ms apart, ~500ms each
+- **Goal exit**: Each die slides right (8 units) over 350ms, staggered ~15ms apart
+- **Lock (pool → slot)**: Linear lerp with quaternion slerp, ~400ms, staggered ~100ms. Sound: click
+- **Unlock (mitosis)**: Die splits into 2, both arc-lerp from slot to pool positions. Phase 1: 1.2s (scale 0→1 + arc). Phase 2: 0.5s (settle). Total ~1.7s. Sound: pop
+- **Pool exit**: Scale 1→1.3→0 over 0.45s. Sound: pop
+- **Pool spawn**: Arc from player icon to pool position, scale 0→1, tumble rotation, ~600ms. Sound: spawn pop
+- **Score counting**: Cubic ease-out over 1500ms, tick sound every 100ms, scale-pop on completion
+- **Other players' locks (online)**: Dice lerp from their player icon → their row slots (profile-emerge pattern)
 
 **The Anticipation-Resolution Arc (per roll):**
-1. Intention (0ms): "Roll Better" prompt visible
-2. Anticipation (0-300ms): Shake/click, gathering energy
-3. Release (300ms): Dice launch with max energy
+1. Intention (0ms): Status text visible, ROLL button ready
+2. Anticipation (0-300ms): Tap/shake, gathering energy
+3. Release (300ms): Dice launch with impulse at offset point (induces natural rotation)
 4. Chaos (300-2000ms): Bouncing, spinning, colliding — pure physics
 5. Settling (2000-2500ms): Energy dissipating, faces becoming readable — tension builds
 6. Resolution (2500-3000ms): Final faces visible, auto-lock lerps begin
-7. Reaction (3000ms+): Lock animation, score update, unlock decision
+7. Reaction (3000ms+): Lock animation, unlock decision
 
 ### 6.3 Input
 
 **Mobile (primary):**
-- **Roll**: Shake phone. Device accelerometer detects shake gesture. "Roll Better" prompt pulses when ready.
-- **Unlock**: Drag locked dice downward to the pool area. Release to confirm. OR tap (if tap mode enabled in Settings).
-- **Skip lock**: TBD — possibly tap a locking die mid-animation to cancel, or a brief "skip" button appears during auto-lock phase.
+- **Roll**: Shake phone (accelerometer detection via `useShakeToRoll` hook, toggleable in settings) OR tap ROLL button in HUD
+- **Unlock**: Tap locked dice in your row to toggle selection → tap UNLOCK button to confirm, or SKIP to keep all locked
+- **Settings**: Gear icon opens settings modal
 
 **Desktop:**
-- **Roll**: Click a "Roll" button in the rolling area. (Future: mouse-drag-and-release for physics throw — Muzzy has ideas to share later.)
-- **Unlock**: Click locked dice to return them. Or drag.
-- **Skip lock**: Same as mobile TBD.
+- **Roll**: Click ROLL button in HUD
+- **Unlock**: Click locked dice to toggle selection → click UNLOCK or SKIP button
+- **Settings**: Same gear icon
 
 ### 6.4 Audio Direction
-> Industry standard (True Dice Roller): hand-recorded sounds per material. Users notice and complain when sound doesn't match material.
+> Current status: **Basic sound effects implemented** via Web Audio API (`soundManager.ts`). Full multi-layered sound design is a future milestone.
 
-**Dice Roll Sounds (multi-layered per roll):**
-1. **Initial impact**: first hit on wood surface — sharp, satisfying clack
-2. **Tumbling/rattling**: bouncing and spinning, hitting other dice — staccato clatter
-3. **Scraping**: sliding as momentum dies — subtle friction sound
-4. **Settling click**: final tip onto resting face — tiny, definitive snap
+**Implemented sounds:**
+- Die selection click
+- Mitosis/unlock pop
+- Pool exit pop
+- Pool spawn pop
+- Score tick (ascending tones per point)
+- Score complete fanfare
+- Round start fanfare
 
-Trigger sounds on physics collision callbacks. Each bounce plays a progressively quieter impact. Pitch varies slightly per die to avoid repetition.
-
-**UI Sounds:**
-- Lock-in: satisfying click/snap (like a puzzle piece)
-- Bonus die spawn: bright ascending chime
-- Score counting: ascending tones per point (+1, +1, +1...)
-- Win fanfare: triumphant but brief
-- Round end (no win): softer resolution tone
-- "Roll Better" prompt: subtle whoosh or pulse
-
-**Haptic Feedback (mobile):**
-- Per-bounce haptic pulses (10-30ms) via Vibration API — synced to physics collisions
-- Decrease intensity as dice lose energy
-- Final settle: one subtle pulse
-- Lock-in: short firm buzz
-- Bonus spawn: double-tap pattern
-- Industry standard set by Mighty Dice app
-
-**Sound Implementation:**
-- Howler.js or Web Audio API
-- Trigger on Rapier collision events
-- Layer multiple simultaneous sounds for multi-dice rolls
+**Future (not yet implemented):**
+- Multi-layered dice roll sounds (impact, tumble, scrape, settle)
+- Physics collision-triggered audio
+- Spatial 3D audio
+- Full haptic feedback suite (currently basic Vibration API via `haptics.ts`)
 
 ---
 
@@ -455,174 +516,148 @@ Trigger sounds on physics collision callbacks. Each bounce plays a progressively
 - **Framework**: React 18+ with TypeScript
 - **Build**: Vite
 - **3D Rendering**: Three.js via React Three Fiber (R3F)
-- **3D Helpers**: @react-three/drei (Environment maps, AccumulativeShadows, RandomizedLight, camera controls)
+- **3D Helpers**: @react-three/drei (RoundedBox, Environment maps)
 - **Physics**: @react-three/rapier (Rust/WASM via Rapier — high performance)
-- **Post-Processing**: @react-three/postprocessing (selective bloom for special effects)
-- **Dice Materials**: MeshPhysicalMaterial with clearcoat, HDRI environment maps from polyhaven
+- **Dice Materials**: meshPhysicalMaterial with clearcoat
 - **State Management**: Zustand (works natively with R3F, avoids React re-renders for game state)
-- **Audio**: Howler.js (collision-triggered layered sounds)
-- **Networking (v1.1)**: Partykit WebSocket client (Cloudflare free tier)
-- **Server (v1.1)**: Partykit room server on Cloudflare Workers (edge runtime, no Node.js server needed)
-- **Deployment**: GitHub Pages (static hosting) + Vite PWA plugin (installable, offline-capable)
+- **Audio**: Web Audio API via custom `soundManager.ts`
+- **Haptics**: Vibration API via custom `haptics.ts`
+- **Networking**: PartyKit WebSocket client + server (Cloudflare Workers edge)
+- **Deployment**: Not yet deployed (local dev only)
 
 ### 7.2 Project Structure
 ```
 src/
-├── main.tsx                    # App entry point
-├── App.tsx                     # Router / screen management
-├── stores/
-│   └── gameStore.ts            # Zustand store — all game state
-├── screens/
-│   ├── MainMenu.tsx            # Title, Create/Join room, settings
-│   ├── Lobby.tsx               # Room lobby — players, ready, start
-│   ├── GameScreen.tsx          # The play area — 3D canvas + HUD
-│   └── WinnersScreen.tsx       # End-of-session stats and results
+├── main.tsx                         # App entry point
+├── App.tsx                          # Screen router, phase effects, game event handlers
+├── App.css                          # All styles
+├── index.css                        # Base styles
+│
+├── store/
+│   └── gameStore.ts                 # Zustand store — all game state + actions
+│
+├── types/
+│   ├── game.ts                      # GamePhase, Player, RoundState, LockAnimation, etc.
+│   └── protocol.ts                  # WebSocket message types (client ↔ server)
+│
 ├── components/
-│   ├── game/
-│   │   ├── GoalRow.tsx         # 8 Goal dice + colored indicators
-│   │   ├── PlayerRow.tsx       # One player's 8 slots + icon
-│   │   ├── DicePool.tsx        # Bottom area — pool dice + rolling
-│   │   ├── Die3D.tsx           # Single 3D die component
-│   │   ├── ScoreHUD.tsx        # X/Y/Z display + score
-│   │   └── RollPrompt.tsx      # "Roll Better" prompt
-│   ├── lobby/
-│   │   ├── RoomCode.tsx        # Display / input room code
-│   │   └── PlayerList.tsx      # Lobby player list + ready states
-│   └── ui/
-│       ├── Button.tsx
-│       └── Settings.tsx        # Settings panel
-├── systems/
-│   ├── dicePhysics.ts          # Rapier physics setup for dice rolling
-│   ├── gameLogic.ts            # Core rules engine (Goal gen, matching, scoring, handicap)
-│   ├── aiPlayer.ts             # AI decision making (Easy/Medium/Hard)
-│   └── animations.ts           # Lerp utilities, easing functions
+│   ├── MainMenu.tsx                 # Offline setup: player count, difficulty, play button
+│   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start
+│   ├── WinnersScreen.tsx            # Final rankings, play again, menu
+│   ├── HUD.tsx                      # Status text, roll/unlock/skip buttons, AFK countdown
+│   ├── Settings.tsx                 # Audio, performance, shake, haptics, tips toggles
+│   ├── HowToPlay.tsx                # In-game rules reference modal
+│   ├── TipBanner.tsx                # Contextual tutorial hints
+│   ├── RollingCountdown.tsx         # AFK countdown bar (rolling + unlock phases)
+│   ├── TouchIndicator.tsx           # Visual touch feedback
+│   │
+│   ├── Scene.tsx                    # Main R3F canvas — orchestrates all 3D components
+│   ├── RollingArea.tsx              # Physics arena: floor + 4 walls
+│   ├── DicePool.tsx                 # Pool management, physics dice, settle detection
+│   ├── PhysicsDie.tsx               # Single physics die: rigid body + settle events
+│   ├── Die3D.tsx                    # 3D die visual: RoundedBox + pip dots
+│   │
+│   ├── GoalRow.tsx                  # 8 Goal dice with entry/exit animations
+│   ├── GoalIndicators.tsx           # Colored wedges under Goal showing player locks
+│   ├── GoalProfileGroup.tsx         # Star icon + score display (far left of Goal)
+│   │
+│   ├── PlayerRow.tsx                # One player's 8 lock slots + icon
+│   ├── PlayerIcon.tsx               # Color swatch + score + X/Y/Z
+│   ├── PlayerProfileGroup.tsx       # AI/other player icon (scaled, positioned)
+│   │
+│   ├── AnimatingDie.tsx             # Lock animation: pool → slot lerp
+│   ├── MitosisDie.tsx               # Unlock animation: slot → 2 dice arc to pool
+│   ├── SpawningDie.tsx              # Pool spawn animation: icon → pool position
+│   └── GravityController.tsx        # Accelerometer-based gravity tilt
+│
 ├── hooks/
-│   ├── useShakeToRoll.ts       # Mobile accelerometer detection
-│   ├── useDiceLerp.ts          # Animated dice movement
-│   └── useGamePhase.ts         # Phase state machine
-├── utils/
-│   ├── colors.ts               # Player color palette (colorblind-friendly)
-│   ├── roomCode.ts             # Generate / validate ##X## codes
-│   └── constants.ts            # Magic numbers — pool limits, scoring, thresholds
-└── types/
-    └── game.ts                 # TypeScript types for game state
+│   ├── useOnlineGame.ts             # Server message listener, phase sync, watchdog, buffering
+│   ├── useRoom.ts                   # Lobby: room creation/joining, game start detection
+│   ├── useShakeToRoll.ts            # Mobile accelerometer shake detection
+│   └── useAccelerometerGravity.ts   # Tilt-based gravity for rolling dice
+│
+└── utils/
+    ├── matchDetection.ts            # findAutoLocks() — pure logic (7 unit tests)
+    ├── matchDetection.test.ts       # Unit tests for match detection
+    ├── aiDecision.ts                # AI unlock strategies (Easy/Medium/Hard)
+    ├── aiDecision.test.ts           # Unit tests for AI decisions
+    ├── diceUtils.ts                 # getFaceUp(), getFaceUpRotation()
+    ├── clearSpot.ts                 # Find empty pool positions for unlocking
+    ├── partyClient.ts               # PartySocket wrapper
+    ├── soundManager.ts              # Web Audio API sound effects
+    └── haptics.ts                   # Vibration API wrapper
 ```
 
 ### 7.3 Key Technical Decisions
 - **R3F Golden Rule**: NEVER use React state for per-frame updates. Mutate refs in useFrame. All dice physics, lerps, and animations run in useFrame loops, not React re-renders.
-- **Physics**: Rapier for realistic 3D dice tumbling. Dice are rigid bodies with correct mass/inertia for realistic rolls. Physics runs in the bottom rolling area; locked dice are kinematic (not affected by physics).
-- **Dice values**: Read from physics simulation — the face pointing up after the die settles determines the rolled value. Use dot product of each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome visually and mechanically. This is true for BOTH offline and online play.
-- **Client-authoritative values, server-authoritative locking (v1.1)**: Each client rolls physics dice locally and reports settled values to the server. Server computes locks via `findAutoLocks` and relays results to other players. The physics the player sees ARE the values that get used — no mismatch between display and game state. No physics sync needed across clients.
-- **Animation system**: Central lerp manager handles all dice movement. Queue-based to sequence animations (e.g., lock dice → THEN check winner → THEN show unlock prompt). Use easing functions for polish (ease-out for locks, ease-in-out for spawns).
+- **Physics**: Rapier for realistic 3D dice tumbling. Dice are rigid bodies with correct mass/inertia. Physics runs in the rolling area; locked dice are visual-only (not physics objects).
+- **Dice values**: Read from physics simulation — `getFaceUp(quaternion)` dot-products each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome. This is true for BOTH offline and online play.
+- **Client-authoritative values, server-authoritative locking**: Each client rolls physics dice locally and reports settled values to the server. Server computes locks via `findAutoLocks` and relays results to other players. The physics the player sees ARE the values that get used — no mismatch.
+- **Shared geometry/materials**: `Die3D.tsx` creates pip geometry and material at module level (once), shared by all die instances for performance.
+- **DicePool generation keys**: `key={`${generation}-${i}`}` — generation counter bumps when pool shrinks to force remount with correct initial face values (fixes BUG-001 where wrong die stayed in pool after locking).
 - **Initial roll force**: Apply impulse at an OFFSET point (not center of mass) to induce natural rotation. Add random initial angular velocity per die for variety.
+- **Settle detection**: Per-die: velocity + angular velocity both < 0.1 for 0.5s. DicePool orchestrates: waits for ALL dice settled or 500ms fallback timer after first settle.
+- **React StrictMode**: Dev mode double-fires effects. All init logic must be idempotent or reset state before re-running. Animation refs (`hasFired`) prevent duplicates.
 
-**Physics starting values (tune during M1):**
+**Physics parameters (tuned for feel):**
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Gravity | [0, -50, 0] | Faster than real (real = -9.81). Adjust up/down for feel. |
+| Gravity | [0, -50, 0] | Faster than real (real = -9.81). Punchy feel. |
 | Mass | 1 | Standard for d6 |
-| Restitution | 0.3 | Wood surface. Felt = 0.15, stone = 0.5 |
+| Floor restitution | 0.5 | Bouncy wood surface |
+| Wall restitution | 0.3 | Walls absorb more energy |
 | Friction | 0.6 | Controls rolling vs sliding |
 | Angular damping | 0.3 | How fast spin dies. Lower = longer spins. |
-| Sleep threshold | 0.1s | Die must be below velocity for this long to "settle" |
+| Die size | 0.589 | Relative to arena, fits 8 across with spacing |
 | Edge bevel | 0.07 | Ratio to die size. Critical for visual quality. |
-
-### 7.4 v1.0 vs v1.1 Boundary
-**v1.0 MVP (local, AI opponents):**
-- All game logic runs client-side in the browser
-- AI opponents use same game logic
-- No server, no networking
-- Room code UI exists but is non-functional (placeholder)
-- Goal: prove the core loop is fun
-
-**v1.1 Online Multiplayer (Partykit):**
-- Partykit room server on Cloudflare handles room creation, lock computation, result relay
-- Client-authoritative values: each player's physics determines their dice values
-- Server-authoritative locking: server runs `findAutoLocks` on reported values, relays results
-- Per-player data flow: each player's results relay independently (no batching/waiting)
-- Client-side buffering: other players' results hidden until you've acted, then animated reveal
-- Room codes become functional (4-letter Jackbox-style)
-- AI backfill for incomplete rooms + AI drop-in/drop-out on disconnect
-- Turn timers with AI takeover on timeout
-- Reconnection with seamless AI handoff
-- GitHub Pages deployment + PWA for "install to home screen"
-- Privacy policy + IARC age rating (13+, no data collected)
 
 ---
 
-## 8. Milestones
+## 8. Milestones (Completed)
 
-### M0: Project Setup
+### v0.1.0 — Foundation + Core Loop (Feb 27 – Mar 2)
 - React + Vite + TypeScript + R3F + Rapier scaffolded
-- Basic 3D scene rendering
-- Zustand store skeleton
-- Dev server running
-
-### M1: Core Dice
-- 3D die model rendering (proper cube with face numbers)
-- Dice physics — roll a die and read the result from the face-up side
-- Single die: click to roll, watch it tumble, read the value
-- Die lerp animation — smooth movement from A to B
-
-### M2: Game Board Layout
-- Goal row (8 dice, sorted, horizontal at top)
-- Player row (8 slots aligned under Goal)
-- Dice pool area at bottom
-- Score HUD (X/Y/Z + points)
-- Responsive portrait layout (mobile-first)
-
-### M3: Core Game Loop (single player vs 1 AI)
-- Goal generation (roll 8, sort)
-- Roll your dice, auto-lock matching dice to slots
-- Winner check after locking
-- Unlock phase (drag dice to return + bonus die spawn)
-- Scoring with pool penalty
-- Handicap between rounds
-- Session to 20 points
-- Basic AI opponent (Medium difficulty)
-
-### M4: Multi-Player (local, multiple AI)
-- 2-8 players (1 human + AI)
-- Multiple player rows rendered
-- Other players' dice lerp from icon to slots
-- Player icons with score + X/Y/Z
-- Goal circle indicators (color wedges for leading player)
-- AI difficulty setting
-
-### M5: Polish & Juice
-- Roll prompt ("Roll Better")
+- 3D die rendering with RoundedBox + pip dots
+- Dice physics: roll, settle, read face-up value
+- Goal row (8 sorted dice) with entry/exit animations
+- Player rows with 8 lock slots + player icons
+- Dice pool with physics rolling + settle detection
+- Auto-lock matching with `findAutoLocks()`
+- Unlock with mitosis animation (die splits into 2)
+- Scoring with pool penalty table
+- Handicap system between rounds
+- Session to 20 points with Winners Screen
+- AI opponents (Easy/Medium/Hard unlock strategies)
+- 2–4 players (1 human + AI)
 - Shake-to-roll on mobile
-- All lerp animations tuned (easing, timing)
-- Score counting animation
-- Handicap Z animation (scale pop)
-- Goal dice roll-in animation
-- Round transition animation
-- Basic sound effects (if time)
+- Sound effects (basic Web Audio)
+- HUD with status text, roll/unlock buttons
+- Settings modal (audio, performance, shake, haptics, tips)
+- How To Play modal
+- Contextual tip banner
+- Build version overlay
 
-### M6: Screens & Flow
-- Main Menu screen
-- Settings screen (tap vs drag unlock, AI difficulty)
-- Winners Screen (session results, stats)
-- Screen transitions
+### v0.2.0 — Online Multiplayer (Mar 3 – Mar 4)
+- PartyKit WebSocket server on Cloudflare
+- Room creation/joining with 4-letter codes
+- Lobby screen with player list, ready state, host controls
+- Client-authoritative dice values, server-authoritative locking
+- Per-player result relay with client-side buffering
+- Lock reveal + unlock reveal animations for other players
+- Phase sync with deferred snapshot application
+- Watchdog heartbeat with stall detection + self-healing
+- AFK timeout: 30s countdown on both rolling and unlock phases
+- AI backfill for incomplete rooms
+- AI takeover on disconnect, handoff on reconnect
+- Play Again flow (offline and online)
 
-### M7: Online Multiplayer (v1.1 — Partykit)
-- Partykit room server on Cloudflare free tier
-- Room creation / join with 4-letter Jackbox-style codes
-- Lobby screen (player list with names/colors, ready-up, host start, AI fill)
-- Client-authoritative dice values (physics determines results, server computes locks)
-- Per-player result relay with client-side buffering (see §5.3.1–5.3.3)
-- Dice sync + simultaneous play across clients
-- Turn timers with AI takeover on timeout
-- AI drop-in/drop-out (disconnect → AI takes over, reconnect → player resumes)
-- Connection resilience + reconnection handling
-
-### M8: Deployment & Compliance
-- GitHub Pages deployment (static hosting, auto-updates on push)
-- PWA setup (installable, offline-capable, service worker caching)
-- Privacy policy (no data collected)
-- IARC age rating (13+, sidesteps COPPA)
-- Multi-device integration testing
+### Next: Deployment & Polish
+- GitHub Pages deployment
+- PWA setup (installable, offline-capable)
+- Full audio pass (multi-layered dice sounds, spatial audio)
+- Full haptic feedback pass
+- Privacy policy + IARC age rating
 
 ---
 
@@ -634,24 +669,35 @@ src/
 - Verify: handicap adjusts correctly every round
 - Verify: Goal generation produces valid sorted dice
 - Verify: lock-in limits are enforced (can't lock more than Goal count)
-- Verify: bonus dice spawn correctly on unlock
+- Verify: bonus dice spawn correctly on unlock (mitosis animation)
 - Verify: session ends at 20 points, correct winners shown
+- Verify: must-unlock rule triggers when pool is 0
+- Verify: 12-die cap prevents further unlocking
 
 ### Automated Tests
-- `gameLogic.ts`: Unit tests for Goal generation, match checking, scoring formula, handicap
-- `roomCode.ts`: Unit tests for code generation/validation
-- `aiPlayer.ts`: Unit tests for AI unlock decisions
+- `matchDetection.test.ts`: 7 unit tests for `findAutoLocks()` — Goal matching, slot limits, edge cases
+- `aiDecision.test.ts`: Unit tests for AI unlock strategies at all difficulty levels
+
+### Online Testing
+- 2-player online: verified full session
+- 2 humans + 2 bots: verified full session including host exit + Play Again
+- Phase sync, deferred animations, scoring, session end: all verified
+- **Needs testing**: 5-player game with multiple remaining humans hitting Play Again
 
 ### Device Testing
 - Chrome desktop (primary dev)
 - Safari iOS (iPhone) — shake-to-roll, touch interactions
 - Chrome Android — shake-to-roll, touch interactions
-- iPad Safari — larger touch targets, landscape consideration
 
 ---
 
 ## 10. Known Issues & Bugs
-None yet.
+
+- **BUG-001 (fixed v0.1.0.53):** DicePool used `key={i}` — when pool shrank after locking, the wrong physical die stayed. Fix: generation counter in keys forces remount with correct values.
+- **Audio**: Sound effects are basic. No collision-triggered sounds, no spatial audio, no multi-layered roll sounds yet.
+- **Haptics**: Basic Vibration API only. No per-bounce pulses or nuanced patterns yet.
+- **No skip-lock**: Players cannot opt out of auto-locking a matching die. This is a deliberate simplification but may need revisiting.
+- **No drag-to-unlock**: Unlock uses tap-to-toggle + confirm button only. Drag interaction was originally planned but not implemented.
 
 ---
 
@@ -665,26 +711,34 @@ None yet.
 - Tournament mode (bracket of sessions)
 - Friends list / rematch
 - Replay system (watch dramatic rolls again)
-- Haptic feedback on mobile for rolls, locks, wins
+- Full haptic feedback on mobile for rolls, locks, wins
 - "Skip lock" UX: best way to let players choose not to auto-lock a match
 - Async/turn-based mode for Lisa-type players who want play-by-play pacing
 - Landscape support for tablets/desktop
+- Drag-to-unlock as alternative to tap-to-toggle
+- GitHub Pages deployment + PWA (installable, offline-capable)
+- Privacy policy + IARC age rating (13+, no data collected)
 
 ---
 
 ## 12. Glossary
 - **Goal**: The 8 white dice at the top of the screen that all players race to match
-- **Lock / Lock-in**: Placing a matching die in its slot under the Goal die
-- **Unlock / Return**: Dragging a locked die back to your pool, which spawns a +1 bonus die
+- **Lock / Lock-in**: Automatically placing a matching die in its slot under the Goal die
+- **Unlock / Mitosis**: Tapping a locked die to return it to your pool — the die splits into 2 (original + bonus), giving you a net +1 total dice
 - **Dice pool**: Your available dice at the bottom of the screen, ready to roll
-- **Pool size**: Total dice you have (pool + locked). Determines scoring penalty.
+- **Pool size**: Number of unlocked dice in your rolling pool
+- **Total dice**: Pool + locked. Capped at 12.
 - **Starting dice (Z)**: How many dice you begin each round with, modified by handicap
 - **Handicap**: Win a round → -1 starting die. Lose → +1 starting die. Applied every round.
+- **Must-unlock**: If pool = 0 and locked < 8, you must unlock at least 1 die before rolling
 - **Session**: A series of rounds played until someone reaches 20 points
 - **Round**: One Goal, rolled repeatedly until someone locks all 8
 - **Turn**: One roll cycle within a round (roll → lock → check → unlock → repeat)
-- **Room code**: 4-letter alphanumeric code (e.g., KFBR) used to join an online game — Jackbox-style, zero friction
-- **AI takeover**: When a player disconnects or times out on unlock, AI seamlessly controls their dice until they reconnect
-- **Partykit**: WebSocket room server running on Cloudflare's free tier edge network
-- **PWA**: Progressive Web App — installable to home screen, works offline
-- **AI backfill**: AI opponents that fill empty player slots when the host starts early
+- **Room code**: 4-letter alphabetic code (excludes I, O) used to join an online game — Jackbox-style, zero friction
+- **AFK timer**: 30-second countdown on both rolling and unlock phases. When expired, AI acts for the player that turn only.
+- **AI takeover**: When a player disconnects or times out, AI seamlessly controls their dice until they reconnect
+- **AI backfill**: AI opponents that fill empty player slots when the host starts the game
+- **PartyKit**: WebSocket room server running on Cloudflare's edge network
+- **Deferred snapshot**: Pattern where server state is buffered until client animations finish, preventing visual glitches
+- **Watchdog**: Heartbeat that detects phase stalls and requests state sync from server
+- **Profile-emerge**: Animation pattern where other players' dice scale from 0→1 and fly from their profile icon to their row slots
