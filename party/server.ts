@@ -934,11 +934,11 @@ export default class RollBetterServer implements Party.Server {
       this.room.broadcast(msgStr);
       this.log("Phase → unlocking — broadcast sent");
 
-      // Start AFK timeout — auto-skip after 20 seconds
+      // Start AFK timeout — 25 seconds (client's 20s + 5s margin so client fires first)
       this.unlockTimeoutTimer = setTimeout(() => {
         this.unlockTimeoutTimer = null;
         this.autoSkipUnresponsivePlayers();
-      }, 20_000);
+      }, 25_000);
     }
   }
 

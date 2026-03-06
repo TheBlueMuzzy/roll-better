@@ -63,5 +63,5 @@ Progress: ██████████ 100%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: v1.2 UAT complete — all 9 tests passed. Ready to deploy and complete milestone.
+Stopped at: Fixing AFK unlock timer race condition. Server unlock timeout changed from 20s to 25s (matching rolling timeout pattern). Testing in progress.
 Resume file: None
