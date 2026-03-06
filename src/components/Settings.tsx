@@ -5,10 +5,9 @@ import { playUIClick } from '../utils/soundManager';
 interface SettingsProps {
   open: boolean;
   onClose: () => void;
-  onOpenHowToPlay: () => void;
 }
 
-export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
+export function Settings({ open, onClose }: SettingsProps) {
   const screen = useGameStore((s) => s.screen);
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
@@ -119,13 +118,6 @@ export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* How to Play */}
-          <div className="settings-item">
-            <button className="settings-h2p" onClick={() => { playUIClick(); onOpenHowToPlay(); }}>
-              {'\u{1F4D6}'} How to Play
-            </button>
           </div>
 
           {/* Divider */}

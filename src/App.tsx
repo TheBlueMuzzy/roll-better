@@ -571,7 +571,7 @@ function App() {
       {screen === 'winners' && (
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
       <div className="build-version">{version}</div>
