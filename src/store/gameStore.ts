@@ -86,7 +86,6 @@ interface GameStore extends GameState {
   // Settings
   setAudioVolume: (volume: number) => void;
   setPerformanceMode: (mode: Settings['performanceMode']) => void;
-  setShakeToRollEnabled: (enabled: boolean) => void;
   setHapticsEnabled: (enabled: boolean) => void;
   setTipsEnabled: (enabled: boolean) => void;
   setConfirmationEnabled: (enabled: boolean) => void;
@@ -154,7 +153,6 @@ const initialRoundState = {
 const defaultSettings: Settings = {
   audioVolume: 80,
   performanceMode: 'advanced',
-  shakeToRollEnabled: true,
   hapticsEnabled: true,
   tipsEnabled: true,
   confirmationEnabled: true,
@@ -961,10 +959,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPerformanceMode: (mode: Settings['performanceMode']) => {
     set({ settings: { ...get().settings, performanceMode: mode } });
-  },
-
-  setShakeToRollEnabled: (enabled: boolean) => {
-    set({ settings: { ...get().settings, shakeToRollEnabled: enabled } });
   },
 
   setHapticsEnabled: (enabled: boolean) => {

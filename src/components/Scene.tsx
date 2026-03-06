@@ -1,7 +1,6 @@
 import { useRef, useState, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
-import { GravityController } from './GravityController';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X, DIE_SIZE } from './RollingArea';
@@ -378,9 +377,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
         {/* Physics world */}
         <Physics gravity={[0, -50, 0]}>
-          {/* Syncs Rapier gravity with phone accelerometer during rolling */}
-          <GravityController />
-
           {/* Rolling area: floor + invisible boundary walls */}
           <RollingArea onFloorClick={handleFloorClick} />
 

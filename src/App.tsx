@@ -12,8 +12,6 @@ import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getGameSocket, setGameSocket, sendMessage } from './utils/partyClient';
-import { useShakeToRoll } from './hooks/useShakeToRoll';
-import { useAccelerometerGravity } from './hooks/useAccelerometerGravity';
 import { useOnlineGame } from './hooks/useOnlineGame';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE } from './components/RollingArea';
@@ -501,14 +499,6 @@ function App() {
     sceneRef.current?.rollAll(); // Visual physics animation (both modes)
   }, [setPhase]);
 
-  // Shake-to-roll (mobile) — must come after handleRoll is defined
-  const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
-  const { isSupported: shakeSupported, permissionState: shakePermission, requestPermission: requestShakePermission } =
-    useShakeToRoll(handleRoll, shakeToRollEnabled && screen === 'game');
-
-  // Accelerometer-driven gravity — active during rolling phase on mobile
-  useAccelerometerGravity(shakeSupported && shakeToRollEnabled && phase === 'rolling');
-
   const handleRollStart = useCallback(() => {
     setPhase('rolling');
   }, [setPhase]);
@@ -536,7 +526,7 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenHowToPlay={() => { playUIClick(); setHowToPlayOpen(true); }} onOpenSettings={() => setSettingsOpen(true)} />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onPlayOnline={handlePlayOnline} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
       <LobbyScreen
         visible={screen === 'lobby'}
         onGameStart={handleOnlineGameStart}
@@ -561,8 +551,6 @@ function App() {
             onRoll={handleRoll}
             onConfirmUnlock={handleConfirmUnlock}
             onOpenSettings={() => setSettingsOpen(true)}
-            shakeEnabled={shakeSupported && shakeToRollEnabled}
-            onRequestShakePermission={shakeSupported && shakePermission === 'prompt' ? requestShakePermission : undefined}
           />
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
@@ -583,7 +571,7 @@ function App() {
       {screen === 'winners' && (
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} shakeSupported={shakeSupported} />
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onOpenHowToPlay={() => setHowToPlayOpen(true)} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
       <div className="build-version">{version}</div>

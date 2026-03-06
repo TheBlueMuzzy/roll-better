@@ -6,19 +6,16 @@ interface SettingsProps {
   open: boolean;
   onClose: () => void;
   onOpenHowToPlay: () => void;
-  shakeSupported?: boolean;
 }
 
-export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: SettingsProps) {
+export function Settings({ open, onClose, onOpenHowToPlay }: SettingsProps) {
   const screen = useGameStore((s) => s.screen);
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
-  const shakeToRollEnabled = useGameStore((s) => s.settings.shakeToRollEnabled);
   const tipsEnabled = useGameStore((s) => s.settings.tipsEnabled);
   const confirmationEnabled = useGameStore((s) => s.settings.confirmationEnabled);
   const setAudioVolume = useGameStore((s) => s.setAudioVolume);
   const setPerformanceMode = useGameStore((s) => s.setPerformanceMode);
-  const setShakeToRollEnabled = useGameStore((s) => s.setShakeToRollEnabled);
   const setTipsEnabled = useGameStore((s) => s.setTipsEnabled);
   const setConfirmationEnabled = useGameStore((s) => s.setConfirmationEnabled);
   const setScreen = useGameStore((s) => s.setScreen);
@@ -87,27 +84,6 @@ export function Settings({ open, onClose, onOpenHowToPlay, shakeSupported }: Set
               </div>
             </div>
           </div>
-
-          {/* Shake to Roll Toggle — only on supported devices */}
-          {shakeSupported && (
-            <div className="settings-item">
-              <div className="settings-item-row">
-                <span className="settings-label">Shake to Roll</span>
-                <div className="settings-toggle-group">
-                  <div
-                    className={`settings-toggle${shakeToRollEnabled ? ' on' : ''}`}
-                    onClick={() => setShakeToRollEnabled(!shakeToRollEnabled)}
-                  >
-                    <div className="settings-toggle-thumb" />
-                  </div>
-                  <span className="settings-hint">
-                    {shakeToRollEnabled ? 'On' : 'Off'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
 
           {/* Tips Toggle */}
           <div className="settings-item">
