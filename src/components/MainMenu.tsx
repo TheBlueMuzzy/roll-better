@@ -77,10 +77,12 @@ export function MainMenu({ visible, onPlay, onPlayOnline, onOpenHowToPlay, onOpe
           Upgrades
           <span className="menu-coming-soon-label">Coming Soon</span>
         </button>
-        <button className="menu-settings-link" onClick={() => { playUIClick(); onOpenSettings(); }}>
-          Settings
-        </button>
       </div>
+
+      {/* Gear icon — bottom-right, mirrors HUD .settings-gear */}
+      <button className="menu-gear" onClick={() => { playUIClick(); onOpenSettings(); }}>
+        &#x2699;
+      </button>
     </div>
   );
 }

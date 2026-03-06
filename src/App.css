@@ -772,20 +772,25 @@ body {
   letter-spacing: 1px;
 }
 
-.menu-settings-link {
-  background: none;
+.menu-gear {
+  position: absolute;
+  bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom));
+  right: calc(var(--sp-sm) + env(safe-area-inset-right));
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: 50%;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: var(--fs-sm);
-  font-family: inherit;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: var(--fs-xl);
+  line-height: var(--touch-target);
+  text-align: center;
   cursor: pointer;
-  padding: var(--sp-xs) var(--sp-md);
-  letter-spacing: 0.05em;
-  transition: color 0.15s;
+  padding: 0;
 }
 
-.menu-settings-link:active {
-  color: rgba(255, 255, 255, 0.7);
+.menu-gear:active {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* --- Lobby Screen overlay --- */
