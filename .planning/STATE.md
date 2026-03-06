@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-Phase 26 complete. How to Play slides reviewed — all 6 accurate for v1.2, no changes needed. v1.2 milestone complete.
+Phase 26 complete. v1.2 milestone complete. UAT found/fixed JOIN button inactive bug (f858c41). Room timeout issue logged (UAT-001).
 
 ## Version
-0.2.0.17
+0.2.0.18
 
 ## Project Reference
 
@@ -63,5 +63,5 @@ Progress: ██████████ 100%
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 26-01-PLAN.md, Phase 26 complete, v1.2 milestone complete
+Stopped at: v1.2 UAT complete. JOIN inactive bug fixed (f858c41). Room timeout logged (UAT-001).
 Resume file: None
