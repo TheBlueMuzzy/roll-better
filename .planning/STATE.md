@@ -4,7 +4,7 @@
 v1.3 milestone created. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.18
+0.2.0.19
 
 ## Project Reference
 
@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 27 of 34 (Player Identity & Seat Model)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-06 — Milestone v1.3 created
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-07 — Completed 27-01-PLAN.md
 
-Progress: ░░░░░░░░░░ 0%
+Progress: █░░░░░░░░░ 6%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -45,6 +45,8 @@ Progress: ░░░░░░░░░░ 0%
 
 ### Decisions
 - v1.2 shipped: UI/UX polish complete. All decisions archived in milestones/v1.2-ROADMAP.md.
+- 27-01: Dual identity model — conn.id (sessionStorage) for WebSocket session, persistentId (localStorage) for cross-session seat ownership
+- 27-01: persistentIdToConnId map persists after disconnect for returning player detection
 
 ### Open Issues
 (none)
@@ -57,12 +59,11 @@ Progress: ░░░░░░░░░░ 0%
 
 ## Session Continuity
 
-Last session: 2026-03-06
-Stopped at: Milestone v1.3 initialization complete
+Last session: 2026-03-07
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None
 
-### Recent Changes (2026-03-06)
-- **PRD #8 full spec written**: Drop-in/Drop-out expanded from 2-line placeholder to complete player connection lifecycle (timer-based handoff, seat states, AFK escalation, mid-game join, host migration, Play Again flow, room dissolution)
-- **Dependency audit**: All 14 PRD §11 ideas mapped into parallel tiers with dependency links
-- **v1.3 milestone created**: 8 phases (27-34) on feature/v1.3-drop-in-drop-out branch
-- **Next**: /gsd:plan-phase 27 (Player Identity & Seat Model)
+### Recent Changes (2026-03-07)
+- **27-01 complete**: Persistent player ID (localStorage `rb-player-id`) + server persistentIdToConnId seat mapping
+- **Protocol updated**: JoinMessage, ConnectedMessage, RoomPlayer all carry persistentId
+- **Next**: 27-02-PLAN.md (remaining seat model work)

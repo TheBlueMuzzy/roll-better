@@ -69,7 +69,8 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 **Plans**: TBD
 
 Plans:
-- [ ] 27-01: TBD (run /gsd:plan-phase 27 to break down)
+- [x] 27-01: Persistent player ID + protocol + server seat mapping
+- [ ] 27-02: TBD
 
 #### Phase 28: AFK Autopilot & Escalation
 
@@ -174,7 +175,7 @@ Plans:
 | 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
-| 27. Player Identity & Seat Model | v1.3 | 0/? | Not started | - |
+| 27. Player Identity & Seat Model | v1.3 | 1/2 | In progress | - |
 | 28. AFK Autopilot & Escalation | v1.3 | 0/? | Not started | - |
 | 29. Disconnect Handoff | v1.3 | 0/? | Not started | - |
 | 30. Mid-Game Join Flow | v1.3 | 0/? | Not started | - |
