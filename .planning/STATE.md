@@ -4,7 +4,7 @@
 v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.22
+0.2.0.25
 
 ## Project Reference
 
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 28 of 34 (AFK Autopilot & Escalation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-07 — Completed 28-01-PLAN.md
+Phase: 28 of 34 (AFK Autopilot & Escalation) — COMPLETE
+Plan: 2 of 2 in current phase — COMPLETE
+Status: Phase 28 complete, ready for Phase 29
+Last activity: 2026-03-07 — Completed 28-02-PLAN.md
 
-Progress: ███░░░░░░░ 15%
+Progress: ████░░░░░░ 25%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -50,6 +50,7 @@ Progress: ███░░░░░░░ 15%
 - 27-01: persistentIdToConnId map persists after disconnect for returning player detection
 - 27-02: SeatState as string literal union (not enum), seatIndex sequential by array position, autopilotCounter server-only
 - 28-01: AFK escalation threshold = 3 consecutive timeouts; resetAFKEscalation helper DRYs 3 manual handlers; promoteToBotFromAFK keeps player in array for reconnect
+- 28-02: AFK threshold lowered to 2 (1 full AFK turn = bot takeover); client flags afk:true on auto-triggered messages; bot icon on avatars; return to menu on bot takeover
 
 ### Open Issues
 (none)
@@ -63,12 +64,11 @@ Progress: ███░░░░░░░ 15%
 ## Session Continuity
 
 Last session: 2026-03-07
-Stopped at: Completed 28-01-PLAN.md
+Stopped at: Phase 28 complete — ready for Phase 29 planning
 Resume file: None
 
 ### Recent Changes (2026-03-07)
-- **27-01 complete**: Persistent player ID (localStorage `rb-player-id`) + server persistentIdToConnId seat mapping
-- **27-02 complete**: SeatState enum + seatIndex + autopilotCounter flowing server→protocol→client
-- **Phase 27 complete**: Player Identity & Seat Model foundation ready for Phase 28
-- **28-01 complete**: Server AFK escalation engine — counter tracking, seat transitions, SeatStateChangedMessage protocol
-- **Next**: 28-02 — Client seat state sync + UI feedback
+- **Phase 28 complete**: AFK Autopilot & Escalation fully wired end-to-end
+- **28-02 delivered**: Client seat state sync, HUD notification pills, bot icon on avatars, return to menu on bot takeover
+- **AFK counter bug fixed**: Client flags afk:true in protocol, server increments counter instead of resetting. Threshold = 2.
+- **Vision captured**: Remove "ready" button, auto-ready on join (relevant to Phase 30/32)
