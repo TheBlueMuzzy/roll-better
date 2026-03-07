@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 24,
+  "build": 25,
   "history": [
     {
       "version": "0.1.0",
@@ -317,6 +317,11 @@
       "version": "0.2.0.24",
       "date": "2026-03-07",
       "summary": "Bot icon on profile avatars, return to menu on bot takeover"
+    },
+    {
+      "version": "0.2.0.25",
+      "date": "2026-03-07",
+      "summary": "Fix AFK counter never accumulating: afk flag in protocol, threshold 2"
     }
   ]
 }
