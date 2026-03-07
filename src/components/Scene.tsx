@@ -331,6 +331,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           startingDice={player.startingDice}
           totalDice={player.poolSize + player.lockedDice.length}
           position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77]}
+          isBot={player.seatState === 'bot'}
         />
 
         {/* AI player profile groups */}
@@ -343,6 +344,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             startingDice={aiPlayer.startingDice}
             totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
             position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77 + (idx + 1) * 0.9]}
+            isBot={aiPlayer.seatState === 'bot'}
           />
         ))}
 

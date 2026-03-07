@@ -67,6 +67,25 @@ function App() {
   // Performance settings
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
 
+  // Bot takeover: if local player is promoted to bot, return to main menu
+  const localSeatState = useGameStore((s) => s.players[0]?.seatState);
+  useEffect(() => {
+    if (!isOnlineGame || !localSeatState) return;
+    if (localSeatState === 'bot') {
+      console.log('[App] Local player promoted to bot — returning to main menu');
+      // Clean up online connection
+      const socket = getGameSocket();
+      if (socket) {
+        sendMessage(socket, { type: "leave" });
+        socket.close();
+      }
+      useGameStore.getState().clearOnlineMode();
+      setGameSocket(null);
+      setPhase('idle');
+      setScreen('menu');
+    }
+  }, [localSeatState, isOnlineGame, setPhase, setScreen]);
+
   // Reconnect toast listener
   useEffect(() => {
     const handler = (e: Event) => {

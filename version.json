@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 23,
+  "build": 24,
   "history": [
     {
       "version": "0.1.0",
@@ -312,6 +312,11 @@
       "version": "0.2.0.23",
       "date": "2026-03-07",
       "summary": "Client seat state sync + HUD notification pills for AFK/bot transitions"
+    },
+    {
+      "version": "0.2.0.24",
+      "date": "2026-03-07",
+      "summary": "Bot icon on profile avatars, return to menu on bot takeover"
     }
   ]
 }

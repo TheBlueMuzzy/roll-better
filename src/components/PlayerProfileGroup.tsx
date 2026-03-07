@@ -9,6 +9,7 @@ interface PlayerProfileGroupProps {
   startingDice: number;
   totalDice: number;
   position: [number, number, number];
+  isBot?: boolean;
 }
 
 export function PlayerProfileGroup({
@@ -18,6 +19,7 @@ export function PlayerProfileGroup({
   startingDice,
   totalDice,
   position,
+  isBot,
 }: PlayerProfileGroupProps) {
   // --- Responsive scale (1.0 at 390px baseline, clamped 0.85–1.3) ---
   const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
@@ -68,6 +70,7 @@ export function PlayerProfileGroup({
         {/* Column A: Avatar circle — shifted left by one circle width */}
         <div
           style={{
+            position: 'relative',
             width: Math.round(44 * scale),
             height: Math.round(44 * scale),
             borderRadius: '50%',
@@ -90,6 +93,21 @@ export function PlayerProfileGroup({
           >
             {name.charAt(0).toUpperCase()}
           </span>
+          {/* Bot indicator — small robot icon in top-left of avatar */}
+          {isBot && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                fontSize: Math.round(14 * scale),
+                lineHeight: 1,
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
+              }}
+            >
+              {'🤖'}
+            </span>
+          )}
         </div>
 
         {/* Column B: two rows stacked — shifted left by 1/4 star width */}
