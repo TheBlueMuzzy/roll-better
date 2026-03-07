@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player } from '../types/game';
-import type { UnlockResultMessage, LockedDieSync, PlayerSyncState } from '../types/protocol';
+import type { UnlockResultMessage, LockedDieSync, PlayerSyncState, SeatState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
 import { getFaceUpRotation } from '../utils/diceUtils';
@@ -101,6 +101,9 @@ interface GameStore extends GameState {
   syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => void;
   setGoalValues: (goalValues: number[]) => void;
   setCurrentRound: (round: number) => void;
+
+  // Seat state updates
+  updatePlayerSeatState: (playerId: string, seatState: SeatState, seatIndex: number) => void;
 
   // Online disconnect tracking
   setOnlineDisconnected: (disconnected: boolean) => void;
@@ -1109,6 +1112,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       phase: 'sessionEnd',
       screen: 'winners',
     });
+  },
+
+  // --- Seat state updates ---
+  updatePlayerSeatState: (playerId: string, seatState: SeatState, seatIndex: number) => {
+    const state = get();
+    const playerIndex = state.onlinePlayerIds.indexOf(playerId);
+    if (playerIndex === -1) return;
+    const players = state.players.map((p, i) =>
+      i === playerIndex ? { ...p, seatState, seatIndex } : p
+    );
+    set({ players });
   },
 
   // --- Online disconnect tracking ---

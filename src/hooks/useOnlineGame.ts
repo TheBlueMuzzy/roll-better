@@ -366,6 +366,15 @@ export function useOnlineGame(): UseOnlineGameReturn {
           window.dispatchEvent(new CustomEvent('player-reconnected', { detail: { name: msg.playerName } }));
           break;
 
+        case "seat_state_changed":
+          console.log(`[useOnlineGame] seat_state_changed: ${msg.playerId} → ${msg.seatState}`);
+          useGameStore.getState().updatePlayerSeatState(
+            msg.playerId,
+            msg.seatState,
+            msg.seatIndex
+          );
+          break;
+
         case "game_starting": {
           // Restart: server sent game_starting during an active online session
           console.log("[useOnlineGame] game_starting (restart) — re-initializing game");
