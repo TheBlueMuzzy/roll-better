@@ -3,6 +3,10 @@
 // Do NOT import from gameStore or any React code here.
 // ─────────────────────────────────────────────────────────────────────
 
+// ─── Seat Types ─────────────────────────────────────────────────────
+
+export type SeatState = 'human-active' | 'human-afk' | 'bot';
+
 // ─── Room Types ─────────────────────────────────────────────────────
 
 /** Minimal player info for room state (subset of full Player type) */
@@ -13,6 +17,7 @@ export interface RoomPlayer {
   isHost: boolean;
   isReady: boolean;
   persistentId: string;
+  seatIndex: number;
 }
 
 /** Room lifecycle status */
@@ -136,6 +141,8 @@ export interface PlayerSyncState {
   startingDice: number;
   poolSize: number;
   lockedDice: LockedDieSync[];
+  seatState: SeatState;
+  seatIndex: number;
 }
 
 /** Per-player roll result */

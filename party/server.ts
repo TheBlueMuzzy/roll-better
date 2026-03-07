@@ -7,6 +7,7 @@ import type {
   GameStartingMessage,
   LockedDieSync,
   PlayerSyncState,
+  SeatState,
 } from "../src/types/protocol";
 import { findAutoLocks } from "../src/utils/matchDetection";
 import { getAIUnlockDecision } from "../src/utils/aiDecision";
@@ -38,6 +39,9 @@ interface ServerPlayerState {
   isOnline: boolean;
   intentionalLeave?: boolean;
   difficulty?: string;
+  seatState: SeatState;
+  seatIndex: number;
+  autopilotCounter: number;
 }
 
 interface ServerGameState {
@@ -84,6 +88,7 @@ export default class RollBetterServer implements Party.Server {
       id: p.id, name: p.name, color: p.color,
       score: p.score, startingDice: p.startingDice,
       poolSize: p.poolSize, lockedDice: p.lockedDice,
+      seatState: p.seatState, seatIndex: p.seatIndex,
     }));
   }
 
@@ -111,6 +116,7 @@ export default class RollBetterServer implements Party.Server {
           isHost: conn.id === this.hostId,
           isReady: true,
           persistentId: gamePlayer.persistentId,
+          seatIndex: gamePlayer.seatIndex,
         });
 
         // Cancel keepalive timer if room was waiting for rejoin
@@ -323,6 +329,7 @@ export default class RollBetterServer implements Party.Server {
       isHost: isFirstPlayer,
       isReady: false,
       persistentId: pid,
+      seatIndex: this.players.size,
     };
 
     // Set host if first player
@@ -411,6 +418,7 @@ export default class RollBetterServer implements Party.Server {
     const gamePlayers: ServerPlayerState[] = [];
 
     // Online players
+    let seatIdx = 0;
     for (const p of this.players.values()) {
       gamePlayers.push({
         id: p.id,
@@ -422,7 +430,11 @@ export default class RollBetterServer implements Party.Server {
         poolSize: 2,
         lockedDice: [],
         isOnline: true,
+        seatState: 'human-active',
+        seatIndex: seatIdx,
+        autopilotCounter: 0,
       });
+      seatIdx++;
     }
 
     // Bot players (assigned unused colors)
@@ -439,7 +451,11 @@ export default class RollBetterServer implements Party.Server {
         lockedDice: [],
         isOnline: false,
         difficulty: randomDifficulty(),
+        seatState: 'bot',
+        seatIndex: seatIdx,
+        autopilotCounter: 0,
       });
+      seatIdx++;
     }
 
     this.gameState = {
@@ -500,6 +516,7 @@ export default class RollBetterServer implements Party.Server {
     const botCount = targetPlayers - this.players.size;
     const gamePlayers: ServerPlayerState[] = [];
 
+    let restartSeatIdx = 0;
     for (const p of this.players.values()) {
       gamePlayers.push({
         id: p.id,
@@ -511,7 +528,11 @@ export default class RollBetterServer implements Party.Server {
         poolSize: 2,
         lockedDice: [],
         isOnline: true,
+        seatState: 'human-active',
+        seatIndex: restartSeatIdx,
+        autopilotCounter: 0,
       });
+      restartSeatIdx++;
     }
 
     for (let i = 0; i < botCount; i++) {
@@ -527,7 +548,11 @@ export default class RollBetterServer implements Party.Server {
         lockedDice: [],
         isOnline: false,
         difficulty: randomDifficulty(),
+        seatState: 'bot',
+        seatIndex: restartSeatIdx,
+        autopilotCounter: 0,
       });
+      restartSeatIdx++;
     }
 
     this.gameState = {
@@ -578,6 +603,8 @@ export default class RollBetterServer implements Party.Server {
       startingDice: p.startingDice,
       poolSize: p.poolSize,
       lockedDice: p.lockedDice,
+      seatState: p.seatState,
+      seatIndex: p.seatIndex,
     }));
 
     const roundStartMsg: ServerMessage = {
@@ -997,6 +1024,8 @@ export default class RollBetterServer implements Party.Server {
       startingDice: p.startingDice,
       poolSize: p.poolSize,
       lockedDice: p.lockedDice,
+      seatState: p.seatState,
+      seatIndex: p.seatIndex,
     }));
 
     // Broadcast scoring message
@@ -1049,6 +1078,8 @@ export default class RollBetterServer implements Party.Server {
         startingDice: p.startingDice,
         poolSize: p.poolSize,
         lockedDice: p.lockedDice,
+        seatState: p.seatState,
+        seatIndex: p.seatIndex,
       }));
       const sessionEndMsg: ServerMessage = {
         type: "session_end",
