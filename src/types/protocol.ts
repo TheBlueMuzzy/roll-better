@@ -224,6 +224,13 @@ export interface PlayerReconnectedMessage {
   playerName: string;
 }
 
+export interface SeatStateChangedMessage {
+  type: "seat_state_changed";
+  playerId: string;
+  seatState: SeatState;
+  seatIndex: number;
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -241,4 +248,5 @@ export type ServerMessage =
   | PlayerLockResultMessage
   | PhaseSyncMessage
   | RejoinStateMessage
-  | PlayerReconnectedMessage;
+  | PlayerReconnectedMessage
+  | SeatStateChangedMessage;

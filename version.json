@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 21,
+  "build": 22,
   "history": [
     {
       "version": "0.1.0",
@@ -302,6 +302,11 @@
       "version": "0.2.0.21",
       "date": "2026-03-07",
       "summary": "Server AFK escalation: autopilot counter tracking, seat state transitions, promoteToBotFromAFK"
+    },
+    {
+      "version": "0.2.0.22",
+      "date": "2026-03-07",
+      "summary": "SeatStateChangedMessage protocol type + ServerMessage union update"
     }
   ]
 }
