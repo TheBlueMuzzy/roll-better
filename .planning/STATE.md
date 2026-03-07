@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Status
-v1.3 milestone created. Drop-in/Drop-out player connection lifecycle.
+v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.20
+0.2.0.22
 
 ## Project Reference
 
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 27 of 34 (Player Identity & Seat Model)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-07 — Completed 27-02-PLAN.md
+Phase: 28 of 34 (AFK Autopilot & Escalation)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-07 — Completed 28-01-PLAN.md
 
-Progress: ██░░░░░░░░ 12%
+Progress: ███░░░░░░░ 15%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -49,6 +49,7 @@ Progress: ██░░░░░░░░ 12%
 - 27-01: Dual identity model — conn.id (sessionStorage) for WebSocket session, persistentId (localStorage) for cross-session seat ownership
 - 27-01: persistentIdToConnId map persists after disconnect for returning player detection
 - 27-02: SeatState as string literal union (not enum), seatIndex sequential by array position, autopilotCounter server-only
+- 28-01: AFK escalation threshold = 3 consecutive timeouts; resetAFKEscalation helper DRYs 3 manual handlers; promoteToBotFromAFK keeps player in array for reconnect
 
 ### Open Issues
 (none)
@@ -62,11 +63,12 @@ Progress: ██░░░░░░░░ 12%
 ## Session Continuity
 
 Last session: 2026-03-07
-Stopped at: Completed 27-02-PLAN.md — Phase 27 complete
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None
 
 ### Recent Changes (2026-03-07)
 - **27-01 complete**: Persistent player ID (localStorage `rb-player-id`) + server persistentIdToConnId seat mapping
 - **27-02 complete**: SeatState enum + seatIndex + autopilotCounter flowing server→protocol→client
 - **Phase 27 complete**: Player Identity & Seat Model foundation ready for Phase 28
-- **Next**: Phase 28 — AFK Autopilot & Escalation
+- **28-01 complete**: Server AFK escalation engine — counter tracking, seat transitions, SeatStateChangedMessage protocol
+- **Next**: 28-02 — Client seat state sync + UI feedback

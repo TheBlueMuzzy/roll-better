@@ -80,7 +80,7 @@ Plans:
 **Plans**: 2
 
 Plans:
-- [ ] 28-01: Server AFK escalation engine (autopilot counter + seat state transitions + protocol)
+- [x] 28-01: Server AFK escalation engine (autopilot counter + seat state transitions + protocol)
 - [ ] 28-02: Client seat state sync + UI feedback notifications
 
 #### Phase 29: Disconnect Handoff
@@ -177,7 +177,7 @@ Plans:
 | 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 27. Player Identity & Seat Model | v1.3 | 2/2 | Complete | 2026-03-07 |
-| 28. AFK Autopilot & Escalation | v1.3 | 0/? | Not started | - |
+| 28. AFK Autopilot & Escalation | v1.3 | 1/2 | In progress | - |
 | 29. Disconnect Handoff | v1.3 | 0/? | Not started | - |
 | 30. Mid-Game Join Flow | v1.3 | 0/? | Not started | - |
 | 31. Host Migration & Room Lifecycle | v1.3 | 0/? | Not started | - |
