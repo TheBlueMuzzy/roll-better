@@ -29,6 +29,21 @@ export function getStableClientId(): string {
   return id;
 }
 
+// ─── Persistent Player ID ───────────────────────────────────────────
+// Survives across tabs and sessions — identifies the same human player
+// even if they reconnect with a different conn.id.
+const PERSISTENT_KEY = "rb-player-id";
+
+/** Get the persistent player ID (creates one on first visit, persists in localStorage). */
+export function getPersistentPlayerId(): string {
+  let id = localStorage.getItem(PERSISTENT_KEY);
+  if (!id) {
+    id = generateId();
+    localStorage.setItem(PERSISTENT_KEY, id);
+  }
+  return id;
+}
+
 // ─── Module-Level Game Socket ────────────────────────────────────────
 // Persists the game-phase socket outside React lifecycle so hooks like
 // useOnlineGame can access it independently of useRoom.

@@ -12,6 +12,7 @@ export interface RoomPlayer {
   color: string;
   isHost: boolean;
   isReady: boolean;
+  persistentId: string;
 }
 
 /** Room lifecycle status */
@@ -23,6 +24,7 @@ export interface JoinMessage {
   type: "join";
   name: string;
   color: string;
+  persistentId: string;
 }
 
 export interface LeaveMessage {
@@ -85,6 +87,7 @@ export interface ConnectedMessage {
   type: "connected";
   roomId: string;
   playerId: string;
+  persistentId: string;
 }
 
 export interface RoomStateMessage {
