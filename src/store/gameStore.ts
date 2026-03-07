@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
@@ -356,9 +356,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
           selectedForUnlock: [] as number[],
           isAI: i !== 0,
           difficulty: i !== 0 ? randomDifficulty() : undefined,
+          seatState: 'human-active' as const,
+          seatIndex: i,
         };
       }
-      // AI bot filling remaining slots
+      // AI bot filling remaining slots (in offline mode, player 0 is the local human)
+      const isLocalHumanOffline = !onlinePlayers && i === 0;
       const color = botColors[botIdx % botColors.length];
       botIdx++;
       return {
@@ -372,6 +375,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         selectedForUnlock: [] as number[],
         isAI: true,
         difficulty: randomDifficulty(),
+        seatState: (isLocalHumanOffline ? 'human-active' : 'bot') as Player['seatState'],
+        seatIndex: i,
       };
     });
 
@@ -992,6 +997,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...p,
           startingDice: serverPlayer.startingDice,
           score: serverPlayer.score,
+          seatState: serverPlayer.seatState,
+          seatIndex: serverPlayer.seatIndex,
         };
       }
       return p;
@@ -1011,7 +1018,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!sp) return p;
       if (i === 0 && localUnlockInProgress) {
         // Only sync score/startingDice — let confirmUnlock handle poolSize/lockedDice
-        return { ...p, score: sp.score, startingDice: sp.startingDice };
+        return { ...p, score: sp.score, startingDice: sp.startingDice, seatState: sp.seatState, seatIndex: sp.seatIndex };
       }
       return {
         ...p,
@@ -1019,6 +1026,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lockedDice: sp.lockedDice.map(ld => ({ ...ld })),
         score: sp.score,
         startingDice: sp.startingDice,
+        seatState: sp.seatState,
+        seatIndex: sp.seatIndex,
       };
     });
     set({ players });

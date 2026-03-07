@@ -48,6 +48,8 @@ export interface Player {
   selectedForUnlock: number[];
   isAI: boolean;
   difficulty?: AIDifficulty;
+  seatState: 'human-active' | 'human-afk' | 'bot';
+  seatIndex: number;
 }
 
 export interface RoundState {
