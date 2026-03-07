@@ -47,7 +47,7 @@ Progress: 26/26 phases complete
 - v1.2 shipped: UI/UX polish complete. All decisions archived in milestones/v1.2-ROADMAP.md.
 
 ### Open Issues
-- UAT-001: Room timeout issue (logged, not blocking)
+(none)
 
 ### Roadmap Evolution
 - v1.0 MVP: Phases 1-13 (shipped 2026-03-03)
@@ -57,5 +57,14 @@ Progress: 26/26 phases complete
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: v1.2 milestone archived. Next milestone TBD.
+Stopped at: Document cleanup complete. Discussing v1.3 milestone scope.
 Resume file: None
+
+### Recent Changes (2026-03-06)
+- **Full document cleanup**: PRD.md updated to reflect v1.2 shipped state (removed shake-to-roll refs, updated menus/AI/timers/milestones/known issues)
+- **PRD §11 = god-source**: Cleaned to 14 numbered future ideas with detailed notes and dependencies. Removed 9 low-priority/aspirational items (haptics, daily challenge, shareable cards, spectator, tournament, replay, async, decorative animations, Glyphtender patterns).
+- **New idea #9**: Upgrades System (Spots + Special Dice) — major progression/loadout system. Needs full design pass.
+- **Key dependencies identified**: Drag system (#3) is central — #4, #5, #14 depend on it. Landscape (#13) should be considered before Collapsible Goal (#14). Cosmetics (#10-#11) need shader work.
+- **VISION.md = temp buffer**: Session capture only. Merged into PRD §11, then cleared.
+- **UAT-001 resolved**: Removed from Open Issues, marked resolved in v1.2-ROADMAP.md.
+- **Next**: Finalize v1.3 milestone scope via /gsd:discuss-milestone

@@ -1,7 +1,7 @@
 # Roll Better — Product Requirements Document
 
 > Living document. Updated each design phase.
-> Current status: **v0.2 — Online multiplayer complete, core loop stable**
+> Current status: **v1.2 — Three milestones shipped (MVP + Online Multiplayer + Polish)**
 > Full rules reference: `.planning/research/core-rules.md`
 
 ---
@@ -97,11 +97,10 @@ Each turn has these phases, executed simultaneously for all players:
 
 **Phase 1 — Roll (`idle` → `rolling`)**
 - "ROLL BETTER" status text appears in the HUD
-- Mobile: shake phone to roll (accelerometer-based, toggleable in settings)
-- PC: tap/click the ROLL button in the HUD
+- Tap/click the ROLL button in the HUD (or tap the status text area)
 - 3D dice roll with physics in the rolling area (bottom portion of screen)
 - Dice tumble, bounce off invisible walls, and settle naturally
-- **AFK timer**: 30-second countdown appears if the player hasn't rolled. When it expires, the game auto-rolls for them.
+- **AFK timer**: 20-second countdown appears if the player hasn't rolled. When it expires, the game auto-rolls for them.
 
 **Phase 2 — Auto-Lock (`rolling` → `locking`)**
 - After all dice settle, the game runs `findAutoLocks()` to identify which rolled dice match unfilled Goal slots
@@ -126,7 +125,7 @@ Each turn has these phases, executed simultaneously for all players:
 - **Must-unlock rule**: If pool size is 0 and locked < 8, the player MUST unlock at least 1 die (can't roll with 0 dice)
 - **Pool cap**: Total dice (pool + locked) cannot exceed 12. Unlock buttons show "MAX 12 DICE" when at cap.
 - Player may also skip (unlock zero dice) if they have dice in their pool
-- **AFK timer**: 30-second countdown on unlock decisions. When it expires, AI makes the decision automatically for that turn only.
+- **AFK timer**: 20-second countdown on unlock decisions. When it expires, AI makes the decision automatically for that turn only.
 
 **Phase 5 — Next Turn (`idle`)**
 - Return to Phase 1 with updated pool/locked state
@@ -136,8 +135,8 @@ Each turn has these phases, executed simultaneously for all players:
 - All players roll simultaneously — each taps on their own screen when ready
 - Each player sees their OWN results immediately. Other players' results are hidden until you've rolled and locked in, then revealed with animation (see §5.3.1 for full data flow)
 - Same pattern for unlocking: your choice applies immediately, others' choices revealed only after you've acted
-- **Rolling AFK timer**: 30-second countdown. When it expires, auto-roll triggers. Client-driven with server-side fallback.
-- **Unlock phase timer**: 30-second countdown. When it expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
+- **Rolling AFK timer**: 20-second countdown. When it expires, auto-roll triggers. Client-driven with server-side fallback.
+- **Unlock phase timer**: 20-second countdown. When it expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
 - The pace should feel brisk — no waiting for slow players
 
 ### 4.5 Scoring
@@ -196,8 +195,8 @@ Applied after every round:
 
 ### 5.1 Multiplayer Architecture
 Both modes are fully implemented:
-- **Offline**: AI opponents only (local game logic, AI makes unlock decisions). Selectable from main menu with player count (2–4) and difficulty (Easy/Medium/Hard).
-- **Online**: Room-based multiplayer via PartyKit WebSocket server with room codes.
+- **Offline**: AI opponents only (local game logic, AI makes unlock decisions). Selectable from main menu with player count (2–4). AI difficulty is randomized per bot.
+- **Online**: Room-based multiplayer via PartyKit WebSocket server with room codes. Create/Join flow is inline on the main menu (no separate lobby screen).
 
 **Room Codes:**
 - Format: 4-letter alphabetic code (excludes I and O for readability, e.g., `QRPD`)
@@ -219,7 +218,7 @@ AI makes unlock decisions based on difficulty-specific strategies. AI "rolls" us
 - **Medium AI**: Skips if pool size ≥ half of remaining slots needed (unless must-unlock). Scores each locked die by how frequently its value appears in remaining Goal slots. Unlocks 1–2 of the worst candidates (least useful to keep). Respects 12-die cap.
 - **Hard AI**: Never unlocks if ≤2 remaining slots (unless must-unlock). Calculates expected match rate: `poolSize × (uniqueRemainingValues / 6) / remainingSlots`. Only unlocks if match rate < 0.5 (pool is inefficient). Unlocks by ascending frequency (sacrifices dice least likely to re-match), simulating one-at-a-time until match rate ≥ 0.5.
 
-AI difficulty is selectable from main menu (offline) or lobby settings (online). Default: Medium.
+AI difficulty is randomly assigned per bot (Easy, Medium, or Hard). There is no user-facing difficulty selector.
 
 ### 5.3 Networking (PartyKit on Cloudflare)
 - **Protocol**: WebSocket via PartyKit (Cloudflare free tier)
@@ -334,7 +333,6 @@ GameState {
   settings: {
     audioVolume: number              // 0–100
     performanceMode: 'advanced' | 'simple'
-    shakeToRollEnabled: boolean
     hapticsEnabled: boolean
     tipsEnabled: boolean
     confirmationEnabled: boolean
@@ -361,16 +359,12 @@ GameState {
 
 #### Main Menu
 - Game title "Roll Better"
-- **Offline**: Player count selector (2, 3, 4) + AI difficulty selector (Easy, Medium, Hard) + PLAY button
-- **Online**: CREATE ROOM and JOIN ROOM buttons → transitions to Lobby screen
-- Settings gear icon → opens settings modal
+- **Offline**: Player count selector (2, 3, 4) + PLAY button. AI difficulty is randomized per bot (no selector).
+- **Online**: Inline CREATE / JOIN flow on the main menu (no separate lobby screen). CREATE shows room code + player list inline. JOIN shows code entry field inline. Host sees START GAME button when players are ready.
+- How to Play button → rules modal
+- Upgrades button (placeholder for future cosmetics)
+- Settings gear icon (bottom-right) → opens settings modal
 - Build version overlay in lower-left corner (`vX.Y.Z.B`)
-
-#### Lobby Screen (Online)
-- Room code displayed prominently (large, copyable)
-- Player list with names, colors, ready state
-- Host controls: target player count, AI difficulty, START GAME button
-- Each player has a READY toggle
 
 #### Game Screen (Play Area) — top to bottom:
 
@@ -471,7 +465,7 @@ orange: #d35400, yellow: #f39c12, teal: #16a085, pink: #e84393
 
 **The Anticipation-Resolution Arc (per roll):**
 1. Intention (0ms): Status text visible, ROLL button ready
-2. Anticipation (0-300ms): Tap/shake, gathering energy
+2. Anticipation (0-300ms): Tap, gathering energy
 3. Release (300ms): Dice launch with impulse at offset point (induces natural rotation)
 4. Chaos (300-2000ms): Bouncing, spinning, colliding — pure physics
 5. Settling (2000-2500ms): Energy dissipating, faces becoming readable — tension builds
@@ -480,15 +474,12 @@ orange: #d35400, yellow: #f39c12, teal: #16a085, pink: #e84393
 
 ### 6.3 Input
 
-**Mobile (primary):**
-- **Roll**: Shake phone (accelerometer detection via `useShakeToRoll` hook, toggleable in settings) OR tap ROLL button in HUD
-- **Unlock**: Tap locked dice in your row to toggle selection → tap UNLOCK button to confirm, or SKIP to keep all locked
-- **Settings**: Gear icon opens settings modal
+**All platforms (mobile-first, desktop-friendly):**
+- **Roll**: Tap/click ROLL button in HUD (or tap the status text area)
+- **Unlock**: Tap/click locked dice in your row to toggle selection → tap UNLOCK button to confirm, or SKIP to keep all locked
+- **Settings**: Gear icon (bottom-right) opens settings modal
 
-**Desktop:**
-- **Roll**: Click ROLL button in HUD
-- **Unlock**: Click locked dice to toggle selection → click UNLOCK or SKIP button
-- **Settings**: Same gear icon
+Note: Shake-to-roll was implemented in v1.0 and removed in v1.2 (too unreliable across devices).
 
 ### 6.4 Audio Direction
 > Current status: **Basic sound effects implemented** via Web Audio API (`soundManager.ts`). Full multi-layered sound design is a future milestone.
@@ -523,7 +514,7 @@ orange: #d35400, yellow: #f39c12, teal: #16a085, pink: #e84393
 - **Audio**: Web Audio API via custom `soundManager.ts`
 - **Haptics**: Vibration API via custom `haptics.ts`
 - **Networking**: PartyKit WebSocket client + server (Cloudflare Workers edge)
-- **Deployment**: Not yet deployed (local dev only)
+- **Deployment**: GitHub Pages (auto-deploy via GitHub Actions on push to master) + PWA (installable, auto-updates)
 
 ### 7.2 Project Structure
 ```
@@ -542,10 +533,10 @@ src/
 │
 ├── components/
 │   ├── MainMenu.tsx                 # Offline setup: player count, difficulty, play button
-│   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start
+│   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start (merged into MainMenu inline flow)
 │   ├── WinnersScreen.tsx            # Final rankings, play again, menu
 │   ├── HUD.tsx                      # Status text, roll/unlock/skip buttons, AFK countdown
-│   ├── Settings.tsx                 # Audio, performance, shake, haptics, tips toggles
+│   ├── Settings.tsx                 # Audio, performance, haptics, tips toggles
 │   ├── HowToPlay.tsx                # In-game rules reference modal
 │   ├── TipBanner.tsx                # Contextual tutorial hints
 │   ├── RollingCountdown.tsx         # AFK countdown bar (rolling + unlock phases)
@@ -573,7 +564,6 @@ src/
 ├── hooks/
 │   ├── useOnlineGame.ts             # Server message listener, phase sync, watchdog, buffering
 │   ├── useRoom.ts                   # Lobby: room creation/joining, game start detection
-│   ├── useShakeToRoll.ts            # Mobile accelerometer shake detection
 │   └── useAccelerometerGravity.ts   # Tilt-based gravity for rolling dice
 │
 └── utils/
@@ -614,50 +604,18 @@ src/
 
 ---
 
-## 8. Milestones (Completed)
+## 8. Milestones
 
-### v0.1.0 — Foundation + Core Loop (Feb 27 – Mar 2)
-- React + Vite + TypeScript + R3F + Rapier scaffolded
-- 3D die rendering with RoundedBox + pip dots
-- Dice physics: roll, settle, read face-up value
-- Goal row (8 sorted dice) with entry/exit animations
-- Player rows with 8 lock slots + player icons
-- Dice pool with physics rolling + settle detection
-- Auto-lock matching with `findAutoLocks()`
-- Unlock with mitosis animation (die splits into 2)
-- Scoring with pool penalty table
-- Handicap system between rounds
-- Session to 20 points with Winners Screen
-- AI opponents (Easy/Medium/Hard unlock strategies)
-- 2–4 players (1 human + AI)
-- Shake-to-roll on mobile
-- Sound effects (basic Web Audio)
-- HUD with status text, roll/unlock buttons
-- Settings modal (audio, performance, shake, haptics, tips)
-- How To Play modal
-- Contextual tip banner
-- Build version overlay
+All milestones shipped. Full phase-by-phase history in `.planning/ROADMAP.md` and `.planning/MILESTONES.md`.
 
-### v0.2.0 — Online Multiplayer (Mar 3 – Mar 4)
-- PartyKit WebSocket server on Cloudflare
-- Room creation/joining with 4-letter codes
-- Lobby screen with player list, ready state, host controls
-- Client-authoritative dice values, server-authoritative locking
-- Per-player result relay with client-side buffering
-- Lock reveal + unlock reveal animations for other players
-- Phase sync with deferred snapshot application
-- Watchdog heartbeat with stall detection + self-healing
-- AFK timeout: 30s countdown on both rolling and unlock phases
-- AI backfill for incomplete rooms
-- AI takeover on disconnect, handoff on reconnect
-- Play Again flow (offline and online)
+### v1.0 MVP (Phases 1–13, shipped 2026-03-03)
+Complete local dice-matching game: 3D physics dice, AI opponents (Easy/Medium/Hard), auto-lock matching, unlock with mitosis animation, scoring with handicap system, sessions to 20 points, sound effects, HUD, settings, How to Play, mobile-first responsive UI.
 
-### Next: Deployment & Polish
-- GitHub Pages deployment
-- PWA setup (installable, offline-capable)
-- Full audio pass (multi-layered dice sounds, spatial audio)
-- Full haptic feedback pass
-- Privacy policy + IARC age rating
+### v1.1 Online Multiplayer (Phases 14–21, shipped 2026-03-05)
+Real-time online multiplayer via PartyKit WebSockets, Jackbox-style 4-letter room codes, client-authoritative dice with server-authoritative locking, disconnect/reconnect resilience with 60s keepalive, AFK timers (20s), AI backfill and takeover, GitHub Pages deployment with PWA, privacy policy + IARC compliance.
+
+### v1.2 Polish (Phases 22–26, shipped 2026-03-06)
+Simplified main menu (removed difficulty selector, added How to Play + Upgrades buttons), removed shake-to-roll, settings gear icon (bottom-right) with audio slider fix, AI difficulty randomized per bot, merged lobby into main menu with inline Create/Join flow, verified How to Play accuracy.
 
 ---
 
@@ -686,38 +644,182 @@ src/
 
 ### Device Testing
 - Chrome desktop (primary dev)
-- Safari iOS (iPhone) — shake-to-roll, touch interactions
-- Chrome Android — shake-to-roll, touch interactions
+- Safari iOS (iPhone) — touch interactions
+- Chrome Android — touch interactions
 
 ---
 
-## 10. Known Issues & Bugs
+## 10. Known Issues & Limitations
 
-- **BUG-001 (fixed v0.1.0.53):** DicePool used `key={i}` — when pool shrank after locking, the wrong physical die stayed. Fix: generation counter in keys forces remount with correct values.
-- **Audio**: Sound effects are basic. No collision-triggered sounds, no spatial audio, no multi-layered roll sounds yet.
+- **Audio**: Sound effects are basic procedural stubs. No collision-triggered sounds, no spatial audio, no multi-layered roll sounds yet. Full audio pass is a future milestone.
 - **Haptics**: Basic Vibration API only. No per-bounce pulses or nuanced patterns yet.
 - **No skip-lock**: Players cannot opt out of auto-locking a matching die. This is a deliberate simplification but may need revisiting.
-- **No drag-to-unlock**: Unlock uses tap-to-toggle + confirm button only. Drag interaction was originally planned but not implemented.
+- **No drag-to-unlock**: Unlock uses tap-to-toggle + confirm button only. Drag interaction deferred (see §11, #2).
+- **Unlock highlight**: Uses a white floor ring under dice — placeholder for proper dice outlines (see §11, #1).
 
 ---
 
 ## 11. Future Ideas
-- Mouse-based dice rolling on PC (drag-and-release physics throw)
-- Daily challenge mode (same Goal for all players globally, Wordle-style leaderboard)
-- Shareable result cards for social media (Wordle-style grid showing round-by-round performance)
-- Spectator mode
-- Custom dice colors / skins (cosmetic unlocks, potential monetization)
-- Sound design: full audio pass with spatial 3D audio for dice
-- Tournament mode (bracket of sessions)
-- Friends list / rematch
-- Replay system (watch dramatic rolls again)
-- Full haptic feedback on mobile for rolls, locks, wins
-- "Skip lock" UX: best way to let players choose not to auto-lock a match
-- Async/turn-based mode for Lisa-type players who want play-by-play pacing
-- Landscape support for tablets/desktop
-- Drag-to-unlock as alternative to tap-to-toggle
-- GitHub Pages deployment + PWA (installable, offline-capable)
-- Privacy policy + IARC age rating (13+, no data collected)
+
+Numbered master list (14 items). New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
+
+### Polish
+
+**#1 — Unlock Dice Outline Style**
+Replace floor-ring highlight with outlines ON the die (drei Edges or wireframe mesh). Defer until art pass — visual style TBD. Current white ring on the floor under selectable dice is a placeholder.
+
+**#2 — Visual Language: Emergence/Return**
+Dice emerge FROM owner's icon and return TO it. Emergence done (SpawningDie scales 0→1 from icon position). Missing: return-to-icon — when dice exit the pool or get locked, they currently scale to 0 in place instead of arcing back toward the player icon. Half the visual grammar is incomplete.
+
+### Interaction
+
+**#3 — Drag-to-Unlock (Input System Overhaul)**
+Full drag input system. Swipe gesture replaces tap-to-toggle entirely (not dual-mode). Drop zone detection, visual feedback during drag, snap-back on invalid drop. This is a major system change — #4 and #5 are sub-features that depend on this being solved first.
+
+**#4 — Hold-to-Gather-Roll**
+Hold/long-press to gather dice and roll. Part of the drag input system (#3) — depends on the interaction model being redesigned first. Can't be built in isolation.
+
+**#5 — Mouse-Based Dice Rolling (PC)**
+Drag-and-release physics throw for desktop. Part of the drag input system (#3) — same interaction paradigm, different input device. Depends on #3's architecture.
+
+### Tutorial
+
+**#6 — Tutorial System Rework**
+Current tip system is loose but functional (TipBanner with one-time-per-session tips). Needs a full design pass. Includes: "you should unlock" recurring tip until 8+ dice, and likely other tutorial improvements for onboarding. The unlock tip is one specific note within a bigger tutorial task.
+
+### Audio
+
+**#7 — Full Audio Pass**
+Multi-layered dice sounds (impact, tumble, scrape, settle), collision-triggered audio, spatial 3D. Current sounds are procedural stubs. Defer until visual look is figured out — audio should match the aesthetic.
+
+### System
+
+**#8 — Drop-in/Drop-out Flow (Full Spec)**
+
+A complete player connection lifecycle for online multiplayer. The goal is one simple, predictable rule set that covers joining, leaving, reconnecting, and handoff — so the game never stalls and players always know what's happening.
+
+#### Core Principle: Timer Expiration = Handoff Boundary
+
+Every active game phase (roll, unlock, and any future action phases) has a countdown timer. Timer expiration is the universal moment where control can change hands. All connection logic flows from this single rule.
+
+#### Player Identity
+
+- Each client stores a **persistent player ID** in `localStorage` (generated on first visit, persisted across sessions).
+- The server maintains a mapping of **player ID → seat** for each room.
+- If a player's `localStorage` is cleared (or they use incognito), they are treated as a brand-new player. This is an accepted edge case — you can't always solve for player actions.
+
+#### Seat States
+
+Each seat in a game room is in exactly one of these states:
+
+| State | Meaning |
+|-------|---------|
+| **Human-Active** | A connected human is playing this seat. |
+| **Human-AFK (autopilot)** | Human is connected but hasn't acted. The 1-beat autopilot fires at timer expiry — makes the simplest legal move (basic ruleset). Player keeps their seat. Autopilot counter increments. |
+| **Bot** | A full AI controls this seat. Makes fast, intentional, incentivized decisions (same as existing AI difficulty system). The seat is **claimable** by any human. |
+
+#### AFK Escalation (Connected but Inactive)
+
+- When a connected player lets the phase timer expire, the system makes a **1-beat autopilot decision** — the simplest legal action (e.g., roll with current pool, skip unlock). This is a quick blip, not a strategic AI move.
+- The player retains their seat. An internal **consecutive autopilot counter** increments.
+- **After 3 consecutive autopilot fires**, the seat transitions to **Bot** state. A full AI takes over and the seat becomes claimable by other players.
+- Any manual action by the player resets the autopilot counter to 0.
+
+#### Disconnection → Bot Handoff
+
+- When a player disconnects (tab closed, network lost, navigated away), their seat enters a **grace window** that lasts until the **current phase timer expires**.
+- If the player reconnects before the timer expires: they resume seamlessly in their seat. No interruption, no state change. Other players don't notice.
+- If the timer expires while disconnected: the seat immediately transitions to **Bot** state. A full AI takes over (not a 1-beat autopilot — a real bot making strategic decisions). There is no 60-second keepalive window — the handoff is strictly timer-based.
+- The disconnected player's re-entry path is now the **mid-game join flow** (see below).
+
+#### Mid-Game Join (The One Re-Entry Path)
+
+All players entering a room that is mid-game — whether brand new, returning after disconnect, or coming from the winners screen — use the **same flow**:
+
+1. Player enters the room code (or reconnects via URL/stored room).
+2. Server checks: is this player ID already assigned to a seat?
+   - **Yes, and seat is Human-Active**: Reject with message (they're somehow double-connected — stale tab). This shouldn't normally happen.
+   - **Yes, and seat is Bot**: The bot was holding their old seat. Skip to step 5 — auto-assigned back to their seat.
+   - **No match**: Player is new or cleared their browser data. Continue to step 3.
+3. Server checks: are there any **Bot** seats available?
+   - **No Bot seats**: All seats are humans. Player sees **"Room Full"** message with a **TRY AGAIN** button that re-checks. No waiting room, no spectator mode. First come, first serve.
+   - **Yes, Bot seats exist**: Continue to step 4.
+4. Player sees the game in progress with **Bot seats highlighted** (tappable avatars). Player taps the bot avatar they want to take over.
+   - If multiple players tap the same bot simultaneously, the **server decides** — first claim wins. The second player sees "Seat taken" and picks another.
+5. The takeover is **queued until the start of the next phase** for that seat. The bot finishes its current action (roll, unlock, etc.), and at the phase boundary, the human takes control.
+6. Player is now **Human-Active** in that seat. They play from wherever that seat currently is in the game (same score, same locks, same pool). No catch-up, no rewind.
+
+#### Host Migration
+
+- The player who created the room is the initial **host**. The host has the ability to start the game from the lobby.
+- If the host's seat transitions to **Bot** (via disconnect + timer, or AFK escalation), host status **migrates to the next connected human player** (by join order).
+- If the original host later reclaims a seat (via mid-game join flow), they do **not** regain host status. Host stays with whoever currently holds it. No reason to migrate back.
+- **If no connected humans remain** (all seats are bots), the room **dissolves immediately**. No bot-only games. This is a casual game — if everyone left, the session is over.
+
+#### Play Again Flow
+
+1. Game ends. Winners screen displays for all connected players.
+2. Any player can tap **PLAY AGAIN** or **MENU**.
+   - **MENU**: Player leaves the room entirely. Their seat becomes available.
+   - **PLAY AGAIN**: Player signals readiness. The room transitions back to **lobby state** with the **same room code**.
+3. The current host sees the lobby with a **START GAME** button (same as initial game creation).
+4. Players who haven't hit Play Again yet remain on the winners screen. They can join when ready.
+5. Host can hit **START** at any time — empty seats are filled with bots (same as initial game start).
+6. If a player hits Play Again after the new game has already started, they enter via the **mid-game join flow** — the server recognizes their player ID, finds their bot-held seat, and queues them for takeover at the next phase boundary.
+
+#### Room Full (All Human Seats)
+
+- If a player enters a room code and all seats are occupied by connected humans: display **"Room Full"** over the main menu.
+- A **TRY AGAIN** button re-checks the room. No live updates, no waiting queue, no spectator mode.
+- If a returning player (matching player ID) enters and their old seat is held by a human (someone claimed it), they are treated as a new player — "Room Full" applies.
+
+#### Summary: State Transition Diagram
+
+```
+Human-Active
+  ├── [manual action] → stays Human-Active (autopilot counter resets)
+  ├── [timer expires, connected, counter < 3] → Human-AFK (1-beat autopilot, counter++)
+  ├── [timer expires, connected, counter = 3] → Bot (full AI, seat claimable)
+  └── [disconnected]
+        ├── [reconnects before timer expires] → Human-Active (seamless)
+        └── [timer expires while disconnected] → Bot (full AI, seat claimable)
+
+Bot
+  ├── [human claims seat] → queued → Human-Active (at next phase boundary)
+  ├── [no humans remain in room] → room dissolves
+  └── [game ends] → seat available in lobby
+
+Room
+  ├── [game ends] → lobby state (same room code, host can restart)
+  └── [all humans gone] → room dissolves
+```
+
+**#9 — Upgrades System (Spots + Special Dice)**
+Major progression system accessed from the Upgrades menu button (already on main menu as placeholder). Two unlockable types:
+- **Spots**: Special rules for lock-in slots. When a die locks into a spot, the player gets a bonus (effects TBD — needs design pass).
+- **Special Dice**: Dice with special rules that can be "bought" mid-game. If you roll doubles of anything, you can trade both dice in for a special die from your personal market.
+- **Market**: Each player has 6 side-screen market slots. Not all must be filled. One of each maximum. Filled with spots and dice from unlocked options.
+- **Upgrades Menu**: 6 loadout slots with drag/drop from an unlocked grid of options. Pre-game customization.
+- Scale comparable to #3 (drag system). Needs full game design pass before implementation.
+
+### Cosmetics
+
+**#10 — Custom Dice Colors / Skins**
+Cosmetic unlocks. Requires light shader work — tinting/swapping materials on the existing meshPhysicalMaterial setup.
+
+**#11 — Customizable Tabletop Texture**
+Player-selectable surfaces (wood types, felt, etc.). Current dark walnut is placeholder. Same shader/material category as #10.
+
+**#12 — Player Profile Art**
+Pre-set (possibly unlockable/earnable) avatar images replacing placeholder circle avatars. Muzzy to design in Illustrator. Layout is structurally correct — just needs assets swapped in.
+
+### Layout
+
+**#13 — Landscape Support**
+Consider BEFORE #14. Landscape-first (or landscape-only) may solve the space problem that #14 tries to address. Some light work already done. No portrait mode might be the answer to fitting 8 players without a collapsible area.
+
+**#14 — Collapsible Goal Area ("Shade")**
+Expandable divider between Goal and rolling area. Depends on #3 (drag system) being solved first. Also depends on #13 — if landscape-only, the space problem may not need this solution. Must support up to 8 players. Open questions: drag vs snap toggle, auto-collapse on lock/unlock animations.
 
 ---
 
@@ -735,7 +837,7 @@ src/
 - **Round**: One Goal, rolled repeatedly until someone locks all 8
 - **Turn**: One roll cycle within a round (roll → lock → check → unlock → repeat)
 - **Room code**: 4-letter alphabetic code (excludes I, O) used to join an online game — Jackbox-style, zero friction
-- **AFK timer**: 30-second countdown on both rolling and unlock phases. When expired, AI acts for the player that turn only.
+- **AFK timer**: 20-second countdown on both rolling and unlock phases. When expired, AI acts for the player that turn only.
 - **AI takeover**: When a player disconnects or times out, AI seamlessly controls their dice until they reconnect
 - **AI backfill**: AI opponents that fill empty player slots when the host starts the game
 - **PartyKit**: WebSocket room server running on Cloudflare's edge network
