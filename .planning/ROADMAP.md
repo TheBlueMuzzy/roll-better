@@ -77,10 +77,11 @@ Plans:
 **Goal**: Rework AFK system — 1-beat autopilot for connected timeout, consecutive autopilot counter, 3 strikes → full bot promotion
 **Depends on**: Phase 27 (seat state machine)
 **Research**: Unlikely (extends existing AFK system)
-**Plans**: TBD
+**Plans**: 2
 
 Plans:
-- [ ] 28-01: TBD
+- [ ] 28-01: Server AFK escalation engine (autopilot counter + seat state transitions + protocol)
+- [ ] 28-02: Client seat state sync + UI feedback notifications
 
 #### Phase 29: Disconnect Handoff
 
