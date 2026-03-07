@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 19,
+  "build": 20,
   "history": [
     {
       "version": "0.1.0",
@@ -292,6 +292,11 @@
       "version": "0.2.0.15",
       "date": "2026-03-06",
       "summary": "Settings gear icon on main menu, audio slider filled track, position fixes"
+    },
+    {
+      "version": "0.2.0.20",
+      "date": "2026-03-07",
+      "summary": "Add SeatState, seatIndex, autopilotCounter to protocol, server, and client data model"
     }
   ]
 }
