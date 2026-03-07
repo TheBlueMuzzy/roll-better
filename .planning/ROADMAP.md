@@ -9,6 +9,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
+- 🚧 **v1.3 Drop-in/Drop-out** - Phases 27-34 (in progress)
 
 ## Phases
 
@@ -56,6 +57,91 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
+### 🚧 v1.3 Drop-in/Drop-out (In Progress)
+
+**Milestone Goal:** Make online player flow robust and predictable — joining, leaving, reconnecting, and handoff all follow one simple rule set. Based on the full spec in PRD §11 #8.
+
+#### Phase 27: Player Identity & Seat Model
+
+**Goal**: Persistent client ID in localStorage, server seat state machine (Human-Active / Human-AFK / Bot), seat-to-playerID mapping per room
+**Depends on**: Previous milestone complete
+**Research**: Unlikely (internal patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 27-01: TBD (run /gsd:plan-phase 27 to break down)
+
+#### Phase 28: AFK Autopilot & Escalation
+
+**Goal**: Rework AFK system — 1-beat autopilot for connected timeout, consecutive autopilot counter, 3 strikes → full bot promotion
+**Depends on**: Phase 27 (seat state machine)
+**Research**: Unlikely (extends existing AFK system)
+**Plans**: TBD
+
+Plans:
+- [ ] 28-01: TBD
+
+#### Phase 29: Disconnect Handoff
+
+**Goal**: Replace 60s keepalive with timer-based grace window. Disconnect + phase timer expires = full bot takeover. Reconnect within timer = seamless resume.
+**Depends on**: Phase 27 (seat states), Phase 28 (bot promotion path)
+**Research**: Unlikely (reworking existing reconnect logic)
+**Plans**: TBD
+
+Plans:
+- [ ] 29-01: TBD
+
+#### Phase 30: Mid-Game Join Flow
+
+**Goal**: Enter room code mid-game → see available bot seats → tap avatar to claim → server-authoritative seat assignment (first claim wins) → queued takeover at next phase boundary
+**Depends on**: Phase 29 (bot seats must exist from handoff)
+**Research**: Likely (new UI state for seat selection + new server protocol messages for claim/queue/takeover)
+**Research topics**: New WebSocket message types for seat_claim/seat_assigned/seat_taken, UI state for mid-game lobby overlay, phase-boundary takeover trigger
+**Plans**: TBD
+
+Plans:
+- [ ] 30-01: TBD
+
+#### Phase 31: Host Migration & Room Lifecycle
+
+**Goal**: Auto-migrate host to next connected human when host's seat becomes Bot (no migrate-back). No connected humans = room dissolves immediately. Room Full message + TRY AGAIN button for full rooms.
+**Depends on**: Phase 29 (disconnect triggers migration), Phase 28 (AFK triggers migration)
+**Research**: Unlikely (server logic)
+**Plans**: TBD
+
+Plans:
+- [ ] 31-01: TBD
+
+#### Phase 32: Play Again Rework
+
+**Goal**: Winners screen → return to lobby with same room code. Host can Start early (bots fill empty seats). Late Play Again after game started → mid-game join flow. Server recognizes returning player ID and auto-matches to their old bot-held seat.
+**Depends on**: Phase 30 (mid-game join flow for late returners)
+**Research**: Unlikely (extends existing Play Again + lobby flow)
+**Plans**: TBD
+
+Plans:
+- [ ] 32-01: TBD
+
+#### Phase 33: Connection Polish & Edge Cases
+
+**Goal**: Double-connection rejection (stale tab), UI feedback for all state transitions (taking over next phase, seat taken, waiting for phase boundary), clear status text for every connection scenario
+**Depends on**: Phases 27-32 (all systems built)
+**Research**: Unlikely (polish pass)
+**Plans**: TBD
+
+Plans:
+- [ ] 33-01: TBD
+
+#### Phase 34: Integration Testing & UAT
+
+**Goal**: Full scenario testing of all 7 player flow scenarios from PRD spec: late friend joins, phone call disconnect, accidental tab close, run it back, rage quit, host leaves, room full
+**Depends on**: Phase 33 (all features polished)
+**Research**: Unlikely (testing)
+**Plans**: TBD
+
+Plans:
+- [ ] 34-01: TBD
+
 ## Progress
 
 **v1.0 + v1.1 + v1.2 complete.** 26 phases, 69 plans shipped.
@@ -88,4 +174,12 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 | 24. AI Difficulty Randomization | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 25. Multiplayer Screen Rework | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
+| 27. Player Identity & Seat Model | v1.3 | 0/? | Not started | - |
+| 28. AFK Autopilot & Escalation | v1.3 | 0/? | Not started | - |
+| 29. Disconnect Handoff | v1.3 | 0/? | Not started | - |
+| 30. Mid-Game Join Flow | v1.3 | 0/? | Not started | - |
+| 31. Host Migration & Room Lifecycle | v1.3 | 0/? | Not started | - |
+| 32. Play Again Rework | v1.3 | 0/? | Not started | - |
+| 33. Connection Polish & Edge Cases | v1.3 | 0/? | Not started | - |
+| 34. Integration Testing & UAT | v1.3 | 0/? | Not started | - |
 

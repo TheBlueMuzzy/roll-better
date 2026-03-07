@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.2 milestone complete and archived. All 26 phases shipped across 3 milestones.
+v1.3 milestone created. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
 0.2.0.18
@@ -11,16 +11,16 @@ v1.2 milestone complete and archived. All 26 phases shipped across 3 milestones.
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** Planning next milestone
+**Current focus:** v1.3 Drop-in/Drop-out — robust online player flow
 
 ## Current Position
 
-Phase: 26 of 26 (all phases complete)
-Plan: N/A
-Status: Ready to plan next milestone
-Last activity: 2026-03-06 — v1.2 milestone archived
+Phase: 27 of 34 (Player Identity & Seat Model)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-06 — Milestone v1.3 created
 
-Progress: 26/26 phases complete
+Progress: ░░░░░░░░░░ 0%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -53,18 +53,16 @@ Progress: 26/26 phases complete
 - v1.0 MVP: Phases 1-13 (shipped 2026-03-03)
 - v1.1 Online Multiplayer: Phases 14-21 (shipped 2026-03-05)
 - v1.2 Polish: Phases 22-26 (shipped 2026-03-06)
+- Milestone v1.3 created: Drop-in/Drop-out player flow, 8 phases (Phase 27-34)
 
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Document cleanup complete. Discussing v1.3 milestone scope.
+Stopped at: Milestone v1.3 initialization complete
 Resume file: None
 
 ### Recent Changes (2026-03-06)
-- **Full document cleanup**: PRD.md updated to reflect v1.2 shipped state (removed shake-to-roll refs, updated menus/AI/timers/milestones/known issues)
-- **PRD §11 = god-source**: Cleaned to 14 numbered future ideas with detailed notes and dependencies. Removed 9 low-priority/aspirational items (haptics, daily challenge, shareable cards, spectator, tournament, replay, async, decorative animations, Glyphtender patterns).
-- **New idea #9**: Upgrades System (Spots + Special Dice) — major progression/loadout system. Needs full design pass.
-- **Key dependencies identified**: Drag system (#3) is central — #4, #5, #14 depend on it. Landscape (#13) should be considered before Collapsible Goal (#14). Cosmetics (#10-#11) need shader work.
-- **VISION.md = temp buffer**: Session capture only. Merged into PRD §11, then cleared.
-- **UAT-001 resolved**: Removed from Open Issues, marked resolved in v1.2-ROADMAP.md.
-- **Next**: Finalize v1.3 milestone scope via /gsd:discuss-milestone
+- **PRD #8 full spec written**: Drop-in/Drop-out expanded from 2-line placeholder to complete player connection lifecycle (timer-based handoff, seat states, AFK escalation, mid-game join, host migration, Play Again flow, room dissolution)
+- **Dependency audit**: All 14 PRD §11 ideas mapped into parallel tiers with dependency links
+- **v1.3 milestone created**: 8 phases (27-34) on feature/v1.3-drop-in-drop-out branch
+- **Next**: /gsd:plan-phase 27 (Player Identity & Seat Model)
