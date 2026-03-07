@@ -433,7 +433,9 @@ export function useOnlineGame(): UseOnlineGameReturn {
       console.warn("[useOnlineGame] sendUnlockRequest: no socket");
       return;
     }
-    sendMessage(socket, { type: "unlock_request", slotIndices });
+    const afk = !!(window as unknown as Record<string, boolean>).__rbAfkUnlock;
+    (window as unknown as Record<string, boolean>).__rbAfkUnlock = false;
+    sendMessage(socket, { type: "unlock_request", slotIndices, afk });
   }, []);
 
   const sendSkipUnlock = useCallback(() => {
@@ -442,7 +444,9 @@ export function useOnlineGame(): UseOnlineGameReturn {
       console.warn("[useOnlineGame] sendSkipUnlock: no socket");
       return;
     }
-    sendMessage(socket, { type: "skip_unlock" });
+    const afk = !!(window as unknown as Record<string, boolean>).__rbAfkUnlock;
+    (window as unknown as Record<string, boolean>).__rbAfkUnlock = false;
+    sendMessage(socket, { type: "skip_unlock", afk });
   }, []);
 
   // Early return for offline games

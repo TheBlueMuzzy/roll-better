@@ -76,6 +76,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
 
   const handleIdleTimeout = useCallback(() => {
     console.log('[HUD] AFK idle timeout — auto-rolling');
+    (window as unknown as Record<string, boolean>).__rbAfkRoll = true;
     onRoll();
   }, [onRoll]);
 
@@ -116,6 +117,7 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
     }
 
     // Trigger the confirm/skip (same as pressing the button)
+    (window as unknown as Record<string, boolean>).__rbAfkUnlock = true;
     onConfirmUnlock();
   }, [onConfirmUnlock]);
 

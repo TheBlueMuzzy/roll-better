@@ -242,13 +242,13 @@ export default class RollBetterServer implements Party.Server {
         this.handleStartGame(sender, parsed.targetPlayers);
         break;
       case "roll_result":
-        this.handleRollResult(sender, parsed.values);
+        this.handleRollResult(sender, parsed.values, !!parsed.afk);
         break;
       case "unlock_request":
-        this.handleUnlockRequest(sender, parsed.slotIndices);
+        this.handleUnlockRequest(sender, parsed.slotIndices, !!parsed.afk);
         break;
       case "skip_unlock":
-        this.handleSkipUnlock(sender);
+        this.handleSkipUnlock(sender, !!parsed.afk);
         break;
       case "restart_game":
         this.handleRestartGame(sender);
@@ -623,7 +623,7 @@ export default class RollBetterServer implements Party.Server {
    * Client sends its physics-determined dice values after they settle.
    * Server computes locks and relays to other clients (per-player, no batching).
    */
-  private handleRollResult(sender: Party.Connection, values: number[]) {
+  private handleRollResult(sender: Party.Connection, values: number[], afk: boolean = false) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -663,8 +663,21 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Reset AFK escalation on manual action
-    this.resetAFKEscalation(player);
+    // AFK escalation: client flags auto-rolls triggered by AFK countdown
+    if (afk) {
+      player.autopilotCounter++;
+      if (player.seatState !== 'human-afk') {
+        player.seatState = 'human-afk';
+        this.broadcastSeatStateChanged(player);
+      }
+      this.log(`AFK auto-roll from client: ${player.name} (autopilot #${player.autopilotCounter})`);
+      if (player.autopilotCounter >= 2) {
+        this.promoteToBotFromAFK(player);
+      }
+    } else {
+      // Genuine manual action — reset AFK escalation
+      this.resetAFKEscalation(player);
+    }
 
     // Transition to rolling phase on first roll_result received
     if (this.gameState.phase === "idle") {
@@ -771,7 +784,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle an unlock request from an online player.
    * Validates slot indices, stores the response, and checks if all have responded.
    */
-  private handleUnlockRequest(sender: Party.Connection, slotIndices: number[]) {
+  private handleUnlockRequest(sender: Party.Connection, slotIndices: number[], afk: boolean = false) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -814,8 +827,20 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Reset AFK escalation on manual action
-    this.resetAFKEscalation(player);
+    // AFK escalation: client flags auto-unlocks triggered by AFK countdown
+    if (afk) {
+      player.autopilotCounter++;
+      if (player.seatState !== 'human-afk') {
+        player.seatState = 'human-afk';
+        this.broadcastSeatStateChanged(player);
+      }
+      this.log(`AFK auto-unlock from client: ${player.name} (autopilot #${player.autopilotCounter})`);
+      if (player.autopilotCounter >= 2) {
+        this.promoteToBotFromAFK(player);
+      }
+    } else {
+      this.resetAFKEscalation(player);
+    }
 
     // Apply unlock to server state immediately
     const unlockCount = cappedSlots.length;
@@ -846,7 +871,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle a skip-unlock from an online player.
    * Validates the must-unlock guard, stores the response, checks completion.
    */
-  private handleSkipUnlock(sender: Party.Connection) {
+  private handleSkipUnlock(sender: Party.Connection, afk: boolean = false) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -875,8 +900,20 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Reset AFK escalation on manual action
-    this.resetAFKEscalation(player);
+    // AFK escalation: client flags auto-skips triggered by AFK countdown
+    if (afk) {
+      player.autopilotCounter++;
+      if (player.seatState !== 'human-afk') {
+        player.seatState = 'human-afk';
+        this.broadcastSeatStateChanged(player);
+      }
+      this.log(`AFK auto-skip from client: ${player.name} (autopilot #${player.autopilotCounter})`);
+      if (player.autopilotCounter >= 2) {
+        this.promoteToBotFromAFK(player);
+      }
+    } else {
+      this.resetAFKEscalation(player);
+    }
 
     // No broadcast needed for skip — no state change
     this.gameState.unlockResponses.set(sender.id, { type: "skip" });
@@ -1166,15 +1203,15 @@ export default class RollBetterServer implements Party.Server {
   }
 
   /**
-   * Reset AFK escalation state when a player takes a manual action.
+   * Reset AFK escalation state when a player takes a GENUINE manual action.
+   * If the player is already human-afk, the action was the client's auto-roll/auto-unlock
+   * on their behalf — don't reset (let the counter keep accumulating toward bot promotion).
    */
   private resetAFKEscalation(player: ServerPlayerState) {
+    // Only reset if player is actively playing (not already marked AFK)
+    if (player.seatState !== 'human-active') return;
     if (player.autopilotCounter > 0) {
       player.autopilotCounter = 0;
-    }
-    if (player.seatState === 'human-afk') {
-      player.seatState = 'human-active';
-      this.broadcastSeatStateChanged(player);
     }
   }
 
@@ -1192,7 +1229,7 @@ export default class RollBetterServer implements Party.Server {
       if (!this.gameState.unlockResponses.has(player.id)) {
         // AFK escalation: track consecutive timeouts
         player.autopilotCounter++;
-        if (player.autopilotCounter >= 3) {
+        if (player.autopilotCounter >= 2) {
           this.promoteToBotFromAFK(player);
         } else if (player.seatState !== 'human-afk') {
           player.seatState = 'human-afk';
@@ -1247,7 +1284,7 @@ export default class RollBetterServer implements Party.Server {
 
       // AFK escalation: track consecutive timeouts
       player.autopilotCounter++;
-      if (player.autopilotCounter >= 3) {
+      if (player.autopilotCounter >= 2) {
         this.promoteToBotFromAFK(player);
       } else if (player.seatState !== 'human-afk') {
         player.seatState = 'human-afk';

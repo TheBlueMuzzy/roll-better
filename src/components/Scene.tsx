@@ -154,7 +154,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       if (state.isOnlineGame) {
         const socket = getGameSocket();
         if (socket) {
-          sendMessage(socket, { type: "roll_result", values });
+          const afk = !!(window as unknown as Record<string, boolean>).__rbAfkRoll;
+          (window as unknown as Record<string, boolean>).__rbAfkRoll = false;
+          sendMessage(socket, { type: "roll_result", values, afk });
         }
       }
     }

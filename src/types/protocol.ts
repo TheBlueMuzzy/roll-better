@@ -50,15 +50,18 @@ export interface StartGameMessage {
 export interface RollResultMessage {
   type: "roll_result";
   values: number[];  // physics-determined dice values from client
+  afk?: boolean;     // true when triggered by client's AFK countdown
 }
 
 export interface UnlockRequestMessage {
   type: "unlock_request";
   slotIndices: number[];
+  afk?: boolean;     // true when triggered by client's AFK countdown
 }
 
 export interface SkipUnlockMessage {
   type: "skip_unlock";
+  afk?: boolean;     // true when triggered by client's AFK countdown
 }
 
 export interface RestartGameMessage {
