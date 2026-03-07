@@ -663,6 +663,9 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
+    // Reset AFK escalation on manual action
+    this.resetAFKEscalation(player);
+
     // Transition to rolling phase on first roll_result received
     if (this.gameState.phase === "idle") {
       this.gameState.phase = "rolling";
@@ -811,6 +814,9 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
+    // Reset AFK escalation on manual action
+    this.resetAFKEscalation(player);
+
     // Apply unlock to server state immediately
     const unlockCount = cappedSlots.length;
     player.lockedDice = player.lockedDice.filter(
@@ -868,6 +874,9 @@ export default class RollBetterServer implements Party.Server {
       });
       return;
     }
+
+    // Reset AFK escalation on manual action
+    this.resetAFKEscalation(player);
 
     // No broadcast needed for skip — no state change
     this.gameState.unlockResponses.set(sender.id, { type: "skip" });
@@ -1125,6 +1134,50 @@ export default class RollBetterServer implements Party.Server {
     this.autoRollUnresponsivePlayers();
   }
 
+  // ─── AFK Escalation ─────────────────────────────────────────────────
+
+  /**
+   * Promote an AFK player to full bot control after 3 consecutive timeouts.
+   * Sets seatState='bot', assigns random difficulty, marks offline.
+   */
+  private promoteToBotFromAFK(player: ServerPlayerState) {
+    player.seatState = 'bot';
+    player.difficulty = randomDifficulty();
+    player.isOnline = false;
+    // Remove from rollRequestedBy if present — no longer an online player
+    if (this.gameState) {
+      this.gameState.rollRequestedBy.delete(player.id);
+    }
+    this.log(`AFK escalation: ${player.name} promoted to Bot (${player.autopilotCounter} consecutive timeouts)`);
+    this.broadcastSeatStateChanged(player);
+  }
+
+  /**
+   * Broadcast a seat_state_changed message to all clients.
+   */
+  private broadcastSeatStateChanged(player: ServerPlayerState) {
+    const msg: ServerMessage = {
+      type: "seat_state_changed",
+      playerId: player.id,
+      seatState: player.seatState,
+      seatIndex: player.seatIndex,
+    };
+    this.room.broadcast(JSON.stringify(msg));
+  }
+
+  /**
+   * Reset AFK escalation state when a player takes a manual action.
+   */
+  private resetAFKEscalation(player: ServerPlayerState) {
+    if (player.autopilotCounter > 0) {
+      player.autopilotCounter = 0;
+    }
+    if (player.seatState === 'human-afk') {
+      player.seatState = 'human-active';
+      this.broadcastSeatStateChanged(player);
+    }
+  }
+
   // ─── AFK Handling ───────────────────────────────────────────────────
 
   /**
@@ -1137,6 +1190,15 @@ export default class RollBetterServer implements Party.Server {
     const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
     for (const player of onlinePlayers) {
       if (!this.gameState.unlockResponses.has(player.id)) {
+        // AFK escalation: track consecutive timeouts
+        player.autopilotCounter++;
+        if (player.autopilotCounter >= 3) {
+          this.promoteToBotFromAFK(player);
+        } else if (player.seatState !== 'human-afk') {
+          player.seatState = 'human-afk';
+          this.broadcastSeatStateChanged(player);
+        }
+
         // AFK unlock rule: if total dice (pool + locked) < 8, unlock enough to reach 8
         // Each unlock adds 1 to total (bonus die), so unlocks needed = 8 - total
         const totalDice = player.poolSize + player.lockedDice.length;
@@ -1161,7 +1223,7 @@ export default class RollBetterServer implements Party.Server {
           this.log(`AFK auto-unlock ${player.name}: slots [${slotsToUnlock.join(", ")}] — pool: ${player.poolSize}`);
         }
         this.gameState.unlockResponses.set(player.id, { type: "skip" });
-        this.log(`Auto-resolved AFK player: ${player.name}`);
+        this.log(`Auto-resolved AFK player: ${player.name} (autopilot #${player.autopilotCounter})`);
       }
     }
 
@@ -1182,6 +1244,15 @@ export default class RollBetterServer implements Party.Server {
     const onlinePlayers = this.gameState.players.filter((p) => p.isOnline);
     for (const player of onlinePlayers) {
       if (this.gameState.rollRequestedBy.has(player.id)) continue;
+
+      // AFK escalation: track consecutive timeouts
+      player.autopilotCounter++;
+      if (player.autopilotCounter >= 3) {
+        this.promoteToBotFromAFK(player);
+      } else if (player.seatState !== 'human-afk') {
+        player.seatState = 'human-afk';
+        this.broadcastSeatStateChanged(player);
+      }
 
       // Generate random dice values for the AFK player
       const values = Array.from({ length: player.poolSize }, () =>
@@ -1210,7 +1281,7 @@ export default class RollBetterServer implements Party.Server {
         lockedDice: player.lockedDice,
       };
       this.room.broadcast(JSON.stringify(lockResult));
-      this.log(`Auto-rolled for AFK player: ${player.name} — [${values}] — ${newLocks.length} locks`);
+      this.log(`Auto-rolled for AFK player: ${player.name} — [${values}] — ${newLocks.length} locks (autopilot #${player.autopilotCounter})`);
     }
 
     // All AFK players handled — check if ready to proceed

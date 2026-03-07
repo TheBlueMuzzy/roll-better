@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 20,
+  "build": 21,
   "history": [
     {
       "version": "0.1.0",
@@ -297,6 +297,11 @@
       "version": "0.2.0.20",
       "date": "2026-03-07",
       "summary": "Add SeatState, seatIndex, autopilotCounter to protocol, server, and client data model"
+    },
+    {
+      "version": "0.2.0.21",
+      "date": "2026-03-07",
+      "summary": "Server AFK escalation: autopilot counter tracking, seat state transitions, promoteToBotFromAFK"
     }
   ]
 }
