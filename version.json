@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 22,
+  "build": 23,
   "history": [
     {
       "version": "0.1.0",
@@ -307,6 +307,11 @@
       "version": "0.2.0.22",
       "date": "2026-03-07",
       "summary": "SeatStateChangedMessage protocol type + ServerMessage union update"
+    },
+    {
+      "version": "0.2.0.23",
+      "date": "2026-03-07",
+      "summary": "Client seat state sync + HUD notification pills for AFK/bot transitions"
     }
   ]
 }
