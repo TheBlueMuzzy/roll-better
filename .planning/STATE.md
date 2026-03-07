@@ -4,7 +4,7 @@
 v1.3 milestone created. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.19
+0.2.0.20
 
 ## Project Reference
 
@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 27 of 34 (Player Identity & Seat Model)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-07 — Completed 27-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-07 — Completed 27-02-PLAN.md
 
-Progress: █░░░░░░░░░ 6%
+Progress: ██░░░░░░░░ 12%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -28,6 +28,7 @@ Progress: █░░░░░░░░░ 6%
 - **Live URL**: thebluemuzzy.github.io/roll-better/
 
 ## Key Architecture
+- **Seat state model**: SeatState (human-active / human-afk / bot) + seatIndex on all players, server→protocol→client
 - **Client-authoritative dice**: Each client rolls physics locally, reports values to server
 - **Snapshot + Delta hybrid**: Every phase_change carries full PlayerSyncState[]
 - **Stable client ID**: sessionStorage -> PartySocket `id` option -> same conn.id on reconnect
@@ -47,6 +48,7 @@ Progress: █░░░░░░░░░ 6%
 - v1.2 shipped: UI/UX polish complete. All decisions archived in milestones/v1.2-ROADMAP.md.
 - 27-01: Dual identity model — conn.id (sessionStorage) for WebSocket session, persistentId (localStorage) for cross-session seat ownership
 - 27-01: persistentIdToConnId map persists after disconnect for returning player detection
+- 27-02: SeatState as string literal union (not enum), seatIndex sequential by array position, autopilotCounter server-only
 
 ### Open Issues
 (none)
@@ -60,10 +62,11 @@ Progress: █░░░░░░░░░ 6%
 ## Session Continuity
 
 Last session: 2026-03-07
-Stopped at: Completed 27-01-PLAN.md
+Stopped at: Completed 27-02-PLAN.md — Phase 27 complete
 Resume file: None
 
 ### Recent Changes (2026-03-07)
 - **27-01 complete**: Persistent player ID (localStorage `rb-player-id`) + server persistentIdToConnId seat mapping
-- **Protocol updated**: JoinMessage, ConnectedMessage, RoomPlayer all carry persistentId
-- **Next**: 27-02-PLAN.md (remaining seat model work)
+- **27-02 complete**: SeatState enum + seatIndex + autopilotCounter flowing server→protocol→client
+- **Phase 27 complete**: Player Identity & Seat Model foundation ready for Phase 28
+- **Next**: Phase 28 — AFK Autopilot & Escalation
