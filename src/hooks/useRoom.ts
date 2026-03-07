@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { createPartyConnection, sendMessage, parseServerMessage, setGameSocket } from "../utils/partyClient";
+import { createPartyConnection, sendMessage, parseServerMessage, setGameSocket, getPersistentPlayerId } from "../utils/partyClient";
 import { useGameStore } from "../store/gameStore";
 import type { RoomPlayer, RoomStatus } from "../types/protocol";
 import type PartySocket from "partysocket";
@@ -114,6 +114,7 @@ export function useRoom(): UseRoomReturn {
               type: "join",
               name: pendingJoinRef.current.name,
               color: pendingJoinRef.current.color,
+              persistentId: getPersistentPlayerId(),
             });
             pendingJoinRef.current = null;
           }

@@ -30,6 +30,7 @@ interface ServerPlayerState {
   id: string;
   name: string;
   color: string;
+  persistentId: string;
   score: number;
   startingDice: number;
   poolSize: number;
@@ -55,6 +56,10 @@ export default class RollBetterServer implements Party.Server {
   players: Map<string, RoomPlayer> = new Map();
   hostId: string | null = null;
   status: RoomStatus = "waiting";
+
+  // ─── Persistent ID → Connection ID mapping ────────────────────────
+  // Survives player disconnect — used for seat reclaim on rejoin
+  persistentIdToConnId: Map<string, string> = new Map();
 
   // ─── Game State (null during lobby, initialized on game start) ────
   gameState: ServerGameState | null = null;
@@ -105,6 +110,7 @@ export default class RollBetterServer implements Party.Server {
           color: gamePlayer.color,
           isHost: conn.id === this.hostId,
           isReady: true,
+          persistentId: gamePlayer.persistentId,
         });
 
         // Cancel keepalive timer if room was waiting for rejoin
@@ -122,6 +128,7 @@ export default class RollBetterServer implements Party.Server {
           type: "connected",
           roomId: this.room.id,
           playerId: conn.id,
+          persistentId: "",
         });
 
         // Send rejoin_state with full game snapshot
@@ -182,6 +189,7 @@ export default class RollBetterServer implements Party.Server {
       type: "connected",
       roomId: this.room.id,
       playerId: conn.id,
+      persistentId: "",
     });
   }
 
@@ -216,7 +224,7 @@ export default class RollBetterServer implements Party.Server {
 
     switch (parsed.type) {
       case "join":
-        this.handleJoin(sender, parsed.name, parsed.color);
+        this.handleJoin(sender, parsed.name, parsed.color, parsed.persistentId);
         break;
       case "leave":
         this.removePlayer(sender.id, true);
@@ -278,7 +286,7 @@ export default class RollBetterServer implements Party.Server {
 
   // ─── Message Handlers ─────────────────────────────────────────────
 
-  private handleJoin(conn: Party.Connection, name: string, color: string) {
+  private handleJoin(conn: Party.Connection, name: string, _color: string, persistentId?: string) {
     // Duplicate join — already in players map
     if (this.players.has(conn.id)) {
       this.sendRoomState(conn);
@@ -307,12 +315,14 @@ export default class RollBetterServer implements Party.Server {
     // Create player — color assigned by join order, not client-specified
     const isFirstPlayer = this.players.size === 0;
     const colorIndex = this.players.size;
+    const pid = persistentId ?? "";
     const player: RoomPlayer = {
       id: conn.id,
       name: trimmedName,
       color: PLAYER_COLORS[colorIndex % PLAYER_COLORS.length],
       isHost: isFirstPlayer,
       isReady: false,
+      persistentId: pid,
     };
 
     // Set host if first player
@@ -320,9 +330,12 @@ export default class RollBetterServer implements Party.Server {
       this.hostId = conn.id;
     }
 
-    // Add to players map
+    // Add to players map and persistent ID mapping
     this.players.set(conn.id, player);
-    this.log(`Player joined: ${trimmedName} (${conn.id})`);
+    if (pid) {
+      this.persistentIdToConnId.set(pid, conn.id);
+    }
+    this.log(`[JOIN] persistentId=${pid.slice(0, 8)} connId=${conn.id.slice(0, 8)}`);
 
     // Broadcast player_joined to everyone EXCEPT the joining player
     this.broadcastExcept(
@@ -403,6 +416,7 @@ export default class RollBetterServer implements Party.Server {
         id: p.id,
         name: p.name,
         color: p.color,
+        persistentId: p.persistentId,
         score: 0,
         startingDice: 2,
         poolSize: 2,
@@ -418,6 +432,7 @@ export default class RollBetterServer implements Party.Server {
         id: `bot-${i}`,
         name: `Bot ${i + 1}`,
         color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
+        persistentId: `bot-${i}`,
         score: 0,
         startingDice: 2,
         poolSize: 2,
@@ -490,6 +505,7 @@ export default class RollBetterServer implements Party.Server {
         id: p.id,
         name: p.name,
         color: p.color,
+        persistentId: p.persistentId,
         score: 0,
         startingDice: 2,
         poolSize: 2,
@@ -504,6 +520,7 @@ export default class RollBetterServer implements Party.Server {
         id: `bot-${i}`,
         name: `Bot ${i + 1}`,
         color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
+        persistentId: `bot-${i}`,
         score: 0,
         startingDice: 2,
         poolSize: 2,
