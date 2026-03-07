@@ -1,7 +1,8 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 import { RollingCountdown } from './RollingCountdown';
+import type { SeatState } from '../types/protocol';
 
 
 interface HUDProps {
@@ -32,6 +33,42 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
   const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
+
+  // --- Seat state change notifications ---
+  const [seatNotifications, setSeatNotifications] = useState<string[]>([]);
+  const prevSeatStatesRef = useRef<Map<string, SeatState>>(new Map());
+
+  useEffect(() => {
+    if (!isOnlineGame) return;
+    const localId = useGameStore.getState().onlinePlayerId;
+    const prev = prevSeatStatesRef.current;
+    const newNotifications: string[] = [];
+
+    for (const p of players) {
+      if (p.id === 'player-0' && localId) continue; // skip local player for notifications
+      const prevState = prev.get(p.id);
+      if (prevState && prevState !== p.seatState) {
+        if (prevState === 'human-active' && p.seatState === 'human-afk') {
+          newNotifications.push(`${p.name} is on autopilot`);
+        } else if (prevState === 'human-afk' && p.seatState === 'bot') {
+          newNotifications.push(`Bot took over for ${p.name}`);
+        } else if (prevState === 'human-afk' && p.seatState === 'human-active') {
+          newNotifications.push(`${p.name} is back`);
+        } else if (prevState === 'bot' && p.seatState === 'human-active') {
+          newNotifications.push(`${p.name} reclaimed their seat`);
+        }
+      }
+      prev.set(p.id, p.seatState);
+    }
+
+    if (newNotifications.length > 0) {
+      setSeatNotifications(curr => [...curr, ...newNotifications].slice(-2));
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => {
+        setSeatNotifications(curr => curr.slice(newNotifications.length));
+      }, 3000);
+    }
+  }, [players, isOnlineGame]);
 
   // --- AFK countdown logic ---
   const showIdleCountdown = isOnlineGame && phase === 'idle';
@@ -212,6 +249,35 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
         >
           {selectedCount > 0 ? `UNLOCK ${selectedCount}` : mustUnlock ? 'MUST UNLOCK' : 'SKIP'}
         </button>
+      )}
+
+      {/* Seat state change notifications */}
+      {seatNotifications.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          bottom: '120px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          alignItems: 'center',
+          pointerEvents: 'none',
+          zIndex: 20,
+        }}>
+          {seatNotifications.map((msg, i) => (
+            <div key={`${msg}-${i}`} style={{
+              fontSize: '13px',
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '6px 14px',
+              borderRadius: '12px',
+              whiteSpace: 'nowrap',
+            }}>
+              {msg}
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Settings gear button — bottom-right */}
