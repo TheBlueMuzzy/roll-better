@@ -336,6 +336,19 @@ export default class RollBetterServer implements Party.Server {
     this.log(`[CLOSE] id=${conn.id.slice(0, 8)} players=${this.players.size} hasGame=${!!this.gameState}`);
     this.removePlayer(conn.id);
 
+    // Clean up mid-game joiner if they disconnect before takeover
+    if (this.midGameJoiners.has(conn.id)) {
+      this.midGameJoiners.delete(conn.id);
+      // Remove any pending claims by this joiner
+      for (const [idx, claimantId] of this.pendingSeatClaims) {
+        if (claimantId === conn.id) {
+          this.pendingSeatClaims.delete(idx);
+          break;
+        }
+      }
+      this.log(`[MID-GAME JOIN] Joiner ${conn.id.slice(0, 8)} disconnected — cleaned up`);
+    }
+
     // If no players remain, clean up timers
     if (this.players.size === 0) {
       this.cleanupTimers();
@@ -1587,8 +1600,49 @@ export default class RollBetterServer implements Party.Server {
     this.sendToConnection(conn, this.buildRoomStateMessage());
   }
 
-  private handleSeatClaim(_conn: Party.Connection, _seatIndex: number) {
-    // Stub — full implementation in Task 2
+  private handleSeatClaim(conn: Party.Connection, seatIndex: number) {
+    if (!this.gameState) {
+      this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "no_game" } as any);
+      return;
+    }
+
+    // Must be a mid-game joiner (not already in the game)
+    if (!this.midGameJoiners.has(conn.id)) {
+      this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "not_a_joiner" } as any);
+      return;
+    }
+
+    // Find the target seat
+    const targetPlayer = this.gameState.players.find(p => p.seatIndex === seatIndex);
+    if (!targetPlayer) {
+      this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "no_such_seat" } as any);
+      return;
+    }
+
+    // Must be a bot seat
+    if (targetPlayer.seatState !== 'bot') {
+      this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "not_a_bot" } as any);
+      return;
+    }
+
+    // First claim wins — check if already claimed by someone else
+    if (this.pendingSeatClaims.has(seatIndex)) {
+      this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "seat_taken" } as any);
+      return;
+    }
+
+    // Cancel any previous claim by this same joiner (can only claim one seat)
+    for (const [idx, claimantId] of this.pendingSeatClaims) {
+      if (claimantId === conn.id) {
+        this.pendingSeatClaims.delete(idx);
+        break;
+      }
+    }
+
+    // Store the pending claim
+    this.pendingSeatClaims.set(seatIndex, conn.id);
+    this.sendToConnection(conn, { type: "seat_claim_result", success: true, seatIndex } as any);
+    this.log(`[SEAT CLAIM] ${conn.id.slice(0, 8)} claimed seat ${seatIndex} (${targetPlayer.name}) — pending takeover at phase boundary`);
   }
 
   private sendSeatList(conn: Party.Connection) {
