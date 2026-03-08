@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 28,
+  "build": 29,
   "history": [
     {
       "version": "0.1.0",
@@ -337,6 +337,11 @@
       "version": "0.2.0.28",
       "date": "2026-03-08",
       "summary": "Fix mid-game join: allow joins during waiting_for_rejoin, fix MainMenu race condition"
+    },
+    {
+      "version": "0.2.0.29",
+      "date": "2026-03-08",
+      "summary": "Host-side visual sync: handleSeatTakeover updates player name/ID/seatState on bot→human transition"
     }
   ]
 }
