@@ -76,6 +76,11 @@ export interface PhaseSyncRequestMessage {
   type: "phase_sync_request";
 }
 
+export interface SeatClaimMessage {
+  type: "seat_claim";
+  seatIndex: number;
+}
+
 /** All messages the client can send to the server */
 export type ClientMessage =
   | JoinMessage
@@ -87,7 +92,8 @@ export type ClientMessage =
   | SkipUnlockMessage
   | RestartGameMessage
   | RollingTimeoutMessage
-  | PhaseSyncRequestMessage;
+  | PhaseSyncRequestMessage
+  | SeatClaimMessage;
 
 // ─── Server → Client Messages ───────────────────────────────────────
 
@@ -234,6 +240,33 @@ export interface SeatStateChangedMessage {
   seatIndex: number;
 }
 
+export interface SeatListMessage {
+  type: "seat_list";
+  seats: Array<{
+    seatIndex: number;
+    name: string;
+    color: string;
+    score: number;
+    lockedCount: number;
+  }>;
+  round: number;
+  goalValues: number[];
+}
+
+export interface SeatClaimResultMessage {
+  type: "seat_claim_result";
+  success: boolean;
+  seatIndex: number;
+  reason?: string;
+}
+
+export interface SeatTakeoverMessage {
+  type: "seat_takeover";
+  seatIndex: number;
+  playerId: string;
+  playerName: string;
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -252,4 +285,7 @@ export type ServerMessage =
   | PhaseSyncMessage
   | RejoinStateMessage
   | PlayerReconnectedMessage
-  | SeatStateChangedMessage;
+  | SeatStateChangedMessage
+  | SeatListMessage
+  | SeatClaimResultMessage
+  | SeatTakeoverMessage;

@@ -77,6 +77,10 @@ export default class RollBetterServer implements Party.Server {
   private rollingTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private keepaliveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // ─── Mid-Game Join State ─────────────────────────────────────────
+  private midGameJoiners: Map<string, { name: string; persistentId: string }> = new Map();
+  private pendingSeatClaims: Map<number, string> = new Map(); // seatIndex → connId
+
   // ─── Disconnect Grace Timers ──────────────────────────────────────
   // Per-player grace timer: connId -> setTimeout handle
   // When a player disconnects during a timed phase, they get a grace window
@@ -303,6 +307,9 @@ export default class RollBetterServer implements Party.Server {
         // Keep handler for backwards compatibility — still valid as a manual trigger.
         this.handleRollingTimeout(sender);
         break;
+      case "seat_claim":
+        this.handleSeatClaim(sender, parsed.seatIndex);
+        break;
       case "phase_sync_request":
         // Client watchdog detected a stall — respond with full state snapshot
         if (this.gameState) {
@@ -363,10 +370,22 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
+    const pid = persistentId ?? "";
+
+    // Mid-game join: game is active, send available bot seats
+    if (this.gameState && this.status === "playing") {
+      this.midGameJoiners.set(conn.id, { name: trimmedName, persistentId: pid });
+      if (pid) {
+        this.persistentIdToConnId.set(pid, conn.id);
+      }
+      this.sendSeatList(conn);
+      this.log(`[MID-GAME JOIN] ${trimmedName} connected — sent seat list`);
+      return;
+    }
+
     // Create player — color assigned by join order, not client-specified
     const isFirstPlayer = this.players.size === 0;
     const colorIndex = this.players.size;
-    const pid = persistentId ?? "";
     const player: RoomPlayer = {
       id: conn.id,
       name: trimmedName,
@@ -1566,6 +1585,30 @@ export default class RollBetterServer implements Party.Server {
 
   private sendRoomState(conn: Party.Connection) {
     this.sendToConnection(conn, this.buildRoomStateMessage());
+  }
+
+  private handleSeatClaim(_conn: Party.Connection, _seatIndex: number) {
+    // Stub — full implementation in Task 2
+  }
+
+  private sendSeatList(conn: Party.Connection) {
+    if (!this.gameState) return;
+    const botSeats = this.gameState.players
+      .filter(p => p.seatState === 'bot')
+      .filter(p => !this.pendingSeatClaims.has(p.seatIndex))
+      .map(p => ({
+        seatIndex: p.seatIndex,
+        name: p.name,
+        color: p.color,
+        score: p.score,
+        lockedCount: p.lockedDice.length,
+      }));
+    this.sendToConnection(conn, {
+      type: "seat_list",
+      seats: botSeats,
+      round: this.gameState.currentRound,
+      goalValues: this.gameState.goalValues,
+    } as any);
   }
 
   private broadcastRoomState() {
