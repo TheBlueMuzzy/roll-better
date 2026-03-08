@@ -91,7 +91,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 29-01: TBD
+- [x] 29-01: Replace 60s keepalive with phase-timer-based disconnect grace window
 
 #### Phase 30: Mid-Game Join Flow
 
@@ -178,7 +178,7 @@ Plans:
 | 26. How to Play Content Refresh | v1.2 | 1/1 | Complete | 2026-03-06 |
 | 27. Player Identity & Seat Model | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 28. AFK Autopilot & Escalation | v1.3 | 2/2 | Complete | 2026-03-07 |
-| 29. Disconnect Handoff | v1.3 | 0/? | Not started | - |
+| 29. Disconnect Handoff | v1.3 | 1/1 | Complete | 2026-03-08 |
 | 30. Mid-Game Join Flow | v1.3 | 0/? | Not started | - |
 | 31. Host Migration & Room Lifecycle | v1.3 | 0/? | Not started | - |
 | 32. Play Again Rework | v1.3 | 0/? | Not started | - |

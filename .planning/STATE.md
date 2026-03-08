@@ -4,7 +4,7 @@
 v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.25
+0.2.0.26
 
 ## Project Reference
 
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 28 of 34 (AFK Autopilot & Escalation) — COMPLETE
-Plan: 2 of 2 in current phase — COMPLETE
-Status: Phase 28 complete, ready for Phase 29
-Last activity: 2026-03-07 — Completed 28-02-PLAN.md
+Phase: 29 of 34 (Disconnect Handoff) — COMPLETE
+Plan: 1 of 1 in current phase — COMPLETE
+Status: Phase 29 complete, ready for Phase 30
+Last activity: 2026-03-08 — Completed 29-01-PLAN.md
 
-Progress: ████░░░░░░ 25%
+Progress: ████░░░░░░ 28%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -28,12 +28,12 @@ Progress: ████░░░░░░ 25%
 - **Live URL**: thebluemuzzy.github.io/roll-better/
 
 ## Key Architecture
-- **Seat state model**: SeatState (human-active / human-afk / bot) + seatIndex on all players, server→protocol→client
+- **Seat state model**: SeatState (human-active / human-afk / bot) + seatIndex on all players, server->protocol->client
 - **Client-authoritative dice**: Each client rolls physics locally, reports values to server
 - **Snapshot + Delta hybrid**: Every phase_change carries full PlayerSyncState[]
 - **Stable client ID**: sessionStorage -> PartySocket `id` option -> same conn.id on reconnect
 - **Rejoin protocol**: Server detects offline player with matching conn.id, sends rejoin_state with full game snapshot
-- **Keepalive**: Empty room during active game survives 60s for reconnection
+- **Disconnect grace**: Per-player grace timer = remaining phase timer. Non-timed phases = immediate bot promotion. Empty room keepalive = 10s.
 - **AFK timers**: 20s for both rolling and unlocking. Client-driven countdown, server-enforced timeout.
 - **Pool cap**: Max 12 dice. Server enforces on manual unlock.
 
@@ -51,6 +51,7 @@ Progress: ████░░░░░░ 25%
 - 27-02: SeatState as string literal union (not enum), seatIndex sequential by array position, autopilotCounter server-only
 - 28-01: AFK escalation threshold = 3 consecutive timeouts; resetAFKEscalation helper DRYs 3 manual handlers; promoteToBotFromAFK keeps player in array for reconnect
 - 28-02: AFK threshold lowered to 2 (1 full AFK turn = bot takeover); client flags afk:true on auto-triggered messages; bot icon on avatars; return to menu on bot takeover
+- 29-01: Grace window = remaining phase timer time; non-timed phases = immediate bot; empty room keepalive 10s; reconnect after grace expired sends room_closed
 
 ### Open Issues
 (none)
@@ -63,12 +64,11 @@ Progress: ████░░░░░░ 25%
 
 ## Session Continuity
 
-Last session: 2026-03-07
-Stopped at: Phase 28 complete — ready for Phase 29 planning
+Last session: 2026-03-08
+Stopped at: Phase 29 complete — ready for Phase 30 planning
 Resume file: None
 
-### Recent Changes (2026-03-07)
-- **Phase 28 complete**: AFK Autopilot & Escalation fully wired end-to-end
-- **28-02 delivered**: Client seat state sync, HUD notification pills, bot icon on avatars, return to menu on bot takeover
-- **AFK counter bug fixed**: Client flags afk:true in protocol, server increments counter instead of resetting. Threshold = 2.
-- **Vision captured**: Remove "ready" button, auto-ready on join (relevant to Phase 30/32)
+### Recent Changes (2026-03-08)
+- **Phase 29 complete**: Disconnect Handoff — per-player grace timers replace 60s keepalive
+- **29-01 delivered**: Grace timer = remaining phase time, immediate bot for non-timed phases, reconnect-during-grace restores seat, reconnect-after-grace sends room_closed
+- **Empty room keepalive**: Shortened from 60s to 10s, extracted to helper method
