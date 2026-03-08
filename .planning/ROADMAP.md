@@ -102,7 +102,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 30-01: TBD
+- [x] 30-01: Server protocol types + mid-game join acceptance + seat claim validation
 
 #### Phase 31: Host Migration & Room Lifecycle
 
@@ -179,7 +179,7 @@ Plans:
 | 27. Player Identity & Seat Model | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 28. AFK Autopilot & Escalation | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 29. Disconnect Handoff | v1.3 | 1/1 | Complete | 2026-03-08 |
-| 30. Mid-Game Join Flow | v1.3 | 0/? | Not started | - |
+| 30. Mid-Game Join Flow | v1.3 | 1/? | In progress | - |
 | 31. Host Migration & Room Lifecycle | v1.3 | 0/? | Not started | - |
 | 32. Play Again Rework | v1.3 | 0/? | Not started | - |
 | 33. Connection Polish & Edge Cases | v1.3 | 0/? | Not started | - |

@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 29 of 34 (Disconnect Handoff) — COMPLETE
-Plan: 1 of 1 in current phase — COMPLETE
-Status: Phase 29 complete, ready for Phase 30
-Last activity: 2026-03-08 — Completed 29-01-PLAN.md
+Phase: 30 of 34 (Mid-Game Join Flow)
+Plan: 1 of ? in current phase
+Status: In progress
+Last activity: 2026-03-08 — Completed 30-01-PLAN.md
 
-Progress: ████░░░░░░ 28%
+Progress: ████░░░░░░ 30%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -52,6 +52,7 @@ Progress: ████░░░░░░ 28%
 - 28-01: AFK escalation threshold = 3 consecutive timeouts; resetAFKEscalation helper DRYs 3 manual handlers; promoteToBotFromAFK keeps player in array for reconnect
 - 28-02: AFK threshold lowered to 2 (1 full AFK turn = bot takeover); client flags afk:true on auto-triggered messages; bot icon on avatars; return to menu on bot takeover
 - 29-01: Grace window = remaining phase timer time; non-timed phases = immediate bot; empty room keepalive 10s; reconnect after grace expired sends room_closed
+- 30-01: Mid-game joiners tracked in separate midGameJoiners map (not in players); first-claim-wins pendingSeatClaims; no room_state sent to joiners
 
 ### Open Issues
 (none)
@@ -65,10 +66,9 @@ Progress: ████░░░░░░ 28%
 ## Session Continuity
 
 Last session: 2026-03-08
-Stopped at: Phase 29 complete — ready for Phase 30 planning
+Stopped at: Completed 30-01-PLAN.md — mid-game join protocol + seat claim logic
 Resume file: None
 
 ### Recent Changes (2026-03-08)
-- **Phase 29 complete**: Disconnect Handoff — per-player grace timers replace 60s keepalive
-- **29-01 delivered**: Grace timer = remaining phase time, immediate bot for non-timed phases, reconnect-during-grace restores seat, reconnect-after-grace sends room_closed
-- **Empty room keepalive**: Shortened from 60s to 10s, extracted to helper method
+- **30-01 delivered**: 4 new protocol types (seat_claim, seat_list, seat_claim_result, seat_takeover), server mid-game join acceptance, seat claim validation with first-claim-wins
+- **Key pattern**: midGameJoiners map tracks joiners separately from players; pendingSeatClaims queues takeovers for phase boundary
