@@ -693,6 +693,9 @@ export default class RollBetterServer implements Party.Server {
 
     this.room.broadcast(JSON.stringify(roundStartMsg));
     this.log(`Round ${this.gameState.currentRound} started — goals: [${this.gameState.goalValues.join(", ")}]`);
+
+    // Execute pending mid-game seat claims at round boundary
+    this.executePendingSeatClaims();
   }
 
   /**
@@ -1081,6 +1084,9 @@ export default class RollBetterServer implements Party.Server {
     this.log(`[BROADCAST] phase_change:idle (${idleMsgStr.length} bytes, ${idleSnapshot.length} players)`);
     this.room.broadcast(idleMsgStr);
     this.log("Phase → idle (unlocks processed)");
+
+    // Execute pending mid-game seat claims at phase boundary
+    this.executePendingSeatClaims();
   }
 
   // ─── Scoring & Round Transitions ──────────────────────────────────
@@ -1108,6 +1114,9 @@ export default class RollBetterServer implements Party.Server {
       this.log(`[BROADCAST] phase_change:unlocking (${msgStr.length} bytes, ${snapshot.length} players)`);
       this.room.broadcast(msgStr);
       this.log("Phase → unlocking — broadcast sent");
+
+      // Execute pending mid-game seat claims at phase boundary
+      this.executePendingSeatClaims();
 
       // Start AFK timeout — 25 seconds (client's 20s + 5s margin so client fires first)
       this.phaseTimerStartedAt = Date.now();
@@ -1171,6 +1180,9 @@ export default class RollBetterServer implements Party.Server {
     };
     this.room.broadcast(JSON.stringify(scoringMsg));
 
+    // Execute pending mid-game seat claims at phase boundary
+    this.executePendingSeatClaims();
+
     // After 2 seconds, apply handicap and move to next round
     this.scoringTimer = setTimeout(() => {
       this.scoringTimer = null;
@@ -1229,6 +1241,9 @@ export default class RollBetterServer implements Party.Server {
       this.room.broadcast(JSON.stringify(phaseMsg));
       this.log("Phase → roundEnd");
 
+      // Execute pending mid-game seat claims at phase boundary
+      this.executePendingSeatClaims();
+
       // After 500ms, start next round
       this.roundEndTimer = setTimeout(() => {
         this.roundEndTimer = null;
@@ -1283,6 +1298,95 @@ export default class RollBetterServer implements Party.Server {
   /**
    * Broadcast a seat_state_changed message to all clients.
    */
+  /**
+   * Execute all pending seat claims at phase boundaries.
+   * Swaps bot → human-active, sends rejoin_state to new player,
+   * broadcasts seat_takeover + seat_state_changed to all clients.
+   */
+  private executePendingSeatClaims() {
+    if (!this.gameState || this.pendingSeatClaims.size === 0) return;
+
+    for (const [seatIndex, claimantConnId] of this.pendingSeatClaims) {
+      const joinerInfo = this.midGameJoiners.get(claimantConnId);
+      if (!joinerInfo) {
+        this.log(`[TAKEOVER] Skipping seat ${seatIndex} — claimant ${claimantConnId.slice(0, 8)} no longer connected`);
+        continue;
+      }
+
+      // Verify the connection is still open
+      const conn = this.room.getConnection(claimantConnId);
+      if (!conn) {
+        this.log(`[TAKEOVER] Skipping seat ${seatIndex} — connection gone`);
+        this.midGameJoiners.delete(claimantConnId);
+        continue;
+      }
+
+      // Find the bot player in game state
+      const botPlayer = this.gameState.players.find(p => p.seatIndex === seatIndex);
+      if (!botPlayer || botPlayer.seatState !== 'bot') {
+        this.log(`[TAKEOVER] Skipping seat ${seatIndex} — no longer a bot`);
+        this.sendToConnection(conn, {
+          type: "seat_claim_result",
+          success: false,
+          seatIndex,
+          reason: "seat_no_longer_bot",
+        } as any);
+        continue;
+      }
+
+      // === Execute takeover ===
+      // Update game state: bot → human
+      botPlayer.id = claimantConnId;
+      botPlayer.name = joinerInfo.name;
+      botPlayer.persistentId = joinerInfo.persistentId;
+      botPlayer.isOnline = true;
+      botPlayer.seatState = 'human-active';
+      botPlayer.autopilotCounter = 0;
+      delete botPlayer.difficulty;
+      // Keep: color, score, lockedDice, poolSize, startingDice, seatIndex
+
+      // Add to players Map (they're now a real room participant)
+      this.players.set(claimantConnId, {
+        id: claimantConnId,
+        name: joinerInfo.name,
+        color: botPlayer.color,
+        isHost: false,
+        isReady: true,
+        persistentId: joinerInfo.persistentId,
+        seatIndex: botPlayer.seatIndex,
+      });
+
+      // Remove from mid-game joiners
+      this.midGameJoiners.delete(claimantConnId);
+
+      // Send rejoin_state to new player (same format as reconnect)
+      this.sendToConnection(conn, {
+        type: "rejoin_state",
+        phase: this.gameState.phase,
+        round: this.gameState.currentRound,
+        goalValues: this.gameState.goalValues,
+        players: this.buildPlayerSnapshot(),
+      } as any);
+
+      // Broadcast seat_takeover to ALL clients (including the new player)
+      const takeoverMsg = {
+        type: "seat_takeover",
+        seatIndex,
+        playerId: claimantConnId,
+        playerName: joinerInfo.name,
+      };
+      this.room.broadcast(JSON.stringify(takeoverMsg));
+
+      // Broadcast seat_state_changed for the seat
+      this.broadcastSeatStateChanged(botPlayer);
+
+      this.log(`[TAKEOVER] Seat ${seatIndex} transferred: ${botPlayer.name} took over (was bot)`);
+    }
+
+    // Clear all pending claims (processed or skipped)
+    this.pendingSeatClaims.clear();
+  }
+
   private broadcastSeatStateChanged(player: ServerPlayerState) {
     const msg: ServerMessage = {
       type: "seat_state_changed",
