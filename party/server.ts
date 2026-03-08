@@ -210,15 +210,8 @@ export default class RollBetterServer implements Party.Server {
         return; // Skip normal onConnect flow
       }
 
-      // Non-rejoin connection during waiting_for_rejoin: reject
-      if ((this.status as string) === "waiting_for_rejoin") {
-        this.sendToConnection(conn, {
-          type: "error",
-          message: "Game in progress",
-        });
-        conn.close();
-        return;
-      }
+      // Non-rejoin connection during active game: allow through to handleJoin
+      // which will route them to mid-game join flow (seat selection)
     }
 
     // Reject if room is closed or full
@@ -387,7 +380,7 @@ export default class RollBetterServer implements Party.Server {
     const pid = persistentId ?? "";
 
     // Mid-game join: game is active, send available bot seats
-    if (this.gameState && this.status === "playing") {
+    if (this.gameState && (this.status === "playing" || (this.status as string) === "waiting_for_rejoin")) {
       this.midGameJoiners.set(conn.id, { name: trimmedName, persistentId: pid });
       if (pid) {
         this.persistentIdToConnId.set(pid, conn.id);

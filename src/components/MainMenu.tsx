@@ -61,19 +61,21 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
     }
   }, [room.gameStartData, onGameStart, room.playerId]);
 
-  // --- Transition: joining → claiming when seat_list arrives (mid-game join) ---
+  // --- Transition: joining/joined → claiming when seat_list arrives (mid-game join) ---
   useEffect(() => {
-    if (room.seatList !== null && onlineMode === 'joining') {
+    if (room.seatList !== null && (onlineMode === 'joining' || onlineMode === 'joined')) {
       setOnlineMode('claiming');
     }
   }, [room.seatList, onlineMode]);
 
-  // --- Transition: joining → joined when connected as non-host ---
+  // --- Transition: joining → joined when connected as non-host (pre-game lobby only) ---
+  // Requires room.status (set by room_state message) — mid-game joiners never receive
+  // room_state, so they stay in 'joining' until seat_list arrives.
   useEffect(() => {
-    if (onlineMode === 'joining' && room.isConnected && room.roomCode && !room.isHost) {
+    if (onlineMode === 'joining' && room.isConnected && room.roomCode && !room.isHost && room.status !== null) {
       setOnlineMode('joined');
     }
-  }, [onlineMode, room.isConnected, room.roomCode, room.isHost]);
+  }, [onlineMode, room.isConnected, room.roomCode, room.isHost, room.status]);
 
   // --- Watch for join errors → shake + clear code ---
   const prevErrorRef = useRef<string | null>(null);
