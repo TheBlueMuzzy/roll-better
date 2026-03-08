@@ -375,6 +375,12 @@ export function useOnlineGame(): UseOnlineGameReturn {
           );
           break;
 
+        case "seat_takeover":
+          // A mid-game joiner took over a bot seat
+          // seat_state_changed follows to update the seat state
+          console.log(`[seat_takeover] ${msg.playerName} took over seat ${msg.seatIndex}`);
+          break;
+
         case "game_starting": {
           // Restart: server sent game_starting during an active online session
           console.log("[useOnlineGame] game_starting (restart) — re-initializing game");

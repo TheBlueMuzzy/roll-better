@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPartyConnection, sendMessage, parseServerMessage, setGameSocket, getPersistentPlayerId } from "../utils/partyClient";
 import { useGameStore } from "../store/gameStore";
 import type { RoomPlayer, RoomStatus } from "../types/protocol";
+import type { GamePhase } from "../types/game";
 import type PartySocket from "partysocket";
 
 // ─── Room Code Generation ──────────────────────────────────────────────
@@ -89,6 +90,10 @@ export function useRoom(): UseRoomReturn {
   // Track recent server errors to prevent onclose overwriting them
   const lastErrorTimeRef = useRef(0);
 
+  // Refs to track mid-game join state (needed in handler closure where React state is stale)
+  const seatListRef = useRef<SeatInfo[] | null>(null);
+  const claimedSeatRef = useRef<number | null>(null);
+
   // Error auto-clear timer ref
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -113,6 +118,8 @@ export function useRoom(): UseRoomReturn {
     setClaimedSeat(null);
     setSeatClaimError(null);
     pendingJoinRef.current = null;
+    seatListRef.current = null;
+    claimedSeatRef.current = null;
   }, []);
 
   // Helper: attach listeners to a socket
@@ -180,7 +187,59 @@ export function useRoom(): UseRoomReturn {
           // Server confirmed rejoin — update room connection state
           setIsConnected(true);
           useGameStore.getState().setOnlineDisconnected(false);
-          // Game state sync is handled by useOnlineGame
+
+          // Mid-game joiner: seatList/claimedSeat were set, meaning this player joined mid-game
+          if (seatListRef.current !== null || claimedSeatRef.current !== null) {
+            const localId = socket.id;
+            const serverPlayers = msg.players;
+            const localPlayer = serverPlayers.find((p: { id: string }) => p.id === localId);
+            const otherPlayers = serverPlayers.filter((p: { id: string }) => p.id !== localId);
+
+            // Reorder: local player first, then others (same as handleOnlineGameStart)
+            const orderedPlayers = [
+              ...(localPlayer ? [{ name: localPlayer.name, color: localPlayer.color }] : []),
+              ...otherPlayers.map((p: { name: string; color: string }) => ({ name: p.name, color: p.color })),
+            ];
+
+            const store = useGameStore.getState();
+            store.initGame(serverPlayers.length, orderedPlayers);
+            store.initRound({ goalValues: msg.goalValues, skipPhase: true });
+            store.setOnlineMode(localId, false); // mid-game joiner is never host
+
+            // Build server-to-local player ID mapping
+            const serverPlayerIds = [localId, ...otherPlayers.map((p: { id: string }) => p.id)];
+            store.setOnlinePlayerIds(serverPlayerIds);
+
+            // Sync full state from rejoin (scores, locked dice, pool sizes, etc.)
+            store.syncAllPlayerState(msg.players);
+            store.setCurrentRound(msg.round);
+
+            // Clear animation state (joining mid-game, no animations to play)
+            store.clearLockAnimations();
+            store.clearAILockAnimations();
+            store.clearUnlockAnimations();
+            store.clearAIUnlockAnimations();
+
+            // Set phase to match server and show game
+            store.setPhase(msg.phase as GamePhase);
+            store.setScreen('game');
+
+            setGameSocket(socketRef.current);
+            gameActiveRef.current = true;
+
+            // Clear mid-game join state
+            setSeatList(null);
+            setClaimedSeat(null);
+            setSeatClaimError(null);
+            seatListRef.current = null;
+            claimedSeatRef.current = null;
+          }
+          // Regular reconnect: useOnlineGame handles the state sync
+          break;
+
+        case "seat_takeover":
+          // Broadcast to all: a mid-game joiner took over a bot seat
+          // State sync comes via seat_state_changed message
           break;
 
         case "player_reconnected":
@@ -189,11 +248,13 @@ export function useRoom(): UseRoomReturn {
 
         case "seat_list":
           setSeatList(msg.seats);
+          seatListRef.current = msg.seats;
           break;
 
         case "seat_claim_result":
           if (msg.success) {
             setClaimedSeat(msg.seatIndex);
+            claimedSeatRef.current = msg.seatIndex;
             setSeatClaimError(null);
           } else {
             setSeatClaimError(msg.reason === "seat_taken" ? "Seat already taken" : "Seat unavailable");
