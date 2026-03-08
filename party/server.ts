@@ -124,7 +124,8 @@ export default class RollBetterServer implements Party.Server {
         // ─── Edge case: reconnect after grace expired ──────────────────
         // Grace timer already fired — player is now a bot. Don't restore.
         if (gamePlayer.seatState === 'bot') {
-          this.log(`[REJOIN] ${gamePlayer.name} reconnected but seat is now bot — rejecting`);
+          const seatClaimed = this.pendingSeatClaims.has(gamePlayer.seatIndex);
+          this.log(`[REJOIN] ${gamePlayer.name} reconnected but seat is now bot${seatClaimed ? ' (claimed by another player)' : ''} — rejecting`);
           this.sendToConnection(conn, {
             type: "connected",
             roomId: this.room.id,
@@ -569,7 +570,15 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Clean up any stale timers
+    // Disconnect mid-game joiners — game is restarting
+    for (const [connId] of this.midGameJoiners) {
+      const joinerConn = this.room.getConnection(connId);
+      if (joinerConn) {
+        this.sendToConnection(joinerConn, { type: "error", message: "Game restarted" });
+      }
+    }
+
+    // Clean up any stale timers (also clears midGameJoiners + pendingSeatClaims)
     this.cleanupTimers();
 
     // Reuse settings from previous game
@@ -1573,6 +1582,9 @@ export default class RollBetterServer implements Party.Server {
     // Clear phase timer tracking
     this.phaseTimerStartedAt = null;
     this.phaseTimerDuration = null;
+    // Clear mid-game join state
+    this.midGameJoiners.clear();
+    this.pendingSeatClaims.clear();
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
