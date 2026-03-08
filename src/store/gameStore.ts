@@ -104,6 +104,7 @@ interface GameStore extends GameState {
 
   // Seat state updates
   updatePlayerSeatState: (playerId: string, seatState: SeatState, seatIndex: number) => void;
+  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string) => void;
 
   // Online disconnect tracking
   setOnlineDisconnected: (disconnected: boolean) => void;
@@ -1123,6 +1124,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
       i === playerIndex ? { ...p, seatState, seatIndex } : p
     );
     set({ players });
+  },
+
+  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string) => {
+    const state = get();
+    // Find the local player index by seatIndex (old bot ID is in onlinePlayerIds)
+    const playerIndex = state.players.findIndex(p => p.seatIndex === seatIndex);
+    if (playerIndex === -1) return;
+    // Update onlinePlayerIds: replace old bot ID with new player ID
+    const newIds = [...state.onlinePlayerIds];
+    newIds[playerIndex] = newPlayerId;
+    // Update player name and seatState
+    const players = state.players.map((p, i) =>
+      i === playerIndex ? { ...p, name: newPlayerName, seatState: 'human-active' as SeatState, isAI: false } : p
+    );
+    set({ players, onlinePlayerIds: newIds });
   },
 
   // --- Online disconnect tracking ---

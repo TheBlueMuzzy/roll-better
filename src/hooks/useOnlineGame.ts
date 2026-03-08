@@ -376,9 +376,9 @@ export function useOnlineGame(): UseOnlineGameReturn {
           break;
 
         case "seat_takeover":
-          // A mid-game joiner took over a bot seat
-          // seat_state_changed follows to update the seat state
+          // A mid-game joiner took over a bot seat — update name, ID, seatState
           console.log(`[seat_takeover] ${msg.playerName} took over seat ${msg.seatIndex}`);
+          useGameStore.getState().handleSeatTakeover(msg.seatIndex, msg.playerId, msg.playerName);
           break;
 
         case "game_starting": {
