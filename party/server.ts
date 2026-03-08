@@ -77,6 +77,18 @@ export default class RollBetterServer implements Party.Server {
   private rollingTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private keepaliveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // ─── Disconnect Grace Timers ──────────────────────────────────────
+  // Per-player grace timer: connId -> setTimeout handle
+  // When a player disconnects during a timed phase, they get a grace window
+  // equal to the remaining phase timer. Fires promoteToBotFromAFK on expiry.
+  private disconnectGraceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  // ─── Phase Timer Tracking ─────────────────────────────────────────
+  // Track when the current phase timer was started and its duration,
+  // so we can calculate remaining time for disconnect grace windows.
+  private phaseTimerStartedAt: number | null = null;
+  private phaseTimerDuration: number | null = null;
+
   constructor(room: Party.Room) {
     this.room = room;
   }
@@ -684,8 +696,12 @@ export default class RollBetterServer implements Party.Server {
       this.gameState.phase = "rolling";
 
       // Start rolling AFK timeout — 25 seconds (client's 20s + 5s margin).
+      this.phaseTimerStartedAt = Date.now();
+      this.phaseTimerDuration = 25_000;
       this.rollingTimeoutTimer = setTimeout(() => {
         this.rollingTimeoutTimer = null;
+        this.phaseTimerStartedAt = null;
+        this.phaseTimerDuration = null;
         this.autoRollUnresponsivePlayers();
       }, 25_000);
     }
@@ -738,6 +754,8 @@ export default class RollBetterServer implements Party.Server {
     if (this.rollingTimeoutTimer) {
       clearTimeout(this.rollingTimeoutTimer);
       this.rollingTimeoutTimer = null;
+      this.phaseTimerStartedAt = null;
+      this.phaseTimerDuration = null;
     }
 
     this.log("[checkAllRolled] All online rolled — processing bots now");
@@ -952,6 +970,8 @@ export default class RollBetterServer implements Party.Server {
     if (this.unlockTimeoutTimer) {
       clearTimeout(this.unlockTimeoutTimer);
       this.unlockTimeoutTimer = null;
+      this.phaseTimerStartedAt = null;
+      this.phaseTimerDuration = null;
     }
 
     // Human unlock results were already relayed per-player in handleUnlockRequest.
@@ -1025,8 +1045,12 @@ export default class RollBetterServer implements Party.Server {
       this.log("Phase → unlocking — broadcast sent");
 
       // Start AFK timeout — 25 seconds (client's 20s + 5s margin so client fires first)
+      this.phaseTimerStartedAt = Date.now();
+      this.phaseTimerDuration = 25_000;
       this.unlockTimeoutTimer = setTimeout(() => {
         this.unlockTimeoutTimer = null;
+        this.phaseTimerStartedAt = null;
+        this.phaseTimerDuration = null;
         this.autoSkipUnresponsivePlayers();
       }, 25_000);
     }
@@ -1166,6 +1190,8 @@ export default class RollBetterServer implements Party.Server {
     if (this.rollingTimeoutTimer) {
       clearTimeout(this.rollingTimeoutTimer);
       this.rollingTimeoutTimer = null;
+      this.phaseTimerStartedAt = null;
+      this.phaseTimerDuration = null;
     }
 
     this.autoRollUnresponsivePlayers();
@@ -1352,6 +1378,14 @@ export default class RollBetterServer implements Party.Server {
       clearTimeout(this.keepaliveTimer);
       this.keepaliveTimer = null;
     }
+    // Clear all per-player disconnect grace timers
+    for (const timer of this.disconnectGraceTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.disconnectGraceTimers.clear();
+    // Clear phase timer tracking
+    this.phaseTimerStartedAt = null;
+    this.phaseTimerDuration = null;
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
@@ -1373,6 +1407,42 @@ export default class RollBetterServer implements Party.Server {
         gamePlayer.isOnline = false;
         if (intentional) {
           gamePlayer.intentionalLeave = true;
+        }
+
+        // ─── Per-player disconnect grace timer ────────────────────────
+        // Only applies during active game with non-intentional disconnect
+        if (!intentional && gamePlayer.seatState !== 'bot') {
+          const phase = this.gameState.phase;
+
+          if (phase === "rolling" || phase === "unlocking") {
+            // Timed phase: grace = remaining time on phase timer
+            let graceMs = 0;
+            if (this.phaseTimerStartedAt && this.phaseTimerDuration) {
+              const elapsed = Date.now() - this.phaseTimerStartedAt;
+              graceMs = Math.max(0, this.phaseTimerDuration - elapsed);
+            }
+
+            if (graceMs > 0) {
+              this.log(`[GRACE] Starting ${graceMs}ms grace timer for ${gamePlayer.name} (phase=${phase})`);
+              const timer = setTimeout(() => {
+                this.disconnectGraceTimers.delete(connectionId);
+                if (gamePlayer.seatState !== 'bot') {
+                  this.log(`[GRACE] Grace expired for ${gamePlayer.name} — promoting to bot`);
+                  this.promoteToBotFromAFK(gamePlayer);
+                }
+              }, graceMs);
+              this.disconnectGraceTimers.set(connectionId, timer);
+            } else {
+              // No time remaining — promote immediately
+              this.log(`[GRACE] No time remaining for ${gamePlayer.name} — immediate bot promotion`);
+              this.promoteToBotFromAFK(gamePlayer);
+            }
+          } else if (phase === "locking" || phase === "scoring" || phase === "roundEnd" || phase === "sessionEnd") {
+            // Non-timed phase: grace = 0, promote immediately
+            this.log(`[GRACE] Non-timed phase (${phase}) — immediate bot promotion for ${gamePlayer.name}`);
+            this.promoteToBotFromAFK(gamePlayer);
+          }
+          // lobby/idle/not started: no grace timer, just remove normally
         }
       }
       // Remove any pending unlock response from this player
@@ -1404,16 +1474,8 @@ export default class RollBetterServer implements Party.Server {
         // Broadcast fresh room_state so everyone sees host change
         this.broadcastRoomState();
       } else if (this.gameState && (this.status as string) === "playing") {
-        // Room empty during active game — keep alive for 60s waiting for rejoin
-        (this.status as any) = "waiting_for_rejoin";
-        this.keepaliveTimer = setTimeout(() => {
-          this.keepaliveTimer = null;
-          this.status = "closed";
-          this.gameState = null;
-          this.cleanupTimers();
-          this.log(`[KEEPALIVE] Room expired — no rejoin within 60s`);
-        }, 60_000);
-        this.log(`[KEEPALIVE] Room empty — waiting 60s for rejoin`);
+        // Room empty during active game — keep alive for 10s waiting for rejoin
+        this.startEmptyRoomKeepalive();
       } else {
         // Last player left — close the room
         this.hostId = null;
@@ -1422,16 +1484,29 @@ export default class RollBetterServer implements Party.Server {
       }
     } else if (this.players.size === 0 && this.gameState && (this.status as string) === "playing") {
       // Non-host was the last player — same keepalive logic
-      (this.status as any) = "waiting_for_rejoin";
-      this.keepaliveTimer = setTimeout(() => {
-        this.keepaliveTimer = null;
-        this.status = "closed";
-        this.gameState = null;
-        this.cleanupTimers();
-        this.log(`[KEEPALIVE] Room expired — no rejoin within 60s`);
-      }, 60_000);
-      this.log(`[KEEPALIVE] Room empty — waiting 60s for rejoin`);
+      this.startEmptyRoomKeepalive();
     }
+  }
+
+  /**
+   * Start a short keepalive timer when all humans have disconnected.
+   * If no human reconnects within 10s, close the room.
+   */
+  private startEmptyRoomKeepalive() {
+    // Cancel any existing keepalive
+    if (this.keepaliveTimer) {
+      clearTimeout(this.keepaliveTimer);
+      this.keepaliveTimer = null;
+    }
+    (this.status as any) = "waiting_for_rejoin";
+    this.keepaliveTimer = setTimeout(() => {
+      this.keepaliveTimer = null;
+      this.status = "closed";
+      this.gameState = null;
+      this.cleanupTimers();
+      this.log(`[KEEPALIVE] Room expired — no rejoin within 10s`);
+    }, 10_000);
+    this.log(`[KEEPALIVE] Room empty — waiting 10s for rejoin`);
   }
 
   private sendToConnection(conn: Party.Connection, message: ServerMessage) {

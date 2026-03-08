@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 25,
+  "build": 26,
   "history": [
     {
       "version": "0.1.0",
@@ -322,6 +322,11 @@
       "version": "0.2.0.25",
       "date": "2026-03-07",
       "summary": "Fix AFK counter never accumulating: afk flag in protocol, threshold 2"
+    },
+    {
+      "version": "0.2.0.26",
+      "date": "2026-03-08",
+      "summary": "Replace 60s keepalive with phase-timer-based disconnect grace window"
     }
   ]
 }
