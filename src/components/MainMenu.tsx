@@ -22,7 +22,7 @@ function getRandomName(): string {
   return SILLY_NAMES[Math.floor(Math.random() * SILLY_NAMES.length)];
 }
 
-type OnlineMode = 'idle' | 'creating' | 'joining' | 'joined';
+type OnlineMode = 'idle' | 'creating' | 'joining' | 'joined' | 'claiming';
 
 export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpenSettings }: MainMenuProps) {
   const room = useRoom();
@@ -60,6 +60,13 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
       );
     }
   }, [room.gameStartData, onGameStart, room.playerId]);
+
+  // --- Transition: joining → claiming when seat_list arrives (mid-game join) ---
+  useEffect(() => {
+    if (room.seatList !== null && onlineMode === 'joining') {
+      setOnlineMode('claiming');
+    }
+  }, [room.seatList, onlineMode]);
 
   // --- Transition: joining → joined when connected as non-host ---
   useEffect(() => {
@@ -131,8 +138,8 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
   // --- Actions ---
   const handleCreate = () => {
     playUIClick();
-    // If already in joined or creating mode, leave first
-    if (onlineMode === 'joined' || onlineMode === 'creating') {
+    // If already in joined, creating, or claiming mode, leave first
+    if (onlineMode === 'joined' || onlineMode === 'creating' || onlineMode === 'claiming') {
       room.leave();
     }
     // Clear join code
@@ -145,8 +152,8 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
 
   const handleJoin = () => {
     playUIClick();
-    // If in creating or joined mode, leave first
-    if (onlineMode === 'creating' || onlineMode === 'joined') {
+    // If in creating, joined, or claiming mode, leave first
+    if (onlineMode === 'creating' || onlineMode === 'joined' || onlineMode === 'claiming') {
       room.leave();
     }
     setCodeChars(['', '', '', '']);
@@ -219,7 +226,7 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
           </button>
         ) : (
           <button
-            className={`menu-online-btn${onlineMode === 'joining' ? ' inactive' : ''}${onlineMode === 'joined' ? ' inactive' : ''}`}
+            className={`menu-online-btn${onlineMode === 'joining' ? ' inactive' : ''}${onlineMode === 'joined' ? ' inactive' : ''}${onlineMode === 'claiming' ? ' inactive' : ''}`}
             onClick={handleCreate}
           >
             CREATE
@@ -237,7 +244,7 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
           </button>
         ) : (
           <button
-            className={`menu-online-btn${onlineMode === 'creating' ? ' inactive' : ''}${onlineMode === 'joined' ? ' inactive' : ''}`}
+            className={`menu-online-btn${onlineMode === 'creating' ? ' inactive' : ''}${onlineMode === 'joined' ? ' inactive' : ''}${onlineMode === 'claiming' ? ' inactive' : ''}`}
             onClick={handleJoin}
           >
             JOIN
@@ -327,6 +334,46 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
                 >
                   {amReady ? 'READY \u2713' : 'READY \u2715'}
                 </button>
+              )}
+            </>
+          )}
+
+          {/* Claiming mode: mid-game seat selection */}
+          {onlineMode === 'claiming' && room.seatList !== null && (
+            <>
+              {room.claimedSeat !== null ? (
+                <div className="menu-midgame-waiting">
+                  <p className="menu-midgame-status">Taking over next round...</p>
+                </div>
+              ) : (
+                <>
+                  <p className="menu-midgame-title">Game in progress — pick a seat</p>
+                  {room.seatList.length === 0 ? (
+                    <p className="menu-midgame-status">No seats available</p>
+                  ) : (
+                    <div className="menu-seat-list">
+                      {room.seatList.map((seat) => (
+                        <button
+                          key={seat.seatIndex}
+                          className="menu-seat-btn"
+                          onClick={() => {
+                            playUIClick();
+                            room.claimSeat(seat.seatIndex);
+                          }}
+                        >
+                          <span className="menu-seat-avatar" style={{ backgroundColor: seat.color }} />
+                          <span className="menu-seat-info">
+                            <span className="menu-seat-name">{seat.name}</span>
+                            <span className="menu-seat-stats">Score: {seat.score} | Locks: {seat.lockedCount}/8</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {room.seatClaimError && (
+                    <p className="menu-error">{room.seatClaimError}</p>
+                  )}
+                </>
               )}
             </>
           )}

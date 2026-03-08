@@ -1008,6 +1008,81 @@ body {
   max-width: var(--btn-max-w);
 }
 
+/* --- Mid-game join seat selection --- */
+
+.menu-midgame-title {
+  color: #e0d6c8;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: var(--sp-xs) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.menu-midgame-status {
+  color: #f1c40f;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: var(--sp-xs) 0;
+}
+
+.menu-midgame-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.menu-seat-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.menu-seat-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: var(--sp-sm) var(--sp-md);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--border-radius);
+  color: #e0d6c8;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.menu-seat-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.menu-seat-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.menu-seat-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.menu-seat-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.menu-seat-stats {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
 .menu-help {
   position: absolute;
   bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom));
