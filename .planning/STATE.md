@@ -16,9 +16,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 30 of 34 (Mid-Game Join Flow)
-Plan: 1 of ? in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-08 — Completed 30-01-PLAN.md
+Last activity: 2026-03-08 — Completed 30-02-PLAN.md
 
 Progress: ████░░░░░░ 30%
 
@@ -66,9 +66,10 @@ Progress: ████░░░░░░ 30%
 ## Session Continuity
 
 Last session: 2026-03-08
-Stopped at: Completed 30-01-PLAN.md — mid-game join protocol + seat claim logic
+Stopped at: Completed 30-02-PLAN.md — phase-boundary takeover execution
 Resume file: None
 
 ### Recent Changes (2026-03-08)
-- **30-01 delivered**: 4 new protocol types (seat_claim, seat_list, seat_claim_result, seat_takeover), server mid-game join acceptance, seat claim validation with first-claim-wins
-- **Key pattern**: midGameJoiners map tracks joiners separately from players; pendingSeatClaims queues takeovers for phase boundary
+- **30-01 delivered**: 4 new protocol types, server mid-game join acceptance, seat claim validation with first-claim-wins
+- **30-02 delivered**: executePendingSeatClaims() at 5 phase boundaries, bot→human swap preserving game state, rejoin_state to new player, edge case cleanup
+- **Key pattern**: midGameJoiners map tracks joiners separately from players; pendingSeatClaims queues takeovers for phase boundary; executePendingSeatClaims() called after every phase broadcast
