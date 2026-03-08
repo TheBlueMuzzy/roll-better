@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 26,
+  "build": 27,
   "history": [
     {
       "version": "0.1.0",
@@ -327,6 +327,11 @@
       "version": "0.2.0.26",
       "date": "2026-03-08",
       "summary": "Replace 60s keepalive with phase-timer-based disconnect grace window"
+    },
+    {
+      "version": "0.2.0.27",
+      "date": "2026-03-08",
+      "summary": "Client-side mid-game join: seat_takeover handling, full game init from rejoin_state"
     }
   ]
 }
