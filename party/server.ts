@@ -117,8 +117,38 @@ export default class RollBetterServer implements Party.Server {
         (p) => p.id === conn.id && !p.isOnline && p.intentionalLeave !== true
       );
       if (gamePlayer) {
+        // ─── Edge case: reconnect after grace expired ──────────────────
+        // Grace timer already fired — player is now a bot. Don't restore.
+        if (gamePlayer.seatState === 'bot') {
+          this.log(`[REJOIN] ${gamePlayer.name} reconnected but seat is now bot — rejecting`);
+          this.sendToConnection(conn, {
+            type: "connected",
+            roomId: this.room.id,
+            playerId: conn.id,
+            persistentId: "",
+          });
+          this.sendToConnection(conn, {
+            type: "room_closed",
+            reason: "seat_taken_by_bot",
+          } as any);
+          conn.close();
+          return;
+        }
+
         // Restore player to online
         gamePlayer.isOnline = true;
+
+        // ─── Cancel disconnect grace timer if pending ──────────────────
+        const graceTimer = this.disconnectGraceTimers.get(conn.id);
+        if (graceTimer) {
+          clearTimeout(graceTimer);
+          this.disconnectGraceTimers.delete(conn.id);
+          this.log(`[GRACE] Cancelled grace timer for ${gamePlayer.name} — reconnected in time`);
+        }
+
+        // ─── Restore seat state ────────────────────────────────────────
+        gamePlayer.seatState = 'human-active';
+        gamePlayer.autopilotCounter = 0;
 
         // Re-add to players Map
         this.players.set(conn.id, {
@@ -158,6 +188,9 @@ export default class RollBetterServer implements Party.Server {
           players: this.buildPlayerSnapshot(),
         } as any);
 
+        // Broadcast seat_state_changed so all clients see player restored
+        this.broadcastSeatStateChanged(gamePlayer);
+
         // Broadcast player_reconnected to everyone except the rejoining player
         this.broadcastExcept(
           {
@@ -168,7 +201,7 @@ export default class RollBetterServer implements Party.Server {
           [conn.id]
         );
 
-        this.log(`[REJOIN] Player ${gamePlayer.name} reconnected`);
+        this.log(`[REJOIN] Player ${gamePlayer.name} reconnected — seat restored to human-active`);
         return; // Skip normal onConnect flow
       }
 
