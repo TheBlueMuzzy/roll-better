@@ -1323,6 +1323,15 @@ export default class RollBetterServer implements Party.Server {
       }
     }
 
+    // Defensive: catch any offline non-bot players without a pending grace timer
+    // (shouldn't happen, but prevents game stalls)
+    for (const player of this.gameState.players) {
+      if (!player.isOnline && player.seatState !== 'bot' && !this.disconnectGraceTimers.has(player.id)) {
+        this.log(`[DEFENSIVE] Offline player ${player.name} has no grace timer — promoting to bot`);
+        this.promoteToBotFromAFK(player);
+      }
+    }
+
     this.checkAllUnlockResponses();
   }
 
@@ -1378,6 +1387,15 @@ export default class RollBetterServer implements Party.Server {
       };
       this.room.broadcast(JSON.stringify(lockResult));
       this.log(`Auto-rolled for AFK player: ${player.name} — [${values}] — ${newLocks.length} locks (autopilot #${player.autopilotCounter})`);
+    }
+
+    // Defensive: catch any offline non-bot players without a pending grace timer
+    // (shouldn't happen, but prevents game stalls)
+    for (const player of this.gameState.players) {
+      if (!player.isOnline && player.seatState !== 'bot' && !this.disconnectGraceTimers.has(player.id)) {
+        this.log(`[DEFENSIVE] Offline player ${player.name} has no grace timer — promoting to bot`);
+        this.promoteToBotFromAFK(player);
+      }
     }
 
     // All AFK players handled — check if ready to proceed
