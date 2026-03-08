@@ -24,6 +24,14 @@ interface GameStartData {
   goalValues: number[];
 }
 
+interface SeatInfo {
+  seatIndex: number;
+  name: string;
+  color: string;
+  score: number;
+  lockedCount: number;
+}
+
 interface UseRoomReturn {
   roomCode: string | null;
   playerId: string | null;
@@ -34,11 +42,15 @@ interface UseRoomReturn {
   status: RoomStatus | null;
   error: string | null;
   gameStartData: GameStartData | null;
+  seatList: SeatInfo[] | null;
+  claimedSeat: number | null;
+  seatClaimError: string | null;
   createRoom: (playerName: string, color: string) => void;
   joinRoom: (code: string, playerName: string, color: string) => void;
   leave: () => void;
   toggleReady: () => void;
   startGame: (targetPlayers: number) => void;
+  claimSeat: (seatIndex: number) => void;
 }
 
 // ─── Hook ──────────────────────────────────────────────────────────────
@@ -55,6 +67,9 @@ export function useRoom(): UseRoomReturn {
   const [status, setStatus] = useState<RoomStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gameStartData, setGameStartData] = useState<GameStartData | null>(null);
+  const [seatList, setSeatList] = useState<SeatInfo[] | null>(null);
+  const [claimedSeat, setClaimedSeat] = useState<number | null>(null);
+  const [seatClaimError, setSeatClaimError] = useState<string | null>(null);
 
   // Derived state
   const isHost = playerId !== null && hostId !== null && hostId === playerId;
@@ -94,6 +109,9 @@ export function useRoom(): UseRoomReturn {
     setIsConnected(false);
     setStatus(null);
     setGameStartData(null);
+    setSeatList(null);
+    setClaimedSeat(null);
+    setSeatClaimError(null);
     pendingJoinRef.current = null;
   }, []);
 
@@ -167,6 +185,19 @@ export function useRoom(): UseRoomReturn {
 
         case "player_reconnected":
           // Handled by useOnlineGame for toast notifications
+          break;
+
+        case "seat_list":
+          setSeatList(msg.seats);
+          break;
+
+        case "seat_claim_result":
+          if (msg.success) {
+            setClaimedSeat(msg.seatIndex);
+            setSeatClaimError(null);
+          } else {
+            setSeatClaimError(msg.reason === "seat_taken" ? "Seat already taken" : "Seat unavailable");
+          }
           break;
 
         case "error":
@@ -272,6 +303,12 @@ export function useRoom(): UseRoomReturn {
     }
   }, [isConnected]);
 
+  const claimSeat = useCallback((seatIndex: number) => {
+    if (socketRef.current && isConnected) {
+      sendMessage(socketRef.current, { type: "seat_claim", seatIndex });
+    }
+  }, [isConnected]);
+
   // ─── Cleanup on unmount ──────────────────────────────────────────────
 
   useEffect(() => {
@@ -296,10 +333,14 @@ export function useRoom(): UseRoomReturn {
     status,
     error,
     gameStartData,
+    seatList,
+    claimedSeat,
+    seatClaimError,
     createRoom,
     joinRoom,
     leave,
     toggleReady,
     startGame,
+    claimSeat,
   };
 }
