@@ -396,6 +396,7 @@ export default class RollBetterServer implements Party.Server {
         this.persistentIdToConnId.set(pid, conn.id);
       }
       this.sendSeatList(conn);
+      this.tryAutoMatchSeat(conn);
       this.log(`[MID-GAME JOIN] ${trimmedName} connected — sent seat list`);
       return;
     }
@@ -663,8 +664,9 @@ export default class RollBetterServer implements Party.Server {
         mode: "mid_game_join",
       } as ServerMessage);
 
-      // Send available bot seats
+      // Send available bot seats, then try auto-match to old seat
       this.sendSeatList(conn);
+      this.tryAutoMatchSeat(conn);
 
       this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} (${name}) — game in progress, routed to mid-game join`);
       return;
@@ -1893,6 +1895,54 @@ export default class RollBetterServer implements Party.Server {
       round: this.gameState.currentRound,
       goalValues: this.gameState.goalValues,
     } as any);
+  }
+
+  /**
+   * Try to auto-match a mid-game joiner to their old seat from the previous game.
+   * If their persistentId maps to a bot-held seat that isn't already claimed, auto-claim it.
+   * Returns true if auto-matched, false otherwise (player must manually select).
+   */
+  private tryAutoMatchSeat(conn: Party.Connection): boolean {
+    if (!this.gameState) return false;
+
+    const joinerInfo = this.midGameJoiners.get(conn.id);
+    if (!joinerInfo || !joinerInfo.persistentId) return false;
+
+    // Look up old seat index from previous game
+    const oldSeatIndex = this.previousGamePersistentIds.get(joinerInfo.persistentId);
+    if (oldSeatIndex === undefined) return false;
+
+    // Check if that seat is still a bot and not already claimed
+    const seatPlayer = this.gameState.players.find(p => p.seatIndex === oldSeatIndex);
+    if (!seatPlayer || seatPlayer.seatState !== 'bot') {
+      this.log(`[AUTO-MATCH] ${joinerInfo.name}'s old seat ${oldSeatIndex} unavailable — manual selection required`);
+      return false;
+    }
+
+    if (this.pendingSeatClaims.has(oldSeatIndex)) {
+      this.log(`[AUTO-MATCH] ${joinerInfo.name}'s old seat ${oldSeatIndex} already claimed — manual selection required`);
+      return false;
+    }
+
+    // Cancel any previous claim by this joiner (shouldn't happen, but be safe)
+    for (const [idx, claimantId] of this.pendingSeatClaims) {
+      if (claimantId === conn.id) {
+        this.pendingSeatClaims.delete(idx);
+        break;
+      }
+    }
+
+    // Auto-claim the seat
+    this.pendingSeatClaims.set(oldSeatIndex, conn.id);
+    this.sendToConnection(conn, {
+      type: "seat_claim_result",
+      success: true,
+      seatIndex: oldSeatIndex,
+      autoMatched: true,
+    } as any);
+
+    this.log(`[AUTO-MATCH] ${joinerInfo.name} auto-claimed seat ${oldSeatIndex} (returning player)`);
+    return true;
   }
 
   private broadcastRoomState() {

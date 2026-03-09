@@ -259,6 +259,7 @@ export interface SeatClaimResultMessage {
   success: boolean;
   seatIndex: number;
   reason?: string;
+  autoMatched?: boolean;
 }
 
 export interface SeatTakeoverMessage {

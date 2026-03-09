@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 34,
+  "build": 35,
   "history": [
     {
       "version": "0.1.0",
@@ -357,6 +357,11 @@
       "version": "0.2.0.34",
       "date": "2026-03-09",
       "summary": "Route late play_again to mid-game join flow with identity preservation"
+    },
+    {
+      "version": "0.2.0.35",
+      "date": "2026-03-09",
+      "summary": "Auto-match returning players to old bot-held seats via persistentId"
     }
   ]
 }
