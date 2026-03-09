@@ -83,7 +83,9 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
     if (room.error && room.error !== prevErrorRef.current && codeChars.some(c => c !== '')) {
       setShakeJoin(true);
       setTimeout(() => {
-        setCodeChars(['', '', '', '']);
+        if (room.errorCode !== 'room_full') {
+          setCodeChars(['', '', '', '']);
+        }
         setShakeJoin(false);
       }, 500);
     }
@@ -307,6 +309,11 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
               </div>
               {room.error && (
                 <div className="menu-error">{room.error}</div>
+              )}
+              {room.errorCode === 'room_full' && (
+                <button className="menu-online-btn menu-try-again" onClick={handleJoinSubmit}>
+                  TRY AGAIN
+                </button>
               )}
             </>
           )}

@@ -42,6 +42,7 @@ interface UseRoomReturn {
   isHost: boolean;
   status: RoomStatus | null;
   error: string | null;
+  errorCode: string | null;
   gameStartData: GameStartData | null;
   seatList: SeatInfo[] | null;
   claimedSeat: number | null;
@@ -67,6 +68,7 @@ export function useRoom(): UseRoomReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [status, setStatus] = useState<RoomStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [gameStartData, setGameStartData] = useState<GameStartData | null>(null);
   const [seatList, setSeatList] = useState<SeatInfo[] | null>(null);
   const [claimedSeat, setClaimedSeat] = useState<number | null>(null);
@@ -97,12 +99,18 @@ export function useRoom(): UseRoomReturn {
   // Error auto-clear timer ref
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Helper: set error with 3-second auto-clear
-  const setErrorWithAutoClear = useCallback((msg: string) => {
+  // Helper: set error with 3-second auto-clear (room_full persists until user acts)
+  const setErrorWithAutoClear = useCallback((msg: string, code?: string) => {
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     setError(msg);
+    setErrorCode(code ?? null);
     lastErrorTimeRef.current = Date.now();
-    errorTimerRef.current = setTimeout(() => setError(null), 3000);
+    if (code !== 'room_full') {
+      errorTimerRef.current = setTimeout(() => {
+        setError(null);
+        setErrorCode(null);
+      }, 3000);
+    }
   }, []);
 
   // Helper: reset all connection state
@@ -117,6 +125,7 @@ export function useRoom(): UseRoomReturn {
     setSeatList(null);
     setClaimedSeat(null);
     setSeatClaimError(null);
+    setErrorCode(null);
     pendingJoinRef.current = null;
     seatListRef.current = null;
     claimedSeatRef.current = null;
@@ -275,7 +284,7 @@ export function useRoom(): UseRoomReturn {
           break;
 
         case "error":
-          setErrorWithAutoClear(msg.message);
+          setErrorWithAutoClear(msg.message, msg.code);
           break;
       }
     };
@@ -406,6 +415,7 @@ export function useRoom(): UseRoomReturn {
     isHost,
     status,
     error,
+    errorCode,
     gameStartData,
     seatList,
     claimedSeat,

@@ -227,7 +227,8 @@ export default class RollBetterServer implements Party.Server {
     if (this.players.size >= MAX_PLAYERS) {
       this.sendToConnection(conn, {
         type: "error",
-        message: "Room is full (max 8 players)",
+        code: "room_full",
+        message: "Room is full",
       });
       conn.close();
       return;
@@ -362,7 +363,8 @@ export default class RollBetterServer implements Party.Server {
     if (this.players.size >= MAX_PLAYERS) {
       this.sendToConnection(conn, {
         type: "error",
-        message: "Room is full (max 8 players)",
+        code: "room_full",
+        message: "Room is full",
       });
       return;
     }

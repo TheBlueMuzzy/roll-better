@@ -123,6 +123,7 @@ export interface PlayerLeftMessage {
 
 export interface ErrorMessage {
   type: "error";
+  code?: string;
   message: string;
 }
 

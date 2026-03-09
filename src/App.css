@@ -932,6 +932,11 @@ body {
   animation: shake 0.4s ease;
 }
 
+.menu-try-again {
+  max-width: var(--btn-max-w);
+  margin-top: var(--sp-xs);
+}
+
 .menu-player-list {
   display: flex;
   flex-direction: column;
