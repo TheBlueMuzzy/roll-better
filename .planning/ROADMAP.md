@@ -116,6 +116,7 @@ Plans:
 
 Plans:
 - [x] 31-01: Extract migrateHost() helper + all-bots room dissolution
+- [x] 31-02: Room Full TRY AGAIN button + room dissolution client handling
 
 #### Phase 32: Play Again Rework
 
@@ -183,7 +184,7 @@ Plans:
 | 28. AFK Autopilot & Escalation | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 29. Disconnect Handoff | v1.3 | 1/1 | Complete | 2026-03-08 |
 | 30. Mid-Game Join Flow | v1.3 | 4/4 | Complete | 2026-03-09 |
-| 31. Host Migration & Room Lifecycle | v1.3 | 1/2 | In progress | - |
+| 31. Host Migration & Room Lifecycle | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 32. Play Again Rework | v1.3 | 0/? | Not started | - |
 | 33. Connection Polish & Edge Cases | v1.3 | 0/? | Not started | - |
 | 34. Integration Testing & UAT | v1.3 | 0/? | Not started | - |

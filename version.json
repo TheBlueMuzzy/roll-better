@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 31,
+  "build": 33,
   "history": [
     {
       "version": "0.1.0",
@@ -347,6 +347,11 @@
       "version": "0.2.0.31",
       "date": "2026-03-09",
       "summary": "migrateHost helper + dissolveRoom: host auto-migrates on AFK/disconnect, all-bots room dissolution"
+    },
+    {
+      "version": "0.2.0.33",
+      "date": "2026-03-09",
+      "summary": "Room Full TRY AGAIN button + room dissolution handling across all client states"
     }
   ]
 }
