@@ -129,13 +129,14 @@ function App() {
 
   // Play Again handler — replay with stored game preferences
   const handlePlayAgain = useCallback(() => {
-    // Online: send restart_game to server, wait for game_starting response
+    // Online: send play_again to server, return to lobby/menu
     if (isOnlineGame) {
       const socket = getGameSocket();
       if (socket) {
-        sendMessage(socket, { type: "restart_game" });
+        sendMessage(socket, { type: "play_again" });
       }
-      return; // useOnlineGame will handle game_starting and set up the new game
+      setScreen('menu'); // Return to main menu where lobby renders
+      return; // useRoom will handle play_again_ack and lobby/mid-game-join flow
     }
 
     // Offline: initialize locally

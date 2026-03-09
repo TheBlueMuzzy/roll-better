@@ -3,7 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { getGameSocket, sendMessage, parseServerMessage } from "../utils/partyClient";
 import { getSpawnPositions } from "../components/DicePool";
 import type { GamePhase } from "../types/game";
-import type { PlayerSyncState, RoomPlayer } from "../types/protocol";
+import type { PlayerSyncState } from "../types/protocol";
 
 // ─── Return Type ─────────────────────────────────────────────────────
 
@@ -397,45 +397,8 @@ export function useOnlineGame(): UseOnlineGameReturn {
           break;
         }
 
-        case "game_starting": {
-          // Restart: server sent game_starting during an active online session
-          console.log("[useOnlineGame] game_starting (restart) — re-initializing game");
-          const store = useGameStore.getState();
-          const localId = store.onlinePlayerId;
-          if (!localId) break;
-
-          const serverPlayers = msg.players as RoomPlayer[];
-          const localPlayer = serverPlayers.find((p: RoomPlayer) => p.id === localId);
-          const otherPlayers = serverPlayers.filter((p: RoomPlayer) => p.id !== localId);
-          const orderedPlayers = [
-            ...(localPlayer ? [{ name: localPlayer.name, color: localPlayer.color }] : []),
-            ...otherPlayers.map((p: RoomPlayer) => ({ name: p.name, color: p.color })),
-          ];
-
-          store.initGame(msg.targetPlayers, orderedPlayers);
-          useGameStore.getState().initRound({ goalValues: msg.goalValues });
-          useGameStore.getState().setOnlineMode(localId, localPlayer?.isHost ?? false);
-
-          // Rebuild server-to-local player ID mapping
-          const serverPlayerIds = [localId, ...otherPlayers.map((p: RoomPlayer) => p.id)];
-          const botCount = msg.targetPlayers - serverPlayers.length;
-          for (let i = 0; i < botCount; i++) {
-            serverPlayerIds.push(`bot-${i}`);
-          }
-          useGameStore.getState().setOnlinePlayerIds(serverPlayerIds);
-          useGameStore.getState().setScreen('game');
-
-          // Pool spawn animation
-          const newState = useGameStore.getState();
-          const humanPlayer = newState.players[0];
-          if (humanPlayer && humanPlayer.poolSize > 0) {
-            const spawnPositions = getSpawnPositions(humanPlayer.poolSize);
-            useGameStore.getState().setPoolSpawning(true, spawnPositions);
-            const spawnDuration = 600 + humanPlayer.poolSize * 80 + 100;
-            setTimeout(() => useGameStore.getState().setPoolSpawning(false), spawnDuration);
-          }
-          break;
-        }
+        // game_starting is handled by useRoom — no restart detection needed here
+        // (Play Again now goes through lobby → start_game → game_starting)
       }
     };
 

@@ -270,6 +270,18 @@ export function useRoom(): UseRoomReturn {
           }
           break;
 
+        case "play_again_ack":
+          // Server acknowledged play_again — mode determines next flow
+          if (msg.mode === "lobby") {
+            // Returning to lobby — subsequent room_state will populate players/host/status
+            // gameActiveRef stays true so the socket doesn't reset on reconnect
+            console.log("[useRoom] play_again_ack: lobby mode — returning to lobby");
+          } else if (msg.mode === "mid_game_join") {
+            // Late join — subsequent seat_list will trigger claiming mode
+            console.log("[useRoom] play_again_ack: mid_game_join — waiting for seat_list");
+          }
+          break;
+
         case "room_closed":
           // Server dissolved the room (all humans became bots, or seat taken)
           intentionalCloseRef.current = true;

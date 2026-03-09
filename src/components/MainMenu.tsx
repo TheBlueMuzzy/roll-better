@@ -204,6 +204,33 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
     }
   }, [visible]);
 
+  // --- Auto-detect lobby return (Play Again → lobby) ---
+  // When returning from winners screen with active connection in waiting status,
+  // auto-set the correct online mode so the lobby UI renders.
+  useEffect(() => {
+    if (
+      visible &&
+      room.isConnected &&
+      room.status === 'waiting' &&
+      room.players.length > 0 &&
+      onlineMode === 'idle'
+    ) {
+      if (room.isHost) {
+        setOnlineMode('creating');
+      } else {
+        setOnlineMode('joined');
+      }
+    }
+  }, [visible, room.isConnected, room.status, room.players.length, onlineMode, room.isHost]);
+
+  // --- Transition to claiming when seat_list arrives from any mode ---
+  // Covers late Play Again (idle/creating/joined) and regular mid-game join (joining/joined)
+  useEffect(() => {
+    if (room.seatList !== null && (onlineMode === 'idle' || onlineMode === 'creating' || onlineMode === 'joined')) {
+      setOnlineMode('claiming');
+    }
+  }, [room.seatList, onlineMode]);
+
   return (
     <div className={`menu-backdrop${showClass ? ' menu-visible' : ''}`}>
       <h1 className="menu-title">Roll Better</h1>
