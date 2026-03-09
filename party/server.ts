@@ -135,7 +135,7 @@ export default class RollBetterServer implements Party.Server {
           this.sendToConnection(conn, {
             type: "room_closed",
             reason: "seat_taken_by_bot",
-          } as any);
+          });
           conn.close();
           return;
         }
@@ -1310,6 +1310,39 @@ export default class RollBetterServer implements Party.Server {
    * Migrate host to the next connected human-active player.
    * Returns true if a new host was found, false if no humans remain.
    */
+  /**
+   * Dissolve the room when all humans have been promoted to bots.
+   * Broadcasts room_closed to all connected clients and mid-game joiners,
+   * cleans up state, and closes connections.
+   */
+  private dissolveRoom(reason: string) {
+    this.log(`Room dissolving: ${reason}`);
+
+    const msg: ServerMessage = { type: "room_closed", reason };
+    const msgStr = JSON.stringify(msg);
+
+    // Notify all connected clients (regular players)
+    this.room.broadcast(msgStr);
+
+    // Notify mid-game joiners (they're connected but not in the players map)
+    for (const [connId] of this.midGameJoiners) {
+      const conn = this.room.getConnection(connId);
+      if (conn) conn.send(msgStr);
+    }
+
+    // Clean up room state
+    this.status = "closed";
+    this.gameState = null;
+    this.cleanupTimers();
+
+    // Close all connections
+    for (const conn of this.room.getConnections()) {
+      conn.close();
+    }
+
+    this.log(`Room dissolved (${reason})`);
+  }
+
   private migrateHost(): boolean {
     if (!this.gameState) return false;
 

@@ -267,6 +267,11 @@ export interface SeatTakeoverMessage {
   playerName: string;
 }
 
+export interface RoomClosedMessage {
+  type: "room_closed";
+  reason: string;
+}
+
 /** All messages the server can send to the client */
 export type ServerMessage =
   | ConnectedMessage
@@ -288,4 +293,5 @@ export type ServerMessage =
   | SeatStateChangedMessage
   | SeatListMessage
   | SeatClaimResultMessage
-  | SeatTakeoverMessage;
+  | SeatTakeoverMessage
+  | RoomClosedMessage;

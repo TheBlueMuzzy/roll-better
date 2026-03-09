@@ -261,6 +261,19 @@ export function useRoom(): UseRoomReturn {
           }
           break;
 
+        case "room_closed":
+          // Server dissolved the room (all humans became bots, or seat taken)
+          intentionalCloseRef.current = true;
+          if (socketRef.current) {
+            socketRef.current.close();
+            socketRef.current = null;
+          }
+          gameActiveRef.current = false;
+          resetState();
+          useGameStore.getState().setScreen('menu');
+          setErrorWithAutoClear("Room closed — all players went AFK");
+          break;
+
         case "error":
           setErrorWithAutoClear(msg.message);
           break;
