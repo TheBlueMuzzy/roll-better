@@ -379,7 +379,9 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
             <>
               {room.claimedSeat !== null ? (
                 <div className="menu-midgame-waiting">
-                  <p className="menu-midgame-status">Taking over next round...</p>
+                  <p className="menu-midgame-status">
+                    {room.autoMatched ? 'Reclaiming your seat...' : 'Taking over next round...'}
+                  </p>
                 </div>
               ) : (
                 <>

@@ -47,6 +47,7 @@ interface UseRoomReturn {
   seatList: SeatInfo[] | null;
   claimedSeat: number | null;
   seatClaimError: string | null;
+  autoMatched: boolean;
   createRoom: (playerName: string, color: string) => void;
   joinRoom: (code: string, playerName: string, color: string) => void;
   leave: () => void;
@@ -73,6 +74,7 @@ export function useRoom(): UseRoomReturn {
   const [seatList, setSeatList] = useState<SeatInfo[] | null>(null);
   const [claimedSeat, setClaimedSeat] = useState<number | null>(null);
   const [seatClaimError, setSeatClaimError] = useState<string | null>(null);
+  const [autoMatched, setAutoMatched] = useState(false);
 
   // Derived state
   const isHost = playerId !== null && hostId !== null && hostId === playerId;
@@ -125,6 +127,7 @@ export function useRoom(): UseRoomReturn {
     setSeatList(null);
     setClaimedSeat(null);
     setSeatClaimError(null);
+    setAutoMatched(false);
     setErrorCode(null);
     pendingJoinRef.current = null;
     seatListRef.current = null;
@@ -265,6 +268,7 @@ export function useRoom(): UseRoomReturn {
             setClaimedSeat(msg.seatIndex);
             claimedSeatRef.current = msg.seatIndex;
             setSeatClaimError(null);
+            setAutoMatched(msg.autoMatched ?? false);
           } else {
             setSeatClaimError(msg.reason === "seat_taken" ? "Seat already taken" : "Seat unavailable");
           }
@@ -432,6 +436,7 @@ export function useRoom(): UseRoomReturn {
     seatList,
     claimedSeat,
     seatClaimError,
+    autoMatched,
     createRoom,
     joinRoom,
     leave,
