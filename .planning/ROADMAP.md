@@ -105,6 +105,7 @@ Plans:
 - [x] 30-01: Server protocol types + mid-game join acceptance + seat claim validation
 - [x] 30-02: Phase-boundary takeover execution + edge case cleanup
 - [x] 30-03: Client-side mid-game join UI (seat selection + claim interaction)
+- [x] 30-04: Client takeover transition + host-side visual sync + UAT verified
 
 #### Phase 31: Host Migration & Room Lifecycle
 
@@ -114,7 +115,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 31-01: TBD
+- [x] 31-01: Extract migrateHost() helper + all-bots room dissolution
 
 #### Phase 32: Play Again Rework
 
@@ -181,8 +182,8 @@ Plans:
 | 27. Player Identity & Seat Model | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 28. AFK Autopilot & Escalation | v1.3 | 2/2 | Complete | 2026-03-07 |
 | 29. Disconnect Handoff | v1.3 | 1/1 | Complete | 2026-03-08 |
-| 30. Mid-Game Join Flow | v1.3 | 3/4 | In progress | - |
-| 31. Host Migration & Room Lifecycle | v1.3 | 0/? | Not started | - |
+| 30. Mid-Game Join Flow | v1.3 | 4/4 | Complete | 2026-03-09 |
+| 31. Host Migration & Room Lifecycle | v1.3 | 1/2 | In progress | - |
 | 32. Play Again Rework | v1.3 | 0/? | Not started | - |
 | 33. Connection Polish & Edge Cases | v1.3 | 0/? | Not started | - |
 | 34. Integration Testing & UAT | v1.3 | 0/? | Not started | - |

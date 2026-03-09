@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 29,
+  "build": 31,
   "history": [
     {
       "version": "0.1.0",
@@ -342,6 +342,11 @@
       "version": "0.2.0.29",
       "date": "2026-03-08",
       "summary": "Host-side visual sync: handleSeatTakeover updates player name/ID/seatState on bot→human transition"
+    },
+    {
+      "version": "0.2.0.31",
+      "date": "2026-03-09",
+      "summary": "migrateHost helper + dissolveRoom: host auto-migrates on AFK/disconnect, all-bots room dissolution"
     }
   ]
 }

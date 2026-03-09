@@ -4,7 +4,7 @@
 v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.26
+0.2.0.31
 
 ## Project Reference
 
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 30 of 34 (Mid-Game Join Flow)
-Plan: 3 of 4 in current phase
+Phase: 31 of 34 (Host Migration & Room Lifecycle)
+Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-08 — Completed 30-03-PLAN.md
+Last activity: 2026-03-09 — Completed 31-01-PLAN.md
 
-Progress: ████░░░░░░ 33%
+Progress: █████████░ 85%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -36,6 +36,8 @@ Progress: ████░░░░░░ 33%
 - **Disconnect grace**: Per-player grace timer = remaining phase timer. Non-timed phases = immediate bot promotion. Empty room keepalive = 10s.
 - **AFK timers**: 20s for both rolling and unlocking. Client-driven countdown, server-enforced timeout.
 - **Pool cap**: Max 12 dice. Server enforces on manual unlock.
+- **Host migration**: migrateHost() finds next human-active player with active connection. Called from promoteToBotFromAFK and removePlayer. No migrate-back.
+- **Room dissolution**: dissolveRoom() broadcasts room_closed to all clients + mid-game joiners when all seats are bots. Existing 10s keepalive unchanged for tab-close.
 
 ## Dev Server Setup
 - **Vite**: `http://localhost:5173` (Claude manages, `--host` for LAN)
@@ -53,6 +55,7 @@ Progress: ████░░░░░░ 33%
 - 28-02: AFK threshold lowered to 2 (1 full AFK turn = bot takeover); client flags afk:true on auto-triggered messages; bot icon on avatars; return to menu on bot takeover
 - 29-01: Grace window = remaining phase timer time; non-timed phases = immediate bot; empty room keepalive 10s; reconnect after grace expired sends room_closed
 - 30-01: Mid-game joiners tracked in separate midGameJoiners map (not in players); first-claim-wins pendingSeatClaims; no room_state sent to joiners
+- 31-01: migrateHost() helper iterates game players for human-active with active connection; dissolveRoom() broadcasts room_closed to all clients + mid-game joiners; no-migrate-back rule (inherent)
 
 ### Open Issues
 (none)
@@ -65,12 +68,11 @@ Progress: ████░░░░░░ 33%
 
 ## Session Continuity
 
-Last session: 2026-03-08
-Stopped at: Completed 30-03-PLAN.md — client-side mid-game join UI
+Last session: 2026-03-09
+Stopped at: Completed 31-01-PLAN.md
 Resume file: None
 
-### Recent Changes (2026-03-08)
-- **30-01 delivered**: 4 new protocol types, server mid-game join acceptance, seat claim validation with first-claim-wins
-- **30-02 delivered**: executePendingSeatClaims() at 5 phase boundaries, bot→human swap preserving game state, rejoin_state to new player, edge case cleanup
-- **30-03 delivered**: useRoom handles seat_list/seat_claim_result, MainMenu 'claiming' mode with seat selection buttons, waiting/error states
-- **Key pattern**: midGameJoiners map tracks joiners separately from players; pendingSeatClaims queues takeovers for phase boundary; seatList non-null = mid-game join
+### Recent Changes (2026-03-09)
+- **31-01 delivered**: migrateHost() + dissolveRoom() — host auto-migrates on AFK/disconnect, room dissolves when all seats are bots
+- **Key pattern**: migrateHost() extracted as reusable helper, wired into promoteToBotFromAFK and removePlayer; dissolveRoom sends room_closed to all clients + midGameJoiners
+- **Next up**: 31-02 — Room Full message + TRY AGAIN button
