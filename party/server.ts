@@ -462,16 +462,29 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // All non-host players must be ready
+    // Separate ready vs unready players
+    // Ready (or host): play as humans. Unready: removed from players map (become bot seats).
+    const readyPlayers: RoomPlayer[] = [];
+    const unreadyIds: string[] = [];
     for (const [id, player] of this.players) {
-      if (id !== this.hostId && !player.isReady) {
-        this.sendToConnection(conn, {
-          type: "error",
-          message: `Player ${player.name} is not ready`,
-        });
-        return;
+      if (player.isReady || id === this.hostId) {
+        readyPlayers.push(player);
+      } else {
+        unreadyIds.push(id);
       }
     }
+
+    // Remove unready players from tracking (connection stays open for mid-game join later)
+    for (const id of unreadyIds) {
+      const unreadyPlayer = this.players.get(id);
+      this.log(`[START] Removing unready player ${unreadyPlayer?.name ?? id.slice(0, 8)} — will become bot seat`);
+      this.players.delete(id);
+    }
+
+    // Determine target player count: use previous game's count if available, else the requested count
+    const effectiveTargetPlayers = this.previousGameTargetPlayers > 0
+      ? this.previousGameTargetPlayers
+      : targetPlayers;
 
     // Transition to playing
     this.status = "playing";
@@ -483,18 +496,18 @@ export default class RollBetterServer implements Party.Server {
     const startMsg: GameStartingMessage = {
       type: "game_starting",
       players: Array.from(this.players.values()),
-      targetPlayers,
+      targetPlayers: effectiveTargetPlayers,
       goalValues,
     };
 
     this.room.broadcast(JSON.stringify(startMsg));
-    this.log(`Game starting — ${this.players.size} online players, ${targetPlayers} target`);
+    this.log(`Game starting — ${readyPlayers.length} ready players, ${unreadyIds.length} unready (removed), ${effectiveTargetPlayers} target`);
 
     // ─── Initialize server game state ────────────────────────────────
-    const botCount = targetPlayers - this.players.size;
+    const botCount = effectiveTargetPlayers - this.players.size;
     const gamePlayers: ServerPlayerState[] = [];
 
-    // Online players
+    // Ready human players
     let seatIdx = 0;
     for (const p of this.players.values()) {
       gamePlayers.push({
@@ -514,7 +527,7 @@ export default class RollBetterServer implements Party.Server {
       seatIdx++;
     }
 
-    // Bot players (assigned unused colors)
+    // Bot players (fill remaining seats)
     for (let i = 0; i < botCount; i++) {
       const botIndex = this.players.size + i;
       gamePlayers.push({
@@ -1320,27 +1333,41 @@ export default class RollBetterServer implements Party.Server {
   }
 
   private migrateHost(): boolean {
-    if (!this.gameState) return false;
-
     // Build set of currently connected client IDs for fast lookup
     const connectedIds = new Set<string>();
     for (const conn of this.room.getConnections()) {
       connectedIds.add(conn.id);
     }
 
-    // Find first human-active player who is still connected
-    for (const gp of this.gameState.players) {
-      if (gp.seatState === 'human-active' && connectedIds.has(gp.id)) {
-        // Clear old host flag
+    // Game-aware migration: find first human-active player who is still connected
+    if (this.gameState) {
+      for (const gp of this.gameState.players) {
+        if (gp.seatState === 'human-active' && connectedIds.has(gp.id)) {
+          const oldHost = this.players.get(this.hostId!);
+          if (oldHost) oldHost.isHost = false;
+
+          this.hostId = gp.id;
+          const newHost = this.players.get(gp.id);
+          if (newHost) newHost.isHost = true;
+
+          this.log(`Host migrated to ${gp.name} (${gp.id})`);
+          this.broadcastRoomState();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Lobby fallback (no gameState): pick first connected player from this.players
+    for (const [id, player] of this.players) {
+      if (connectedIds.has(id)) {
         const oldHost = this.players.get(this.hostId!);
         if (oldHost) oldHost.isHost = false;
 
-        // Set new host
-        this.hostId = gp.id;
-        const newHost = this.players.get(gp.id);
-        if (newHost) newHost.isHost = true;
+        this.hostId = id;
+        player.isHost = true;
 
-        this.log(`Host migrated to ${gp.name} (${gp.id})`);
+        this.log(`Host migrated (lobby) to ${player.name} (${id})`);
         this.broadcastRoomState();
         return true;
       }
@@ -1728,8 +1755,13 @@ export default class RollBetterServer implements Party.Server {
         this.log(`Room closed (last player left)`);
       }
     } else if (this.players.size === 0 && this.gameState && (this.status as string) === "playing") {
-      // Non-host was the last player — same keepalive logic
+      // Non-host was the last player during active game — same keepalive logic
       this.startEmptyRoomKeepalive();
+    } else if (this.players.size === 0 && !this.gameState) {
+      // Non-host was the last player during lobby — close the room
+      this.hostId = null;
+      this.status = "closed";
+      this.log(`Room closed (last player left lobby)`);
     }
   }
 
