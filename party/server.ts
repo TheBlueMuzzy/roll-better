@@ -85,6 +85,10 @@ export default class RollBetterServer implements Party.Server {
   private previousGamePersistentIds: Map<string, number> = new Map(); // persistentId → seatIndex
   private previousGameTargetPlayers: number = 0;
 
+  // ─── Unready Players (removed at game start, may send play_again later) ──
+  // connId → { name, persistentId } — saved before removing from players map
+  private unreadyPlayers: Map<string, { name: string; persistentId: string }> = new Map();
+
   // ─── Disconnect Grace Timers ──────────────────────────────────────
   // Per-player grace timer: connId -> setTimeout handle
   // When a player disconnects during a timed phase, they get a grace window
@@ -475,8 +479,13 @@ export default class RollBetterServer implements Party.Server {
     }
 
     // Remove unready players from tracking (connection stays open for mid-game join later)
+    // Save their info first so they can send play_again to enter mid-game join
+    this.unreadyPlayers.clear();
     for (const id of unreadyIds) {
       const unreadyPlayer = this.players.get(id);
+      if (unreadyPlayer) {
+        this.unreadyPlayers.set(id, { name: unreadyPlayer.name, persistentId: unreadyPlayer.persistentId });
+      }
       this.log(`[START] Removing unready player ${unreadyPlayer?.name ?? id.slice(0, 8)} — will become bot seat`);
       this.players.delete(id);
     }
@@ -566,8 +575,8 @@ export default class RollBetterServer implements Party.Server {
    * or marks player ready if already in lobby, or defers to mid-game join.
    */
   private handlePlayAgain(conn: Party.Connection) {
-    // Guard: player must be in the room
-    if (!this.players.has(conn.id)) return;
+    // Guard: player must be in the room OR be an unready player from game start
+    if (!this.players.has(conn.id) && !this.unreadyPlayers.has(conn.id)) return;
 
     // Case 1: First play_again during sessionEnd — transition to lobby
     if (this.gameState?.phase === "sessionEnd") {
@@ -578,8 +587,9 @@ export default class RollBetterServer implements Party.Server {
         this.previousGamePersistentIds.set(gp.persistentId, gp.seatIndex);
       }
 
-      // Clean up all timers, mid-game joiners, pending claims
+      // Clean up all timers, mid-game joiners, pending claims, unready tracking
       this.cleanupTimers();
+      this.unreadyPlayers.clear();
 
       // Reset to lobby state
       this.gameState = null;
@@ -623,14 +633,40 @@ export default class RollBetterServer implements Party.Server {
       return;
     }
 
-    // Case 3: Game already started (late joiner) — defer to Plan 32-02
+    // Case 3: Game already started (late joiner) — route through mid-game join
     if (this.status === "playing" && this.gameState?.phase !== "sessionEnd") {
+      // Get player identity from unreadyPlayers map (saved at game start) or players map
+      const unreadyInfo = this.unreadyPlayers.get(conn.id);
+      const playerInfo = this.players.get(conn.id);
+      const name = unreadyInfo?.name ?? playerInfo?.name;
+      const persistentId = unreadyInfo?.persistentId ?? playerInfo?.persistentId ?? "";
+
+      if (!name) {
+        this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} — game in progress but no identity found, ignoring`);
+        return;
+      }
+
+      // Remove from players map if present (they're leaving lobby-remnant state)
+      if (playerInfo) this.players.delete(conn.id);
+      // Remove from unreadyPlayers (consumed)
+      if (unreadyInfo) this.unreadyPlayers.delete(conn.id);
+
+      // Add to mid-game joiners
+      this.midGameJoiners.set(conn.id, { name, persistentId });
+      if (persistentId) {
+        this.persistentIdToConnId.set(persistentId, conn.id);
+      }
+
+      // Send ack
       this.sendToConnection(conn, {
         type: "play_again_ack",
         mode: "mid_game_join",
       } as ServerMessage);
 
-      this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} — game in progress, sending mid_game_join ack`);
+      // Send available bot seats
+      this.sendSeatList(conn);
+
+      this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} (${name}) — game in progress, routed to mid-game join`);
       return;
     }
   }
