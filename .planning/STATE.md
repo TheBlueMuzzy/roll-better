@@ -4,7 +4,7 @@
 v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.33
+0.2.0.35
 
 ## Project Reference
 
@@ -16,9 +16,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 32 of 34 (Play Again Rework)
-Plan: 1 of 3 in current phase
-Status: Plan 32-01 complete
-Last activity: 2026-03-09 — Completed 32-01-PLAN.md
+Plan: 2 of 3 in current phase
+Status: Plan 32-02 complete
+Last activity: 2026-03-09 — Completed 32-02-PLAN.md
 
 Progress: █████████░ 91%
 
@@ -60,6 +60,7 @@ Progress: █████████░ 91%
 - 31-01: migrateHost() helper iterates game players for human-active with active connection; dissolveRoom() broadcasts room_closed to all clients + mid-game joiners; no-migrate-back rule (inherent)
 - 31-02: Typed error codes on ErrorMessage (code field); room_full error persists for TRY AGAIN; useOnlineGame handles room_closed independently for in-game cleanup
 - 32-01: play_again replaces restart_game; previousGamePersistentIds persists through game for auto-match (cleared on next sessionEnd); unready players removed from players map but stay connected for mid-game join
+- 32-02: Late play_again routes through mid-game join; unreadyPlayers map preserves identity; tryAutoMatchSeat auto-claims old seat via persistentId; autoMatched field on SeatClaimResultMessage
 
 ### Open Issues
 (none)
@@ -73,14 +74,14 @@ Progress: █████████░ 91%
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 32-01-PLAN.md — server-side play again protocol
+Stopped at: Completed 32-02-PLAN.md — late play_again routing + auto-match
 Resume file: None
 
 ### Recent Changes (2026-03-09)
-- **32-01 delivered**: Server-side Play Again → lobby transition protocol
-- **Protocol changes**: Replaced restart_game/RestartGameMessage with play_again/PlayAgainMessage + play_again_ack/PlayAgainAckMessage
-- **handlePlayAgain**: Transitions sessionEnd → waiting lobby, saves previousGamePersistentIds for auto-match
-- **handleStartGame**: Now handles unready players (removed from players map, become bot seats). Uses previousGameTargetPlayers for consistent seat count
-- **migrateHost**: Added lobby fallback for null gameState — iterates this.players instead of gameState.players
-- **Bug fix**: Non-host last player leaving lobby now correctly closes room
-- **Next up**: Plan 32-02 — Client Play Again UI + mid-game join routing
+- **32-02 delivered**: Late play_again → mid-game join routing + auto-match returning players
+- **unreadyPlayers map**: Saves identity of players removed at game start, used when they send play_again later
+- **handlePlayAgain Case 3**: Routes late play_again through mid-game join (midGameJoiners + sendSeatList)
+- **tryAutoMatchSeat()**: Checks previousGamePersistentIds, auto-claims old bot-held seat if available
+- **autoMatched field**: Added to SeatClaimResultMessage for client-side feedback
+- **Both paths covered**: Auto-match works for late play_again AND fresh room-code joins
+- **Next up**: Plan 32-03 — Client Play Again UI
