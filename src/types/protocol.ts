@@ -64,8 +64,8 @@ export interface SkipUnlockMessage {
   afk?: boolean;     // true when triggered by client's AFK countdown
 }
 
-export interface RestartGameMessage {
-  type: "restart_game";
+export interface PlayAgainMessage {
+  type: "play_again";
 }
 
 export interface RollingTimeoutMessage {
@@ -90,7 +90,7 @@ export type ClientMessage =
   | RollResultMessage
   | UnlockRequestMessage
   | SkipUnlockMessage
-  | RestartGameMessage
+  | PlayAgainMessage
   | RollingTimeoutMessage
   | PhaseSyncRequestMessage
   | SeatClaimMessage;
@@ -268,6 +268,11 @@ export interface SeatTakeoverMessage {
   playerName: string;
 }
 
+export interface PlayAgainAckMessage {
+  type: "play_again_ack";
+  mode: "lobby" | "mid_game_join";
+}
+
 export interface RoomClosedMessage {
   type: "room_closed";
   reason: string;
@@ -295,4 +300,5 @@ export type ServerMessage =
   | SeatListMessage
   | SeatClaimResultMessage
   | SeatTakeoverMessage
+  | PlayAgainAckMessage
   | RoomClosedMessage;

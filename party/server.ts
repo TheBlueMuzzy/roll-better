@@ -81,6 +81,10 @@ export default class RollBetterServer implements Party.Server {
   private midGameJoiners: Map<string, { name: string; persistentId: string }> = new Map();
   private pendingSeatClaims: Map<number, string> = new Map(); // seatIndex → connId
 
+  // ─── Previous Game Context (for Play Again flow) ────────────────
+  private previousGamePersistentIds: Map<string, number> = new Map(); // persistentId → seatIndex
+  private previousGameTargetPlayers: number = 0;
+
   // ─── Disconnect Grace Timers ──────────────────────────────────────
   // Per-player grace timer: connId -> setTimeout handle
   // When a player disconnects during a timed phase, they get a grace window
@@ -294,8 +298,8 @@ export default class RollBetterServer implements Party.Server {
       case "skip_unlock":
         this.handleSkipUnlock(sender, !!parsed.afk);
         break;
-      case "restart_game":
-        this.handleRestartGame(sender);
+      case "play_again":
+        this.handlePlayAgain(sender);
         break;
       case "rolling_timeout":
         // Legacy: host client used to send this. Now clients auto-roll themselves.
@@ -545,107 +549,77 @@ export default class RollBetterServer implements Party.Server {
   }
 
   /**
-   * Handle a restart request after session end.
-   * Any remaining player can trigger a restart — reuses the previous game's settings.
+   * Handle a play_again request. Transitions from sessionEnd → lobby,
+   * or marks player ready if already in lobby, or defers to mid-game join.
    */
-  private handleRestartGame(conn: Party.Connection) {
-    if (!this.gameState || this.gameState.phase !== "sessionEnd") {
-      this.sendToConnection(conn, {
-        type: "error",
-        message: "Can only restart after a session ends",
-      });
-      return;
-    }
+  private handlePlayAgain(conn: Party.Connection) {
+    // Guard: player must be in the room
+    if (!this.players.has(conn.id)) return;
 
-    if (!this.players.has(conn.id)) {
-      this.sendToConnection(conn, {
-        type: "error",
-        message: "You are not in this room",
-      });
-      return;
-    }
-
-    // Disconnect mid-game joiners — game is restarting
-    for (const [connId] of this.midGameJoiners) {
-      const joinerConn = this.room.getConnection(connId);
-      if (joinerConn) {
-        this.sendToConnection(joinerConn, { type: "error", message: "Game restarted" });
+    // Case 1: First play_again during sessionEnd — transition to lobby
+    if (this.gameState?.phase === "sessionEnd") {
+      // Save previous game context for auto-match (Plan 32-02)
+      this.previousGamePersistentIds.clear();
+      this.previousGameTargetPlayers = this.gameState.players.length;
+      for (const gp of this.gameState.players) {
+        this.previousGamePersistentIds.set(gp.persistentId, gp.seatIndex);
       }
+
+      // Clean up all timers, mid-game joiners, pending claims
+      this.cleanupTimers();
+
+      // Reset to lobby state
+      this.gameState = null;
+      this.status = "waiting";
+
+      // Reset all players to not ready
+      for (const player of this.players.values()) {
+        player.isReady = false;
+      }
+
+      // Mark the sender as ready
+      const senderPlayer = this.players.get(conn.id);
+      if (senderPlayer) senderPlayer.isReady = true;
+
+      // Ack the sender
+      this.sendToConnection(conn, {
+        type: "play_again_ack",
+        mode: "lobby",
+      } as ServerMessage);
+
+      // Broadcast room_state to all
+      this.broadcastRoomState();
+
+      this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} triggered lobby transition — ${this.players.size} players in lobby`);
+      return;
     }
 
-    // Clean up any stale timers (also clears midGameJoiners + pendingSeatClaims)
-    this.cleanupTimers();
+    // Case 2: Already in lobby (waiting) — mark ready
+    if (this.status === "waiting") {
+      const senderPlayer = this.players.get(conn.id);
+      if (senderPlayer) senderPlayer.isReady = true;
 
-    // Reuse settings from previous game
-    const targetPlayers = this.gameState.players.length; // same total player count
+      this.sendToConnection(conn, {
+        type: "play_again_ack",
+        mode: "lobby",
+      } as ServerMessage);
 
-    // Generate new goals
-    const goalValues = Array.from({ length: 8 }, () => Math.floor(Math.random() * 6) + 1)
-      .sort((a, b) => a - b);
+      this.broadcastRoomState();
 
-    const startMsg: GameStartingMessage = {
-      type: "game_starting",
-      players: Array.from(this.players.values()),
-      targetPlayers,
-      goalValues,
-    };
-
-    this.room.broadcast(JSON.stringify(startMsg));
-    this.log(`Game restarting — ${this.players.size} online players, ${targetPlayers} target`);
-
-    // Build fresh game state
-    const botCount = targetPlayers - this.players.size;
-    const gamePlayers: ServerPlayerState[] = [];
-
-    let restartSeatIdx = 0;
-    for (const p of this.players.values()) {
-      gamePlayers.push({
-        id: p.id,
-        name: p.name,
-        color: p.color,
-        persistentId: p.persistentId,
-        score: 0,
-        startingDice: 2,
-        poolSize: 2,
-        lockedDice: [],
-        isOnline: true,
-        seatState: 'human-active',
-        seatIndex: restartSeatIdx,
-        autopilotCounter: 0,
-      });
-      restartSeatIdx++;
+      this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} marked ready in lobby`);
+      return;
     }
 
-    for (let i = 0; i < botCount; i++) {
-      const botIndex = this.players.size + i;
-      gamePlayers.push({
-        id: `bot-${i}`,
-        name: `Bot ${i + 1}`,
-        color: PLAYER_COLORS[botIndex % PLAYER_COLORS.length],
-        persistentId: `bot-${i}`,
-        score: 0,
-        startingDice: 2,
-        poolSize: 2,
-        lockedDice: [],
-        isOnline: false,
-        difficulty: randomDifficulty(),
-        seatState: 'bot',
-        seatIndex: restartSeatIdx,
-        autopilotCounter: 0,
-      });
-      restartSeatIdx++;
+    // Case 3: Game already started (late joiner) — defer to Plan 32-02
+    if (this.status === "playing" && this.gameState?.phase !== "sessionEnd") {
+      this.sendToConnection(conn, {
+        type: "play_again_ack",
+        mode: "mid_game_join",
+      } as ServerMessage);
+
+      this.log(`[PLAY AGAIN] ${conn.id.slice(0, 8)} — game in progress, sending mid_game_join ack`);
+      return;
     }
-
-    this.gameState = {
-      currentRound: 0,
-      goalValues,
-      phase: "idle",
-      players: gamePlayers,
-      rollRequestedBy: new Set(),
-      unlockResponses: new Map(),
-    };
-
-    this.serverInitRound(true);
   }
 
   // ─── Game Logic ─────────────────────────────────────────────────
