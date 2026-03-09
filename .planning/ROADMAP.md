@@ -126,7 +126,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 32-01: TBD
+- [x] 32-01: Server protocol types + handlePlayAgain lobby transition + handleStartGame post-game
+- [ ] 32-02: TBD
+- [ ] 32-03: TBD
 
 #### Phase 33: Connection Polish & Edge Cases
 
@@ -185,7 +187,7 @@ Plans:
 | 29. Disconnect Handoff | v1.3 | 1/1 | Complete | 2026-03-08 |
 | 30. Mid-Game Join Flow | v1.3 | 4/4 | Complete | 2026-03-09 |
 | 31. Host Migration & Room Lifecycle | v1.3 | 2/2 | Complete | 2026-03-09 |
-| 32. Play Again Rework | v1.3 | 0/? | Not started | - |
+| 32. Play Again Rework | v1.3 | 1/3 | In progress | - |
 | 33. Connection Polish & Edge Cases | v1.3 | 0/? | Not started | - |
 | 34. Integration Testing & UAT | v1.3 | 0/? | Not started | - |
 
