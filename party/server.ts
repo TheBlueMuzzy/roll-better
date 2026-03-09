@@ -1286,6 +1286,7 @@ export default class RollBetterServer implements Party.Server {
    * Sets seatState='bot', assigns random difficulty, marks offline.
    */
   private promoteToBotFromAFK(player: ServerPlayerState) {
+    const wasHost = player.id === this.hostId;
     player.seatState = 'bot';
     player.difficulty = randomDifficulty();
     player.isOnline = false;
@@ -1295,6 +1296,48 @@ export default class RollBetterServer implements Party.Server {
     }
     this.log(`AFK escalation: ${player.name} promoted to Bot (${player.autopilotCounter} consecutive timeouts)`);
     this.broadcastSeatStateChanged(player);
+
+    // If this player was the host, migrate host to next connected human
+    if (wasHost) {
+      if (!this.migrateHost()) {
+        // No connected humans left — dissolve the room
+        this.dissolveRoom("all_players_afk");
+      }
+    }
+  }
+
+  /**
+   * Migrate host to the next connected human-active player.
+   * Returns true if a new host was found, false if no humans remain.
+   */
+  private migrateHost(): boolean {
+    if (!this.gameState) return false;
+
+    // Build set of currently connected client IDs for fast lookup
+    const connectedIds = new Set<string>();
+    for (const conn of this.room.getConnections()) {
+      connectedIds.add(conn.id);
+    }
+
+    // Find first human-active player who is still connected
+    for (const gp of this.gameState.players) {
+      if (gp.seatState === 'human-active' && connectedIds.has(gp.id)) {
+        // Clear old host flag
+        const oldHost = this.players.get(this.hostId!);
+        if (oldHost) oldHost.isHost = false;
+
+        // Set new host
+        this.hostId = gp.id;
+        const newHost = this.players.get(gp.id);
+        if (newHost) newHost.isHost = true;
+
+        this.log(`Host migrated to ${gp.name} (${gp.id})`);
+        this.broadcastRoomState();
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -1656,15 +1699,16 @@ export default class RollBetterServer implements Party.Server {
 
     if (wasHost) {
       if (this.players.size > 0) {
-        // Host migration: assign first remaining player
-        const newHostId = this.players.keys().next().value!;
-        this.hostId = newHostId;
-        const newHost = this.players.get(newHostId)!;
-        newHost.isHost = true;
-        this.log(`New host: ${newHostId}`);
-
-        // Broadcast fresh room_state so everyone sees host change
-        this.broadcastRoomState();
+        // Host migration: try game-aware migration first, fall back to first player
+        if (!this.migrateHost()) {
+          // migrateHost failed (no connected human-active in game) — fall back to first remaining player
+          const newHostId = this.players.keys().next().value!;
+          this.hostId = newHostId;
+          const newHost = this.players.get(newHostId)!;
+          newHost.isHost = true;
+          this.log(`New host (fallback): ${newHostId}`);
+          this.broadcastRoomState();
+        }
       } else if (this.gameState && (this.status as string) === "playing") {
         // Room empty during active game — keep alive for 10s waiting for rejoin
         this.startEmptyRoomKeepalive();
