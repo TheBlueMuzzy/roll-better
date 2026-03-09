@@ -280,7 +280,7 @@ export function useRoom(): UseRoomReturn {
           gameActiveRef.current = false;
           resetState();
           useGameStore.getState().setScreen('menu');
-          setErrorWithAutoClear("Room closed — all players went AFK");
+          setErrorWithAutoClear(msg.reason || "Room closed");
           break;
 
         case "error":

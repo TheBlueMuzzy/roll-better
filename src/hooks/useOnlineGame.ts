@@ -381,6 +381,22 @@ export function useOnlineGame(): UseOnlineGameReturn {
           useGameStore.getState().handleSeatTakeover(msg.seatIndex, msg.playerId, msg.playerName);
           break;
 
+        case "room_closed": {
+          console.log("[useOnlineGame] room_closed — returning to menu");
+          const store = useGameStore.getState();
+          // Clear all animation/game state
+          store.clearLockAnimations();
+          store.clearAILockAnimations();
+          store.clearUnlockAnimations();
+          store.clearAIUnlockAnimations();
+          // Clear deferred phase polling
+          if (deferredPhaseInterval) { clearInterval(deferredPhaseInterval); deferredPhaseInterval = null; }
+          if (deferredPhaseTimeout) { clearTimeout(deferredPhaseTimeout); deferredPhaseTimeout = null; }
+          // Return to menu
+          store.setScreen('menu');
+          break;
+        }
+
         case "game_starting": {
           // Restart: server sent game_starting during an active online session
           console.log("[useOnlineGame] game_starting (restart) — re-initializing game");
