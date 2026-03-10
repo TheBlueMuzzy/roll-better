@@ -139,6 +139,7 @@ Plans:
 
 Plans:
 - [x] 33-01: Server duplicate-persistentId detection + client connected_elsewhere handling
+- [x] 33-02: Connection status UI polish — seat notifications, mid-game join waiting, cancel claim
 
 #### Phase 34: Integration Testing & UAT
 
@@ -188,6 +189,6 @@ Plans:
 | 30. Mid-Game Join Flow | v1.3 | 4/4 | Complete | 2026-03-09 |
 | 31. Host Migration & Room Lifecycle | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 32. Play Again Rework | v1.3 | 3/3 | Complete | 2026-03-10 |
-| 33. Connection Polish & Edge Cases | v1.3 | 1/2 | In progress | - |
+| 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 34. Integration Testing & UAT | v1.3 | 0/? | Not started | - |
 

@@ -4,7 +4,7 @@
 v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 
 ## Version
-0.2.0.35
+0.2.0.37
 
 ## Project Reference
 
@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 33 of 34 (Connection Polish & Edge Cases)
-Plan: 1 of 2 in current phase
-Status: 33-01 complete
-Last activity: 2026-03-10 — Completed 33-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-10 — Completed 33-02-PLAN.md
 
-Progress: █████████░ 93%
+Progress: █████████░ 96%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -63,6 +63,7 @@ Progress: █████████░ 93%
 - 32-02: Late play_again routes through mid-game join; unreadyPlayers map preserves identity; tryAutoMatchSeat auto-claims old seat via persistentId; autoMatched field on SeatClaimResultMessage
 - 32-03: Client Play Again sends play_again (restart_game removed); lobby return auto-detected via room state useEffect; claiming mode broadened to trigger from any onlineMode; autoMatched → "Reclaiming your seat..." UI
 - 33-01: Duplicate persistentId detection — server evicts old connection with connected_elsewhere error; in-game eviction triggers standard disconnect path; client shows "connected in another tab" with BACK TO MENU
+- 33-02: Seat takeover reason field (reclaim vs takeover) for context-aware notifications; cancelClaim() for mid-game join; reconnect toast verified already working
 
 ### Open Issues
 (none)
@@ -76,12 +77,13 @@ Progress: █████████░ 93%
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: Completed 33-01-PLAN.md — duplicate persistentId detection
+Stopped at: Completed 33-02-PLAN.md — connection status UI polish
 Resume file: None
 
 ### Recent Changes (2026-03-10)
-- **33-01 delivered**: Duplicate persistentId detection and connected_elsewhere handling
-- **party/server.ts**: handleJoin evicts old connection when same persistentId detected; in-game uses non-intentional disconnect for grace timer path
-- **src/types/protocol.ts**: Documented connected_elsewhere error code on ErrorMessage
-- **src/hooks/useRoom.ts**: connectedElsewhere state + clearConnectedElsewhere; error handler closes socket, no auto-reconnect
-- **src/components/MainMenu.tsx**: Shows "connected in another tab" with BACK TO MENU; hides all other online UI while error displayed
+- **33-02 delivered**: Connection status UI polish — seat notifications, mid-game join waiting, cancel claim
+- **party/server.ts**: Seat takeover broadcasts include reason (reclaim vs takeover) based on persistentId match
+- **src/types/protocol.ts**: reason field on SeatTakeoverMessage
+- **src/components/HUD.tsx**: "X is back!" (reclaim) vs "X joined the game" (takeover)
+- **src/components/MainMenu.tsx**: Spinner + context-aware waiting text + CANCEL button for mid-game join
+- **src/hooks/useRoom.ts**: cancelClaim(), improved seat claim error messages
