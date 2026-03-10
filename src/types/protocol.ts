@@ -121,6 +121,11 @@ export interface PlayerLeftMessage {
   playerId: string;
 }
 
+/** Error message from server to client.
+ *  Known error codes:
+ *  - "room_full" — room has reached MAX_PLAYERS
+ *  - "connected_elsewhere" — another tab/connection opened with same persistentId
+ */
 export interface ErrorMessage {
   type: "error";
   code?: string;

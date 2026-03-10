@@ -389,6 +389,44 @@ export default class RollBetterServer implements Party.Server {
 
     const pid = persistentId ?? "";
 
+    // ─── Duplicate persistentId detection ──────────────────────────────
+    // If another active connection already has the same persistentId,
+    // evict the old connection (second tab takes over).
+    if (pid) {
+      const existingConnId = this.persistentIdToConnId.get(pid);
+      if (existingConnId && existingConnId !== conn.id) {
+        const oldConn = this.room.getConnection(existingConnId);
+        if (oldConn) {
+          this.log(`[DUPLICATE] persistentId=${pid.slice(0, 8)} already connected as ${existingConnId.slice(0, 8)} — evicting old connection`);
+          // Send error to old connection before closing
+          this.sendToConnection(oldConn, {
+            type: "error",
+            code: "connected_elsewhere",
+            message: "Connected from another tab",
+          });
+          // Remove old connection from players map
+          // In-game: use intentional=false to trigger grace timer / bot promotion
+          // In lobby: use intentional=true for clean removal
+          if (this.players.has(existingConnId)) {
+            const inGame = !!this.gameState;
+            this.removePlayer(existingConnId, !inGame);
+          }
+          // Clean up old connection from mid-game joiner state
+          if (this.midGameJoiners.has(existingConnId)) {
+            this.midGameJoiners.delete(existingConnId);
+            for (const [idx, claimantId] of this.pendingSeatClaims) {
+              if (claimantId === existingConnId) {
+                this.pendingSeatClaims.delete(idx);
+                break;
+              }
+            }
+          }
+          // Close the old connection
+          oldConn.close();
+        }
+      }
+    }
+
     // Mid-game join: game is active, send available bot seats
     if (this.gameState && (this.status === "playing" || (this.status as string) === "waiting_for_rejoin")) {
       this.midGameJoiners.set(conn.id, { name: trimmedName, persistentId: pid });
