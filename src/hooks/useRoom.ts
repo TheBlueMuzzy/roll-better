@@ -48,6 +48,8 @@ interface UseRoomReturn {
   claimedSeat: number | null;
   seatClaimError: string | null;
   autoMatched: boolean;
+  connectedElsewhere: boolean;
+  clearConnectedElsewhere: () => void;
   createRoom: (playerName: string, color: string) => void;
   joinRoom: (code: string, playerName: string, color: string) => void;
   leave: () => void;
@@ -75,6 +77,7 @@ export function useRoom(): UseRoomReturn {
   const [claimedSeat, setClaimedSeat] = useState<number | null>(null);
   const [seatClaimError, setSeatClaimError] = useState<string | null>(null);
   const [autoMatched, setAutoMatched] = useState(false);
+  const [connectedElsewhere, setConnectedElsewhere] = useState(false);
 
   // Derived state
   const isHost = playerId !== null && hostId !== null && hostId === playerId;
@@ -300,7 +303,17 @@ export function useRoom(): UseRoomReturn {
           break;
 
         case "error":
-          setErrorWithAutoClear(msg.message, msg.code);
+          if (msg.code === "connected_elsewhere") {
+            setConnectedElsewhere(true);
+            intentionalCloseRef.current = true;
+            gameActiveRef.current = false;
+            if (socketRef.current) {
+              socketRef.current.close();
+              socketRef.current = null;
+            }
+          } else {
+            setErrorWithAutoClear(msg.message, msg.code);
+          }
           break;
       }
     };
@@ -408,6 +421,10 @@ export function useRoom(): UseRoomReturn {
     }
   }, [isConnected]);
 
+  const clearConnectedElsewhere = useCallback(() => {
+    setConnectedElsewhere(false);
+  }, []);
+
   // ─── Cleanup on unmount ──────────────────────────────────────────────
 
   useEffect(() => {
@@ -437,6 +454,8 @@ export function useRoom(): UseRoomReturn {
     claimedSeat,
     seatClaimError,
     autoMatched,
+    connectedElsewhere,
+    clearConnectedElsewhere,
     createRoom,
     joinRoom,
     leave,

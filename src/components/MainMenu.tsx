@@ -236,15 +236,35 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
       <h1 className="menu-title">Roll Better</h1>
       <p className="menu-subtitle">A dice-matching game</p>
 
+      {/* Connected elsewhere error — takes priority over everything */}
+      {room.connectedElsewhere && (
+        <div className="menu-inline-section">
+          <div className="menu-error">You're connected in another tab</div>
+          <button
+            className="menu-online-btn"
+            onClick={() => {
+              playUIClick();
+              room.clearConnectedElsewhere();
+              setOnlineMode('idle');
+            }}
+          >
+            BACK TO MENU
+          </button>
+        </div>
+      )}
+
       {/* Play Local button */}
+      {!room.connectedElsewhere && (
       <button className="menu-play" onClick={() => {
         useGameStore.getState().setGamePrefs({ playerCount: 4 });
         onPlay(4);
       }}>
         PLAY LOCAL
       </button>
+      )}
 
       {/* Create / Join row */}
+      {!room.connectedElsewhere && (
       <div className="menu-online-row">
         {/* CREATE button */}
         {onlineMode === 'creating' ? (
@@ -282,9 +302,10 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
           </button>
         )}
       </div>
+      )}
 
       {/* Conditional inline section */}
-      {onlineMode !== 'idle' && (
+      {!room.connectedElsewhere && onlineMode !== 'idle' && (
         <div className="menu-inline-section">
           {/* Creating mode: room code + player list */}
           {onlineMode === 'creating' && room.isConnected && room.roomCode && (
