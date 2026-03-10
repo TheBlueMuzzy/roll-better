@@ -50,6 +50,7 @@ interface UseRoomReturn {
   autoMatched: boolean;
   connectedElsewhere: boolean;
   clearConnectedElsewhere: () => void;
+  cancelClaim: () => void;
   createRoom: (playerName: string, color: string) => void;
   joinRoom: (code: string, playerName: string, color: string) => void;
   leave: () => void;
@@ -273,7 +274,13 @@ export function useRoom(): UseRoomReturn {
             setSeatClaimError(null);
             setAutoMatched(msg.autoMatched ?? false);
           } else {
-            setSeatClaimError(msg.reason === "seat_taken" ? "Seat already taken" : "Seat unavailable");
+            if (msg.reason === "seat_taken") {
+              setSeatClaimError("That seat was just taken \u2014 pick another");
+            } else if (msg.reason === "not_a_bot") {
+              setSeatClaimError("That seat is no longer available");
+            } else {
+              setSeatClaimError(msg.reason || "Seat unavailable");
+            }
           }
           break;
 
@@ -421,6 +428,12 @@ export function useRoom(): UseRoomReturn {
     }
   }, [isConnected]);
 
+  const cancelClaim = useCallback(() => {
+    setClaimedSeat(null);
+    claimedSeatRef.current = null;
+    setSeatClaimError(null);
+  }, []);
+
   const clearConnectedElsewhere = useCallback(() => {
     setConnectedElsewhere(false);
   }, []);
@@ -456,6 +469,7 @@ export function useRoom(): UseRoomReturn {
     autoMatched,
     connectedElsewhere,
     clearConnectedElsewhere,
+    cancelClaim,
     createRoom,
     joinRoom,
     leave,

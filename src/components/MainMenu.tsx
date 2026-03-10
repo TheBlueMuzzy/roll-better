@@ -400,9 +400,19 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
             <>
               {room.claimedSeat !== null ? (
                 <div className="menu-midgame-waiting">
+                  <div className="menu-waiting-spinner" />
                   <p className="menu-midgame-status">
-                    {room.autoMatched ? 'Reclaiming your seat...' : 'Taking over next round...'}
+                    {room.autoMatched ? 'Reclaiming your seat... Joining next round' : 'Seat claimed! Joining next round...'}
                   </p>
+                  <button
+                    className="menu-cancel-claim"
+                    onClick={() => {
+                      playUIClick();
+                      room.cancelClaim();
+                    }}
+                  >
+                    CANCEL
+                  </button>
                 </div>
               ) : (
                 <>
