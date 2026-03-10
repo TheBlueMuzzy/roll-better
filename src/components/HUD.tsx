@@ -55,7 +55,11 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
         } else if (prevState === 'human-afk' && p.seatState === 'human-active') {
           newNotifications.push(`${p.name} is back`);
         } else if (prevState === 'bot' && p.seatState === 'human-active') {
-          newNotifications.push(`${p.name} reclaimed their seat`);
+          if (p.takeoverReason === 'reclaim') {
+            newNotifications.push(`${p.name} is back!`);
+          } else {
+            newNotifications.push(`${p.name} joined the game`);
+          }
         }
       }
       prev.set(p.id, p.seatState);

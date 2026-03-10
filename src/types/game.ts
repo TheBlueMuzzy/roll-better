@@ -50,6 +50,7 @@ export interface Player {
   difficulty?: AIDifficulty;
   seatState: 'human-active' | 'human-afk' | 'bot';
   seatIndex: number;
+  takeoverReason?: 'reclaim' | 'takeover';
 }
 
 export interface RoundState {

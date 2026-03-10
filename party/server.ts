@@ -1492,6 +1492,9 @@ export default class RollBetterServer implements Party.Server {
       }
 
       // === Execute takeover ===
+      // Determine if this is a reclaim (same player returning) or new takeover
+      const isReclaim = botPlayer.persistentId === joinerInfo.persistentId;
+
       // Update game state: bot → human
       botPlayer.id = claimantConnId;
       botPlayer.name = joinerInfo.name;
@@ -1531,6 +1534,7 @@ export default class RollBetterServer implements Party.Server {
         seatIndex,
         playerId: claimantConnId,
         playerName: joinerInfo.name,
+        reason: isReclaim ? 'reclaim' : 'takeover',
       };
       this.room.broadcast(JSON.stringify(takeoverMsg));
 

@@ -104,7 +104,7 @@ interface GameStore extends GameState {
 
   // Seat state updates
   updatePlayerSeatState: (playerId: string, seatState: SeatState, seatIndex: number) => void;
-  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string) => void;
+  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string, reason?: 'reclaim' | 'takeover') => void;
 
   // Online disconnect tracking
   setOnlineDisconnected: (disconnected: boolean) => void;
@@ -1126,7 +1126,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ players });
   },
 
-  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string) => {
+  handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string, reason?: 'reclaim' | 'takeover') => {
     const state = get();
     // Find the local player index by seatIndex (old bot ID is in onlinePlayerIds)
     const playerIndex = state.players.findIndex(p => p.seatIndex === seatIndex);
@@ -1134,9 +1134,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Update onlinePlayerIds: replace old bot ID with new player ID
     const newIds = [...state.onlinePlayerIds];
     newIds[playerIndex] = newPlayerId;
-    // Update player name and seatState
+    // Update player name, seatState, and takeover reason (for HUD notification text)
     const players = state.players.map((p, i) =>
-      i === playerIndex ? { ...p, name: newPlayerName, seatState: 'human-active' as SeatState, isAI: false } : p
+      i === playerIndex ? { ...p, name: newPlayerName, seatState: 'human-active' as SeatState, isAI: false, takeoverReason: reason } : p
     );
     set({ players, onlinePlayerIds: newIds });
   },

@@ -272,6 +272,7 @@ export interface SeatTakeoverMessage {
   seatIndex: number;
   playerId: string;
   playerName: string;
+  reason: 'reclaim' | 'takeover';
 }
 
 export interface PlayAgainAckMessage {
