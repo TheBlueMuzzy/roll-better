@@ -15,10 +15,10 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 32 of 34 (Play Again Rework)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-10 — Completed 32-03-PLAN.md
+Phase: 33 of 34 (Connection Polish & Edge Cases)
+Plan: 1 of 2 in current phase
+Status: 33-01 complete
+Last activity: 2026-03-10 — Completed 33-01-PLAN.md
 
 Progress: █████████░ 93%
 
@@ -62,6 +62,7 @@ Progress: █████████░ 93%
 - 32-01: play_again replaces restart_game; previousGamePersistentIds persists through game for auto-match (cleared on next sessionEnd); unready players removed from players map but stay connected for mid-game join
 - 32-02: Late play_again routes through mid-game join; unreadyPlayers map preserves identity; tryAutoMatchSeat auto-claims old seat via persistentId; autoMatched field on SeatClaimResultMessage
 - 32-03: Client Play Again sends play_again (restart_game removed); lobby return auto-detected via room state useEffect; claiming mode broadened to trigger from any onlineMode; autoMatched → "Reclaiming your seat..." UI
+- 33-01: Duplicate persistentId detection — server evicts old connection with connected_elsewhere error; in-game eviction triggers standard disconnect path; client shows "connected in another tab" with BACK TO MENU
 
 ### Open Issues
 (none)
@@ -75,14 +76,12 @@ Progress: █████████░ 93%
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: Completed 32-03-PLAN.md — Phase 32 complete
+Stopped at: Completed 33-01-PLAN.md — duplicate persistentId detection
 Resume file: None
 
 ### Recent Changes (2026-03-10)
-- **32-03 delivered**: Client Play Again UI — lobby return, auto-claim feedback, restart_game cleanup
-- **App.tsx**: handlePlayAgain sends play_again, transitions to menu
-- **useRoom.ts**: play_again_ack handler + autoMatched state
-- **MainMenu.tsx**: Lobby return detection useEffect, claiming from any onlineMode, "Reclaiming your seat..."
-- **useOnlineGame.ts**: Removed restart-specific game_starting handler
-- **restart_game fully removed**: Clean protocol migration complete
-- **Phase 32 complete**: All 3 plans finished, ready for Phase 33
+- **33-01 delivered**: Duplicate persistentId detection and connected_elsewhere handling
+- **party/server.ts**: handleJoin evicts old connection when same persistentId detected; in-game uses non-intentional disconnect for grace timer path
+- **src/types/protocol.ts**: Documented connected_elsewhere error code on ErrorMessage
+- **src/hooks/useRoom.ts**: connectedElsewhere state + clearConnectedElsewhere; error handler closes socket, no auto-reconnect
+- **src/components/MainMenu.tsx**: Shows "connected in another tab" with BACK TO MENU; hides all other online UI while error displayed
