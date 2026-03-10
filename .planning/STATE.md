@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 33 of 34 (Connection Polish & Edge Cases)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-10 — Completed 33-02-PLAN.md
+Phase: 34 of 34 (Integration Testing & UAT)
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-03-10 — Completed 34-01-PLAN.md
 
-Progress: █████████░ 96%
+Progress: █████████░ 97%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -77,13 +77,9 @@ Progress: █████████░ 96%
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: Completed 33-02-PLAN.md — connection status UI polish
+Stopped at: Completed 34-01-PLAN.md — disconnect/reconnect UAT
 Resume file: None
 
 ### Recent Changes (2026-03-10)
-- **33-02 delivered**: Connection status UI polish — seat notifications, mid-game join waiting, cancel claim
-- **party/server.ts**: Seat takeover broadcasts include reason (reclaim vs takeover) based on persistentId match
-- **src/types/protocol.ts**: reason field on SeatTakeoverMessage
-- **src/components/HUD.tsx**: "X is back!" (reclaim) vs "X joined the game" (takeover)
-- **src/components/MainMenu.tsx**: Spinner + context-aware waiting text + CANCEL button for mid-game join
-- **src/hooks/useRoom.ts**: cancelClaim(), improved seat claim error messages
+- **34-01 delivered**: Disconnect/reconnect UAT — all 3 scenarios verified (within-grace, post-grace, non-timed phase)
+- No code changes (UAT verification only)
