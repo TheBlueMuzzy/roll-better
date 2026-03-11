@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 34 of 34 (Integration Testing & UAT)
-Plan: 1 of 5 in current phase
+Plan: 2 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-10 — Completed 34-01-PLAN.md
+Last activity: 2026-03-11 — Completed 34-02-PLAN.md
 
-Progress: █████████░ 97%
+Progress: █████████░ 98%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -76,10 +76,10 @@ Progress: █████████░ 97%
 
 ## Session Continuity
 
-Last session: 2026-03-10
-Stopped at: Completed 34-01-PLAN.md — disconnect/reconnect UAT
+Last session: 2026-03-11
+Stopped at: Completed 34-02-PLAN.md — mid-game join & room-full UAT
 Resume file: None
 
-### Recent Changes (2026-03-10)
-- **34-01 delivered**: Disconnect/reconnect UAT — all 3 scenarios verified (within-grace, post-grace, non-timed phase)
+### Recent Changes (2026-03-11)
+- **34-02 delivered**: Mid-game join UAT — all 4 scenarios verified (late join, room full, cancel/re-pick, race condition)
 - No code changes (UAT verification only)
