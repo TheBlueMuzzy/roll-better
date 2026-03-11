@@ -151,6 +151,7 @@ Plans:
 Plans:
 - [x] 34-01: Disconnect/reconnect UAT — grace timer, within-grace reconnect, post-grace mid-game join
 - [x] 34-02: Mid-game join & room-full UAT — late join, room full, cancel/re-pick, race condition
+- [x] 34-03: Play Again UAT — normal lobby return, host early start, late auto-claim
 
 ## Progress
 
@@ -191,5 +192,5 @@ Plans:
 | 31. Host Migration & Room Lifecycle | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 32. Play Again Rework | v1.3 | 3/3 | Complete | 2026-03-10 |
 | 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 34. Integration Testing & UAT | v1.3 | 2/5 | In progress | - |
+| 34. Integration Testing & UAT | v1.3 | 3/5 | In progress | - |
 

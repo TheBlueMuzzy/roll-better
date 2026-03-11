@@ -16,9 +16,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 34 of 34 (Integration Testing & UAT)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-11 — Completed 34-02-PLAN.md
+Last activity: 2026-03-11 — Completed 34-03-PLAN.md
 
 Progress: █████████░ 98%
 
@@ -77,9 +77,9 @@ Progress: █████████░ 98%
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 34-02-PLAN.md — mid-game join & room-full UAT
+Stopped at: Completed 34-03-PLAN.md — Play Again UAT
 Resume file: None
 
 ### Recent Changes (2026-03-11)
-- **34-02 delivered**: Mid-game join UAT — all 4 scenarios verified (late join, room full, cancel/re-pick, race condition)
+- **34-03 delivered**: Play Again UAT — all 3 scenarios verified (normal lobby return, host early start, late auto-claim)
 - No code changes (UAT verification only)
