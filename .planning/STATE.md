@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 34 of 34 (Integration Testing & UAT)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-11 — Completed 34-03-PLAN.md
+Last activity: 2026-03-11 — Completed 34-04-PLAN.md
 
-Progress: █████████░ 98%
+Progress: █████████░ 99%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -77,9 +77,9 @@ Progress: █████████░ 98%
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 34-03-PLAN.md — Play Again UAT
+Stopped at: Completed 34-04-PLAN.md — Host Migration, Rage Quit & Room Dissolution UAT
 Resume file: None
 
 ### Recent Changes (2026-03-11)
-- **34-03 delivered**: Play Again UAT — all 3 scenarios verified (normal lobby return, host early start, late auto-claim)
+- **34-04 delivered**: Host Migration, Rage Quit & Room Dissolution UAT — all 3 scenarios verified (host migration, rage quit, room dissolution)
 - No code changes (UAT verification only)
