@@ -384,14 +384,6 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
                   </div>
                 ))}
               </div>
-              {!room.isHost && (
-                <button
-                  className={`menu-ready-btn${amReady ? ' ready' : ''}`}
-                  onClick={() => room.toggleReady()}
-                >
-                  {amReady ? 'READY \u2713' : 'READY \u2715'}
-                </button>
-              )}
             </>
           )}
 

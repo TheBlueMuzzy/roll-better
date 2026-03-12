@@ -408,10 +408,8 @@ export function useRoom(): UseRoomReturn {
   }, [resetState]);
 
   const toggleReady = useCallback(() => {
-    if (socketRef.current && isConnected) {
-      sendMessage(socketRef.current, { type: "ready" });
-    }
-  }, [isConnected]);
+    // No-op: players are auto-readied on join
+  }, []);
 
   const startGame = useCallback((targetPlayers: number) => {
     if (socketRef.current && isConnected) {

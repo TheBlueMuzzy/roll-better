@@ -287,9 +287,6 @@ export default class RollBetterServer implements Party.Server {
       case "leave":
         this.removePlayer(sender.id, true);
         break;
-      case "ready":
-        this.handleReady(sender);
-        break;
       case "start_game":
         this.handleStartGame(sender, parsed.targetPlayers);
         break;
@@ -447,7 +444,7 @@ export default class RollBetterServer implements Party.Server {
       name: trimmedName,
       color: PLAYER_COLORS[colorIndex % PLAYER_COLORS.length],
       isHost: isFirstPlayer,
-      isReady: false,
+      isReady: true,
       persistentId: pid,
       seatIndex: this.players.size,
     };
@@ -634,14 +631,9 @@ export default class RollBetterServer implements Party.Server {
       this.gameState = null;
       this.status = "waiting";
 
-      // Reset all players to not ready
       for (const player of this.players.values()) {
-        player.isReady = false;
+        player.isReady = true;
       }
-
-      // Mark the sender as ready
-      const senderPlayer = this.players.get(conn.id);
-      if (senderPlayer) senderPlayer.isReady = true;
 
       // Ack the sender
       this.sendToConnection(conn, {

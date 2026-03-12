@@ -36,10 +36,6 @@ export interface LeaveMessage {
   type: "leave";
 }
 
-export interface ReadyMessage {
-  type: "ready";
-}
-
 export interface StartGameMessage {
   type: "start_game";
   targetPlayers: number;
@@ -85,7 +81,6 @@ export interface SeatClaimMessage {
 export type ClientMessage =
   | JoinMessage
   | LeaveMessage
-  | ReadyMessage
   | StartGameMessage
   | RollResultMessage
   | UnlockRequestMessage
