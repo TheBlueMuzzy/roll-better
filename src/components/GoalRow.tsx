@@ -11,9 +11,12 @@ export const SLOT_COUNT = 8;
 /** Offset from slot 0 to profile group anchor (exported for reuse). */
 export const PROFILE_X_OFFSET = 0.10;
 
-/** Returns the X position for a given slot index (0-7), shifted right for profile room. */
+/** X offset applied to all rows (shifts rows to left half of split layout). */
+export const ROW_X_OFFSET = -4;
+
+/** Returns the X position for a given slot index (0-7), shifted left for split layout. */
 export function getSlotX(index: number): number {
-  return (index - 3.5) * SLOT_SPACING;
+  return ROW_X_OFFSET + (index - 3.5) * SLOT_SPACING;
 }
 
 /**
@@ -51,7 +54,7 @@ interface GoalRowProps {
   transition?: 'none' | 'exiting' | 'entering';
 }
 
-export function GoalRow({ values, z = -3.2, transition = 'none' }: GoalRowProps) {
+export function GoalRow({ values, z = -5.0, transition = 'none' }: GoalRowProps) {
   // One ref per die wrapper group for animation
   const dieRefs = useRef(
     Array.from({ length: SLOT_COUNT }, () => createRef<Group>()),

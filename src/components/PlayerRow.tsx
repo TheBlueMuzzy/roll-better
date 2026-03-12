@@ -136,7 +136,7 @@ function UnlockableDie({
 }
 
 export function PlayerRow({
-  z = -2.4,
+  z = -3.75,
   color,
   lockedValues = Array(SLOT_COUNT).fill(null),
   phase,

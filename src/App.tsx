@@ -340,7 +340,7 @@ function App() {
       if (slotsToUnlock.length === 0) continue;
 
       const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-      const rowZ = -2.4 + i * 0.55;
+      const rowZ = -3.75 + i * 1.25;
 
       for (const slotIndex of slotsToUnlock) {
         const lockedEntry = aiPlayer.lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
@@ -428,7 +428,7 @@ function App() {
         if (!lockedEntry) continue;
 
         // Source position: player row slot
-        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -2.4];
+        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.75];
 
         // Find a clear spot (avoids existing pool dice + previously computed targets)
         const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);

@@ -32,14 +32,14 @@ export function findClearSpot(
   targetPos: [number, number, number];
   splitTargets: [[number, number, number], [number, number, number]];
 } {
-  // Safe rolling area (inner zone, away from walls)
-  const X_MIN = -2.0;
-  const X_MAX = 2.0;
-  const Z_MIN = 0.0;
+  // Safe rolling area (inner zone, away from walls) — ROLLING_X_OFFSET = 5
+  const X_MIN = 2.0;
+  const X_MAX = 8.0;
+  const Z_MIN = -3.5;
   const Z_MAX = 3.5;
   const GRID_SPACING = 0.8;
-  const CENTER_X = 0;
-  const CENTER_Z = 1.75; // center of safe zone
+  const CENTER_X = 5;   // = ROLLING_X_OFFSET
+  const CENTER_Z = 0;   // center of safe zone
   const MIN_CLEARANCE = dieSize * 1.5; // must be this far from any occupied die
   const SPLIT_OFFSET = dieSize * 0.7;
   const ANGLE_ATTEMPTS = 8; // try 8 evenly-spaced angles before falling back

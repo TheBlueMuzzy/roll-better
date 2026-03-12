@@ -214,7 +214,7 @@ function applyOtherPlayerLockReveal(get: StoreGet, set: StoreSet, data: PlayerLo
   const aiLockAnimations = [...state.roundState.aiLockAnimations];
   const aiAnimatingSlotIndices = { ...state.roundState.aiAnimatingSlotIndices };
   const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-  const rowZ = -2.4 + playerIndex * 0.55;
+  const rowZ = -3.75 + playerIndex * 1.25;
   const slotsAnimating: number[] = [];
   let delay = aiLockAnimations.length > 0
     ? aiLockAnimations[aiLockAnimations.length - 1].delay + 0.15
@@ -274,7 +274,7 @@ function applyOtherPlayerUnlockReveal(get: StoreGet, set: StoreSet, data: Unlock
   if (validUnlockedSlots.length > 0) {
     const aiUnlockAnimations = [...state.roundState.aiUnlockAnimations];
     const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-    const rowZ = -2.4 + playerIndex * 0.55;
+    const rowZ = -3.75 + playerIndex * 1.25;
     let delay = aiUnlockAnimations.length > 0
       ? aiUnlockAnimations[aiUnlockAnimations.length - 1].delay + 0.3
       : 0;
@@ -570,7 +570,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             : prevDelay + (0.25 + Math.random() * 0.25);
           lockAnimations.push({
             fromPos: positions[i],
-            toPos: [getSlotX(goalSlotIndex), DIE_SIZE / 2, -2.4],
+            toPos: [getSlotX(goalSlotIndex), DIE_SIZE / 2, -3.75],
             fromRotation: rotations ? rotations[i] : [0, 0, 0],
             value: v,
             delay,
@@ -624,7 +624,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // Compute AI lock animation data (emerge from profile → slot)
         if (aiLocks.length > 0) {
           const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-          const rowZ = -2.4 + i * 0.55;
+          const rowZ = -3.75 + i * 1.25;
           const slotsAnimating: number[] = [];
 
           for (const lock of aiLocks) {

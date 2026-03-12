@@ -3,7 +3,7 @@ import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, ROLLING_Z_MIN, ARENA_HALF_X, DIE_SIZE } from './RollingArea';
+import { RollingArea, DIE_SIZE } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
 import { PlayerRow } from './PlayerRow';
@@ -276,13 +276,13 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           </AccumulativeShadows>
         )}
 
-        {/* Placement zone floor — different color, edge-to-edge horizontally */}
+        {/* Placement zone floor — covers left side (rows area) */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.001, (-4.2 + ROLLING_Z_MIN) / 2]}
+          position={[-5, 0.001, 0]}
           receiveShadow
         >
-          <planeGeometry args={[24, ROLLING_Z_MIN - (-4.2)]} />
+          <planeGeometry args={[12, 14]} />
           <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
         </mesh>
 
@@ -317,7 +317,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           return (
             <PlayerRow
               key={aiPlayer.id}
-              z={-2.4 + (idx + 1) * 0.55}
+              z={-3.75 + (idx + 1) * 1.25}
               color={aiPlayer.color}
               lockedValues={aiLockedValues[idx]}
               animatingSlotIndices={combinedSlots}
@@ -332,7 +332,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           score={player.score}
           startingDice={player.startingDice}
           totalDice={player.poolSize + player.lockedDice.length}
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -2.4]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75]}
           isBot={player.seatState === 'bot'}
         />
 
@@ -345,14 +345,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             score={aiPlayer.score}
             startingDice={aiPlayer.startingDice}
             totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
-            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -2.4 + (idx + 1) * 0.55]}
+            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75 + (idx + 1) * 1.25]}
             isBot={aiPlayer.seatState === 'bot'}
           />
         ))}
 
         {/* Goal profile group — star icon left of goal row, shows potential score */}
         <GoalProfileGroup
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.2]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -5.0]}
           potentialScore={(() => {
             const totalDice = player.poolSize + player.lockedDice.length;
             const projectedPool = Math.max(0, totalDice - 8);
@@ -365,12 +365,12 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           })()}
         />
 
-        {/* Subtle divider between player row and rolling area */}
+        {/* Subtle vertical divider between rows area and rolling area */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.01, ROLLING_Z_MIN]}
+          position={[0, 0.01, 0]}
         >
-          <planeGeometry args={[ARENA_HALF_X * 2, 0.02]} />
+          <planeGeometry args={[0.02, 12]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
@@ -406,7 +406,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {poolSpawning && poolSpawnPositions.map((toPos, i) => (
           <SpawningDie
             key={`spawn-${i}`}
-            fromPos={[getSlotX(0) - PROFILE_X_OFFSET, DIE_SIZE / 2, -2.4]}
+            fromPos={[getSlotX(0) - PROFILE_X_OFFSET, DIE_SIZE / 2, -3.75]}
             toPos={toPos}
             color={player.color}
             delay={i * 0.08}

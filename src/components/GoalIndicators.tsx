@@ -17,7 +17,7 @@ interface GoalIndicatorsProps {
   z?: number;  // goal row Z position — default matches GoalRow
 }
 
-export function GoalIndicators({ players, z = -3.2 }: GoalIndicatorsProps) {
+export function GoalIndicators({ players, z = -5.0 }: GoalIndicatorsProps) {
   // For each of the 8 goal slots, collect which players have it locked
   const slotPlayers = useMemo(() => {
     const result: { color: string; playerId: string }[][] = Array.from(
