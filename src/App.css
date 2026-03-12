@@ -27,6 +27,7 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Safe-area insets rotate with device — works for both landscape orientations */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 

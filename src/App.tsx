@@ -527,16 +527,8 @@ function App() {
   // Game container visible when not on menu
   const gameVisible = screen === 'game' || screen === 'winners';
 
-  // Camera FOV: 55 shows all horizontal content (goal star through 8th slot)
-  // On portrait phones, adjust to maintain the same horizontal extent as 9:16.
-  const isPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
-  let fov = 55;
-  if (isPortrait) {
-    const REF_ASPECT = 9 / 16;
-    const hFovRad = 2 * Math.atan(Math.tan((55 * Math.PI / 180) / 2) * REF_ASPECT);
-    const aspect = window.innerWidth / window.innerHeight;
-    fov = 2 * Math.atan(Math.tan(hFovRad / 2) / aspect) * (180 / Math.PI);
-  }
+  // Camera FOV: 55° for landscape 16:9 — shows full game board width
+  const fov = 55;
 
   return (
     <>
