@@ -279,10 +279,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {/* Placement zone floor — different color, edge-to-edge horizontally */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.001, (-5.6 + ROLLING_Z_MIN) / 2]}
+          position={[0, 0.001, (-4.2 + ROLLING_Z_MIN) / 2]}
           receiveShadow
         >
-          <planeGeometry args={[10, ROLLING_Z_MIN - (-5.6)]} />
+          <planeGeometry args={[ARENA_HALF_X * 2 + 2, ROLLING_Z_MIN - (-4.2)]} />
           <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
         </mesh>
 
@@ -352,7 +352,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
         {/* Goal profile group — star icon left of goal row, shows potential score */}
         <GoalProfileGroup
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -4.67]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.2]}
           potentialScore={(() => {
             const totalDice = player.poolSize + player.lockedDice.length;
             const projectedPool = Math.max(0, totalDice - 8);
