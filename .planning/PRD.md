@@ -661,7 +661,7 @@ Simplified main menu (removed difficulty selector, added How to Play + Upgrades 
 
 ## 11. Future Ideas
 
-Numbered master list (14 items). New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
+Numbered master list (15 items). New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
 
 ### Polish
 
@@ -694,7 +694,7 @@ Multi-layered dice sounds (impact, tumble, scrape, settle), collision-triggered 
 
 ### System
 
-**#8 — Drop-in/Drop-out Flow (Full Spec)**
+**#8 — Drop-in/Drop-out Flow (Full Spec)** ✅ SHIPPED v1.3 (2026-03-12)
 
 A complete player connection lifecycle for online multiplayer. The goal is one simple, predictable rule set that covers joining, leaving, reconnecting, and handoff — so the game never stalls and players always know what's happening.
 
@@ -794,6 +794,9 @@ Room
   └── [all humans gone] → room dissolves
 ```
 
+**#15 — Auto-Ready on Join** ✅ SHIPPED
+Remove the "Ready" button from lobby. Entering a room code and hitting start auto-readies the player. Fixes dead-end lobby state after bot takeover/disconnect kicks player back to menu.
+
 **#9 — Upgrades System (Spots + Special Dice)**
 Major progression system accessed from the Upgrades menu button (already on main menu as placeholder). Two unlockable types:
 - **Spots**: Special rules for lock-in slots. When a die locks into a spot, the player gets a bonus (effects TBD — needs design pass).
@@ -815,11 +818,10 @@ Pre-set (possibly unlockable/earnable) avatar images replacing placeholder circl
 
 ### Layout
 
-**#13 — Landscape Support**
-Consider BEFORE #14. Landscape-first (or landscape-only) may solve the space problem that #14 tries to address. Some light work already done. No portrait mode might be the answer to fitting 8 players without a collapsible area.
+**#13 — Landscape-Only Layout** 🚧 IN PROGRESS v1.4
+Switch from portrait-first (9:16) to landscape-only (16:9). Every screen, 3D scene, and UI redesigned for phones held sideways. No portrait mode. This solves the 8-player space problem directly — #14 (Collapsible Goal Area) removed as unnecessary.
 
-**#14 — Collapsible Goal Area ("Shade")**
-Expandable divider between Goal and rolling area. Depends on #3 (drag system) being solved first. Also depends on #13 — if landscape-only, the space problem may not need this solution. Must support up to 8 players. Open questions: drag vs snap toggle, auto-collapse on lock/unlock animations.
+~~**#14 — Collapsible Goal Area ("Shade")**~~ REMOVED — landscape layout solves the space problem that motivated this feature.
 
 ---
 

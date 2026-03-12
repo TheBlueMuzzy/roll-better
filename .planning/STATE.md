@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
+v1.4 Landscape milestone started. Switching from portrait-first (9:16) to landscape-only (16:9).
 
 ## Version
 0.2.0.37
@@ -11,16 +11,16 @@ v1.3 milestone in progress. Drop-in/Drop-out player connection lifecycle.
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** v1.3 Drop-in/Drop-out — robust online player flow
+**Current focus:** Landscape-only layout conversion
 
 ## Current Position
 
-Phase: 34 of 34 (Integration Testing & UAT)
-Plan: 4 of 5 in current phase
-Status: In progress
-Last activity: 2026-03-11 — Completed 34-04-PLAN.md
+Phase: 35 of 39 (Layout Foundation)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-12 — Milestone v1.4 created
 
-Progress: █████████░ 99%
+Progress: ░░░░░░░░░░ 0%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -72,14 +72,16 @@ Progress: █████████░ 99%
 - v1.0 MVP: Phases 1-13 (shipped 2026-03-03)
 - v1.1 Online Multiplayer: Phases 14-21 (shipped 2026-03-05)
 - v1.2 Polish: Phases 22-26 (shipped 2026-03-06)
-- Milestone v1.3 created: Drop-in/Drop-out player flow, 8 phases (Phase 27-34)
+- Milestone v1.3 shipped: Drop-in/Drop-out player flow, 8 phases (Phase 27-34), shipped 2026-03-12
+- Milestone v1.4 created: Landscape-only layout conversion, 5 phases (Phase 35-39)
 
 ## Session Continuity
 
-Last session: 2026-03-11
-Stopped at: Completed 34-04-PLAN.md — Host Migration, Rage Quit & Room Dissolution UAT
+Last session: 2026-03-12
+Stopped at: Milestone v1.4 initialization
 Resume file: None
 
-### Recent Changes (2026-03-11)
-- **34-04 delivered**: Host Migration, Rage Quit & Room Dissolution UAT — all 3 scenarios verified (host migration, rage quit, room dissolution)
-- No code changes (UAT verification only)
+### Recent Changes (2026-03-12)
+- Milestone v1.4 Landscape created — 5 phases (35-39)
+- Switching from portrait-first (9:16) to landscape-only (16:9)
+- PRD #14 (Collapsible Goal Area) to be removed — landscape solves the space problem

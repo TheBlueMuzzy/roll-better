@@ -9,7 +9,8 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.0 MVP](milestones/v1.0-ROADMAP.md) (Phases 1-13) — SHIPPED 2026-03-03
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
-- 🚧 **v1.3 Drop-in/Drop-out** - Phases 27-34 (in progress)
+- ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
+- 🚧 **v1.4 Landscape** — Phases 35-39 (in progress)
 
 ## Phases
 
@@ -57,106 +58,77 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
-### 🚧 v1.3 Drop-in/Drop-out (In Progress)
+<details>
+<summary>v1.3 Drop-in/Drop-out (Phases 27-34) — SHIPPED 2026-03-12</summary>
 
-**Milestone Goal:** Make online player flow robust and predictable — joining, leaving, reconnecting, and handoff all follow one simple rule set. Based on the full spec in PRD §11 #8.
+- [x] **Phase 27: Player Identity & Seat Model** *(2026-03-07)* — Persistent client ID, server seat state machine, seat-to-playerID mapping
+- [x] **Phase 28: AFK Autopilot & Escalation** *(2026-03-07)* — 1-beat autopilot, consecutive counter, 2 strikes → bot promotion
+- [x] **Phase 29: Disconnect Handoff** *(2026-03-08)* — Timer-based grace window replaces 60s keepalive
+- [x] **Phase 30: Mid-Game Join Flow** *(2026-03-09)* — Bot seat claiming, phase-boundary takeover, first-claim-wins
+- [x] **Phase 31: Host Migration & Room Lifecycle** *(2026-03-09)* — Auto host migration, room dissolution, Room Full TRY AGAIN
+- [x] **Phase 32: Play Again Rework** *(2026-03-10)* — Lobby return with same room code, late auto-claim via mid-game join
+- [x] **Phase 33: Connection Polish & Edge Cases** *(2026-03-10)* — Duplicate connection rejection, status UI polish
+- [x] **Phase 34: Integration Testing & UAT** *(2026-03-12)* — All 7 PRD player flow scenarios verified
 
-#### Phase 27: Player Identity & Seat Model
+</details>
 
-**Goal**: Persistent client ID in localStorage, server seat state machine (Human-Active / Human-AFK / Bot), seat-to-playerID mapping per room
+### 🚧 v1.4 Landscape — In Progress
+
+**Milestone Goal:** Switch from portrait-first (9:16) to landscape-only (16:9). Every screen, the 3D scene, and all UI redesigned for phones held sideways. No portrait mode remains.
+
+#### Phase 35: Layout Foundation
+
+**Goal**: Flip viewport to 16:9, update PWA manifest to landscape, rework CSS design tokens and container sizing, new camera FOV for landscape aspect ratio, landscape safe-area insets setup. Canvas renders correctly in landscape.
 **Depends on**: Previous milestone complete
-**Research**: Unlikely (internal patterns)
+**Research**: Unlikely (CSS + R3F camera work, internal patterns)
 **Plans**: TBD
 
 Plans:
-- [x] 27-01: Persistent player ID + protocol + server seat mapping
-- [x] 27-02: Seat state machine data model (SeatState + seatIndex + autopilotCounter)
+- [ ] 35-01: TBD (run /gsd:plan-phase 35 to break down)
 
-#### Phase 28: AFK Autopilot & Escalation
+#### Phase 36: 3D Scene Rework
 
-**Goal**: Rework AFK system — 1-beat autopilot for connected timeout, consecutive autopilot counter, 3 strikes → full bot promotion
-**Depends on**: Phase 27 (seat state machine)
-**Research**: Unlikely (extends existing AFK system)
-**Plans**: 2
-
-Plans:
-- [x] 28-01: Server AFK escalation engine (autopilot counter + seat state transitions + protocol)
-- [x] 28-02: Client seat state sync + UI feedback notifications
-
-#### Phase 29: Disconnect Handoff
-
-**Goal**: Replace 60s keepalive with timer-based grace window. Disconnect + phase timer expires = full bot takeover. Reconnect within timer = seamless resume.
-**Depends on**: Phase 27 (seat states), Phase 28 (bot promotion path)
-**Research**: Unlikely (reworking existing reconnect logic)
+**Goal**: Redesign full 3D arena for landscape — goal row, all 8 player rows, profile icons, dice pool, spawn grid, physics walls. New coordinate system optimized for wide-not-tall layout.
+**Depends on**: Phase 35 (viewport and camera must be landscape first)
+**Research**: Unlikely (repositioning existing R3F components)
 **Plans**: TBD
 
 Plans:
-- [x] 29-01: Replace 60s keepalive with phase-timer-based disconnect grace window
+- [ ] 36-01: TBD
 
-#### Phase 30: Mid-Game Join Flow
+#### Phase 37: Game HUD Redesign
 
-**Goal**: Enter room code mid-game → see available bot seats → tap avatar to claim → server-authoritative seat assignment (first claim wins) → queued takeover at next phase boundary
-**Depends on**: Phase 29 (bot seats must exist from handoff)
-**Research**: Likely (new UI state for seat selection + new server protocol messages for claim/queue/takeover)
-**Research topics**: New WebSocket message types for seat_claim/seat_assigned/seat_taken, UI state for mid-game lobby overlay, phase-boundary takeover trigger
+**Goal**: Rework all HUD elements for landscape — round counter, status text, roll/unlock buttons, settings gear, seat notifications, touch targets for sideways grip.
+**Depends on**: Phase 36 (3D scene positioned, HUD overlays on top)
+**Research**: Unlikely (CSS repositioning)
 **Plans**: TBD
 
 Plans:
-- [x] 30-01: Server protocol types + mid-game join acceptance + seat claim validation
-- [x] 30-02: Phase-boundary takeover execution + edge case cleanup
-- [x] 30-03: Client-side mid-game join UI (seat selection + claim interaction)
-- [x] 30-04: Client takeover transition + host-side visual sync + UAT verified
+- [ ] 37-01: TBD
 
-#### Phase 31: Host Migration & Room Lifecycle
+#### Phase 38: Menu & Screens
 
-**Goal**: Auto-migrate host to next connected human when host's seat becomes Bot (no migrate-back). No connected humans = room dissolves immediately. Room Full message + TRY AGAIN button for full rooms.
-**Depends on**: Phase 29 (disconnect triggers migration), Phase 28 (AFK triggers migration)
-**Research**: Unlikely (server logic)
+**Goal**: Redesign MainMenu, Settings, HowToPlay carousel, and WinnersScreen for landscape proportions. All overlays and modals work in 16:9.
+**Depends on**: Phase 35 (viewport foundation)
+**Research**: Unlikely (CSS layout work)
 **Plans**: TBD
 
 Plans:
-- [x] 31-01: Extract migrateHost() helper + all-bots room dissolution
-- [x] 31-02: Room Full TRY AGAIN button + room dissolution client handling
+- [ ] 38-01: TBD
 
-#### Phase 32: Play Again Rework
+#### Phase 39: Cleanup & UAT
 
-**Goal**: Winners screen → return to lobby with same room code. Host can Start early (bots fill empty seats). Late Play Again after game started → mid-game join flow. Server recognizes returning player ID and auto-matches to their old bot-held seat.
-**Depends on**: Phase 30 (mid-game join flow for late returners)
-**Research**: Unlikely (extends existing Play Again + lobby flow)
+**Goal**: Strip all portrait-specific code (9:16 container, portrait media queries, FOV branching). No portrait fallbacks remain. Full UAT — every screen, every online flow, landscape-only.
+**Depends on**: Phases 35-38 (all landscape layouts complete)
+**Research**: Unlikely (code removal + testing)
 **Plans**: TBD
 
 Plans:
-- [x] 32-01: Server protocol types + handlePlayAgain lobby transition + handleStartGame post-game
-- [x] 32-02: Late play_again → mid-game join routing + auto-match returning players to old seats
-- [x] 32-03: Client Play Again UI — lobby return, auto-claim feedback, restart_game cleanup
-
-#### Phase 33: Connection Polish & Edge Cases
-
-**Goal**: Double-connection rejection (stale tab), UI feedback for all state transitions (taking over next phase, seat taken, waiting for phase boundary), clear status text for every connection scenario
-**Depends on**: Phases 27-32 (all systems built)
-**Research**: Unlikely (polish pass)
-**Plans**: TBD
-
-Plans:
-- [x] 33-01: Server duplicate-persistentId detection + client connected_elsewhere handling
-- [x] 33-02: Connection status UI polish — seat notifications, mid-game join waiting, cancel claim
-
-#### Phase 34: Integration Testing & UAT
-
-**Goal**: Full scenario testing of all 7 player flow scenarios from PRD spec: late friend joins, phone call disconnect, accidental tab close, run it back, rage quit, host leaves, room full
-**Depends on**: Phase 33 (all features polished)
-**Research**: Unlikely (testing)
-**Plans**: TBD
-
-Plans:
-- [x] 34-01: Disconnect/reconnect UAT — grace timer, within-grace reconnect, post-grace mid-game join
-- [x] 34-02: Mid-game join & room-full UAT — late join, room full, cancel/re-pick, race condition
-- [x] 34-03: Play Again UAT — normal lobby return, host early start, late auto-claim
-- [x] 34-04: Host migration, rage quit & room dissolution UAT — all scenarios pass
+- [ ] 39-01: TBD
 
 ## Progress
 
-**v1.0 + v1.1 + v1.2 complete.** 26 phases, 69 plans shipped.
+**v1.0 + v1.1 + v1.2 + v1.3 complete.** 34 phases, 88 plans shipped. **v1.4 in progress.**
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -193,5 +165,10 @@ Plans:
 | 31. Host Migration & Room Lifecycle | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 32. Play Again Rework | v1.3 | 3/3 | Complete | 2026-03-10 |
 | 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 34. Integration Testing & UAT | v1.3 | 4/5 | In progress | - |
+| 34. Integration Testing & UAT | v1.3 | 5/5 | Complete | 2026-03-12 |
+| 35. Layout Foundation | v1.4 | 0/? | Not started | - |
+| 36. 3D Scene Rework | v1.4 | 0/? | Not started | - |
+| 37. Game HUD Redesign | v1.4 | 0/? | Not started | - |
+| 38. Menu & Screens | v1.4 | 0/? | Not started | - |
+| 39. Cleanup & UAT | v1.4 | 0/? | Not started | - |
 
