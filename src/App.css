@@ -33,25 +33,25 @@ body {
 /* --- Responsive design tokens --- */
 
 :root {
-  /* Font sizes */
-  --fs-xs: clamp(10px, 2.5vw, 13px);
-  --fs-sm: clamp(12px, 3vw, 14px);
-  --fs-md: clamp(14px, 3.5vw, 18px);
-  --fs-lg: clamp(16px, 4vw, 22px);
-  --fs-xl: clamp(20px, 5vw, 28px);
+  /* Font sizes — scale with short axis (vh in landscape) */
+  --fs-xs: clamp(10px, 2.5vh, 13px);
+  --fs-sm: clamp(12px, 3vh, 14px);
+  --fs-md: clamp(14px, 3.5vh, 18px);
+  --fs-lg: clamp(16px, 4vh, 22px);
+  --fs-xl: clamp(20px, 5vh, 28px);
 
-  /* Spacing */
-  --sp-xs: clamp(4px, 1vw, 8px);
-  --sp-sm: clamp(8px, 2vw, 14px);
-  --sp-md: clamp(12px, 3vw, 20px);
-  --sp-lg: clamp(16px, 4vw, 28px);
-  --sp-xl: clamp(24px, 5vw, 36px);
+  /* Spacing — scale with short axis */
+  --sp-xs: clamp(4px, 1vh, 8px);
+  --sp-sm: clamp(8px, 2vh, 14px);
+  --sp-md: clamp(12px, 3vh, 20px);
+  --sp-lg: clamp(16px, 4vh, 28px);
+  --sp-xl: clamp(24px, 5vh, 36px);
 
-  /* Layout */
-  --overlay-max-w: clamp(280px, 85vw, 420px);
-  --btn-max-w: clamp(240px, 75vw, 360px);
-  --touch-target: clamp(40px, 10vw, 56px);
-  --border-radius: clamp(8px, 2vw, 16px);
+  /* Layout — overlay/button widths scale with vw (long axis OK for width) */
+  --overlay-max-w: clamp(280px, 45vw, 420px);
+  --btn-max-w: clamp(240px, 40vw, 360px);
+  --touch-target: clamp(40px, 10vh, 56px);
+  --border-radius: clamp(8px, 2vh, 16px);
 }
 
 /* --- HUD overlay (HTML over Canvas) --- */
