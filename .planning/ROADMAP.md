@@ -94,7 +94,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 36-01: Arena dimensions, physics walls, scene layout & goal row
+- [x] 36-01: Arena dimensions, physics walls, scene layout & goal row
 - [ ] 36-02: Player rows, dice pool & animation positions
 
 #### Phase 37: Game HUD Redesign
@@ -168,7 +168,7 @@ Plans:
 | 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 34. Integration Testing & UAT | v1.3 | 5/5 | Complete | 2026-03-12 |
 | 35. Layout Foundation | v1.4 | 1/1 | Complete | 2026-03-12 |
-| 36. 3D Scene Rework | v1.4 | 0/2 | Not started | - |
+| 36. 3D Scene Rework | v1.4 | 1/2 | In progress | - |
 | 37. Game HUD Redesign | v1.4 | 0/? | Not started | - |
 | 38. Menu & Screens | v1.4 | 0/? | Not started | - |
 | 39. Cleanup & UAT | v1.4 | 0/? | Not started | - |

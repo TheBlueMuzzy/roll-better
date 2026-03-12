@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 35 of 39 (Layout Foundation)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-12 — Completed 35-01-PLAN.md
+Phase: 36 of 39 (3D Scene Rework)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-12 — Completed 36-01-PLAN.md
 
-Progress: ██░░░░░░░░ 20%
+Progress: ███░░░░░░░ 30%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -78,10 +78,10 @@ Progress: ██░░░░░░░░ 20%
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Completed 35-01-PLAN.md (Phase 35 complete)
+Stopped at: Completed 36-01-PLAN.md
 Resume file: None
 
 ### Recent Changes (2026-03-12)
-- Milestone v1.4 Landscape created — 5 phases (35-39)
-- Phase 35 complete: viewport flipped to 16:9 landscape, vh-based tokens, simplified camera FOV
-- Fixed pre-existing unused variables in MainMenu.tsx (build blocker)
+- 36-01 complete: arena widened (ARENA_HALF_X=3.8), goal row at Z=-3.2, full-viewport floors
+- Visual floors decoupled from physics arena — 24-unit width fills landscape camera view
+- DIE_SIZE and SLOT_SPACING now auto-derive from ARENA_HALF_X
