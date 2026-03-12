@@ -5,25 +5,25 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 // Vertical half-extent at floor: 12 * tan(25deg) ≈ 5.6
 // Portrait 9:16 → horizontal: 5.6 * (9/16) ≈ 3.15
 // Tightened slightly so dice don't scrape edges
-export const ARENA_HALF_X = 2.8;
+export const ARENA_HALF_X = 3.8;
 
 // DEPRECATED: rolling zone is now asymmetric (ROLLING_Z_MIN / ROLLING_Z_MAX).
 // Kept for backward compatibility — DicePool may still reference it.
-export const ARENA_HALF_Z = 4.5;
+export const ARENA_HALF_Z = 3.5;
 
 // --- Asymmetric rolling zone bounds ---
 // Back wall sits 3 rows below Goal row (goal at Z=-3.8, 3 × 0.7 spacing = 2.1)
 // Leaves room for player rows between Goal and rolling zone
-// Front wall stays at Z = 4.5 (bottom of screen)
-export const ROLLING_Z_MIN = -1.7;
-export const ROLLING_Z_MAX = 4.5;
+// Front wall at Z = ROLLING_Z_MAX (bottom of screen)
+export const ROLLING_Z_MIN = -0.5;
+export const ROLLING_Z_MAX = 3.5;
 
 // Derived: center and half-extent of the rolling zone
-const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 1.85
-const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 2.65
+const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 1.5
+const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 2.0
 
 // Die size: 9.5 dice must fit across the arena width (smaller for avatar space)
-export const DIE_SIZE = (ARENA_HALF_X * 2) / 9.5; // ≈ 0.589
+export const DIE_SIZE = (ARENA_HALF_X * 2) / 9.5; // ≈ 0.8
 
 // Wall thickness and height
 const WALL_THICKNESS = 0.25;
