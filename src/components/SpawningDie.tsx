@@ -66,7 +66,7 @@ export function SpawningDie({
     const z = fromPos[2] + (toPos[2] - fromPos[2]) * eased;
     // Arc: lift up during flight
     const baseY = fromPos[1] + (toPos[1] - fromPos[1]) * eased;
-    const y = baseY + Math.sin(t * Math.PI) * 0.6;
+    const y = baseY + Math.sin(t * Math.PI) * DIE_SIZE * 0.9;
     groupRef.current.position.set(x, y, z);
 
     // Scale: ease-out with overshoot bounce
