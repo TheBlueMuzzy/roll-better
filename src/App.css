@@ -20,22 +20,14 @@ body {
 }
 
 #root {
-  /* 9:16 portrait aspect ratio on desktop, full-screen on portrait phones */
-  width: min(100vw, calc(100dvh * 9 / 16));
-  height: min(100dvh, calc(100vw * 16 / 9));
+  /* 16:9 landscape aspect ratio */
+  width: min(100vw, calc(100dvh * 16 / 9));
+  height: min(100dvh, calc(100vw * 9 / 16));
   margin: auto;
   position: absolute;
   inset: 0;
   overflow: hidden;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
-/* Portrait phones: fill full screen, camera FOV adapts */
-@media (orientation: portrait) {
-  #root {
-    width: 100vw;
-    height: 100dvh;
-  }
 }
 
 /* --- Responsive design tokens --- */

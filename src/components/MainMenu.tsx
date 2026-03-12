@@ -194,8 +194,7 @@ export function MainMenu({ visible, onPlay, onGameStart, onOpenHowToPlay, onOpen
   // --- Derived state ---
   const allReady = room.players.length <= 1 ||
     room.players.filter(p => !p.isHost).every(p => p.isReady);
-  const myPlayer = room.players.find(p => p.id === room.playerId);
-  const amReady = myPlayer?.isReady ?? false;
+
 
   // --- Reset online mode when returning to menu after a game ---
   useEffect(() => {
