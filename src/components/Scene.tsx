@@ -317,7 +317,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           return (
             <PlayerRow
               key={aiPlayer.id}
-              z={-3.77 + (idx + 1) * 0.9}
+              z={-2.4 + (idx + 1) * 0.55}
               color={aiPlayer.color}
               lockedValues={aiLockedValues[idx]}
               animatingSlotIndices={combinedSlots}
@@ -332,7 +332,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           score={player.score}
           startingDice={player.startingDice}
           totalDice={player.poolSize + player.lockedDice.length}
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77]}
+          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -2.4]}
           isBot={player.seatState === 'bot'}
         />
 
@@ -345,7 +345,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             score={aiPlayer.score}
             startingDice={aiPlayer.startingDice}
             totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
-            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.77 + (idx + 1) * 0.9]}
+            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -2.4 + (idx + 1) * 0.55]}
             isBot={aiPlayer.seatState === 'bot'}
           />
         ))}
@@ -406,7 +406,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {poolSpawning && poolSpawnPositions.map((toPos, i) => (
           <SpawningDie
             key={`spawn-${i}`}
-            fromPos={[getSlotX(0) - PROFILE_X_OFFSET, DIE_SIZE / 2, -3.77]}
+            fromPos={[getSlotX(0) - PROFILE_X_OFFSET, DIE_SIZE / 2, -2.4]}
             toPos={toPos}
             color={player.color}
             delay={i * 0.08}

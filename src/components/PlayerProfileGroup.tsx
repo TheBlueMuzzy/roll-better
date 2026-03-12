@@ -22,8 +22,8 @@ export function PlayerProfileGroup({
   isBot,
 }: PlayerProfileGroupProps) {
   // --- Responsive scale (1.0 at 390px baseline, clamped 0.85–1.3) ---
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
-  const scale = Math.min(Math.max(vw / 390, 0.85), 1.3);
+  const shortAxis = typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight) : 390;
+  const scale = Math.min(Math.max(shortAxis / 390, 0.85), 1.3);
 
   // --- Handicap (startingDice) scale-pop animation ---
   const prevStartingDice = useRef(startingDice);
