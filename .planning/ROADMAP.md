@@ -84,7 +84,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 **Plans**: TBD
 
 Plans:
-- [ ] 35-01: TBD (run /gsd:plan-phase 35 to break down)
+- [x] 35-01: Flip viewport, CSS tokens, camera FOV to landscape
 
 #### Phase 36: 3D Scene Rework
 
@@ -166,7 +166,7 @@ Plans:
 | 32. Play Again Rework | v1.3 | 3/3 | Complete | 2026-03-10 |
 | 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 34. Integration Testing & UAT | v1.3 | 5/5 | Complete | 2026-03-12 |
-| 35. Layout Foundation | v1.4 | 0/? | Not started | - |
+| 35. Layout Foundation | v1.4 | 1/1 | Complete | 2026-03-12 |
 | 36. 3D Scene Rework | v1.4 | 0/? | Not started | - |
 | 37. Game HUD Redesign | v1.4 | 0/? | Not started | - |
 | 38. Menu & Screens | v1.4 | 0/? | Not started | - |

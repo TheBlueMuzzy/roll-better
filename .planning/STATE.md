@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 35 of 39 (Layout Foundation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-12 — Milestone v1.4 created
+Plan: 1 of 1 in current phase
+Status: Phase complete
+Last activity: 2026-03-12 — Completed 35-01-PLAN.md
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██░░░░░░░░ 20%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -78,10 +78,10 @@ Progress: ░░░░░░░░░░ 0%
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Milestone v1.4 initialization
+Stopped at: Completed 35-01-PLAN.md (Phase 35 complete)
 Resume file: None
 
 ### Recent Changes (2026-03-12)
 - Milestone v1.4 Landscape created — 5 phases (35-39)
-- Switching from portrait-first (9:16) to landscape-only (16:9)
-- PRD #14 (Collapsible Goal Area) to be removed — landscape solves the space problem
+- Phase 35 complete: viewport flipped to 16:9 landscape, vh-based tokens, simplified camera FOV
+- Fixed pre-existing unused variables in MainMenu.tsx (build blocker)
