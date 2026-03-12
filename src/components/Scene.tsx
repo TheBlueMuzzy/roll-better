@@ -282,7 +282,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           position={[0, 0.001, (-4.2 + ROLLING_Z_MIN) / 2]}
           receiveShadow
         >
-          <planeGeometry args={[ARENA_HALF_X * 2 + 2, ROLLING_Z_MIN - (-4.2)]} />
+          <planeGeometry args={[24, ROLLING_Z_MIN - (-4.2)]} />
           <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
         </mesh>
 

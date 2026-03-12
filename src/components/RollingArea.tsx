@@ -48,7 +48,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
           receiveShadow
           onClick={onFloorClick}
         >
-          <planeGeometry args={[10, 10]} />
+          <planeGeometry args={[24, 16]} />
           <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
         </mesh>
       </RigidBody>
