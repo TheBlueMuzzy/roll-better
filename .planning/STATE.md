@@ -16,9 +16,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 36 of 39 (3D Scene Rework)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-12 — Completed 36-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: In progress — checkpoint verification pending
+Last activity: 2026-03-13 — Executing 36-02-PLAN.md (tasks 1-2 complete, checkpoint 3 pending)
 
 Progress: ███░░░░░░░ 30%
 
@@ -77,11 +77,20 @@ Progress: ███░░░░░░░ 30%
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Completed 36-01-PLAN.md
+Last session: 2026-03-13
+Stopped at: 36-02 checkpoint verification pending (left/right split layout)
 Resume file: None
 
-### Recent Changes (2026-03-12)
-- 36-01 complete: arena widened (ARENA_HALF_X=3.8), goal row at Z=-3.2, full-viewport floors
-- Visual floors decoupled from physics arena — 24-unit width fills landscape camera view
-- DIE_SIZE and SLOT_SPACING now auto-derive from ARENA_HALF_X
+### Recent Changes (2026-03-13)
+- 36-02 tasks 1-2 complete: player rows + animation scaling for landscape
+- **Layout pivot during checkpoint**: Muzzy proposed left/right split instead of vertical stack
+  - Left half: goal row + all player rows (full viewport height, ROW_X_OFFSET=-4)
+  - Right half: rolling area (ROLLING_X_OFFSET=5, symmetric Z=-5 to 5)
+- DIE_SIZE hardcoded at 0.8 (decoupled from arena width)
+- getSlotX includes ROW_X_OFFSET so all row positions auto-shift left
+- clearSpot bounds updated for right-side rolling area
+- **3 commits on branch**: db0fd55, f5825b9, 32023da
+- **Needs**: visual verification of the left/right layout before completing 36-02
+
+### Previous (2026-03-12)
+- 36-01 complete: arena widened (ARENA_HALF_X=3.8→4.5), goal row at Z=-5.0, full-viewport floors
