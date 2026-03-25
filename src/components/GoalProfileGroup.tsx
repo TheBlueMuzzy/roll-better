@@ -1,42 +1,53 @@
 import { Text } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface GoalProfileGroupProps {
   position: [number, number, number];
   potentialScore?: number;
 }
 
+// Simple 5-point star shape
+function createStarShape(outerRadius: number, innerRadius: number): THREE.Shape {
+  const shape = new THREE.Shape();
+  const points = 5;
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+const starShape = createStarShape(0.5, 0.22);
+
 export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupProps) {
   return (
     <group position={position}>
-      {/* White circle background — raised well above floor */}
+      {/* White circle background */}
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.45, 32]} />
+        <circleGeometry args={[0.55, 32]} />
         <meshBasicMaterial color="#ffffff" depthTest={false} />
       </mesh>
 
-      {/* Gold star character */}
-      <Text
-        position={[0, 0.06, 0.02]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={0.7}
-        color="#f1c40f"
-        anchorX="center"
-        anchorY="middle"
-        depthOffset={-1}
-      >
-        ★
-      </Text>
+      {/* Gold star shape */}
+      <mesh position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <shapeGeometry args={[starShape]} />
+        <meshBasicMaterial color="#f1c40f" depthTest={false} />
+      </mesh>
 
       {/* Score number inside star */}
       {potentialScore !== undefined && (
         <Text
-          position={[0, 0.07, 0.04]}
+          position={[0, 0.07, 0.03]}
           rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.25}
+          fontSize={0.28}
           color="#ffffff"
           anchorX="center"
           anchorY="middle"
-          fontWeight={700}
           depthOffset={-2}
         >
           {String(potentialScore)}
