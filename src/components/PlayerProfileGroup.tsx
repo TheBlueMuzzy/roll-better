@@ -71,14 +71,8 @@ export function PlayerProfileGroup({
     <group position={position}>
       {/* === Column A: Avatar circle with letter === */}
 
-      {/* Avatar dark outline ring for contrast */}
-      <mesh position={[AVATAR_X, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[AVATAR_RADIUS - 0.01, AVATAR_RADIUS + 0.04, 32]} />
-        <meshBasicMaterial color="#000000" opacity={0.4} transparent depthTest={false} toneMapped={false} />
-      </mesh>
-
       {/* Avatar circle (player color) */}
-      <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+      <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[AVATAR_RADIUS, 32]} />
         <meshBasicMaterial color={color} depthTest={false} toneMapped={false} />
       </mesh>
@@ -97,15 +91,15 @@ export function PlayerProfileGroup({
         {name.charAt(0).toUpperCase()}
       </Text>
 
-      {/* Bot indicator — white dot with dark gear icon, top-left of avatar */}
+      {/* Bot indicator — white dot with dark B, top-left of avatar */}
       {isBot && (
-        <group position={[AVATAR_X - 0.22, 0.07, -0.22]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <group position={[AVATAR_X - 0.22, 0, -0.22]}>
+          <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <circleGeometry args={[0.13, 16]} />
             <meshBasicMaterial color="#ffffff" depthTest={false} toneMapped={false} />
           </mesh>
           <Text
-            position={[0, 0.01, 0.01]}
+            position={[0, 0.09, 0.01]}
             rotation={[-Math.PI / 2, 0, 0]}
             fontSize={0.15}
             color="#333333"
