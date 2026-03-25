@@ -71,14 +71,14 @@ export function PlayerProfileGroup({
     <group position={position}>
       {/* === Column A: Avatar circle with letter === */}
 
-      {/* Avatar border (slightly larger, semi-transparent white) */}
-      <mesh position={[AVATAR_X, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[AVATAR_RADIUS + 0.03, 32]} />
-        <meshBasicMaterial color="#ffffff" opacity={0.3} transparent depthTest={false} toneMapped={false} />
+      {/* Avatar dark outline ring for contrast */}
+      <mesh position={[AVATAR_X, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[AVATAR_RADIUS - 0.01, AVATAR_RADIUS + 0.04, 32]} />
+        <meshBasicMaterial color="#000000" opacity={0.4} transparent depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Avatar circle (player color) */}
-      <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
         <circleGeometry args={[AVATAR_RADIUS, 32]} />
         <meshBasicMaterial color={color} depthTest={false} toneMapped={false} />
       </mesh>
