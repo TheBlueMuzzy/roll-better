@@ -106,7 +106,7 @@ Plans:
 
 Plans:
 - [x] 37-01: HUD layout & touch targets for landscape
-- [ ] 37-02: Tip banner & unlock button repositioning
+- [x] 37-02: Tip banner & unlock button repositioning
 
 #### Phase 38: Menu & Screens
 
@@ -170,7 +170,7 @@ Plans:
 | 34. Integration Testing & UAT | v1.3 | 5/5 | Complete | 2026-03-12 |
 | 35. Layout Foundation | v1.4 | 1/1 | Complete | 2026-03-12 |
 | 36. 3D Scene Rework | v1.4 | 2/2 | Complete | 2026-03-25 |
-| 37. Game HUD Redesign | v1.4 | 1/2 | In progress | - |
+| 37. Game HUD Redesign | v1.4 | 2/2 | Complete | 2026-03-25 |
 | 38. Menu & Screens | v1.4 | 0/? | Not started | - |
 | 39. Cleanup & UAT | v1.4 | 0/? | Not started | - |
 

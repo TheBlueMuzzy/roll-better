@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 37 of 39 (Game HUD Redesign)
-Plan: 1 of 2 — complete
-Status: 37-01 done (HUD layout + touch targets). Ready for 37-02 (tip banner + unlock button).
-Last activity: 2026-03-25 — 37-01 executed and approved
+Phase: 37 of 39 (Game HUD Redesign) — COMPLETE
+Plan: 2 of 2 — done
+Status: Phase 37 complete. Ready for Phase 38 (Menu & Screens).
+Last activity: 2026-03-25 — 37-02 executed and approved
 
-Progress: ████░░░░░░ 45%
+Progress: █████░░░░░ 50%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -78,17 +78,16 @@ Progress: ████░░░░░░ 45%
 ## Session Continuity
 
 Last session: 2026-03-25
-Stopped at: 37-01 complete. Ready for 37-02.
+Stopped at: Phase 37 complete. Ready for Phase 38.
 Resume file: None
 
 ### Recent Changes (2026-03-25)
-- **37-01 complete**: HUD layout & touch targets for landscape
-  - Touch targets: `--touch-target` changed from `10vh` to `10vmin` (36-52px range)
-  - Round counter moved to top-right (flex-end, no longer clipped by star)
-  - Status text anchored to right half (`left: 50%`)
-  - Notifications: inline styles → `.hud-notifications` CSS class, bottom-right
-  - Commits: 18bae31 (fix), 4e0ee44 (feat)
-- **Phase 36 closed**: 36-02 checkpoint verified, left/right split layout confirmed
+- **Phase 37 complete**: Game HUD Redesign
+  - 37-01: Touch targets (vmin), round counter top-right, status text right-half, notifications CSS
+  - 37-02: Tip banner over rolling area, unlock button at left: 75%
+  - Commits: 18bae31, 4e0ee44, 3778d1f
+  - **Known issue**: Profile icons (avatars/stars) overlap locked dice at wide browser viewports — 3D scene positioning, not HUD
+- **Phase 36 closed**: left/right split layout confirmed
 - Deleted empty Unity project folder (Documents/UnityProjects/Roll Better)
 
 ### Previous (2026-03-13)
