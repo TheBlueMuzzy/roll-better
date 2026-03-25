@@ -35,7 +35,7 @@ const starShape = createStarShape(0.35, 0.15);
 const AVATAR_RADIUS = 0.35;
 const AVATAR_X = -1.575;     // Avatar position (left of anchor, +1/4 avatar width gap from star)
 const STAR_X = AVATAR_X + 0.875; // Star to the right of avatar (+0.175 to restore position)
-const STATS_Z = 0.35;        // Stats below star (+Z = toward camera = down on screen)
+const STATS_Z = 0.45;        // Stats below star (+Z = toward camera = down on screen)
 
 export function PlayerProfileGroup({
   name,
@@ -145,8 +145,9 @@ export function PlayerProfileGroup({
         <Text
           position={[STAR_X, 0.05, STATS_Z]}
           rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.2}
+          fontSize={0.22}
           color="#aaaaaa"
+          fontWeight={700}
           anchorX="center"
           anchorY="middle"
           depthOffset={-1}
