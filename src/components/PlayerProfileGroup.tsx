@@ -72,9 +72,9 @@ export function PlayerProfileGroup({
       {/* === Column A: Avatar circle with letter === */}
 
       {/* Avatar circle (player color) */}
-      <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[AVATAR_X, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
         <circleGeometry args={[AVATAR_RADIUS, 32]} />
-        <meshBasicMaterial color={color} depthTest={false} toneMapped={false} />
+        <meshBasicMaterial color={color} depthTest={false} depthWrite={false} toneMapped={false} />
       </mesh>
 
       {/* Avatar letter */}
