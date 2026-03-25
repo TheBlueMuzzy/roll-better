@@ -18,7 +18,7 @@ function createStarShape(outerRadius: number, innerRadius: number): THREE.Shape 
   const shape = new THREE.Shape();
   const points = 5;
   for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const angle = (i * Math.PI) / points + Math.PI / 2;
     const radius = i % 2 === 0 ? outerRadius : innerRadius;
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
@@ -74,13 +74,13 @@ export function PlayerProfileGroup({
       {/* Avatar border (slightly larger, semi-transparent white) */}
       <mesh position={[AVATAR_X, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[AVATAR_RADIUS + 0.03, 32]} />
-        <meshBasicMaterial color="#ffffff" opacity={0.3} transparent depthTest={false} />
+        <meshBasicMaterial color="#ffffff" opacity={0.3} transparent depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Avatar circle (player color) */}
       <mesh position={[AVATAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[AVATAR_RADIUS, 32]} />
-        <meshBasicMaterial color={color} depthTest={false} />
+        <meshBasicMaterial color={color} depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Avatar letter */}
@@ -97,18 +97,24 @@ export function PlayerProfileGroup({
         {name.charAt(0).toUpperCase()}
       </Text>
 
-      {/* Bot indicator — small text top-left of avatar */}
+      {/* Bot indicator — white dot with robot icon, top-left of avatar */}
       {isBot && (
-        <Text
-          position={[AVATAR_X - 0.22, 0.07, -0.22]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.18}
-          anchorX="center"
-          anchorY="middle"
-          depthOffset={-2}
-        >
-          🤖
-        </Text>
+        <group position={[AVATAR_X - 0.22, 0.07, -0.22]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.13, 16]} />
+            <meshBasicMaterial color="#ffffff" depthTest={false} toneMapped={false} />
+          </mesh>
+          <Text
+            position={[0, 0.01, 0.01]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            fontSize={0.14}
+            anchorX="center"
+            anchorY="middle"
+            depthOffset={-3}
+          >
+            🤖
+          </Text>
+        </group>
       )}
 
       {/* === Column B: Star+score and stats === */}
@@ -116,7 +122,7 @@ export function PlayerProfileGroup({
       {/* Gold star shape */}
       <mesh position={[STAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[starShape]} />
-        <meshBasicMaterial color="#f1c40f" depthTest={false} />
+        <meshBasicMaterial color="#f1c40f" depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Score number inside star */}
@@ -124,7 +130,7 @@ export function PlayerProfileGroup({
         position={[STAR_X, 0.06, 0.02]}
         rotation={[-Math.PI / 2, 0, 0]}
         fontSize={0.2}
-        color="#ffffff"
+        color="#000000"
         anchorX="center"
         anchorY="middle"
         depthOffset={-2}

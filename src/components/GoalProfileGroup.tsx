@@ -11,7 +11,7 @@ function createStarShape(outerRadius: number, innerRadius: number): THREE.Shape 
   const shape = new THREE.Shape();
   const points = 5;
   for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const angle = (i * Math.PI) / points + Math.PI / 2;
     const radius = i % 2 === 0 ? outerRadius : innerRadius;
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
@@ -38,13 +38,13 @@ export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupP
       {/* White circle background */}
       <mesh position={[X_SHIFT, 0.05, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[CIRCLE_RADIUS, 32]} />
-        <meshBasicMaterial color="#ffffff" depthTest={false} />
+        <meshBasicMaterial color="#ffffff" depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Gold star shape */}
       <mesh position={[X_SHIFT, 0.06, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[starShape]} />
-        <meshBasicMaterial color="#f1c40f" depthTest={false} />
+        <meshBasicMaterial color="#f1c40f" depthTest={false} toneMapped={false} />
       </mesh>
 
       {/* Score number inside star */}
@@ -53,7 +53,7 @@ export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupP
           position={[X_SHIFT, 0.07, Z_SHIFT + 0.03]}
           rotation={[-Math.PI / 2, 0, 0]}
           fontSize={0.28}
-          color="#ffffff"
+          color="#000000"
           anchorX="center"
           anchorY="middle"
           depthOffset={-2}
