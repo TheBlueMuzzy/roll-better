@@ -139,7 +139,7 @@ export function PlayerProfileGroup({
           position={[STAR_X, 0.05, STATS_Z]}
           rotation={[-Math.PI / 2, 0, 0]}
           fontSize={0.13}
-          color="#ffffffb3"
+          color="#aaaaaa"
           anchorX="center"
           anchorY="middle"
           depthOffset={-1}
