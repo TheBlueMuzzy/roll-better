@@ -94,9 +94,9 @@ export function PlayerProfileGroup({
       {/* Bot indicator — white dot with dark B, top-left of avatar */}
       {isBot && (
         <group position={[AVATAR_X - 0.22, 0, -0.22]}>
-          <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={20}>
             <circleGeometry args={[0.13, 16]} />
-            <meshBasicMaterial color="#ffffff" depthTest={false} toneMapped={false} />
+            <meshBasicMaterial color="#ffffff" depthTest={false} depthWrite={false} toneMapped={false} />
           </mesh>
           <Text
             position={[0, 0.09, 0.01]}
