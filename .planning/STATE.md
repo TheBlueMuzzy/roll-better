@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 36 of 39 (3D Scene Rework) — COMPLETE
-Plan: 2 of 2 — done
-Status: Phase 36 complete. Ready for Phase 37 (Game HUD Redesign).
-Last activity: 2026-03-25 — 36-02 checkpoint verified via Playwright, phase closed
+Phase: 37 of 39 (Game HUD Redesign)
+Plan: 1 of 2 — complete
+Status: 37-01 done (HUD layout + touch targets). Ready for 37-02 (tip banner + unlock button).
+Last activity: 2026-03-25 — 37-01 executed and approved
 
-Progress: ████░░░░░░ 40%
+Progress: ████░░░░░░ 45%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -78,16 +78,18 @@ Progress: ████░░░░░░ 40%
 ## Session Continuity
 
 Last session: 2026-03-25
-Stopped at: Phase 36 complete. Ready for Phase 37.
+Stopped at: 37-01 complete. Ready for 37-02.
 Resume file: None
 
 ### Recent Changes (2026-03-25)
-- **Phase 36 closed**: 36-02 checkpoint verified via Playwright screenshot
-  - Left/right split layout confirmed working (rows left, rolling right)
-  - Lock/unlock/mitosis animations landing in correct positions
-  - No visual overlap between rows and rolling area
+- **37-01 complete**: HUD layout & touch targets for landscape
+  - Touch targets: `--touch-target` changed from `10vh` to `10vmin` (36-52px range)
+  - Round counter moved to top-right (flex-end, no longer clipped by star)
+  - Status text anchored to right half (`left: 50%`)
+  - Notifications: inline styles → `.hud-notifications` CSS class, bottom-right
+  - Commits: 18bae31 (fix), 4e0ee44 (feat)
+- **Phase 36 closed**: 36-02 checkpoint verified, left/right split layout confirmed
 - Deleted empty Unity project folder (Documents/UnityProjects/Roll Better)
-- Known HUD issues deferred to Phase 37 (round label clipping, portrait-centered buttons)
 
 ### Previous (2026-03-13)
 - 36-02 tasks 1-2 complete: player rows + animation scaling for landscape
