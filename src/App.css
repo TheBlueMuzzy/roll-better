@@ -51,7 +51,7 @@ body {
   /* Layout — overlay/button widths scale with vw (long axis OK for width) */
   --overlay-max-w: clamp(280px, 45vw, 420px);
   --btn-max-w: clamp(240px, 40vw, 360px);
-  --touch-target: clamp(40px, 10vh, 56px);
+  --touch-target: clamp(36px, 10vmin, 52px);
   --border-radius: clamp(8px, 2vh, 16px);
 }
 
