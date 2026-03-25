@@ -108,6 +108,17 @@ Plans:
 - [x] 37-01: HUD layout & touch targets for landscape
 - [x] 37-02: Tip banner & unlock button repositioning
 
+#### Phase 37.1: 3D Profile Elements (INSERTED)
+
+**Goal**: Convert HTML profile overlays (avatars, stars, scores, stats) to 3D scene elements using drei/Text + meshes. Eliminates viewport-dependent scaling issues where HTML overlays don't scale with the 3D camera.
+**Depends on**: Phase 37 (HUD positioned for landscape), Phase 36 (left/right split layout)
+**Research**: Unlikely (drei/Text + basic geometry, established patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 37.1-01: Convert GoalProfileGroup to 3D meshes + Text
+- [ ] 37.1-02: Convert PlayerProfileGroup to 3D meshes + Text
+
 #### Phase 38: Menu & Screens
 
 **Goal**: Redesign MainMenu, Settings, HowToPlay carousel, and WinnersScreen for landscape proportions. All overlays and modals work in 16:9.

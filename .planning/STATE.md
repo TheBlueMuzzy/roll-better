@@ -74,6 +74,7 @@ Progress: █████░░░░░ 50%
 - v1.2 Polish: Phases 22-26 (shipped 2026-03-06)
 - Milestone v1.3 shipped: Drop-in/Drop-out player flow, 8 phases (Phase 27-34), shipped 2026-03-12
 - Milestone v1.4 created: Landscape-only layout conversion, 5 phases (Phase 35-39)
+- Phase 37.1 inserted after Phase 37: Convert HTML profile overlays to 3D elements (scaling fix)
 
 ## Session Continuity
 
