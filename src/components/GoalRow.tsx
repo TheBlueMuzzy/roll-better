@@ -5,7 +5,7 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 
 // --- Layout constants (exported for PlayerRow reuse) ---
-export const SLOT_SPACING = DIE_SIZE * 1.05;
+export const SLOT_SPACING = DIE_SIZE * 1.2;
 export const SLOT_COUNT = 8;
 
 /** Offset from slot 0 to profile group anchor (exported for reuse). */

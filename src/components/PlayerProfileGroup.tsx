@@ -97,7 +97,7 @@ export function PlayerProfileGroup({
         {name.charAt(0).toUpperCase()}
       </Text>
 
-      {/* Bot indicator — white dot with robot icon, top-left of avatar */}
+      {/* Bot indicator — white dot with dark gear icon, top-left of avatar */}
       {isBot && (
         <group position={[AVATAR_X - 0.22, 0.07, -0.22]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
@@ -107,12 +107,13 @@ export function PlayerProfileGroup({
           <Text
             position={[0, 0.01, 0.01]}
             rotation={[-Math.PI / 2, 0, 0]}
-            fontSize={0.14}
+            fontSize={0.15}
+            color="#333333"
             anchorX="center"
             anchorY="middle"
             depthOffset={-3}
           >
-            🤖
+            B
           </Text>
         </group>
       )}
@@ -144,7 +145,7 @@ export function PlayerProfileGroup({
         <Text
           position={[STAR_X, 0.05, STATS_Z]}
           rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={0.13}
+          fontSize={0.2}
           color="#aaaaaa"
           anchorX="center"
           anchorY="middle"
