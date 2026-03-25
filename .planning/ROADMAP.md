@@ -117,7 +117,7 @@ Plans:
 
 Plans:
 - [x] 37.1-01: Convert GoalProfileGroup to 3D meshes + Text
-- [ ] 37.1-02: Convert PlayerProfileGroup to 3D meshes + Text
+- [x] 37.1-02: Convert PlayerProfileGroup to 3D meshes + Text
 
 #### Phase 38: Menu & Screens
 

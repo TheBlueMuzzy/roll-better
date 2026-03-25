@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 37.1 of 39 (3D Profile Elements)
-Plan: 1 of 2 — complete
-Status: 37.1-01 done (GoalProfileGroup). Ready for 37.1-02 (PlayerProfileGroup).
-Last activity: 2026-03-25 — 37.1-01 executed and approved
+Phase: 37.1 of 39 (3D Profile Elements) — COMPLETE
+Plan: 2 of 2 — done
+Status: Phase 37.1 complete. Ready for Phase 38 (Menu & Screens).
+Last activity: 2026-03-25 — 37.1-02 executed and approved
 
-Progress: █████░░░░░ 50%
+Progress: ██████░░░░ 55%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
