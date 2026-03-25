@@ -9,7 +9,7 @@ export const SLOT_SPACING = DIE_SIZE * 1.05;
 export const SLOT_COUNT = 8;
 
 /** Offset from slot 0 to profile group anchor (exported for reuse). */
-export const PROFILE_X_OFFSET = 0.10;
+export const PROFILE_X_OFFSET = 0.65;
 
 /** X offset applied to all rows (shifts rows to left half of split layout). */
 export const ROW_X_OFFSET = -4;
