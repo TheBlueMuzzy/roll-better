@@ -134,7 +134,7 @@ body {
 .hud-skip-btn {
   position: absolute;
   top: 55%;
-  left: 50%;
+  left: 75%;
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
@@ -606,9 +606,9 @@ body {
 
 .tip-banner {
   position: absolute;
-  top: 36%;
-  left: var(--sp-md);
-  right: var(--sp-md);
+  top: var(--sp-lg);
+  left: 52%;
+  right: var(--sp-lg);
   z-index: 20;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
