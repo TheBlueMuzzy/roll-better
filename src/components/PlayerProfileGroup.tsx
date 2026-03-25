@@ -33,7 +33,7 @@ const starShape = createStarShape(0.35, 0.15);
 
 // Layout constants
 const AVATAR_RADIUS = 0.35;
-const AVATAR_X = -1.4;       // Avatar position (left of anchor)
+const AVATAR_X = -1.575;     // Avatar position (left of anchor, +1/4 avatar width gap from star)
 const STAR_X = AVATAR_X + 0.7; // Star to the right of avatar
 const STATS_Z = 0.35;        // Stats below star (+Z = toward camera = down on screen)
 
