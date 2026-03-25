@@ -28,19 +28,21 @@ const starShape = createStarShape(0.5, 0.22);
 // aligns with the anchor point (matching HTML translate(-100%) behavior)
 const CIRCLE_RADIUS = 0.55;
 // Shift left so the right edge clears the first die (DIE_SIZE width gap)
-const X_SHIFT = -0.85;
+const X_SHIFT = -1.125;
+// Shift Z so bottom edge of circle aligns with bottom edge of dice
+const Z_SHIFT = -(CIRCLE_RADIUS - 0.4);
 
 export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupProps) {
   return (
     <group position={position}>
       {/* White circle background */}
-      <mesh position={[X_SHIFT, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[X_SHIFT, 0.05, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[CIRCLE_RADIUS, 32]} />
         <meshBasicMaterial color="#ffffff" depthTest={false} />
       </mesh>
 
       {/* Gold star shape */}
-      <mesh position={[X_SHIFT, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[X_SHIFT, 0.06, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[starShape]} />
         <meshBasicMaterial color="#f1c40f" depthTest={false} />
       </mesh>
@@ -48,7 +50,7 @@ export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupP
       {/* Score number inside star */}
       {potentialScore !== undefined && (
         <Text
-          position={[X_SHIFT, 0.07, 0.03]}
+          position={[X_SHIFT, 0.07, Z_SHIFT + 0.03]}
           rotation={[-Math.PI / 2, 0, 0]}
           fontSize={0.28}
           color="#ffffff"
