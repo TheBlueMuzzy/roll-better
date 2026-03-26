@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 38 of 39 (Menu & Screens)
-Plan: 1 of 2 — complete
-Status: 38-01 done (MainMenu). Ready for 38-02 (modals).
-Last activity: 2026-03-25 — 38-01 executed and approved
+Phase: 38 of 39 (Menu & Screens) — COMPLETE
+Plan: 2 of 2 — done
+Status: Phase 38 complete. Ready for Phase 39 (Cleanup & UAT).
+Last activity: 2026-03-26 — 38-02 executed and approved
 
-Progress: ██████░░░░ 60%
+Progress: ████████░░ 80%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
