@@ -221,7 +221,7 @@ body {
 .settings-panel {
   width: 90%;
   max-width: var(--overlay-max-w);
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
   background: #1a1a1a;
   border-radius: var(--border-radius);
@@ -234,7 +234,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: var(--sp-md);
 }
 
 .settings-title {
@@ -551,7 +551,7 @@ body {
 
 .h2p-visual {
   width: 100%;
-  height: clamp(120px, 30vw, 200px);
+  height: clamp(80px, 20vh, 180px);
   border-radius: var(--border-radius);
   background: linear-gradient(135deg, #2a1f1a, #3d2517);
   display: flex;
@@ -1207,7 +1207,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--sp-sm);
   font-family: system-ui, sans-serif;
   user-select: none;
   opacity: 0;
@@ -1229,7 +1229,7 @@ body {
 }
 
 .winners-announcement {
-  font-size: 1.4rem;
+  font-size: clamp(1rem, 3.5vh, 1.6rem);
   font-weight: bold;
   letter-spacing: 1px;
   display: flex;
