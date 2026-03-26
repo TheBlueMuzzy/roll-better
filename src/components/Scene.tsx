@@ -38,6 +38,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const players = useGameStore((s) => s.players);
     const performanceMode = useGameStore((s) => s.settings.performanceMode);
     const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
+    const gatherState = useGameStore((s) => s.gatherState);
+    const startGathering = useGameStore((s) => s.startGathering);
+    const updateGatherPosition = useGameStore((s) => s.updateGatherPosition);
+    const stopGathering = useGameStore((s) => s.stopGathering);
 
     const goalTransition = useGameStore((s) => s.roundState.goalTransition);
     const poolExiting = useGameStore((s) => s.roundState.poolExiting);
@@ -200,6 +204,23 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     if (aiUnlockAnimations.length > 0 && aiUnlockExpectedCount.current === 0) {
       aiUnlockExpectedCount.current = aiUnlockAnimations.length;
       aiUnlockCompleteCount.current = 0;
+    }
+
+    function handleFloorPointerDown(point: [number, number, number]) {
+      if (phase !== 'idle') return;
+      startGathering(point, player.poolSize);
+    }
+
+    function handleFloorPointerMove(point: [number, number, number]) {
+      if (gatherState.active) {
+        updateGatherPosition(point);
+      }
+    }
+
+    function handleFloorPointerUp() {
+      if (gatherState.active) {
+        stopGathering();
+      }
     }
 
     function handleFloorClick() {
@@ -382,7 +403,12 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {/* Physics world */}
         <Physics gravity={[0, -50, 0]}>
           {/* Rolling area: floor + invisible boundary walls */}
-          <RollingArea onFloorClick={handleFloorClick} />
+          <RollingArea
+            onFloorClick={handleFloorClick}
+            onFloorPointerDown={handleFloorPointerDown}
+            onFloorPointerMove={handleFloorPointerMove}
+            onFloorPointerUp={handleFloorPointerUp}
+          />
 
           {/* Dice pool */}
           <DicePool

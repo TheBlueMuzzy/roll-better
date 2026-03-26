@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState, SeatState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
@@ -76,6 +76,11 @@ interface GameStore extends GameState {
   processAIUnlocks: () => void;
   setAIUnlockAnimations: (anims: AIUnlockAnimation[]) => void;
   clearAIUnlockAnimations: () => void;
+
+  // Gathering
+  startGathering: (touchPos: [number, number, number], dieCount: number) => void;
+  updateGatherPosition: (touchPos: [number, number, number]) => void;
+  stopGathering: () => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -166,12 +171,19 @@ const defaultGamePrefs: GamePrefs = {
   playerCount: 3,
 };
 
+const initialGatherState: GatherState = {
+  active: false,
+  touchPosition: null,
+  dieCount: 0,
+};
+
 const initialState: GameState = {
   screen: 'menu',
   phase: 'lobby',
   players: [],
   currentRound: 0,
   roundState: initialRoundState,
+  gatherState: initialGatherState,
   sessionTargetScore: 20,
   settings: defaultSettings,
   shownTips: [],
@@ -951,6 +963,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // --- Tips ---
+  // --- Gathering actions ---
+  startGathering: (touchPos: [number, number, number], dieCount: number) => {
+    set({
+      gatherState: { active: true, touchPosition: touchPos, dieCount },
+      phase: 'gathering',
+    });
+  },
+
+  updateGatherPosition: (touchPos: [number, number, number]) => {
+    const state = get();
+    if (!state.gatherState.active) return;
+    set({ gatherState: { ...state.gatherState, touchPosition: touchPos } });
+  },
+
+  stopGathering: () => {
+    set({
+      gatherState: { active: false, touchPosition: null, dieCount: 0 },
+      phase: 'idle',
+    });
+  },
+
   showTip: (tipId: string) => {
     const state = get();
     if (state.shownTips.includes(tipId)) return;

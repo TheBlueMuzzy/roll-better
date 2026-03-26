@@ -1,4 +1,10 @@
-export type GamePhase = 'lobby' | 'rolling' | 'locking' | 'unlocking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd';
+export type GamePhase = 'lobby' | 'idle' | 'gathering' | 'rolling' | 'locking' | 'unlocking' | 'scoring' | 'roundEnd' | 'sessionEnd';
+
+export interface GatherState {
+  active: boolean;
+  touchPosition: [number, number, number] | null;
+  dieCount: number;
+}
 
 export interface LockedDie {
   goalSlotIndex: number;
@@ -103,6 +109,7 @@ export interface GameState {
   players: Player[];
   currentRound: number;
   roundState: RoundState;
+  gatherState: GatherState;
   sessionTargetScore: number;
   settings: Settings;
   shownTips: string[];
