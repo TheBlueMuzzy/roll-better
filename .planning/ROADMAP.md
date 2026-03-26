@@ -127,7 +127,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 38-01: MainMenu layout for landscape
+- [x] 38-01: MainMenu layout for landscape
 - [ ] 38-02: Settings, HowToPlay, WinnersScreen modals for landscape
 
 #### Phase 39: Cleanup & UAT
