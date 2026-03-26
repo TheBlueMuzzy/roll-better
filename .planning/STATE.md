@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 40 of 43 (Touch Detection & Goal System)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-26 — Milestone v1.5 created
+Plan: 01 complete
+Status: Ready for Phase 41
+Last activity: 2026-03-26 — Plan 40-01 complete (touch detection + goal points)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██░░░░░░░░ 25%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -79,11 +79,18 @@ Progress: ░░░░░░░░░░ 0%
 
 ## Session Continuity
 
-Last session: 2026-03-25
-Stopped at: Phase 37 complete. Ready for Phase 38.
+Last session: 2026-03-26
+Stopped at: Phase 40-01 complete. Ready for Phase 41.
 Resume file: None
 
-### Recent Changes (2026-03-25)
+### Recent Changes (2026-03-26)
+- **Phase 40-01 complete**: Touch Detection & Goal System
+  - Task 1: Gathering phase, GatherState in store, pointer events on floor mesh
+  - Task 2: Radial goal point calculator utility (gatherPoints.ts)
+  - Commits: dce687b, 6c32e36
+  - Tap-to-roll preserved via phase guard sequencing
+
+### Previous (2026-03-25)
 - **Phase 37 complete**: Game HUD Redesign
   - 37-01: Touch targets (vmin), round counter top-right, status text right-half, notifications CSS
   - 37-02: Tip banner over rolling area, unlock button at left: 75%
