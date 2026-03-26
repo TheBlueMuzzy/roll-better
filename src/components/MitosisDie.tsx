@@ -89,7 +89,7 @@ export function MitosisDie({
 
       // Y: interpolate base + parabolic arc
       const baseY = fromPos[1] + (targetPos[1] - fromPos[1]) * eased;
-      const y = baseY + Math.sin(t * Math.PI) * 0.8;
+      const y = baseY + Math.sin(t * Math.PI) * DIE_SIZE * 1.2;
 
       // Move die A to interpolated position
       dieGroupARef.current.position.set(x, y, z);
@@ -107,8 +107,9 @@ export function MitosisDie({
       const phaseDuration = SHAKE_END - LERP_END;
       const phaseT = phaseElapsed / phaseDuration; // 0 to 1
 
-      // Amplitude ramps from 0.02 to 0.12
-      const amplitude = 0.02 + phaseT * 0.10;
+      // Amplitude ramps from 0.02 to 0.12 (scaled by DIE_SIZE relative to original 0.589)
+      const shakeScale = DIE_SIZE / 0.589;
+      const amplitude = (0.02 + phaseT * 0.10) * shakeScale;
       // Speed ramps up: sample new random direction more frequently over time
       // Use a step counter that advances faster as phaseT increases
       const stepRate = 15 + phaseT * 45; // 15 → 60 direction changes per second

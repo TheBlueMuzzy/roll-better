@@ -259,27 +259,9 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
 
       {/* Seat state change notifications */}
       {seatNotifications.length > 0 && (
-        <div style={{
-          position: 'absolute',
-          bottom: '120px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          alignItems: 'center',
-          pointerEvents: 'none',
-          zIndex: 20,
-        }}>
+        <div className="hud-notifications">
           {seatNotifications.map((msg, i) => (
-            <div key={`${msg}-${i}`} style={{
-              fontSize: '13px',
-              background: 'rgba(0,0,0,0.7)',
-              color: 'white',
-              padding: '6px 14px',
-              borderRadius: '12px',
-              whiteSpace: 'nowrap',
-            }}>
+            <div key={`${msg}-${i}`} className="hud-notification-item">
               {msg}
             </div>
           ))}

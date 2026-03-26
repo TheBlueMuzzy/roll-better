@@ -10,7 +10,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
 - ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
-- 🚧 **v1.4 Landscape** — Phases 35-39 (in progress)
+- ✅ **v1.4 Landscape** — Phases 35-39 + 37.1 (SHIPPED 2026-03-26)
 
 ## Phases
 
@@ -72,7 +72,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
-### 🚧 v1.4 Landscape — In Progress
+### ✅ v1.4 Landscape — SHIPPED 2026-03-26
 
 **Milestone Goal:** Switch from portrait-first (9:16) to landscape-only (16:9). Every screen, the 3D scene, and all UI redesigned for phones held sideways. No portrait mode remains.
 
@@ -84,7 +84,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 **Plans**: TBD
 
 Plans:
-- [ ] 35-01: TBD (run /gsd:plan-phase 35 to break down)
+- [x] 35-01: Flip viewport, CSS tokens, camera FOV to landscape
 
 #### Phase 36: 3D Scene Rework
 
@@ -94,7 +94,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 36-01: TBD
+- [x] 36-01: Arena dimensions, physics walls, scene layout & goal row
+- [x] 36-02: Player rows, dice pool & animation positions (left/right split layout)
 
 #### Phase 37: Game HUD Redesign
 
@@ -104,7 +105,19 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 37-01: TBD
+- [x] 37-01: HUD layout & touch targets for landscape
+- [x] 37-02: Tip banner & unlock button repositioning
+
+#### Phase 37.1: 3D Profile Elements (INSERTED)
+
+**Goal**: Convert HTML profile overlays (avatars, stars, scores, stats) to 3D scene elements using drei/Text + meshes. Eliminates viewport-dependent scaling issues where HTML overlays don't scale with the 3D camera.
+**Depends on**: Phase 37 (HUD positioned for landscape), Phase 36 (left/right split layout)
+**Research**: Unlikely (drei/Text + basic geometry, established patterns)
+**Plans**: TBD
+
+Plans:
+- [x] 37.1-01: Convert GoalProfileGroup to 3D meshes + Text
+- [x] 37.1-02: Convert PlayerProfileGroup to 3D meshes + Text
 
 #### Phase 38: Menu & Screens
 
@@ -114,7 +127,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 38-01: TBD
+- [x] 38-01: MainMenu layout for landscape
+- [x] 38-02: Settings, HowToPlay, WinnersScreen modals for landscape
 
 #### Phase 39: Cleanup & UAT
 
@@ -124,11 +138,11 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 39-01: TBD
+- [x] 39-01: Final cleanup & UAT
 
 ## Progress
 
-**v1.0 + v1.1 + v1.2 + v1.3 complete.** 34 phases, 88 plans shipped. **v1.4 in progress.**
+**v1.0 + v1.1 + v1.2 + v1.3 + v1.4 complete.** 40 phases (incl. 37.1), 100+ plans shipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -166,9 +180,9 @@ Plans:
 | 32. Play Again Rework | v1.3 | 3/3 | Complete | 2026-03-10 |
 | 33. Connection Polish & Edge Cases | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 34. Integration Testing & UAT | v1.3 | 5/5 | Complete | 2026-03-12 |
-| 35. Layout Foundation | v1.4 | 0/? | Not started | - |
-| 36. 3D Scene Rework | v1.4 | 0/? | Not started | - |
-| 37. Game HUD Redesign | v1.4 | 0/? | Not started | - |
-| 38. Menu & Screens | v1.4 | 0/? | Not started | - |
-| 39. Cleanup & UAT | v1.4 | 0/? | Not started | - |
+| 35. Layout Foundation | v1.4 | 1/1 | Complete | 2026-03-12 |
+| 36. 3D Scene Rework | v1.4 | 2/2 | Complete | 2026-03-25 |
+| 37. Game HUD Redesign | v1.4 | 2/2 | Complete | 2026-03-25 |
+| 38. Menu & Screens | v1.4 | 2/2 | Complete | 2026-03-26 |
+| 39. Cleanup & UAT | v1.4 | 1/1 | Complete | 2026-03-26 |
 

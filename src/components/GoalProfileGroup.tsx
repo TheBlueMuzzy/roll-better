@@ -1,89 +1,66 @@
-import { Html } from '@react-three/drei';
+import { Text } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface GoalProfileGroupProps {
   position: [number, number, number];
   potentialScore?: number;
 }
 
+// Simple 5-point star shape
+function createStarShape(outerRadius: number, innerRadius: number): THREE.Shape {
+  const shape = new THREE.Shape();
+  const points = 5;
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points + Math.PI / 2;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+const starShape = createStarShape(0.5, 0.22);
+
+// Shift all children left so the right edge of the circle
+// aligns with the anchor point (matching HTML translate(-100%) behavior)
+const CIRCLE_RADIUS = 0.55;
+// Shift left so the right edge clears the first die (DIE_SIZE width gap)
+const X_SHIFT = -1.125;
+// Shift Z so bottom edge of circle aligns with bottom edge of dice
+const Z_SHIFT = -(CIRCLE_RADIUS - 0.4);
+
 export function GoalProfileGroup({ position, potentialScore }: GoalProfileGroupProps) {
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
-  const scale = Math.min(Math.max(vw / 390, 0.85), 1.3);
   return (
-    <Html
-      position={position}
-      occlude={false}
-      style={{
-        pointerEvents: 'none',
-        userSelect: 'none',
-        fontFamily: 'system-ui, sans-serif',
-        transform: 'translate(-100%, -50%)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: Math.round(48 * scale * 0.25) + Math.round(48 * scale * 0.35),
-        }}
-      >
-        {/* White circle with oversized gold star + score */}
-        <div
-          style={{
-            position: 'relative',
-            width: Math.round(48 * scale),
-            height: Math.round(48 * scale),
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+    <group position={position}>
+      {/* White circle background */}
+      <mesh position={[X_SHIFT, 0.05, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[CIRCLE_RADIUS, 32]} />
+        <meshBasicMaterial color="#ffffff" depthTest={false} toneMapped={false} />
+      </mesh>
+
+      {/* Gold star shape */}
+      <mesh position={[X_SHIFT, 0.06, Z_SHIFT]} rotation={[-Math.PI / 2, 0, 0]}>
+        <shapeGeometry args={[starShape]} />
+        <meshBasicMaterial color="#f1c40f" depthTest={false} toneMapped={false} />
+      </mesh>
+
+      {/* Score number inside star */}
+      {potentialScore !== undefined && (
+        <Text
+          position={[X_SHIFT, 0.07, Z_SHIFT + 0.03]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          fontSize={0.28}
+          color="#000000"
+          anchorX="center"
+          anchorY="middle"
+          depthOffset={-2}
         >
-          {/* White circle background */}
-          <div
-            style={{
-              width: Math.round(48 * scale),
-              height: Math.round(48 * scale),
-              borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-            }}
-          />
-          {/* Gold star */}
-          <span
-            style={{
-              position: 'absolute',
-              fontSize: Math.round(62 * scale),
-              lineHeight: 1,
-              color: '#f1c40f',
-              textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              top: 'calc(50% - 5px)',
-              left: '50%',
-              transform: 'translate(-50%, -50%) scale(0.90)',
-            }}
-          >
-            &#9733;
-          </span>
-          {/* Score number inside star */}
-          {potentialScore !== undefined && (
-            <span
-              style={{
-                position: 'absolute',
-                top: 'calc(50% - 3px)',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                fontSize: Math.round(16 * scale),
-                fontWeight: 'bold',
-                color: '#ffffff',
-                lineHeight: 1,
-                zIndex: 1,
-                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-              }}
-            >
-              {potentialScore}
-            </span>
-          )}
-        </div>
-      </div>
-    </Html>
+          {String(potentialScore)}
+        </Text>
+      )}
+    </group>
   );
 }

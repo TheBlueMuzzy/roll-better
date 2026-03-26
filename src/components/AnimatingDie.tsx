@@ -79,7 +79,7 @@ export function AnimatingDie({
     const x = fromPos[0] + (toPos[0] - fromPos[0]) * eased;
     const z = fromPos[2] + (toPos[2] - fromPos[2]) * eased;
     const baseY = fromPos[1] + (toPos[1] - fromPos[1]) * eased;
-    const y = baseY + Math.sin(t * Math.PI) * 0.8;
+    const y = baseY + Math.sin(t * Math.PI) * DIE_SIZE * 1.2;
     groupRef.current.position.set(x, y, z);
 
     // Slerp rotation from physics settle to square locked orientation

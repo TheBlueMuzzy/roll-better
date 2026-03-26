@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.4 Landscape milestone started. Switching from portrait-first (9:16) to landscape-only (16:9).
+v1.4 Landscape milestone SHIPPED (2026-03-26). Portrait-first (9:16) converted to landscape-only (16:9).
 
 ## Version
 0.2.0.37
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 35 of 39 (Layout Foundation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-12 — Milestone v1.4 created
+Phase: 39 of 39 (Cleanup & UAT) — COMPLETE
+Plan: 1 of 1 — done
+Status: v1.4 Landscape milestone SHIPPED. All phases complete.
+Last activity: 2026-03-26 — Phase 39 UAT approved, milestone shipped
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██████████ 100%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -74,14 +74,27 @@ Progress: ░░░░░░░░░░ 0%
 - v1.2 Polish: Phases 22-26 (shipped 2026-03-06)
 - Milestone v1.3 shipped: Drop-in/Drop-out player flow, 8 phases (Phase 27-34), shipped 2026-03-12
 - Milestone v1.4 created: Landscape-only layout conversion, 5 phases (Phase 35-39)
+- Phase 37.1 inserted after Phase 37: Convert HTML profile overlays to 3D elements (scaling fix)
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Milestone v1.4 initialization
+Last session: 2026-03-25
+Stopped at: Phase 37 complete. Ready for Phase 38.
 Resume file: None
 
-### Recent Changes (2026-03-12)
-- Milestone v1.4 Landscape created — 5 phases (35-39)
-- Switching from portrait-first (9:16) to landscape-only (16:9)
-- PRD #14 (Collapsible Goal Area) to be removed — landscape solves the space problem
+### Recent Changes (2026-03-25)
+- **Phase 37 complete**: Game HUD Redesign
+  - 37-01: Touch targets (vmin), round counter top-right, status text right-half, notifications CSS
+  - 37-02: Tip banner over rolling area, unlock button at left: 75%
+  - Commits: 18bae31, 4e0ee44, 3778d1f
+  - **Known issue**: Profile icons (avatars/stars) overlap locked dice at wide browser viewports — 3D scene positioning, not HUD
+- **Phase 36 closed**: left/right split layout confirmed
+- Deleted empty Unity project folder (Documents/UnityProjects/Roll Better)
+
+### Previous (2026-03-13)
+- 36-02 tasks 1-2 complete: player rows + animation scaling for landscape
+- Layout pivot: left/right split (ROW_X_OFFSET=-4, ROLLING_X_OFFSET=5)
+- 3 commits: db0fd55, f5825b9, 32023da
+
+### Previous (2026-03-12)
+- 36-01 complete: arena widened (ARENA_HALF_X=3.8→4.5), goal row at Z=-5.0, full-viewport floors

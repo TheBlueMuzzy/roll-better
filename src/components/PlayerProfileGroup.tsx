@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { Text } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface PlayerProfileGroupProps {
   name: string;
@@ -12,6 +13,30 @@ interface PlayerProfileGroupProps {
   isBot?: boolean;
 }
 
+// Reuse the same star shape as GoalProfileGroup
+function createStarShape(outerRadius: number, innerRadius: number): THREE.Shape {
+  const shape = new THREE.Shape();
+  const points = 5;
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points + Math.PI / 2;
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+const starShape = createStarShape(0.35, 0.15);
+
+// Layout constants
+const AVATAR_RADIUS = 0.35;
+const AVATAR_X = -1.575;     // Avatar position (left of anchor, +1/4 avatar width gap from star)
+const STAR_X = AVATAR_X + 0.875; // Star to the right of avatar (+0.175 to restore position)
+const STATS_Z = 0.45;        // Stats below star (+Z = toward camera = down on screen)
+
 export function PlayerProfileGroup({
   name,
   color,
@@ -21,14 +46,10 @@ export function PlayerProfileGroup({
   position,
   isBot,
 }: PlayerProfileGroupProps) {
-  // --- Responsive scale (1.0 at 390px baseline, clamped 0.85–1.3) ---
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
-  const scale = Math.min(Math.max(vw / 390, 0.85), 1.3);
-
   // --- Handicap (startingDice) scale-pop animation ---
   const prevStartingDice = useRef(startingDice);
   const popTimer = useRef(0);
-  const statsRef = useRef<HTMLDivElement>(null);
+  const statsGroupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
     if (startingDice !== prevStartingDice.current) {
@@ -39,168 +60,95 @@ export function PlayerProfileGroup({
     if (popTimer.current > 0) {
       popTimer.current = Math.max(0, popTimer.current - delta);
       const t = popTimer.current / 0.4;
-      const scale = 1.0 + 0.3 * Math.sin(Math.PI * t);
-      if (statsRef.current) {
-        statsRef.current.style.transform = `scale(${scale})`;
+      const s = 1.0 + 0.3 * Math.sin(Math.PI * t);
+      if (statsGroupRef.current) {
+        statsGroupRef.current.scale.set(s, s, s);
       }
     }
   });
 
   return (
-    <Html
-      position={position}
-      occlude={false}
-      zIndexRange={[40, 0]}
-      style={{
-        pointerEvents: 'none',
-        userSelect: 'none',
-        fontFamily: 'system-ui, sans-serif',
-        whiteSpace: 'nowrap',
-        transform: 'translate(-100%, -50%)',
-      }}
-    >
-      {/* Two-column layout: A) Avatar | B) Star+score / SX|TX */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: Math.round(4 * scale),
-        }}
+    <group position={position}>
+      {/* === Column A: Avatar circle with letter === */}
+
+      {/* Avatar circle (player color) */}
+      <mesh position={[AVATAR_X, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
+        <circleGeometry args={[AVATAR_RADIUS, 32]} />
+        <meshBasicMaterial color={color} depthTest={false} depthWrite={false} toneMapped={false} />
+      </mesh>
+
+      {/* Avatar letter */}
+      <Text
+        position={[AVATAR_X, 0.06, 0.02]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        fontSize={0.28}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+        depthOffset={-1}
+        fontWeight={700}
       >
-        {/* Column A: Avatar circle — shifted left by one circle width */}
-        <div
-          style={{
-            position: 'relative',
-            width: Math.round(44 * scale),
-            height: Math.round(44 * scale),
-            borderRadius: '50%',
-            backgroundColor: color,
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            marginRight: Math.round(44 * scale - 42 * scale * 0.25) - 5 - Math.round(44 * scale * 0.5),
-          }}
-        >
-          <span
-            style={{
-              fontSize: Math.round(18 * scale),
-              fontWeight: 'bold',
-              color: '#ffffff',
-              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-            }}
-          >
-            {name.charAt(0).toUpperCase()}
-          </span>
-          {/* Bot indicator — small robot icon in top-left of avatar */}
-          {isBot && (
-            <span
-              style={{
-                position: 'absolute',
-                top: -2,
-                left: -2,
-                fontSize: Math.round(14 * scale),
-                lineHeight: 1,
-                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))',
-              }}
-            >
-              {'🤖'}
-            </span>
-          )}
-        </div>
+        {name.charAt(0).toUpperCase()}
+      </Text>
 
-        {/* Column B: two rows stacked — shifted left by 1/4 star width */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            marginRight: Math.round(42 * scale * 0.25) + 10,
-          }}
-        >
-          {/* B.1: Star with score */}
-          <div
-            style={{
-              position: 'relative',
-              width: Math.round(42 * scale),
-              height: Math.round(42 * scale),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
+      {/* Bot indicator — white dot with dark B, top-left of avatar */}
+      {isBot && (
+        <group position={[AVATAR_X - 0.22, 0, -0.22]}>
+          <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={20}>
+            <circleGeometry args={[0.13, 16]} />
+            <meshBasicMaterial color="#ffffff" depthTest={false} depthWrite={false} toneMapped={false} />
+          </mesh>
+          <Text
+            position={[0, 0.09, 0.01]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            fontSize={0.15}
+            color="#333333"
+            anchorX="center"
+            anchorY="middle"
+            depthOffset={-3}
           >
-            <span
-              style={{
-                position: 'absolute',
-                fontSize: Math.round(42 * scale),
-                lineHeight: 1,
-                color: '#f1c40f',
-                textShadow: '0 1px 3px rgba(0,0,0,0.4)',
-              }}
-            >
-              &#9733;
-            </span>
-            <span
-              style={{
-                position: 'relative',
-                top: 2,
-                fontSize: Math.round(16 * scale),
-                fontWeight: 'bold',
-                color: '#ffffff',
-                lineHeight: 1,
-                zIndex: 1,
-                textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-              }}
-            >
-              {score}
-            </span>
-          </div>
+            B
+          </Text>
+        </group>
+      )}
 
-          {/* B.2: S{startingDice} | T{totalDice} */}
-          <div
-            ref={statsRef}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
-              transformOrigin: 'center',
-            }}
-          >
-            <span
-              style={{
-                fontSize: Math.round(10 * scale),
-                color: 'rgba(255, 255, 255, 0.7)',
-                lineHeight: 1,
-                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-              }}
-            >
-              S{startingDice}
-            </span>
-            <span
-              style={{
-                fontSize: Math.round(10 * scale),
-                color: 'rgba(255, 255, 255, 0.35)',
-                lineHeight: 1,
-              }}
-            >
-              |
-            </span>
-            <span
-              style={{
-                fontSize: Math.round(10 * scale),
-                color: 'rgba(255, 255, 255, 0.7)',
-                lineHeight: 1,
-                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-              }}
-            >
-              T{totalDice}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Html>
+      {/* === Column B: Star+score and stats === */}
+
+      {/* Gold star shape */}
+      <mesh position={[STAR_X, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <shapeGeometry args={[starShape]} />
+        <meshBasicMaterial color="#f1c40f" depthTest={false} toneMapped={false} />
+      </mesh>
+
+      {/* Score number inside star */}
+      <Text
+        position={[STAR_X, 0.06, 0.02]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        fontSize={0.2}
+        color="#000000"
+        anchorX="center"
+        anchorY="middle"
+        depthOffset={-2}
+        fontWeight={700}
+      >
+        {String(score)}
+      </Text>
+
+      {/* Stats text — S{startingDice} | T{totalDice} */}
+      <group ref={statsGroupRef}>
+        <Text
+          position={[STAR_X, 0.05, STATS_Z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          fontSize={0.22}
+          color="#aaaaaa"
+          fontWeight={700}
+          anchorX="center"
+          anchorY="middle"
+          depthOffset={-1}
+        >
+          {`S${startingDice} | T${totalDice}`}
+        </Text>
+      </group>
+    </group>
   );
 }

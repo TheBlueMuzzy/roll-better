@@ -340,7 +340,7 @@ function App() {
       if (slotsToUnlock.length === 0) continue;
 
       const profileX = getSlotX(0) - PROFILE_X_OFFSET;
-      const rowZ = -3.77 + i * 0.9;
+      const rowZ = -3.75 + i * 1.25;
 
       for (const slotIndex of slotsToUnlock) {
         const lockedEntry = aiPlayer.lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
@@ -428,7 +428,7 @@ function App() {
         if (!lockedEntry) continue;
 
         // Source position: player row slot
-        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.77];
+        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.75];
 
         // Find a clear spot (avoids existing pool dice + previously computed targets)
         const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
@@ -527,16 +527,8 @@ function App() {
   // Game container visible when not on menu
   const gameVisible = screen === 'game' || screen === 'winners';
 
-  // Camera FOV: 55 shows all horizontal content (goal star through 8th slot)
-  // On portrait phones, adjust to maintain the same horizontal extent as 9:16.
-  const isPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
-  let fov = 55;
-  if (isPortrait) {
-    const REF_ASPECT = 9 / 16;
-    const hFovRad = 2 * Math.atan(Math.tan((55 * Math.PI / 180) / 2) * REF_ASPECT);
-    const aspect = window.innerWidth / window.innerHeight;
-    fov = 2 * Math.atan(Math.tan(hFovRad / 2) / aspect) * (180 / Math.PI);
-  }
+  // Camera FOV: 55° for landscape 16:9 — shows full game board width
+  const fov = 55;
 
   return (
     <>

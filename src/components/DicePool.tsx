@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
-import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX } from './RollingArea';
+import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX, ROLLING_X_OFFSET } from './RollingArea';
 import type { Group } from 'three';
 import { playAllSettled, playExitPop } from '../utils/soundManager';
 
@@ -98,7 +98,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
     // Center the grid at the rolling zone center
     const totalCols = columns;
     const totalRows = Math.ceil(count / columns);
-    const x = (col - (totalCols - 1) / 2) * spacing;
+    const x = ROLLING_X_OFFSET + (col - (totalCols - 1) / 2) * spacing;
     const z = (row - (totalRows - 1) / 2) * spacing + ROLLING_Z_CENTER;
 
     // Add small random offset for visual variety

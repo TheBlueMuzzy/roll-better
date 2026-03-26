@@ -1,29 +1,25 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 
+// --- Rolling area X offset (right half of split layout) ---
+export const ROLLING_X_OFFSET = 5;
+
 // --- Arena bounds (exported for DicePool spawn positioning) ---
-// Camera at y=12, fov=50, looking down at floor (y=0)
-// Vertical half-extent at floor: 12 * tan(25deg) ≈ 5.6
-// Portrait 9:16 → horizontal: 5.6 * (9/16) ≈ 3.15
-// Tightened slightly so dice don't scrape edges
-export const ARENA_HALF_X = 2.8;
+export const ARENA_HALF_X = 4.5;
 
 // DEPRECATED: rolling zone is now asymmetric (ROLLING_Z_MIN / ROLLING_Z_MAX).
 // Kept for backward compatibility — DicePool may still reference it.
-export const ARENA_HALF_Z = 4.5;
+export const ARENA_HALF_Z = 5;
 
-// --- Asymmetric rolling zone bounds ---
-// Back wall sits 3 rows below Goal row (goal at Z=-3.8, 3 × 0.7 spacing = 2.1)
-// Leaves room for player rows between Goal and rolling zone
-// Front wall stays at Z = 4.5 (bottom of screen)
-export const ROLLING_Z_MIN = -1.7;
-export const ROLLING_Z_MAX = 4.5;
+// --- Symmetric rolling zone bounds (full viewport height) ---
+export const ROLLING_Z_MIN = -5;
+export const ROLLING_Z_MAX = 5;
 
 // Derived: center and half-extent of the rolling zone
-const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 1.85
-const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 2.65
+const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // 0
+const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 5
 
-// Die size: 9.5 dice must fit across the arena width (smaller for avatar space)
-export const DIE_SIZE = (ARENA_HALF_X * 2) / 9.5; // ≈ 0.589
+// Die size
+export const DIE_SIZE = 0.8;
 
 // Wall thickness and height
 const WALL_THICKNESS = 0.25;
@@ -40,7 +36,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
       <RigidBody type="fixed" restitution={0.5}>
         <CuboidCollider
           args={[ARENA_HALF_X, 0.1, ROLLING_Z_HALF]}
-          position={[0, -0.1, ROLLING_Z_CENTER]}
+          position={[ROLLING_X_OFFSET, -0.1, ROLLING_Z_CENTER]}
         />
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
@@ -48,7 +44,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
           receiveShadow
           onClick={onFloorClick}
         >
-          <planeGeometry args={[10, 10]} />
+          <planeGeometry args={[24, 16]} />
           <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
         </mesh>
       </RigidBody>
@@ -57,7 +53,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[WALL_THICKNESS, WALL_HEIGHT, ROLLING_Z_HALF]}
-          position={[-ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
+          position={[ROLLING_X_OFFSET - ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
         />
       </RigidBody>
 
@@ -65,7 +61,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[WALL_THICKNESS, WALL_HEIGHT, ROLLING_Z_HALF]}
-          position={[ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
+          position={[ROLLING_X_OFFSET + ARENA_HALF_X, WALL_HEIGHT, ROLLING_Z_CENTER]}
         />
       </RigidBody>
 
@@ -73,7 +69,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[ARENA_HALF_X, WALL_HEIGHT, WALL_THICKNESS]}
-          position={[0, WALL_HEIGHT, ROLLING_Z_MAX]}
+          position={[ROLLING_X_OFFSET, WALL_HEIGHT, ROLLING_Z_MAX]}
         />
       </RigidBody>
 
@@ -81,7 +77,7 @@ export function RollingArea({ onFloorClick }: RollingAreaProps) {
       <RigidBody type="fixed" restitution={0.3}>
         <CuboidCollider
           args={[ARENA_HALF_X, WALL_HEIGHT, WALL_THICKNESS]}
-          position={[0, WALL_HEIGHT, ROLLING_Z_MIN]}
+          position={[ROLLING_X_OFFSET, WALL_HEIGHT, ROLLING_Z_MIN]}
         />
       </RigidBody>
     </group>

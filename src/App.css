@@ -20,46 +20,39 @@ body {
 }
 
 #root {
-  /* 9:16 portrait aspect ratio on desktop, full-screen on portrait phones */
-  width: min(100vw, calc(100dvh * 9 / 16));
-  height: min(100dvh, calc(100vw * 16 / 9));
+  /* 16:9 landscape aspect ratio */
+  width: min(100vw, calc(100dvh * 16 / 9));
+  height: min(100dvh, calc(100vw * 9 / 16));
   margin: auto;
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Safe-area insets rotate with device — works for both landscape orientations */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
-/* Portrait phones: fill full screen, camera FOV adapts */
-@media (orientation: portrait) {
-  #root {
-    width: 100vw;
-    height: 100dvh;
-  }
 }
 
 /* --- Responsive design tokens --- */
 
 :root {
-  /* Font sizes */
-  --fs-xs: clamp(10px, 2.5vw, 13px);
-  --fs-sm: clamp(12px, 3vw, 14px);
-  --fs-md: clamp(14px, 3.5vw, 18px);
-  --fs-lg: clamp(16px, 4vw, 22px);
-  --fs-xl: clamp(20px, 5vw, 28px);
+  /* Font sizes — scale with short axis (vh in landscape) */
+  --fs-xs: clamp(10px, 2.5vh, 13px);
+  --fs-sm: clamp(12px, 3vh, 14px);
+  --fs-md: clamp(14px, 3.5vh, 18px);
+  --fs-lg: clamp(16px, 4vh, 22px);
+  --fs-xl: clamp(20px, 5vh, 28px);
 
-  /* Spacing */
-  --sp-xs: clamp(4px, 1vw, 8px);
-  --sp-sm: clamp(8px, 2vw, 14px);
-  --sp-md: clamp(12px, 3vw, 20px);
-  --sp-lg: clamp(16px, 4vw, 28px);
-  --sp-xl: clamp(24px, 5vw, 36px);
+  /* Spacing — scale with short axis */
+  --sp-xs: clamp(4px, 1vh, 8px);
+  --sp-sm: clamp(8px, 2vh, 14px);
+  --sp-md: clamp(12px, 3vh, 20px);
+  --sp-lg: clamp(16px, 4vh, 28px);
+  --sp-xl: clamp(24px, 5vh, 36px);
 
-  /* Layout */
-  --overlay-max-w: clamp(280px, 85vw, 420px);
-  --btn-max-w: clamp(240px, 75vw, 360px);
-  --touch-target: clamp(40px, 10vw, 56px);
-  --border-radius: clamp(8px, 2vw, 16px);
+  /* Layout — overlay/button widths scale with vw (long axis OK for width) */
+  --overlay-max-w: clamp(300px, 50vw, 520px);
+  --btn-max-w: clamp(260px, 45vw, 440px);
+  --touch-target: clamp(36px, 10vmin, 52px);
+  --border-radius: clamp(8px, 2vh, 16px);
 }
 
 /* --- HUD overlay (HTML over Canvas) --- */
@@ -79,7 +72,7 @@ body {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: calc(var(--sp-sm) + env(safe-area-inset-top)) calc(var(--sp-sm) + env(safe-area-inset-right)) var(--sp-sm) calc(var(--sp-sm) + env(safe-area-inset-left));
 }
@@ -98,7 +91,7 @@ body {
 .hud-bottom {
   position: absolute;
   bottom: calc(var(--sp-xl) + env(safe-area-inset-bottom));
-  left: 0;
+  left: 50%;
   right: 0;
   display: flex;
   flex-direction: column;
@@ -141,7 +134,7 @@ body {
 .hud-skip-btn {
   position: absolute;
   top: 55%;
-  left: 50%;
+  left: 75%;
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
@@ -165,6 +158,29 @@ body {
   cursor: not-allowed;
 }
 
+
+/* --- Seat notifications --- */
+
+.hud-notifications {
+  position: absolute;
+  bottom: calc(var(--sp-xl) * 2 + env(safe-area-inset-bottom));
+  right: var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.hud-notification-item {
+  font-size: var(--fs-xs);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
 
 /* --- Settings gear button in HUD --- */
 
@@ -205,7 +221,7 @@ body {
 .settings-panel {
   width: 90%;
   max-width: var(--overlay-max-w);
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
   background: #1a1a1a;
   border-radius: var(--border-radius);
@@ -218,7 +234,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: var(--sp-md);
 }
 
 .settings-title {
@@ -535,7 +551,7 @@ body {
 
 .h2p-visual {
   width: 100%;
-  height: clamp(120px, 30vw, 200px);
+  height: clamp(80px, 20vh, 180px);
   border-radius: var(--border-radius);
   background: linear-gradient(135deg, #2a1f1a, #3d2517);
   display: flex;
@@ -590,9 +606,9 @@ body {
 
 .tip-banner {
   position: absolute;
-  top: 36%;
-  left: var(--sp-md);
-  right: var(--sp-md);
+  top: var(--sp-lg);
+  left: 52%;
+  right: var(--sp-lg);
   z-index: 20;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
@@ -647,7 +663,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-lg);
+  gap: var(--sp-md);
   font-family: system-ui, sans-serif;
   user-select: none;
   opacity: 0;
@@ -663,7 +679,7 @@ body {
 }
 
 .menu-title {
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 6vh, 2.8rem);
   font-weight: bold;
   color: #ffffff;
   letter-spacing: 3px;
@@ -672,7 +688,7 @@ body {
 }
 
 .menu-subtitle {
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
   color: #888;
   margin: -10px 0 var(--sp-lg);
 }
@@ -848,7 +864,7 @@ body {
   align-items: center;
   gap: var(--sp-sm);
   width: 90%;
-  max-width: var(--overlay-max-w);
+  max-width: var(--btn-max-w);
   margin-top: var(--sp-xs);
   opacity: 1;
   transition: opacity 0.2s ease;
@@ -1191,7 +1207,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--sp-sm);
   font-family: system-ui, sans-serif;
   user-select: none;
   opacity: 0;
@@ -1205,7 +1221,7 @@ body {
 }
 
 .winners-heading {
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 5vh, 2.2rem);
   font-weight: bold;
   color: #ffffff;
   letter-spacing: 3px;
@@ -1213,7 +1229,7 @@ body {
 }
 
 .winners-announcement {
-  font-size: 1.4rem;
+  font-size: clamp(1rem, 3.5vh, 1.6rem);
   font-weight: bold;
   letter-spacing: 1px;
   display: flex;

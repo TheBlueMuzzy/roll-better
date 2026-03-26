@@ -5,15 +5,18 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 
 // --- Layout constants (exported for PlayerRow reuse) ---
-export const SLOT_SPACING = 0.62;
+export const SLOT_SPACING = DIE_SIZE * 1.2;
 export const SLOT_COUNT = 8;
 
 /** Offset from slot 0 to profile group anchor (exported for reuse). */
-export const PROFILE_X_OFFSET = 0.10;
+export const PROFILE_X_OFFSET = 0.65;
 
-/** Returns the X position for a given slot index (0-7), shifted right for profile room. */
+/** X offset applied to all rows (shifts rows to left half of split layout). */
+export const ROW_X_OFFSET = -4;
+
+/** Returns the X position for a given slot index (0-7), shifted left for split layout. */
 export function getSlotX(index: number): number {
-  return (index - 2.5) * SLOT_SPACING - DIE_SIZE * 0.2 - 0.06 + DIE_SIZE / 3;
+  return ROW_X_OFFSET + (index - 3.5) * SLOT_SPACING;
 }
 
 /**
@@ -51,7 +54,7 @@ interface GoalRowProps {
   transition?: 'none' | 'exiting' | 'entering';
 }
 
-export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps) {
+export function GoalRow({ values, z = -5.0, transition = 'none' }: GoalRowProps) {
   // One ref per die wrapper group for animation
   const dieRefs = useRef(
     Array.from({ length: SLOT_COUNT }, () => createRef<Group>()),
@@ -72,7 +75,7 @@ export function GoalRow({ values, z = -4.67, transition = 'none' }: GoalRowProps
   // --- Exit animation constants ---
   const EXIT_STAGGER = 0.015;    // 15ms between each die (tight)
   const EXIT_DURATION = 0.35;    // 350ms per die — fast departure
-  const EXIT_DISTANCE = 8;       // local-space units to slide right
+  const EXIT_DISTANCE = 12;      // local-space units to slide right
 
   // --- Enter animation constants ---
   const ENTER_STAGGER = 0.04;    // 40ms between each die (left to right)
