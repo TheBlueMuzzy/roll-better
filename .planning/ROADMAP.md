@@ -10,7 +10,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.1 Online Multiplayer](milestones/v1.1-ROADMAP.md) (Phases 14-21) — SHIPPED 2026-03-05
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
 - ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
-- 🚧 **v1.4 Landscape** — Phases 35-39 (in progress)
+- ✅ **v1.4 Landscape** — Phases 35-39 + 37.1 (SHIPPED 2026-03-26)
 
 ## Phases
 
@@ -72,7 +72,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 
 </details>
 
-### 🚧 v1.4 Landscape — In Progress
+### ✅ v1.4 Landscape — SHIPPED 2026-03-26
 
 **Milestone Goal:** Switch from portrait-first (9:16) to landscape-only (16:9). Every screen, the 3D scene, and all UI redesigned for phones held sideways. No portrait mode remains.
 
@@ -138,11 +138,11 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 39-01: Final cleanup & UAT
+- [x] 39-01: Final cleanup & UAT
 
 ## Progress
 
-**v1.0 + v1.1 + v1.2 + v1.3 complete.** 34 phases, 88 plans shipped. **v1.4 in progress.**
+**v1.0 + v1.1 + v1.2 + v1.3 + v1.4 complete.** 40 phases (incl. 37.1), 100+ plans shipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -184,5 +184,5 @@ Plans:
 | 36. 3D Scene Rework | v1.4 | 2/2 | Complete | 2026-03-25 |
 | 37. Game HUD Redesign | v1.4 | 2/2 | Complete | 2026-03-25 |
 | 38. Menu & Screens | v1.4 | 2/2 | Complete | 2026-03-26 |
-| 39. Cleanup & UAT | v1.4 | 0/? | Not started | - |
+| 39. Cleanup & UAT | v1.4 | 1/1 | Complete | 2026-03-26 |
 

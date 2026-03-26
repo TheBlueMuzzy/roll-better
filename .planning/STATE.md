@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.4 Landscape milestone started. Switching from portrait-first (9:16) to landscape-only (16:9).
+v1.4 Landscape milestone SHIPPED (2026-03-26). Portrait-first (9:16) converted to landscape-only (16:9).
 
 ## Version
 0.2.0.37
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 38 of 39 (Menu & Screens) — COMPLETE
-Plan: 2 of 2 — done
-Status: Phase 38 complete. Ready for Phase 39 (Cleanup & UAT).
-Last activity: 2026-03-26 — 38-02 executed and approved
+Phase: 39 of 39 (Cleanup & UAT) — COMPLETE
+Plan: 1 of 1 — done
+Status: v1.4 Landscape milestone SHIPPED. All phases complete.
+Last activity: 2026-03-26 — Phase 39 UAT approved, milestone shipped
 
-Progress: ████████░░ 80%
+Progress: ██████████ 100%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
