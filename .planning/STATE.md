@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.4 Landscape milestone SHIPPED (2026-03-26). Portrait-first (9:16) converted to landscape-only (16:9).
+v1.5 Hold-to-Gather-Roll milestone started. Replacing tap-to-roll with physics-based hold-gather-release gesture.
 
 ## Version
 0.2.0.37
@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 39 of 39 (Cleanup & UAT) — COMPLETE
-Plan: 1 of 1 — done
-Status: v1.4 Landscape milestone SHIPPED. All phases complete.
-Last activity: 2026-03-26 — Phase 39 UAT approved, milestone shipped
+Phase: 40 of 43 (Touch Detection & Goal System)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-26 — Milestone v1.5 created
 
-Progress: ██████████ 100%
+Progress: ░░░░░░░░░░ 0%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -75,6 +75,7 @@ Progress: ██████████ 100%
 - Milestone v1.3 shipped: Drop-in/Drop-out player flow, 8 phases (Phase 27-34), shipped 2026-03-12
 - Milestone v1.4 created: Landscape-only layout conversion, 5 phases (Phase 35-39)
 - Phase 37.1 inserted after Phase 37: Convert HTML profile overlays to 3D elements (scaling fix)
+- Milestone v1.5 created: Hold-to-Gather-Roll, 4 phases (Phase 40-43)
 
 ## Session Continuity
 

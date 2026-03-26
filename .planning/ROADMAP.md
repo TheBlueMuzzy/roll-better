@@ -11,6 +11,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
 - ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
 - ✅ **v1.4 Landscape** — Phases 35-39 + 37.1 (SHIPPED 2026-03-26)
+- 🚧 **v1.5 Hold-to-Gather-Roll** — Phases 40-43 (in progress)
 
 ## Phases
 
@@ -140,6 +141,50 @@ Plans:
 Plans:
 - [x] 39-01: Final cleanup & UAT
 
+### 🚧 v1.5 Hold-to-Gather-Roll — In Progress
+
+**Milestone Goal:** Replace tap-to-roll with a hold-to-gather-roll gesture. Touch in rolling area generates orbiting goal points that attract dice via physics forces. Release drops dice with momentum for a natural, tactile roll feel.
+
+#### Phase 40: Touch Detection & Goal System
+
+**Goal**: Detect touch/hold in rolling area (excluding UI buttons), generate radial goal points around touch position, implement vacuum VFX (outline circle scaling to touch point). Goal points follow finger movement.
+**Depends on**: v1.4 complete (landscape layout)
+**Research**: Unlikely (R3F pointer events + Three.js geometry, established patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 40-01: TBD
+
+#### Phase 41: Physics Attractor & Orbit
+
+**Goal**: Apply per-frame Rapier impulse forces attracting dice toward their assigned goal points. Goals orbit the touch point with rotation speed ramping over 3 seconds. Dice lift off table and follow goals with physics lag.
+**Depends on**: Phase 40 (touch + goals exist)
+**Research**: Unlikely (Rapier impulse API already used for dice)
+**Plans**: TBD
+
+Plans:
+- [ ] 41-01: TBD
+
+#### Phase 42: Release & Roll Mechanics
+
+**Goal**: On release, remove attractor forces and let dice keep momentum. Add rotational impulse for tumble. Handle AFK timer integration (forced release on timeout, fake touch for auto-roll). Exclude settings button from touch area.
+**Depends on**: Phase 41 (attractor system working)
+**Research**: Unlikely (internal physics patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 42-01: TBD
+
+#### Phase 43: Polish & UAT
+
+**Goal**: Edge cases (wall containment when dragging to lock area, dice against boundaries), feel tuning (attractor strength, orbit speed curve, release force), full integration testing across viewports.
+**Depends on**: Phases 40-42 (all mechanics complete)
+**Research**: Unlikely (tuning + testing)
+**Plans**: TBD
+
+Plans:
+- [ ] 43-01: TBD
+
 ## Progress
 
 **v1.0 + v1.1 + v1.2 + v1.3 + v1.4 complete.** 40 phases (incl. 37.1), 100+ plans shipped.
@@ -185,4 +230,8 @@ Plans:
 | 37. Game HUD Redesign | v1.4 | 2/2 | Complete | 2026-03-25 |
 | 38. Menu & Screens | v1.4 | 2/2 | Complete | 2026-03-26 |
 | 39. Cleanup & UAT | v1.4 | 1/1 | Complete | 2026-03-26 |
+| 40. Touch Detection & Goals | v1.5 | 0/? | Not started | - |
+| 41. Physics Attractor & Orbit | v1.5 | 0/? | Not started | - |
+| 42. Release & Roll Mechanics | v1.5 | 0/? | Not started | - |
+| 43. Polish & UAT | v1.5 | 0/? | Not started | - |
 
