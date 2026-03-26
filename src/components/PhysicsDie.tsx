@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import { Euler, Quaternion } from 'three';
 import { Die3D } from './Die3D';
@@ -18,6 +19,7 @@ export interface PhysicsDieHandle {
   get isSettled(): boolean;
   /** Returns the last settled face value, or null if no roll completed yet */
   getLastResult(): number | null;
+  setAttractTarget(target: [number, number, number] | null): void;
 }
 
 // --- Props ---
@@ -37,6 +39,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
     const bodyRef = useRef<RapierRigidBody>(null);
     const isRolling = useRef(false);
     const lastResult = useRef<number | null>(null);
+    const attractTargetRef = useRef<[number, number, number] | null>(null);
 
 
     // Compute initial rotation ONCE on mount (stored in ref so re-renders don't change it)
@@ -102,7 +105,60 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       getLastResult() {
         return lastResult.current;
       },
+
+      setAttractTarget(target: [number, number, number] | null) {
+        attractTargetRef.current = target;
+        if (target && bodyRef.current) {
+          bodyRef.current.wakeUp();
+        }
+      },
     }));
+
+    // Attractor force: spring-damped pull toward target position
+    useFrame((_, delta) => {
+      const body = bodyRef.current;
+      const target = attractTargetRef.current;
+      if (!body || !target) return;
+
+      const dt = Math.min(delta, 0.05); // Clamp to prevent force spikes on tab-switch
+
+      const pos = body.translation();
+      const vel = body.linvel();
+
+      const dx = target[0] - pos.x;
+      const dy = target[1] - pos.y;
+      const dz = target[2] - pos.z;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      if (dist < 0.01) return;
+
+      const stiffness = 15;
+      const damping = 8;
+      const maxForce = 30;
+
+      let fx = stiffness * dx - damping * vel.x;
+      let fy = stiffness * dy - damping * vel.y;
+      let fz = stiffness * dz - damping * vel.z;
+
+      const forceMag = Math.sqrt(fx * fx + fy * fy + fz * fz);
+      if (forceMag > maxForce) {
+        const scale = maxForce / forceMag;
+        fx *= scale;
+        fy *= scale;
+        fz *= scale;
+      }
+
+      body.applyImpulse({ x: fx * dt, y: fy * dt, z: fz * dt }, true);
+
+      // Suppress angular velocity during attraction
+      const angvel = body.angvel();
+      body.setAngvel(
+        { x: angvel.x * 0.92, y: angvel.y * 0.92, z: angvel.z * 0.92 },
+        true
+      );
+
+      body.wakeUp();
+    });
 
     return (
       <RigidBody
