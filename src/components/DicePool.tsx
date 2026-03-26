@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
+import { getGatherPoints } from '../utils/gatherPoints';
+import { useGameStore } from '../store/gameStore';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX, ROLLING_X_OFFSET } from './RollingArea';
 import type { Group } from 'three';
 import { playAllSettled, playExitPop } from '../utils/soundManager';
@@ -117,6 +119,13 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
     );
+
+    // Gather (orbit) state
+    const gatherActive = useGameStore((s) => s.gatherState.active);
+    const gatherTouchPosition = useGameStore((s) => s.gatherState.touchPosition);
+    const gatherElapsedRef = useRef(0);
+    const rotationOffsetRef = useRef(0);
+    const wasGatheringRef = useRef(false);
 
     // Settle tracking — per-die booleans (handles dice bumping each other)
     const settled = useRef<boolean[]>(Array.from({ length: count }, () => false));
@@ -317,6 +326,42 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       [startFallbackTimer],
     );
 
+    // Gather orbit: drive dice toward orbital positions around touch point
+    useFrame((_, delta) => {
+      if (gatherActive && !wasGatheringRef.current) {
+        gatherElapsedRef.current = 0;
+        rotationOffsetRef.current = 0;
+        wasGatheringRef.current = true;
+      } else if (!gatherActive && wasGatheringRef.current) {
+        wasGatheringRef.current = false;
+        for (let i = 0; i < count; i++) {
+          dieRefs.current[i]?.setAttractTarget(null);
+        }
+        return;
+      }
+
+      if (!gatherActive || !gatherTouchPosition) return;
+
+      const dt = Math.min(delta, 0.05);
+      gatherElapsedRef.current += dt;
+
+      // Rotation speed ramps from 0.5 to 4.0 rad/s over 3 seconds
+      const rampT = Math.min(gatherElapsedRef.current / 3.0, 1.0);
+      const rotationSpeed = 0.5 + rampT * 3.5;
+      rotationOffsetRef.current += rotationSpeed * dt;
+
+      const goals = getGatherPoints(
+        gatherTouchPosition,
+        count,
+        undefined,
+        rotationOffsetRef.current
+      );
+
+      for (let i = 0; i < count && i < goals.length; i++) {
+        dieRefs.current[i]?.setAttractTarget(goals[i]);
+      }
+    });
+
     useImperativeHandle(ref, () => ({
       rollAll() {
         // Clear any pending fallback timer
@@ -329,6 +374,9 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         hasFired.current = false;
         initialFaces.current = new Map();
         preservedRotations.current = new Map();
+        wasGatheringRef.current = false;
+        gatherElapsedRef.current = 0;
+        rotationOffsetRef.current = 0;
 
         // Roll each die from wherever it currently sits
         for (let i = 0; i < count; i++) {
