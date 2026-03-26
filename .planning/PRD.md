@@ -661,7 +661,13 @@ Simplified main menu (removed difficulty selector, added How to Play + Upgrades 
 
 ## 11. Future Ideas
 
-Numbered master list (15 items). New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
+Numbered master list. New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
+
+### Shipped (removed from active list)
+- ~~#8 — Drop-in/Drop-out~~ → SHIPPED v1.3
+- ~~#13 — Landscape-Only Layout~~ → SHIPPED v1.4
+- ~~#14 — Collapsible Goal Area~~ → REMOVED (landscape solved the space problem)
+- ~~#15 — Auto-Ready on Join~~ → SHIPPED v1.3
 
 ### Polish
 
@@ -694,109 +700,6 @@ Multi-layered dice sounds (impact, tumble, scrape, settle), collision-triggered 
 
 ### System
 
-**#8 — Drop-in/Drop-out Flow (Full Spec)** ✅ SHIPPED v1.3 (2026-03-12)
-
-A complete player connection lifecycle for online multiplayer. The goal is one simple, predictable rule set that covers joining, leaving, reconnecting, and handoff — so the game never stalls and players always know what's happening.
-
-#### Core Principle: Timer Expiration = Handoff Boundary
-
-Every active game phase (roll, unlock, and any future action phases) has a countdown timer. Timer expiration is the universal moment where control can change hands. All connection logic flows from this single rule.
-
-#### Player Identity
-
-- Each client stores a **persistent player ID** in `localStorage` (generated on first visit, persisted across sessions).
-- The server maintains a mapping of **player ID → seat** for each room.
-- If a player's `localStorage` is cleared (or they use incognito), they are treated as a brand-new player. This is an accepted edge case — you can't always solve for player actions.
-
-#### Seat States
-
-Each seat in a game room is in exactly one of these states:
-
-| State | Meaning |
-|-------|---------|
-| **Human-Active** | A connected human is playing this seat. |
-| **Human-AFK (autopilot)** | Human is connected but hasn't acted. The 1-beat autopilot fires at timer expiry — makes the simplest legal move (basic ruleset). Player keeps their seat. Autopilot counter increments. |
-| **Bot** | A full AI controls this seat. Makes fast, intentional, incentivized decisions (same as existing AI difficulty system). The seat is **claimable** by any human. |
-
-#### AFK Escalation (Connected but Inactive)
-
-- When a connected player lets the phase timer expire, the system makes a **1-beat autopilot decision** — the simplest legal action (e.g., roll with current pool, skip unlock). This is a quick blip, not a strategic AI move.
-- The player retains their seat. An internal **consecutive autopilot counter** increments.
-- **After 3 consecutive autopilot fires**, the seat transitions to **Bot** state. A full AI takes over and the seat becomes claimable by other players.
-- Any manual action by the player resets the autopilot counter to 0.
-
-#### Disconnection → Bot Handoff
-
-- When a player disconnects (tab closed, network lost, navigated away), their seat enters a **grace window** that lasts until the **current phase timer expires**.
-- If the player reconnects before the timer expires: they resume seamlessly in their seat. No interruption, no state change. Other players don't notice.
-- If the timer expires while disconnected: the seat immediately transitions to **Bot** state. A full AI takes over (not a 1-beat autopilot — a real bot making strategic decisions). There is no 60-second keepalive window — the handoff is strictly timer-based.
-- The disconnected player's re-entry path is now the **mid-game join flow** (see below).
-
-#### Mid-Game Join (The One Re-Entry Path)
-
-All players entering a room that is mid-game — whether brand new, returning after disconnect, or coming from the winners screen — use the **same flow**:
-
-1. Player enters the room code (or reconnects via URL/stored room).
-2. Server checks: is this player ID already assigned to a seat?
-   - **Yes, and seat is Human-Active**: Reject with message (they're somehow double-connected — stale tab). This shouldn't normally happen.
-   - **Yes, and seat is Bot**: The bot was holding their old seat. Skip to step 5 — auto-assigned back to their seat.
-   - **No match**: Player is new or cleared their browser data. Continue to step 3.
-3. Server checks: are there any **Bot** seats available?
-   - **No Bot seats**: All seats are humans. Player sees **"Room Full"** message with a **TRY AGAIN** button that re-checks. No waiting room, no spectator mode. First come, first serve.
-   - **Yes, Bot seats exist**: Continue to step 4.
-4. Player sees the game in progress with **Bot seats highlighted** (tappable avatars). Player taps the bot avatar they want to take over.
-   - If multiple players tap the same bot simultaneously, the **server decides** — first claim wins. The second player sees "Seat taken" and picks another.
-5. The takeover is **queued until the start of the next phase** for that seat. The bot finishes its current action (roll, unlock, etc.), and at the phase boundary, the human takes control.
-6. Player is now **Human-Active** in that seat. They play from wherever that seat currently is in the game (same score, same locks, same pool). No catch-up, no rewind.
-
-#### Host Migration
-
-- The player who created the room is the initial **host**. The host has the ability to start the game from the lobby.
-- If the host's seat transitions to **Bot** (via disconnect + timer, or AFK escalation), host status **migrates to the next connected human player** (by join order).
-- If the original host later reclaims a seat (via mid-game join flow), they do **not** regain host status. Host stays with whoever currently holds it. No reason to migrate back.
-- **If no connected humans remain** (all seats are bots), the room **dissolves immediately**. No bot-only games. This is a casual game — if everyone left, the session is over.
-
-#### Play Again Flow
-
-1. Game ends. Winners screen displays for all connected players.
-2. Any player can tap **PLAY AGAIN** or **MENU**.
-   - **MENU**: Player leaves the room entirely. Their seat becomes available.
-   - **PLAY AGAIN**: Player signals readiness. The room transitions back to **lobby state** with the **same room code**.
-3. The current host sees the lobby with a **START GAME** button (same as initial game creation).
-4. Players who haven't hit Play Again yet remain on the winners screen. They can join when ready.
-5. Host can hit **START** at any time — empty seats are filled with bots (same as initial game start).
-6. If a player hits Play Again after the new game has already started, they enter via the **mid-game join flow** — the server recognizes their player ID, finds their bot-held seat, and queues them for takeover at the next phase boundary.
-
-#### Room Full (All Human Seats)
-
-- If a player enters a room code and all seats are occupied by connected humans: display **"Room Full"** over the main menu.
-- A **TRY AGAIN** button re-checks the room. No live updates, no waiting queue, no spectator mode.
-- If a returning player (matching player ID) enters and their old seat is held by a human (someone claimed it), they are treated as a new player — "Room Full" applies.
-
-#### Summary: State Transition Diagram
-
-```
-Human-Active
-  ├── [manual action] → stays Human-Active (autopilot counter resets)
-  ├── [timer expires, connected, counter < 3] → Human-AFK (1-beat autopilot, counter++)
-  ├── [timer expires, connected, counter = 3] → Bot (full AI, seat claimable)
-  └── [disconnected]
-        ├── [reconnects before timer expires] → Human-Active (seamless)
-        └── [timer expires while disconnected] → Bot (full AI, seat claimable)
-
-Bot
-  ├── [human claims seat] → queued → Human-Active (at next phase boundary)
-  ├── [no humans remain in room] → room dissolves
-  └── [game ends] → seat available in lobby
-
-Room
-  ├── [game ends] → lobby state (same room code, host can restart)
-  └── [all humans gone] → room dissolves
-```
-
-**#15 — Auto-Ready on Join** ✅ SHIPPED
-Remove the "Ready" button from lobby. Entering a room code and hitting start auto-readies the player. Fixes dead-end lobby state after bot takeover/disconnect kicks player back to menu.
-
 **#9 — Upgrades System (Spots + Special Dice)**
 Major progression system accessed from the Upgrades menu button (already on main menu as placeholder). Two unlockable types:
 - **Spots**: Special rules for lock-in slots. When a die locks into a spot, the player gets a bonus (effects TBD — needs design pass).
@@ -815,13 +718,6 @@ Player-selectable surfaces (wood types, felt, etc.). Current dark walnut is plac
 
 **#12 — Player Profile Art**
 Pre-set (possibly unlockable/earnable) avatar images replacing placeholder circle avatars. Muzzy to design in Illustrator. Layout is structurally correct — just needs assets swapped in.
-
-### Layout
-
-**#13 — Landscape-Only Layout** 🚧 IN PROGRESS v1.4
-Switch from portrait-first (9:16) to landscape-only (16:9). Every screen, 3D scene, and UI redesigned for phones held sideways. No portrait mode. This solves the 8-player space problem directly — #14 (Collapsible Goal Area) removed as unnecessary.
-
-~~**#14 — Collapsible Goal Area ("Shade")**~~ REMOVED — landscape layout solves the space problem that motivated this feature.
 
 ---
 
