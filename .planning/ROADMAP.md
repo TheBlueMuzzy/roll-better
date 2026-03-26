@@ -138,7 +138,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 39-01: TBD
+- [ ] 39-01: Final cleanup & UAT
 
 ## Progress
 
