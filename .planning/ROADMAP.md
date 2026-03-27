@@ -173,7 +173,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 42-01: TBD
+- [x] 42-01: Release-roll pipeline + AFK integration + tap-to-roll removal
 
 #### Phase 43: Polish & UAT
 
@@ -232,6 +232,6 @@ Plans:
 | 39. Cleanup & UAT | v1.4 | 1/1 | Complete | 2026-03-26 |
 | 40. Touch Detection & Goals | v1.5 | 1/1 | Complete | 2026-03-26 |
 | 41. Physics Attractor & Orbit | v1.5 | 1/1 | Complete | 2026-03-27 |
-| 42. Release & Roll Mechanics | v1.5 | 0/? | Not started | - |
+| 42. Release & Roll Mechanics | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 43. Polish & UAT | v1.5 | 0/? | Not started | - |
 

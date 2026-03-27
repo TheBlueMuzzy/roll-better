@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 41 of 43 (Physics Attractor & Orbit)
+Phase: 42 of 43 (Release & Roll Mechanics)
 Plan: 01 complete
-Status: Ready for Phase 42
-Last activity: 2026-03-27 — Plan 41-01 complete (attractor forces + orbital tracking)
+Status: Ready for Phase 43
+Last activity: 2026-03-27 — Plan 42-01 complete (release-roll pipeline + AFK + cleanup)
 
-Progress: █████░░░░░ 50%
+Progress: ███████░░░ 75%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -80,10 +80,14 @@ Progress: █████░░░░░ 50%
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Phase 41 complete. Ready for Phase 42.
+Stopped at: Phase 42 complete. Ready for Phase 43.
 Resume file: None
 
 ### Recent Changes (2026-03-27)
+- **Phase 42 complete**: Release & Roll Mechanics
+  - 42-01: Gather-release triggers roll with tumble, AFK timer dual paths, tap-to-roll removed
+  - Commits: 9502f84, c86e787, f1a6ced
+  - Key decisions: gather-release IS the roll (no rollAll), dual AFK paths, settings button already isolated
 - **Phase 41 complete**: Physics Attractor & Orbit
   - 41-01: Velocity-controlled attractor, two-phase lift, shrink/scale, snapFlat, unstick
   - Commits: 8cc0dca, f4b5a18, 2bdb5eb
