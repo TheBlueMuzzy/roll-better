@@ -163,7 +163,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 41-01: TBD
+- [x] 41-01: Attractor force system + orbital tracking + tuning
 
 #### Phase 42: Release & Roll Mechanics
 
@@ -230,8 +230,8 @@ Plans:
 | 37. Game HUD Redesign | v1.4 | 2/2 | Complete | 2026-03-25 |
 | 38. Menu & Screens | v1.4 | 2/2 | Complete | 2026-03-26 |
 | 39. Cleanup & UAT | v1.4 | 1/1 | Complete | 2026-03-26 |
-| 40. Touch Detection & Goals | v1.5 | 0/? | Not started | - |
-| 41. Physics Attractor & Orbit | v1.5 | 0/? | Not started | - |
+| 40. Touch Detection & Goals | v1.5 | 1/1 | Complete | 2026-03-26 |
+| 41. Physics Attractor & Orbit | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 42. Release & Roll Mechanics | v1.5 | 0/? | Not started | - |
 | 43. Polish & UAT | v1.5 | 0/? | Not started | - |
 

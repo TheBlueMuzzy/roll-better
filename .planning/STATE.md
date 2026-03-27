@@ -4,23 +4,23 @@
 v1.5 Hold-to-Gather-Roll milestone started. Replacing tap-to-roll with physics-based hold-gather-release gesture.
 
 ## Version
-0.2.0.37
+0.2.0.86
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** Landscape-only layout conversion
+**Current focus:** Hold-to-Gather-Roll gesture
 
 ## Current Position
 
-Phase: 40 of 43 (Touch Detection & Goal System)
+Phase: 41 of 43 (Physics Attractor & Orbit)
 Plan: 01 complete
-Status: Ready for Phase 41
-Last activity: 2026-03-26 — Plan 40-01 complete (touch detection + goal points)
+Status: Ready for Phase 42
+Last activity: 2026-03-27 — Plan 41-01 complete (attractor forces + orbital tracking)
 
-Progress: ██░░░░░░░░ 25%
+Progress: █████░░░░░ 50%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -79,16 +79,18 @@ Progress: ██░░░░░░░░ 25%
 
 ## Session Continuity
 
-Last session: 2026-03-26
-Stopped at: Phase 40-01 complete. Ready for Phase 41.
+Last session: 2026-03-27
+Stopped at: Phase 41 complete. Ready for Phase 42.
 Resume file: None
 
-### Recent Changes (2026-03-26)
-- **Phase 40-01 complete**: Touch Detection & Goal System
-  - Task 1: Gathering phase, GatherState in store, pointer events on floor mesh
-  - Task 2: Radial goal point calculator utility (gatherPoints.ts)
+### Recent Changes (2026-03-27)
+- **Phase 41 complete**: Physics Attractor & Orbit
+  - 41-01: Velocity-controlled attractor, two-phase lift, shrink/scale, snapFlat, unstick
+  - Commits: 8cc0dca, f4b5a18, 2bdb5eb
+  - Key decisions: velocity control over springs, two-phase lift, 50% shrink during gather
+- **Phase 40 complete**: Touch Detection & Goal System
+  - 40-01: Gathering state machine, pointer events, radial goal calculator
   - Commits: dce687b, 6c32e36
-  - Tap-to-roll preserved via phase guard sequencing
 
 ### Previous (2026-03-25)
 - **Phase 37 complete**: Game HUD Redesign
