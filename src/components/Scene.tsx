@@ -19,6 +19,7 @@ import { playSelectDie, playDeselectDie } from '../utils/soundManager';
 // --- Public API exposed via ref ---
 export interface SceneHandle {
   rollAll(): void;
+  forceRelease(): void;
   unstickAll(): void;
 }
 
@@ -136,6 +137,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       rollAll() {
         onRollStart?.();
         dicePoolRef.current?.rollAll();
+      },
+      forceRelease() {
+        // AFK mid-gather: force-release dice that are orbiting
+        if (useGameStore.getState().gatherState.active) {
+          useGameStore.getState().stopGathering();
+        }
+        dicePoolRef.current?.releaseAll();
+        onRollStart?.();
       },
       unstickAll() {
         dicePoolRef.current?.unstickAll();

@@ -7,11 +7,12 @@ import type { SeatState } from '../types/protocol';
 
 interface HUDProps {
   onRoll: () => void;
+  onForceRelease: () => void;
   onConfirmUnlock: () => void;
   onOpenSettings: () => void;
 }
 
-export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
+export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -79,10 +80,17 @@ export function HUD({ onRoll, onConfirmUnlock, onOpenSettings }: HUDProps) {
   const showUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
 
   const handleIdleTimeout = useCallback(() => {
-    console.log('[HUD] AFK idle timeout — auto-rolling');
     (window as unknown as Record<string, boolean>).__rbAfkRoll = true;
-    onRoll();
-  }, [onRoll]);
+    // If player is mid-gather, force-release dice (they have orbital momentum)
+    if (useGameStore.getState().gatherState.active) {
+      console.log('[HUD] AFK mid-gather timeout — force-releasing');
+      onForceRelease();
+    } else {
+      // Normal idle: use rollAll path (lift + random impulse + torque)
+      console.log('[HUD] AFK idle timeout — auto-rolling');
+      onRoll();
+    }
+  }, [onRoll, onForceRelease]);
 
   const handleUnlockTimeout = useCallback(() => {
     const state = useGameStore.getState();

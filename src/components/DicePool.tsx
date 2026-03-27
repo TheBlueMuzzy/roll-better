@@ -15,6 +15,7 @@ const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
 // --- Public API exposed via ref ---
 export interface DicePoolHandle {
   rollAll(): void;
+  releaseAll(): void;
   unstickAll(): void;
 }
 
@@ -402,6 +403,13 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         // Roll each die from wherever it currently sits
         for (let i = 0; i < count; i++) {
           dieRefs.current[i]?.roll();
+        }
+      },
+
+      releaseAll() {
+        // Imperative release for AFK mid-gather: sets attractTarget(null) on all dice
+        for (let i = 0; i < count; i++) {
+          dieRefs.current[i]?.setAttractTarget(null);
         }
       },
 

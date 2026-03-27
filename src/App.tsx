@@ -526,6 +526,11 @@ function App() {
     setPhase('rolling');
   }, [setPhase]);
 
+  // AFK mid-gather: force-release dice via Scene imperative handle
+  const handleForceRelease = useCallback(() => {
+    sceneRef.current?.forceRelease();
+  }, []);
+
   const handleResults = useCallback(
     (results: number[]) => {
       setRollResults(results);
@@ -558,6 +563,7 @@ function App() {
           </Canvas>
           <HUD
             onRoll={handleRoll}
+            onForceRelease={handleForceRelease}
             onConfirmUnlock={handleConfirmUnlock}
             onOpenSettings={() => setSettingsOpen(true)}
           />
