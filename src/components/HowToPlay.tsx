@@ -12,7 +12,7 @@ const SLIDES: Slide[] = [
   {
     title: 'Roll Your Dice',
     icon: '\u{1F3B2}',
-    text: 'Tap anywhere to roll. Your dice tumble with real physics \u2014 every roll is unique!',
+    text: 'Hold the rolling area to gather your dice, then release to roll. Every roll is unique!',
   },
   {
     title: 'Match the Goal',

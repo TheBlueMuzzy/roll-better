@@ -26,13 +26,12 @@ const WALL_THICKNESS = 0.25;
 const WALL_HEIGHT = 8; // tall enough to catch dice at peak of roll arc
 
 interface RollingAreaProps {
-  onFloorClick?: () => void;
   onFloorPointerDown?: (point: [number, number, number]) => void;
   onFloorPointerMove?: (point: [number, number, number]) => void;
   onFloorPointerUp?: () => void;
 }
 
-export function RollingArea({ onFloorClick, onFloorPointerDown, onFloorPointerMove, onFloorPointerUp }: RollingAreaProps) {
+export function RollingArea({ onFloorPointerDown, onFloorPointerMove, onFloorPointerUp }: RollingAreaProps) {
   return (
     <group>
       {/* Floor — static rigid body, sized to rolling zone only */}
@@ -45,7 +44,6 @@ export function RollingArea({ onFloorClick, onFloorPointerDown, onFloorPointerMo
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, 0, 0]}
           receiveShadow
-          onClick={onFloorClick}
           onPointerDown={(e) => {
             if (onFloorPointerDown) {
               e.stopPropagation();

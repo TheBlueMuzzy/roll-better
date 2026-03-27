@@ -191,16 +191,12 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
     };
   }, [phase, score, roundScore, animateScore]);
 
-  const handleTapRoll = () => {
-    if (phase === 'idle') onRoll();
-  };
-
   // Status text based on phase
   let statusText: string;
   if (phase === 'lobby') {
     statusText = 'Starting...';
   } else if (phase === 'idle') {
-    statusText = 'Tap to Roll';
+    statusText = 'Hold to Roll';
   } else if (phase === 'rolling') {
     statusText = 'Rolling...';
   } else if (phase === 'locking') {
@@ -243,10 +239,9 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
         {phase === 'unlocking' ? (
           <span className="hud-status">{statusText}</span>
         ) : (
-          /* All other phases: tappable status text */
+          /* All other phases: status text */
           <span
-            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}${phase === 'idle' ? ' tap-pulse' : ''}`}
-            onClick={handleTapRoll}
+            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
           >
             {statusText}
           </span>

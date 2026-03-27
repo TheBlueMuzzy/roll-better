@@ -208,7 +208,7 @@ function App() {
   // --- Contextual tips ---
   useEffect(() => {
     if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
-      tryShowTip('first-roll', 'Tap anywhere to roll your dice');
+      tryShowTip('first-roll', 'Hold the rolling area to gather your dice, then release to roll');
     }
     if (phase === 'locking' && lastLockCount > 0) {
       tryShowTip('first-lock', 'Matched! Dice lock to the Goal row automatically');
@@ -497,7 +497,8 @@ function App() {
     setTimeout(() => handleConfirmUnlock(), 50);
   }, [pendingAfkUnlock, handleConfirmUnlock]);
 
-  // Tap to Roll: only works during idle
+  // AFK auto-roll: programmatic roll with rollAll (lift + impulse + torque).
+  // Used by HUD idle timeout when player hasn't started gathering.
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
 
