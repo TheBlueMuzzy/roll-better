@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
   "version": "0.2.0",
-  "build": 37,
+  "build": 86,
   "history": [
     {
       "version": "0.1.0",
@@ -372,6 +372,11 @@
       "version": "0.2.0.37",
       "date": "2026-03-10",
       "summary": "Mid-game join waiting UI: spinner, context-aware status text, clear error messages, cancel option"
+    },
+    {
+      "version": "0.2.0.38",
+      "date": "2026-03-26",
+      "summary": "Hold-to-gather attractor system: spring-damped forces, orbital goals, debug dots, ramping damping"
     }
   ]
 }

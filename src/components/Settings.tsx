@@ -5,9 +5,10 @@ import { playUIClick } from '../utils/soundManager';
 interface SettingsProps {
   open: boolean;
   onClose: () => void;
+  onUnstick?: () => void;
 }
 
-export function Settings({ open, onClose }: SettingsProps) {
+export function Settings({ open, onClose, onUnstick }: SettingsProps) {
   const screen = useGameStore((s) => s.screen);
   const audioVolume = useGameStore((s) => s.settings.audioVolume);
   const performanceMode = useGameStore((s) => s.settings.performanceMode);
@@ -123,6 +124,18 @@ export function Settings({ open, onClose }: SettingsProps) {
 
           {/* Divider */}
           <div className="settings-divider" />
+
+          {/* In-game only options */}
+          {screen === 'game' && onUnstick && (
+            <div className="settings-item">
+              <button
+                className="settings-quit"
+                onClick={() => { playUIClick(); onUnstick(); onClose(); }}
+              >
+                Unstick Dice
+              </button>
+            </div>
+          )}
 
           {/* Main Menu — only visible during game, not from menu screen */}
           {screen === 'game' && (

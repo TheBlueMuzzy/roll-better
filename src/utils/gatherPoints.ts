@@ -11,7 +11,9 @@ import {
  * Scales up with more dice, clamped between 1.0 and 3.0.
  */
 export function getGatherRadius(count: number): number {
-  return Math.min(3.0, Math.max(1.0, 0.5 + count * 0.25));
+  // Linear interpolation: 2 dice = 1.0, 12 dice = 2.0
+  const t = Math.max(0, Math.min(1, (count - 2) / 10));
+  return 1.0 + t * 1.0;
 }
 
 /**
@@ -34,20 +36,27 @@ export function getGatherPoints(
 
   const r = radius ?? getGatherRadius(count);
   const offset = rotationOffset ?? 0;
-  const y = DIE_SIZE / 2;
+  const y = DIE_SIZE * 1.875; // ~1.5 units above floor
 
-  // Arena bounds with 0.5 inset so dice don't clip walls
-  const minX = ROLLING_X_OFFSET - ARENA_HALF_X + 0.5;
-  const maxX = ROLLING_X_OFFSET + ARENA_HALF_X - 0.5;
-  const minZ = ROLLING_Z_MIN + 0.5;
-  const maxZ = ROLLING_Z_MAX - 0.5;
+  // Clamp the CENTER so the entire ring fits inside the arena.
+  // The ring extends ±radius from center, so center must stay
+  // radius + margin away from each wall.
+  const margin = r + 0.5; // radius + wall clearance
+  const cMinX = ROLLING_X_OFFSET - ARENA_HALF_X + margin;
+  const cMaxX = ROLLING_X_OFFSET + ARENA_HALF_X - margin;
+  const cMinZ = ROLLING_Z_MIN + margin;
+  const cMaxZ = ROLLING_Z_MAX - margin;
+
+  // If arena is too small for the ring, just use the arena center
+  const cx = cMinX < cMaxX ? Math.max(cMinX, Math.min(cMaxX, center[0])) : ROLLING_X_OFFSET;
+  const cz = cMinZ < cMaxZ ? Math.max(cMinZ, Math.min(cMaxZ, center[2])) : (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2;
 
   const points: [number, number, number][] = [];
 
   for (let i = 0; i < count; i++) {
     const angle = offset + (i / count) * Math.PI * 2;
-    const x = Math.max(minX, Math.min(maxX, center[0] + r * Math.cos(angle)));
-    const z = Math.max(minZ, Math.min(maxZ, center[2] + r * Math.sin(angle)));
+    const x = cx + r * Math.cos(angle);
+    const z = cz + r * Math.sin(angle);
     points.push([x, y, z]);
   }
 

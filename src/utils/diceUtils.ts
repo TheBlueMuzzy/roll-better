@@ -62,3 +62,23 @@ export function getFaceUp(quaternion: Quaternion): number {
 
   return bestValue;
 }
+
+/**
+ * Like getFaceUp but also returns the confidence (dot product with up).
+ * dot=1.0 means perfectly flat, dot<0.9 means canted.
+ */
+export function getFaceUpConfidence(quaternion: Quaternion): { value: number; dot: number } {
+  let bestValue = 1;
+  let bestDot = -Infinity;
+
+  for (const face of FACE_NORMALS) {
+    _scratch.copy(face.normal).applyQuaternion(quaternion);
+    const dot = _scratch.dot(WORLD_UP);
+    if (dot > bestDot) {
+      bestDot = dot;
+      bestValue = face.value;
+    }
+  }
+
+  return { value: bestValue, dot: bestDot };
+}

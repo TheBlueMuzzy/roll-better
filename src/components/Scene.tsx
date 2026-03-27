@@ -19,6 +19,7 @@ import { playSelectDie, playDeselectDie } from '../utils/soundManager';
 // --- Public API exposed via ref ---
 export interface SceneHandle {
   rollAll(): void;
+  unstickAll(): void;
 }
 
 // --- Props ---
@@ -136,6 +137,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       rollAll() {
         onRollStart?.();
         dicePoolRef.current?.rollAll();
+      },
+      unstickAll() {
+        dicePoolRef.current?.unstickAll();
       },
     }));
 

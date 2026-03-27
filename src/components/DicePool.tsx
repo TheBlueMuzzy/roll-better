@@ -15,6 +15,7 @@ const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
 // --- Public API exposed via ref ---
 export interface DicePoolHandle {
   rollAll(): void;
+  unstickAll(): void;
 }
 
 // --- Props ---
@@ -90,7 +91,7 @@ function ExitingDie({ position, rotation, color }: {
 // Lays dice out in a centered grid slightly above the floor
 export function getSpawnPositions(count: number): [number, number, number][] {
   const columns = Math.ceil(Math.sqrt(count));
-  const spacing = DIE_SIZE + 0.3; // die width + gap
+  const spacing = DIE_SIZE + 0.6; // die width + generous gap (prevents collider overlap)
   const positions: [number, number, number][] = [];
 
   for (let i = 0; i < count; i++) {
@@ -103,11 +104,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
     const x = ROLLING_X_OFFSET + (col - (totalCols - 1) / 2) * spacing;
     const z = (row - (totalRows - 1) / 2) * spacing + ROLLING_Z_CENTER;
 
-    // Add small random offset for visual variety
-    const jitterX = (Math.random() - 0.5) * 0.2; // ±0.1
-    const jitterZ = (Math.random() - 0.5) * 0.2;
-
-    positions.push([x + jitterX, DIE_SIZE / 2 + 0.1, z + jitterZ]);
+    positions.push([x, DIE_SIZE / 2 + 0.1, z]);
   }
 
   return positions;
@@ -257,20 +254,32 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       hasFired.current = true;
       if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
 
-      console.log('[DicePool] ALL SETTLED → results:', [...results.current], 'count:', count);
+      console.log('[DicePool] ALL SETTLED → triggering snap-flat cascade');
 
-      const paired = results.current.map((v, i) => ({
-        value: v!,
-        position: positions.current[i]!,
-        rotation: rotations.current[i]!,
-      }));
-      paired.sort((a, b) => a.value - b.value);
-      const sortedValues = paired.map((p) => p.value);
-      const sortedPositions = paired.map((p) => p.position);
-      const sortedRotations = paired.map((p) => p.rotation);
+      // Trigger snap-flat cascade on all dice with 30ms stagger
+      const STAGGER = 0.03;
+      for (let i = 0; i < count; i++) {
+        dieRefs.current[i]?.snapFlat(i * STAGGER);
+      }
 
-      playAllSettled();
-      onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
+      // After cascade completes, fire actual results
+      const cascadeDuration = count * STAGGER + 0.18; // stagger + animation time
+      setTimeout(() => {
+        console.log('[DicePool] Snap cascade done → results:', [...results.current], 'count:', count);
+
+        const paired = results.current.map((v, i) => ({
+          value: v!,
+          position: positions.current[i]!,
+          rotation: rotations.current[i]!,
+        }));
+        paired.sort((a, b) => a.value - b.value);
+        const sortedValues = paired.map((p) => p.value);
+        const sortedPositions = paired.map((p) => p.position);
+        const sortedRotations = paired.map((p) => p.rotation);
+
+        playAllSettled();
+        onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
+      }, cascadeDuration * 1000);
     }, [onAllSettled, count]);
 
     // Start fallback timer — if all dice have a result, fire after short delay
@@ -288,7 +297,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
           console.log('[DicePool] Fallback settle — dice stopped moving, firing results');
           fireResults();
         }
-      }, 500);
+      }, 200);
     }, [count, fireResults]);
 
     // Result callback factory — marks die as settled, checks if ALL settled
@@ -346,8 +355,12 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       gatherElapsedRef.current += dt;
 
       // Rotation speed ramps from 0.5 to 4.0 rad/s over 3 seconds
-      const rampT = Math.min(gatherElapsedRef.current / 3.0, 1.0);
-      const rotationSpeed = 0.5 + rampT * 3.5;
+      const rampT = Math.min(gatherElapsedRef.current / 2.25, 1.0);
+      // 2 dice spin fast (max 12), 12 dice spin slower (max 6), linear between
+      const countT = Math.max(0, Math.min(1, (count - 2) / 10));
+      const maxSpeed = 12 - countT * 6;    // 2d=12, 12d=6
+      const baseSpeed = 1.5 - countT * 0.7; // 2d=1.5, 12d=0.8
+      const rotationSpeed = baseSpeed + rampT * (maxSpeed - baseSpeed);
       rotationOffsetRef.current += rotationSpeed * dt;
 
       const goals = getGatherPoints(
@@ -381,6 +394,13 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         // Roll each die from wherever it currently sits
         for (let i = 0; i < count; i++) {
           dieRefs.current[i]?.roll();
+        }
+      },
+
+      unstickAll() {
+        const gridPositions = getSpawnPositions(count);
+        for (let i = 0; i < count; i++) {
+          dieRefs.current[i]?.unstick(gridPositions[i], i * 0.04);
         }
       },
     }));
