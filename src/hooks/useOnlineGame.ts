@@ -163,6 +163,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
                   s.setHasSubmittedUnlock(false);
                 }
                 s.setPhase(newPhase);
+                // Clear stale gather state if server moves us away from idle/gathering
+                if (useGameStore.getState().gatherState.active) {
+                  useGameStore.getState().stopGathering();
+                }
               }
             }, 100);
             // Safety: force-apply after 5s to prevent infinite polling
@@ -187,6 +191,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
                   s.setHasSubmittedUnlock(false);
                 }
                 s.setPhase(newPhase);
+                // Clear stale gather state if server moves us away from idle/gathering
+                if (useGameStore.getState().gatherState.active) {
+                  useGameStore.getState().stopGathering();
+                }
               }
             }, 5000);
           } else {
@@ -201,6 +209,10 @@ export function useOnlineGame(): UseOnlineGameReturn {
               state.setHasSubmittedUnlock(false);
             }
             state.setPhase(newPhase);
+            // Clear stale gather state if server moves us away from idle/gathering
+            if (useGameStore.getState().gatherState.active) {
+              useGameStore.getState().stopGathering();
+            }
           }
           break;
         }

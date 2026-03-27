@@ -19,6 +19,10 @@ export interface PhysicsDieHandle {
   get isSettled(): boolean;
   /** Returns the last settled face value, or null if no roll completed yet */
   getLastResult(): number | null;
+  /** Reads the current face-up value live from the physics body */
+  getResult(): number | undefined;
+  /** Returns current position and rotation from the physics body */
+  getTransform(): { position: [number, number, number]; rotation: [number, number, number] } | null;
   setAttractTarget(target: [number, number, number] | null): void;
   /** Lift, rotate to best face, drop back — with stagger delay */
   snapFlat(delay: number): void;
@@ -128,6 +132,27 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
 
       getLastResult() {
         return lastResult.current;
+      },
+
+      getResult() {
+        const body = bodyRef.current;
+        if (!body) return undefined;
+        const rot = body.rotation();
+        const q = new Quaternion(rot.x, rot.y, rot.z, rot.w);
+        const { value } = getFaceUpConfidence(q);
+        return value;
+      },
+
+      getTransform() {
+        const body = bodyRef.current;
+        if (!body) return null;
+        const t = body.translation();
+        const r = body.rotation();
+        const euler = new Euler().setFromQuaternion(new Quaternion(r.x, r.y, r.z, r.w));
+        return {
+          position: [t.x, t.y, t.z] as [number, number, number],
+          rotation: [euler.x, euler.y, euler.z] as [number, number, number],
+        };
       },
 
       setAttractTarget(target: [number, number, number] | null) {

@@ -124,6 +124,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     const gatherElapsedRef = useRef(0);
     const rotationOffsetRef = useRef(0);
     const wasGatheringRef = useRef(false);
+    const rollStartTime = useRef(0);
 
     // Settle tracking — per-die booleans (handles dice bumping each other)
     const settled = useRef<boolean[]>(Array.from({ length: count }, () => false));
@@ -253,6 +254,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     const fireResults = useCallback(() => {
       if (hasFired.current) return;
       hasFired.current = true;
+      rollStartTime.current = 0;
       if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
 
       console.log('[DicePool] ALL SETTLED → triggering snap-flat cascade');
@@ -350,12 +352,30 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         positions.current = Array.from({ length: count }, () => null);
         rotations.current = Array.from({ length: count }, () => null);
         hasFired.current = false;
+        rollStartTime.current = Date.now();
       } else if (!gatherActive && wasGatheringRef.current) {
         wasGatheringRef.current = false;
         for (let i = 0; i < count; i++) {
           dieRefs.current[i]?.setAttractTarget(null);
         }
         return;
+      }
+
+      // Absolute 10s settle timeout — prevents infinite oscillation (ISS-005)
+      if (!hasFired.current && rollStartTime.current > 0 && Date.now() - rollStartTime.current > 10000) {
+        console.warn('[DicePool] Absolute 10s settle timeout — force-firing results');
+        for (let i = 0; i < count; i++) {
+          if (results.current[i] === null) {
+            const value = dieRefs.current[i]?.getResult();
+            const transform = dieRefs.current[i]?.getTransform();
+            if (value !== undefined && transform) {
+              results.current[i] = value;
+              positions.current[i] = transform.position;
+              rotations.current[i] = transform.rotation;
+            }
+          }
+        }
+        fireResults();
       }
 
       if (!gatherActive || !gatherTouchPosition) return;
@@ -394,6 +414,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         positions.current = Array.from({ length: count }, () => null);
         rotations.current = Array.from({ length: count }, () => null);
         hasFired.current = false;
+        rollStartTime.current = Date.now();
         initialFaces.current = new Map();
         preservedRotations.current = new Map();
         wasGatheringRef.current = false;
