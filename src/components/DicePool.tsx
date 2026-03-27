@@ -266,9 +266,20 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       }
 
       // After cascade completes, fire actual results
-      const cascadeDuration = count * STAGGER + 0.18; // stagger + animation time
+      // SNAP_LIFT_DUR=0.08 + SNAP_DROP_DUR=0.05 = 0.13s per die + stagger
+      const cascadeDuration = count * STAGGER + 0.15; // stagger + snap animation + small buffer
       setTimeout(() => {
         console.log('[DicePool] Snap cascade done → results:', [...results.current], 'count:', count);
+
+        // Re-read positions/rotations AFTER snapFlat so lock lerps start
+        // from the corrected pose (not the pre-snap canted pose)
+        for (let i = 0; i < count; i++) {
+          const transform = dieRefs.current[i]?.getTransform();
+          if (transform) {
+            positions.current[i] = transform.position;
+            rotations.current[i] = transform.rotation;
+          }
+        }
 
         const paired = results.current.map((v, i) => ({
           value: v!,

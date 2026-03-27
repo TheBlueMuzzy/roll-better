@@ -462,7 +462,12 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
 
         if (t >= 1.0) {
           snapPhaseRef.current = 'done';
+          // Restore gravity but immediately sleep the body so it doesn't
+          // bounce from the tiny gap between snapStartY and true floor contact
+          body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+          body.setAngvel({ x: 0, y: 0, z: 0 }, true);
           body.setGravityScale(1, true);
+          body.sleep();
         }
         return;
       }
