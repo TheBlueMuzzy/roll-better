@@ -26,11 +26,10 @@ export interface SceneHandle {
 interface SceneProps {
   onRollStart?: () => void;
   onResults?: (results: number[]) => void;
-  onRoll?: () => void;
 }
 
 export const Scene = forwardRef<SceneHandle, SceneProps>(
-  function Scene({ onRollStart, onResults, onRoll }, ref) {
+  function Scene({ onRollStart, onResults }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
 
     // Read store values
@@ -224,14 +223,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     function handleFloorPointerUp() {
       if (gatherState.active) {
         stopGathering();
+        // Gather-release IS the roll — dice have orbital momentum + tumble.
+        // Only need to transition to 'rolling' phase so settle→results pipeline fires.
+        onRollStart?.();
       }
-    }
-
-    function handleFloorClick() {
-      // Only allow rolling when in idle phase
-      // During unlocking, player uses UNLOCK button in HUD
-      if (phase !== 'idle') return;
-      onRoll?.();
     }
 
     // Safety: if store not initialized yet, render just lighting/environment
@@ -408,7 +403,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         <Physics gravity={[0, -50, 0]}>
           {/* Rolling area: floor + invisible boundary walls */}
           <RollingArea
-            onFloorClick={handleFloorClick}
             onFloorPointerDown={handleFloorPointerDown}
             onFloorPointerMove={handleFloorPointerMove}
             onFloorPointerUp={handleFloorPointerUp}

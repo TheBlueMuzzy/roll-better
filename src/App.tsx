@@ -514,6 +514,15 @@ function App() {
   }, [setPhase]);
 
   const handleRollStart = useCallback(() => {
+    if (useGameStore.getState().phase !== 'idle') return;
+
+    // Init audio on first user interaction (autoplay policy)
+    if (!audioInited.current) {
+      audioInited.current = true;
+      initAudio();
+      setVolume(useGameStore.getState().settings.audioVolume);
+    }
+
     setPhase('rolling');
   }, [setPhase]);
 
@@ -545,7 +554,6 @@ function App() {
               ref={sceneRef}
               onRollStart={handleRollStart}
               onResults={handleResults}
-              onRoll={handleRoll}
             />
           </Canvas>
           <HUD

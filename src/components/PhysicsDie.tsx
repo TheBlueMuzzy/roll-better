@@ -160,6 +160,12 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
             body.collider(c).setSensor(false);
             body.collider(c).setHalfExtents({ x: fullHalf, y: fullHalf, z: fullHalf });
           }
+          // Apply random torque impulse for tumble feel on release
+          // Dice already have linear velocity from orbital tracking (setLinvel)
+          body.applyTorqueImpulse(
+            { x: randRange(-2, 2), y: randRange(-2, 2), z: randRange(-2, 2) },
+            true,
+          );
           // Start visual-only scale-up
           releaseElapsedRef.current = 0;
           attractScaleRef.current = 0.5;

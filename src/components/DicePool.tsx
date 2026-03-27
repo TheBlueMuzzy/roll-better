@@ -341,6 +341,14 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         gatherElapsedRef.current = 0;
         rotationOffsetRef.current = 0;
         wasGatheringRef.current = true;
+        // Reset settle tracking for this new roll cycle
+        // (rollAll does this too, but gather-release skips rollAll)
+        if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
+        settled.current = Array.from({ length: count }, () => false);
+        results.current = Array.from({ length: count }, () => null);
+        positions.current = Array.from({ length: count }, () => null);
+        rotations.current = Array.from({ length: count }, () => null);
+        hasFired.current = false;
       } else if (!gatherActive && wasGatheringRef.current) {
         wasGatheringRef.current = false;
         for (let i = 0; i < count; i++) {
