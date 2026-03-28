@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { RigidBody, CuboidCollider, type RapierRigidBody } from '@react-three/rapier';
 import { useFrame } from '@react-three/fiber';
+import { Plane, Vector3 } from 'three';
 
 // --- Rolling area X offset (right half of split layout) ---
 export const ROLLING_X_OFFSET = 5;
@@ -26,6 +27,13 @@ export const DIE_SIZE = 0.8;
 // Wall thickness and height
 const WALL_THICKNESS = 0.25;
 const WALL_HEIGHT = 8; // tall enough to catch dice at peak of roll arc
+
+// Orbit height — must match gatherPoints.ts
+export const ORBIT_HEIGHT = 3.0;
+
+// Reusable plane + vector for ray-plane intersection (no allocations per frame)
+const _orbitPlane = new Plane(new Vector3(0, 1, 0), -ORBIT_HEIGHT);
+const _intersectPoint = new Vector3();
 
 // Wall nudge amount (quarter die width)
 const WALL_NUDGE = DIE_SIZE / 4; // 0.2
@@ -121,14 +129,18 @@ export const RollingArea = forwardRef<RollingAreaHandle, RollingAreaProps>(
             onPointerDown={(e) => {
               if (onFloorPointerDown) {
                 e.stopPropagation();
-                const p = e.point;
-                onFloorPointerDown([p.x, p.y, p.z]);
+                // Intersect camera ray with orbit-height plane so the orbit
+                // appears directly under the cursor regardless of camera angle
+                if (e.ray.intersectPlane(_orbitPlane, _intersectPoint)) {
+                  onFloorPointerDown([_intersectPoint.x, 0, _intersectPoint.z]);
+                }
               }
             }}
             onPointerMove={(e) => {
               if (onFloorPointerMove) {
-                const p = e.point;
-                onFloorPointerMove([p.x, p.y, p.z]);
+                if (e.ray.intersectPlane(_orbitPlane, _intersectPoint)) {
+                  onFloorPointerMove([_intersectPoint.x, 0, _intersectPoint.z]);
+                }
               }
             }}
             onPointerUp={() => {

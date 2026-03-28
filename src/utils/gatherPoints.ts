@@ -35,7 +35,7 @@ export function getGatherPoints(
 
   const r = radius ?? getGatherRadius(count);
   const offset = rotationOffset ?? 0;
-  const y = 3.0; // float height — matches initial lift impulse (y=3)
+  const y = 3.0; // float height — matches initial lift impulse
 
   // Clamp the CENTER so the entire ring fits inside the arena.
   // The ring extends ±radius from center, so center must stay
