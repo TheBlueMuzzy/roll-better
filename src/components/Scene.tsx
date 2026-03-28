@@ -4,6 +4,7 @@ import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, DIE_SIZE } from './RollingArea';
+import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
 import { PlayerRow } from './PlayerRow';
@@ -32,6 +33,7 @@ interface SceneProps {
 export const Scene = forwardRef<SceneHandle, SceneProps>(
   function Scene({ onRollStart, onResults }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
+    const rollingAreaRef = useRef<RollingAreaHandle>(null);
 
     // Read store values
     const phase = useGameStore((s) => s.phase);
@@ -385,12 +387,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           potentialScore={(() => {
             const totalDice = player.poolSize + player.lockedDice.length;
             const projectedPool = Math.max(0, totalDice - 8);
-            const penalties = [1, 0, 1, 1];
-            let penalty = 0;
-            for (let i = 0; i < projectedPool && i < penalties.length; i++) {
-              penalty += penalties[i];
-            }
-            return Math.max(0, 8 - penalty);
+            return Math.max(0, 8 - projectedPool * 2);
           })()}
         />
 
@@ -412,6 +409,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         <Physics gravity={[0, -50, 0]}>
           {/* Rolling area: floor + invisible boundary walls */}
           <RollingArea
+            ref={rollingAreaRef}
             onFloorPointerDown={handleFloorPointerDown}
             onFloorPointerMove={handleFloorPointerMove}
             onFloorPointerUp={handleFloorPointerUp}
@@ -432,6 +430,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             remainingDicePositions={remainingDicePositions}
             remainingDiceRotations={remainingDiceRotations}
             onAllSettled={handleAllSettled}
+            onWallNudge={() => rollingAreaRef.current?.nudgeWalls()}
+            onAutoRelease={handleFloorPointerUp}
           />
         </Physics>
 

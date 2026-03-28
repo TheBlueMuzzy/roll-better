@@ -3,7 +3,6 @@ import {
   ARENA_HALF_X,
   ROLLING_Z_MIN,
   ROLLING_Z_MAX,
-  DIE_SIZE,
 } from '../components/RollingArea';
 
 /**
@@ -36,7 +35,7 @@ export function getGatherPoints(
 
   const r = radius ?? getGatherRadius(count);
   const offset = rotationOffset ?? 0;
-  const y = DIE_SIZE * 1.875; // ~1.5 units above floor
+  const y = 3.0; // float height — matches initial lift impulse (y=3)
 
   // Clamp the CENTER so the entire ring fits inside the arena.
   // The ring extends ±radius from center, so center must stay

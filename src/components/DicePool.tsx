@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
-import { getGatherPoints } from '../utils/gatherPoints';
+import { getGatherPoints, getGatherRadius } from '../utils/gatherPoints';
 import { useGameStore } from '../store/gameStore';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX, ROLLING_X_OFFSET } from './RollingArea';
 import type { Group } from 'three';
@@ -33,6 +33,8 @@ interface DicePoolProps {
   remainingDicePositions?: [number, number, number][];
   remainingDiceRotations?: [number, number, number][];
   onAllSettled?: (values: number[], positions: [number, number, number][], rotations: [number, number, number][]) => void;
+  onWallNudge?: () => void;
+  onAutoRelease?: () => void;
 }
 
 // --- ExitingDie: visual-only die that plays pop+shrink animation ---
@@ -112,7 +114,7 @@ export function getSpawnPositions(count: number): [number, number, number][] {
 }
 
 export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
-  function DicePool({ count, color, poolExiting, poolSpawning, spawnTargetPositions, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled }, ref) {
+  function DicePool({ count, color, poolExiting, poolSpawning, spawnTargetPositions, newDiceValues, newDicePositions, newDiceRotations, remainingDiceValues, remainingDicePositions, remainingDiceRotations, onAllSettled, onWallNudge, onAutoRelease }, ref) {
     // Refs for each PhysicsDie
     const dieRefs = useRef<(PhysicsDieHandle | null)[]>(
       Array.from({ length: count }, () => null),
@@ -259,6 +261,9 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
 
       console.log('[DicePool] ALL SETTLED → triggering snap-flat cascade');
 
+      // Nudge walls outward to release any dice canted against them
+      onWallNudge?.();
+
       // Trigger snap-flat cascade on all dice with 30ms stagger
       const STAGGER = 0.03;
       for (let i = 0; i < count; i++) {
@@ -294,7 +299,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         playAllSettled();
         onAllSettled?.(sortedValues, sortedPositions, sortedRotations);
       }, cascadeDuration * 1000);
-    }, [onAllSettled, count]);
+    }, [onAllSettled, onWallNudge, count]);
 
     // Start fallback timer — if all dice have a result, fire after short delay
     // even if some dice keep cycling sleep/wake (e.g. stacked on each other)
@@ -366,8 +371,44 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         rollStartTime.current = Date.now();
       } else if (!gatherActive && wasGatheringRef.current) {
         wasGatheringRef.current = false;
+        // Compute tangential release velocity for each die
+        const center = gatherTouchPosition;
+        const speed = rotationOffsetRef.current > 0 ?
+          // Use last rotation speed — approximate from recent offset change
+          Math.min(gatherElapsedRef.current / 2.25, 1.0) : 0;
+        const countT2 = Math.max(0, Math.min(1, (count - 2) / 10));
+        const maxSpd = 45 - countT2 * 20;
+        const baseSpd = 7.5 - countT2 * 3.5;
+        const curvedSpd = speed * speed * speed;
+        const rotSpeed = baseSpd + curvedSpd * (maxSpd - baseSpd);
+
         for (let i = 0; i < count; i++) {
-          dieRefs.current[i]?.setAttractTarget(null);
+          const die = dieRefs.current[i];
+          if (!die) continue;
+          const transform = die.getTransform();
+          if (transform && center) {
+            // Radius vector from center to die (XZ plane)
+            const rx = transform.position[0] - center[0];
+            const rz = transform.position[2] - center[2];
+            const r = Math.sqrt(rx * rx + rz * rz);
+            if (r > 0.01) {
+              // Tangential direction: perpendicular to radius
+              const tx = -rz / r;
+              const tz = rx / r;
+              const tangentialSpeed = rotSpeed * r;
+              // Fling outward: tangential + some radial (outward push)
+              const radialPush = tangentialSpeed * 0.3;
+              die.setAttractTarget(null, [
+                tx * tangentialSpeed + (rx / r) * radialPush,
+                -2, // slight downward to start the fall
+                tz * tangentialSpeed + (rz / r) * radialPush,
+              ]);
+            } else {
+              die.setAttractTarget(null);
+            }
+          } else {
+            die.setAttractTarget(null);
+          }
         }
         return;
       }
@@ -394,19 +435,43 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       const dt = Math.min(delta, 0.05);
       gatherElapsedRef.current += dt;
 
-      // Rotation speed ramps from 0.5 to 4.0 rad/s over 3 seconds
-      const rampT = Math.min(gatherElapsedRef.current / 2.25, 1.0);
-      // 2 dice spin fast (max 12), 12 dice spin slower (max 6), linear between
+      const RAMP_DUR = 2.5;
+      const SHRINK_DUR = 2.25; // scale + radius shrink over 0→2.25s
+
+      // Auto-release at max charge
+      if (gatherElapsedRef.current >= RAMP_DUR) {
+        onAutoRelease?.();
+        return;
+      }
+
+      // Hockey stick speed curve: t³ for ease-in acceleration
+      const rampT = Math.min(gatherElapsedRef.current / SHRINK_DUR, 1.0);
       const countT = Math.max(0, Math.min(1, (count - 2) / 10));
-      const maxSpeed = 12 - countT * 6;    // 2d=12, 12d=6
-      const baseSpeed = 1.5 - countT * 0.7; // 2d=1.5, 12d=0.8
-      const rotationSpeed = baseSpeed + rampT * (maxSpeed - baseSpeed);
+      const maxSpeed = 45 - countT * 20;    // 2d=45, 12d=25
+      const baseSpeed = 7.5 - countT * 3.5; // 2d=7.5, 12d=4.0
+      const curvedT = rampT * rampT * rampT; // cubic ease-in (hockey stick)
+      const rotationSpeed = baseSpeed + curvedT * (maxSpeed - baseSpeed);
       rotationOffsetRef.current += rotationSpeed * dt;
+
+      // Dice shrink 1.0 → 0.25 over 0→2.25s
+      const shrinkT = Math.min(gatherElapsedRef.current / SHRINK_DUR, 1.0);
+      const dieScale = 1.0 - 0.75 * shrinkT; // 1.0 → 0.25
+      for (let i = 0; i < count; i++) {
+        dieRefs.current[i]?.setAttractScale(dieScale);
+      }
+
+      // Radius shrinks over same period — stop at size where 0.25 dice don't collide
+      // At 0.25 scale, die width = 0.2. Need spacing > 0.4 between centers.
+      // Min safe radius = 0.4 * count / (2π). For 12: ~0.76
+      const baseRadius = getGatherRadius(count);
+      const minRadius = Math.max(0.4, 0.065 * count); // safe floor per count
+      const radiusScale = 1.0 - shrinkT * (1.0 - minRadius / baseRadius);
+      const radius = baseRadius * Math.max(radiusScale, minRadius / baseRadius);
 
       const goals = getGatherPoints(
         gatherTouchPosition,
         count,
-        undefined,
+        radius,
         rotationOffsetRef.current
       );
 

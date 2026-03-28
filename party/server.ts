@@ -1198,18 +1198,14 @@ export default class RollBetterServer implements Party.Server {
     if (!this.gameState) return;
 
     // Compute round score for each winner
-    const penalties = [1, 0, 1, 1];
+    // 8d=8pts, 9d=6pts, 10d=4pts, 11d=2pts, 12d=0pts
     const winnersData: { playerId: string; roundScore: number }[] = [];
 
     for (const winnerId of winnerIds) {
       const winner = this.gameState.players.find((p) => p.id === winnerId);
       if (!winner) continue;
 
-      let penalty = 0;
-      for (let i = 0; i < winner.poolSize && i < penalties.length; i++) {
-        penalty += penalties[i];
-      }
-      const roundScore = Math.max(0, 8 - penalty);
+      const roundScore = Math.max(0, 8 - winner.poolSize * 2);
       winner.score += roundScore;
       winnersData.push({ playerId: winnerId, roundScore });
       this.log(`Scoring: ${winner.name} won with ${roundScore} points (pool: ${winner.poolSize}) — total: ${winner.score}`);

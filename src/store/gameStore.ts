@@ -914,13 +914,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Only score players who completed the goal (all 8 slots locked)
       if (p.lockedDice.length === 8) {
         // poolSize = remaining unlocked dice at time of win
-        // Penalty per extra die: 9th=-1, 10th=0, 11th=-1, 12th=-1
-        const penalties = [1, 0, 1, 1];
-        let penalty = 0;
-        for (let i = 0; i < p.poolSize && i < penalties.length; i++) {
-          penalty += penalties[i];
-        }
-        computedRoundScore = Math.max(0, 8 - penalty);
+        // 8d=8pts, 9d=6pts, 10d=4pts, 11d=2pts, 12d=0pts
+        computedRoundScore = Math.max(0, 8 - p.poolSize * 2);
         return { ...p, score: p.score + computedRoundScore };
       }
       return p;

@@ -23,7 +23,9 @@ export interface PhysicsDieHandle {
   getResult(): number | undefined;
   /** Returns current position and rotation from the physics body */
   getTransform(): { position: [number, number, number]; rotation: [number, number, number] } | null;
-  setAttractTarget(target: [number, number, number] | null): void;
+  setAttractTarget(target: [number, number, number] | null, releaseVelocity?: [number, number, number]): void;
+  /** Override attract scale (called by DicePool during gather) */
+  setAttractScale(scale: number): void;
   /** Lift, rotate to best face, drop back — with stagger delay */
   snapFlat(delay: number): void;
   /** Smoothly lerp to position with best face up */
@@ -49,6 +51,8 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
     const lastResult = useRef<number | null>(null);
     const attractTargetRef = useRef<[number, number, number] | null>(null);
     const attractElapsedRef = useRef(0);
+    const attractStuckTimer = useRef(0);   // time spent not moving while attracting
+    const attractLastPos = useRef<[number, number, number]>([0, 0, 0]);
     // Snap-flat animation state
     const snapDelayRef = useRef(-1);      // countdown before snap starts (-1 = inactive)
     const snapPhaseRef = useRef<'waiting' | 'lifting' | 'dropping' | 'done'>('done');
@@ -65,8 +69,9 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
     const unstickTargetPosRef = useRef<[number, number, number]>([0, 0, 0]);
     const unstickStartQuatRef = useRef(new Quaternion());
     const unstickTargetQuatRef = useRef(new Quaternion());
-    const attractScaleRef = useRef(1.0);     // current visual/collider scale (1.0 = full, 0.75 = shrunk)
+    const attractScaleRef = useRef(1.0);     // current visual/collider scale (1.0 = full, 0.25 = shrunk)
     const releaseElapsedRef = useRef(-1);     // -1 = not releasing, >=0 = scaling back up
+    const releaseStartScale = useRef(0.25);  // scale at moment of release
     const visualGroupRef = useRef<import('three').Group>(null);
 
 
@@ -155,9 +160,11 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         };
       },
 
-      setAttractTarget(target: [number, number, number] | null) {
+      setAttractTarget(target: [number, number, number] | null, releaseVelocity?: [number, number, number]) {
         if (target && !attractTargetRef.current) {
           attractElapsedRef.current = 0;
+          attractStuckTimer.current = 0;
+          attractLastPos.current = [0, 0, 0];
           if (bodyRef.current) {
             bodyRef.current.wakeUp();
             bodyRef.current.setGravityScale(0, true);
@@ -179,23 +186,54 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           body.setTranslation({ x: lastGoal[0], y: lastGoal[1], z: lastGoal[2] }, true);
           body.setGravityScale(1, true);
           isRolling.current = true;
-          // Restore full collider + solid mode in one frame
-          const fullHalf = DIE_SIZE / 2;
+          // Restore solid mode but with collision group that ignores other dice.
+          // During scale-up, dice colliders grow while still close together — without
+          // this, they'd overlap and Rapier would push them apart violently.
+          // Group 1 membership + filter for group 0 only = collide with floor/walls,
+          // not other dice (also in group 1). Restored to default on scale-up complete.
           for (let c = 0; c < body.numColliders(); c++) {
             body.collider(c).setSensor(false);
-            body.collider(c).setHalfExtents({ x: fullHalf, y: fullHalf, z: fullHalf });
+            // membership=0x0002 (group 1), filter=0xFFFD (all except group 1)
+            body.collider(c).setCollisionGroups((0x0002 << 16) | 0xFFFD);
           }
-          // Apply random torque impulse for tumble feel on release
-          // Dice already have linear velocity from orbital tracking (setLinvel)
+          // Apply tangential velocity from orbit (computed by DicePool)
+          if (releaseVelocity) {
+            body.setLinvel({ x: releaseVelocity[0], y: releaseVelocity[1], z: releaseVelocity[2] }, true);
+          }
+          // Torque impulse for tumble feel
           body.applyTorqueImpulse(
-            { x: randRange(-2, 2), y: randRange(-2, 2), z: randRange(-2, 2) },
+            { x: randRange(-4, 4), y: randRange(-4, 4), z: randRange(-4, 4) },
             true,
           );
-          // Start visual-only scale-up
+          // Quick tap boost — if barely moving, add upward + lateral impulse
+          const vel = body.linvel();
+          const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+          if (speed < 3) {
+            body.applyImpulse(
+              { x: randRange(-1.5, 1.5), y: randRange(4, 7), z: randRange(-1.5, 1.5) },
+              true,
+            );
+          }
+          // Start scale-up (collider + visual ramp together from current size)
+          releaseStartScale.current = attractScaleRef.current;
           releaseElapsedRef.current = 0;
-          attractScaleRef.current = 0.5;
         }
         attractTargetRef.current = target;
+      },
+
+      /** Override attract scale (called by DicePool during gather) */
+      setAttractScale(scale: number) {
+        attractScaleRef.current = scale;
+        if (visualGroupRef.current) {
+          visualGroupRef.current.scale.setScalar(DIE_SIZE * scale);
+        }
+        const body = bodyRef.current;
+        if (body) {
+          const half = (DIE_SIZE / 2) * scale;
+          for (let c = 0; c < body.numColliders(); c++) {
+            body.collider(c).setHalfExtents({ x: half, y: half, z: half });
+          }
+        }
       },
 
       snapFlat(delay: number) {
@@ -272,17 +310,31 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       const body = bodyRef.current;
       const dt = Math.min(delta, 0.05);
 
-      // Visual-only scale-up after release (collider already full, physics running normally)
+      // Scale-up after release: collider + visual ramp together over 0.6s
       if (releaseElapsedRef.current >= 0 && !attractTargetRef.current) {
         releaseElapsedRef.current += dt;
-        const scaleT = Math.min(releaseElapsedRef.current / 0.3, 1.0);
-        attractScaleRef.current = 0.5 + 0.5 * scaleT;
+        const scaleT = Math.min(releaseElapsedRef.current / 0.6, 1.0);
+        const newScale = releaseStartScale.current + (1.0 - releaseStartScale.current) * scaleT;
+        attractScaleRef.current = newScale;
         if (visualGroupRef.current) {
-          visualGroupRef.current.scale.setScalar(DIE_SIZE * attractScaleRef.current);
+          visualGroupRef.current.scale.setScalar(DIE_SIZE * newScale);
+        }
+        if (body) {
+          const half = (DIE_SIZE / 2) * newScale;
+          for (let c = 0; c < body.numColliders(); c++) {
+            body.collider(c).setHalfExtents({ x: half, y: half, z: half });
+          }
         }
         if (scaleT >= 1.0) {
           releaseElapsedRef.current = -1;
           attractScaleRef.current = 1.0;
+          // Scale-up complete — dice have separated, restore full collision
+          if (body) {
+            for (let c = 0; c < body.numColliders(); c++) {
+              // Default: all groups membership, all groups filter
+              body.collider(c).setCollisionGroups((0xFFFF << 16) | 0xFFFF);
+            }
+          }
         }
         // No return — let physics run normally during scale-up
       }
@@ -295,29 +347,30 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
 
       attractElapsedRef.current += dt;
 
-      // Shrink from 1.0 → 0.5 over first 1s
-      const shrinkT = Math.min(attractElapsedRef.current / 1.0, 1.0);
-      attractScaleRef.current = 1.0 - 0.5 * shrinkT;
-      if (visualGroupRef.current) {
-        visualGroupRef.current.scale.setScalar(DIE_SIZE * attractScaleRef.current);
-      }
-      const half = (DIE_SIZE / 2) * attractScaleRef.current;
-      for (let c = 0; c < body.numColliders(); c++) {
-        body.collider(c).setHalfExtents({ x: half, y: half, z: half });
-      }
+      // NOTE: Scale (1→0.25) is driven by DicePool via setAttractScale, not here
 
       const pos = body.translation();
-      const safeHeight = target[1]; // goal Y = the float height
 
-      // Phase 1: Rise straight up until clear of the floor
-      // Don't pull laterally until die has reached goal height
-      if (pos.y < safeHeight - 0.1) {
-        const liftSpeed = 8;
-        body.setLinvel({ x: 0, y: liftSpeed, z: 0 }, true);
-        return;
+      // Stuck detection: if die's position hasn't changed for 0.5s, teleport to goal
+      const pdx = pos.x - attractLastPos.current[0];
+      const pdy = pos.y - attractLastPos.current[1];
+      const pdz = pos.z - attractLastPos.current[2];
+      const posDelta = Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz);
+      attractLastPos.current = [pos.x, pos.y, pos.z];
+
+      if (attractElapsedRef.current > 0.1 && posDelta < 0.01) {
+        attractStuckTimer.current += dt;
+      } else {
+        attractStuckTimer.current = 0;
       }
 
-      // Phase 2: Pull toward goal (die is airborne)
+      if (attractStuckTimer.current > 0.5) {
+        body.setTranslation({ x: target[0], y: target[1], z: target[2] }, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        attractStuckTimer.current = 0;
+      }
+
+      // Pull toward goal — initial impulse handles lift, this handles tracking
       const dx = target[0] - pos.x;
       const dy = target[1] - pos.y;
       const dz = target[2] - pos.z;
@@ -391,6 +444,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         body.setGravityScale(1, true);
         for (let c = 0; c < body.numColliders(); c++) {
           body.collider(c).setSensor(false);
+          body.collider(c).setCollisionGroups((0xFFFF << 16) | 0xFFFF);
         }
       }
     });
