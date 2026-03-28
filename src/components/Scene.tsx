@@ -10,6 +10,7 @@ import { GoalIndicators } from './GoalIndicators';
 import { PlayerRow } from './PlayerRow';
 import { PlayerProfileGroup } from './PlayerProfileGroup';
 import { GoalProfileGroup } from './GoalProfileGroup';
+import { GatherVisuals } from './GatherVisuals';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
 import { SpawningDie } from './SpawningDie';
@@ -404,6 +405,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             depthWrite={false}
           />
         </mesh>
+
+        {/* Gather VFX — goal dots + vacuum ring (visual-only, outside Physics) */}
+        <GatherVisuals />
 
         {/* Physics world */}
         <Physics gravity={[0, -50, 0]}>
