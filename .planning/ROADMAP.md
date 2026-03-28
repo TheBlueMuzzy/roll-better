@@ -11,7 +11,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.2 Polish](milestones/v1.2-ROADMAP.md) (Phases 22-26) — SHIPPED 2026-03-06
 - ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
 - ✅ **v1.4 Landscape** — Phases 35-39 + 37.1 (SHIPPED 2026-03-26)
-- 🚧 **v1.5 Hold-to-Gather-Roll** — Phases 40-43 (in progress)
+- ✅ **v1.5 Hold-to-Gather-Roll** — Phases 40-43 (SHIPPED 2026-03-27)
 
 ## Phases
 
@@ -141,7 +141,7 @@ Plans:
 Plans:
 - [x] 39-01: Final cleanup & UAT
 
-### 🚧 v1.5 Hold-to-Gather-Roll — In Progress
+### ✅ v1.5 Hold-to-Gather-Roll — SHIPPED 2026-03-27
 
 **Milestone Goal:** Replace tap-to-roll with a hold-to-gather-roll gesture. Touch in rolling area generates orbiting goal points that attract dice via physics forces. Release drops dice with momentum for a natural, tactile roll feel.
 
@@ -183,7 +183,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 43-01: TBD
+- [x] 43-01: Polish pass — collision group release, hockey stick speed, scoring, UAT
 
 ## Progress
 
@@ -233,5 +233,5 @@ Plans:
 | 40. Touch Detection & Goals | v1.5 | 1/1 | Complete | 2026-03-26 |
 | 41. Physics Attractor & Orbit | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 42. Release & Roll Mechanics | v1.5 | 1/1 | Complete | 2026-03-27 |
-| 43. Polish & UAT | v1.5 | 0/? | Not started | - |
+| 43. Polish & UAT | v1.5 | 1/1 | Complete | 2026-03-27 |
 

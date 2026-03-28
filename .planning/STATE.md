@@ -1,26 +1,26 @@
 # Project State
 
 ## Current Status
-v1.5 Hold-to-Gather-Roll milestone started. Replacing tap-to-roll with physics-based hold-gather-release gesture.
+v1.5 Hold-to-Gather-Roll milestone COMPLETE. Hold-gather-release gesture shipped with collision group physics, hockey stick speed curve, and tangential release.
 
 ## Version
-0.2.0.86
+0.2.0.89
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** Hold-to-Gather-Roll gesture
+**Current focus:** Next milestone TBD
 
 ## Current Position
 
-Phase: 42 of 43 (Release & Roll Mechanics)
+Phase: 43 of 43 (Polish & UAT) — v1.5 COMPLETE
 Plan: 01 complete
-Status: Ready for Phase 43
-Last activity: 2026-03-27 — Plan 42-01 complete (release-roll pipeline + AFK + cleanup)
+Status: v1.5 milestone shipped
+Last activity: 2026-03-27 — Plan 43-01 complete (polish, release physics, scoring, UAT approved)
 
-Progress: ███████░░░ 75%
+Progress: ██████████ 100%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -80,10 +80,15 @@ Progress: ███████░░░ 75%
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Phase 42 complete. Ready for Phase 43.
+Stopped at: v1.5 milestone complete. All 4 phases shipped.
 Resume file: None
 
 ### Recent Changes (2026-03-27)
+- **v1.5 MILESTONE COMPLETE**: Hold-to-Gather-Roll shipped
+- **Phase 43 complete**: Polish & UAT
+  - 43-01: Collision group release physics, hockey stick speed, tangential fling, wall nudge, scoring
+  - Commits: e7e28ce, 905e9ba, 50f2814
+  - Key decisions: collision groups over sensors, goal height 3.0, t³ speed curve, scoring 8-poolSize*2
 - **Phase 42 complete**: Release & Roll Mechanics
   - 42-01: Gather-release triggers roll with tumble, AFK timer dual paths, tap-to-roll removed
   - Commits: 9502f84, c86e787, f1a6ced
