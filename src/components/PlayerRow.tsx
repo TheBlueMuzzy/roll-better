@@ -4,6 +4,7 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
+import { isInRollingZone } from '../utils/dropZone';
 import type { GamePhase, UnlockAnimation } from '../types/game';
 import { Plane, Vector3 } from 'three';
 import type { Group } from 'three';
@@ -147,7 +148,16 @@ function UnlockableDie({
           e.stopPropagation();
           (e.target as Element).releasePointerCapture?.(e.pointerId);
           isDragging.current = false;
-          cancelDragUnlock(); // temporary — Phase 44-02 adds drop zone check
+          const currentPos = dragUnlockState.currentPosition;
+          if (currentPos === null) {
+            // Barely moved — cancel
+            cancelDragUnlock();
+          } else if (isInRollingZone(currentPos)) {
+            console.log('VALID DROP');
+            cancelDragUnlock(); // Phase 45 will change to completeDragUnlock + commit
+          } else {
+            cancelDragUnlock();
+          }
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
