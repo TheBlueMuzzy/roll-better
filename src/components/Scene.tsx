@@ -1,4 +1,4 @@
-import { useRef, useState, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
@@ -17,7 +17,6 @@ import { CommittedDie } from './CommittedDie';
 import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
-import { playSelectDie, playDeselectDie } from '../utils/soundManager';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -42,7 +41,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const roundState = useGameStore((s) => s.roundState);
     const players = useGameStore((s) => s.players);
     const performanceMode = useGameStore((s) => s.settings.performanceMode);
-    const toggleUnlockSelection = useGameStore((s) => s.toggleUnlockSelection);
     const gatherState = useGameStore((s) => s.gatherState);
     const startGathering = useGameStore((s) => s.startGathering);
     const updateGatherPosition = useGameStore((s) => s.updateGatherPosition);
@@ -114,28 +112,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
       return result;
     }, [aiUnlockAnimations]);
 
-    const [shakingSlot, setShakingSlot] = useState<number | null>(null);
-
-    const handleToggleUnlock = useCallback((slotIndex: number) => {
-      const p = useGameStore.getState().players[0];
-      const isCurrentlySelected = p.selectedForUnlock.includes(slotIndex);
-
-      // If trying to select (not deselect), check 12-die cap
-      // Each unlock adds 1 net die: total after = pool + locked + numUnlocks
-      if (!isCurrentlySelected) {
-        const wouldBeTotal = p.poolSize + p.lockedDice.length + (p.selectedForUnlock.length + 1);
-        if (wouldBeTotal > 12) {
-          setShakingSlot(slotIndex);
-          setTimeout(() => setShakingSlot(null), 150);
-          return;
-        }
-        playSelectDie();
-      } else {
-        playDeselectDie();
-      }
-
-      toggleUnlockSelection(0, slotIndex);
-    }, [toggleUnlockSelection]);
 
     // Expose rollAll to parent (App) via ref
     useImperativeHandle(ref, () => ({
@@ -332,8 +308,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           lockedValues={lockedValues}
           phase={phase}
           selectedForUnlock={player.selectedForUnlock}
-          onToggleUnlock={handleToggleUnlock}
-          shakingSlot={shakingSlot}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
           canUnlock={!hasSubmittedUnlock && (12 - player.poolSize - player.lockedDice.length) > 0}

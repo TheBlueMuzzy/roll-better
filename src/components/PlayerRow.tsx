@@ -18,7 +18,6 @@ interface PlayerRowProps {
   lockedValues?: (number | null)[];
   phase?: GamePhase;
   selectedForUnlock?: number[];
-  onToggleUnlock?: (slotIndex: number) => void;
   shakingSlot?: number | null;
   animatingSlotIndices?: number[];
   unlockAnimations?: UnlockAnimation[];
@@ -44,7 +43,6 @@ function UnlockableDie({
   isSelected,
   selectable,
   shaking,
-  onToggle,
   rowZ,
 }: {
   slotIndex: number;
@@ -53,7 +51,6 @@ function UnlockableDie({
   isSelected: boolean;
   selectable: boolean;
   shaking: boolean;
-  onToggle: () => void;
   rowZ: number;
 }) {
   const groupRef = useRef<Group>(null);
@@ -232,7 +229,6 @@ export function PlayerRow({
   lockedValues = Array(SLOT_COUNT).fill(null),
   phase,
   selectedForUnlock = [],
-  onToggleUnlock,
   shakingSlot = null,
   animatingSlotIndices = [],
   unlockAnimations = [],
@@ -258,7 +254,7 @@ export function PlayerRow({
             return null;
           }
           // During unlocking — interactive with highlights (only if player can unlock)
-          if (isUnlocking && onToggleUnlock && canUnlock) {
+          if (isUnlocking && canUnlock) {
             const isThisSelected = selectedForUnlock.includes(i);
             const isSelectable = isThisSelected || remainingSelections > 0;
             return (
@@ -270,7 +266,6 @@ export function PlayerRow({
                 isSelected={isThisSelected}
                 selectable={isSelectable}
                 shaking={shakingSlot === i}
-                onToggle={() => onToggleUnlock(i)}
                 rowZ={z}
               />
             );
