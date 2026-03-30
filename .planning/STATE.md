@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 44 of 48 (Drag Detection & Drop Zone)
-Plan: 01 complete, 02 next
-Status: In progress
-Last activity: 2026-03-29 — Plan 44-01 complete (drag state + pointer events)
+Phase: 45 of 48 (Drop Commit & Highlight State)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-29 — Phase 44 complete (drag detection + drop zone)
 
-Progress: ██░░░░░░░░ 10%
+Progress: ██░░░░░░░░ 20%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -85,12 +85,11 @@ Stopped at: Plan 44-01 complete, ready for 44-02
 Resume file: None
 
 ### Recent Changes (2026-03-29)
-- **Plan 44-01 complete**: Drag handler on locked dice
-  - DragUnlockState in store (start/update/cancel/complete)
-  - UnlockableDie onClick → pointer drag events
-  - Die follows pointer in world coords, local Z conversion via rowZ
-  - Commits: c050d20, 74dd862
-  - Key decision: world coords in store, convert to local in useFrame
+- **Phase 44 COMPLETE**: Drag Detection & Drop Zone
+  - 44-01: DragUnlockState in store, UnlockableDie pointer drag events, die follows pointer
+  - 44-02: isInRollingZone() boundary check, snap-back lerp on invalid drop, UAT approved
+  - Commits: c050d20, 74dd862, edc5b8c, 1118a16
+  - Key decisions: world coords in store, local conversion via rowZ, 0.5u drop zone padding, delta*12 snap-back speed
 
 ### Recent Changes (2026-03-27)
 - **v1.5 MILESTONE COMPLETE**: Hold-to-Gather-Roll shipped

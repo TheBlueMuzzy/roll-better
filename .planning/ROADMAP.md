@@ -199,7 +199,7 @@ Plans:
 
 Plans:
 - [x] 44-01: Drag handler on locked dice + drag state in store
-- [ ] 44-02: Drop zone detection + snap-back animation
+- [x] 44-02: Drop zone detection + snap-back animation
 
 #### Phase 45: Drop Commit & Highlight State
 
@@ -290,7 +290,7 @@ Plans:
 | 41. Physics Attractor & Orbit | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 42. Release & Roll Mechanics | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 43. Polish & UAT | v1.5 | 1/1 | Complete | 2026-03-27 |
-| 44. Drag Detection & Drop Zone | v1.6 | 1/2 | In progress | - |
+| 44. Drag Detection & Drop Zone | v1.6 | 2/2 | Complete | 2026-03-29 |
 | 45. Drop Commit & Highlight State | v1.6 | 0/? | Not started | - |
 | 46. Inactivity Timer & Batch Mitosis | v1.6 | 0/? | Not started | - |
 | 47. Online Play Integration | v1.6 | 0/? | Not started | - |
