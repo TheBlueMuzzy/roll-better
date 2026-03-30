@@ -17,10 +17,14 @@ interface MitosisDieProps {
   onComplete?: () => void;
 }
 
-// Phase timing (seconds)
+// Phase timing (seconds) — full flight animation
 const LERP_END = 0.5;
 const SHAKE_END = 1.3;
 const SPLIT_END = 1.7;
+
+// In-place timing (when fromPos ≈ targetPos, skip lerp, brief shake)
+const IP_SHAKE_END = 0.3;
+const IP_SPLIT_END = 0.7;
 
 export function MitosisDie({
   fromPos,
@@ -45,6 +49,14 @@ export function MitosisDie({
   const yOffsetA = splitYRotations[0];
   const yOffsetB = splitYRotations[1];
 
+  // Detect in-place mitosis (die splits from where it was dropped, no flight needed)
+  const isInPlace = Math.abs(fromPos[0] - targetPos[0]) < 0.01 && Math.abs(fromPos[2] - targetPos[2]) < 0.01;
+
+  // Phase boundaries depend on whether this is in-place or full flight
+  const shakeStart = isInPlace ? 0 : LERP_END;
+  const shakeEnd = isInPlace ? IP_SHAKE_END : SHAKE_END;
+  const splitEnd = isInPlace ? IP_SPLIT_END : SPLIT_END;
+
   useFrame((_, delta) => {
     if (!groupRef.current || !dieGroupARef.current || !dieGroupBRef.current) return;
 
@@ -62,19 +74,19 @@ export function MitosisDie({
     // --- Sound triggers at phase boundaries ---
     if (!soundsRef.current.whoosh && elapsed >= 0) {
       soundsRef.current.whoosh = true;
-      playWhoosh();
+      if (!isInPlace) playWhoosh(); // skip whoosh for in-place (no flight)
     }
-    if (!soundsRef.current.rumble && elapsed >= LERP_END) {
+    if (!soundsRef.current.rumble && elapsed >= shakeStart) {
       soundsRef.current.rumble = true;
       playMitosisRumble();
     }
-    if (!soundsRef.current.pop && elapsed >= SHAKE_END) {
+    if (!soundsRef.current.pop && elapsed >= shakeEnd) {
       soundsRef.current.pop = true;
       playMitosisPop();
     }
 
-    if (elapsed < LERP_END) {
-      // ---- Phase 1: LERP (0 to 0.5s) ----
+    if (!isInPlace && elapsed < LERP_END) {
+      // ---- Phase 1: LERP (0 to 0.5s) — only for full flight ----
       // Single die flies from fromPos to targetPos
       const t = Math.min(elapsed / LERP_END, 1);
 
@@ -100,11 +112,11 @@ export function MitosisDie({
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;
 
-    } else if (elapsed < SHAKE_END) {
-      // ---- Phase 2: SHAKE (0.5s to 0.9s) ----
+    } else if (elapsed < shakeEnd) {
+      // ---- Phase 2: SHAKE ----
       // Die shakes at targetPos with increasing intensity
-      const phaseElapsed = elapsed - LERP_END;
-      const phaseDuration = SHAKE_END - LERP_END;
+      const phaseElapsed = elapsed - shakeStart;
+      const phaseDuration = shakeEnd - shakeStart;
       const phaseT = phaseElapsed / phaseDuration; // 0 to 1
 
       // Amplitude ramps from 0.02 to 0.12 (scaled by DIE_SIZE relative to original 0.589)
@@ -131,8 +143,8 @@ export function MitosisDie({
       dieGroupARef.current.visible = true;
       dieGroupBRef.current.visible = false;
 
-    } else if (elapsed < SPLIT_END) {
-      // ---- Phase 3: SPLIT (0.9s to 1.3s) ----
+    } else if (elapsed < splitEnd) {
+      // ---- Phase 3: SPLIT ----
       // Die divides into two, easing out to split targets
       if (!bVisibleRef.current) {
         bVisibleRef.current = true;
@@ -141,8 +153,8 @@ export function MitosisDie({
         dieGroupBRef.current.position.set(targetPos[0], targetPos[1], targetPos[2]);
       }
 
-      const phaseElapsed = elapsed - SHAKE_END;
-      const phaseDuration = SPLIT_END - SHAKE_END;
+      const phaseElapsed = elapsed - shakeEnd;
+      const phaseDuration = splitEnd - shakeEnd;
       const t = Math.min(phaseElapsed / phaseDuration, 1);
 
       // Ease-out cubic: fast start, decelerate

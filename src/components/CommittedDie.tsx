@@ -30,7 +30,7 @@ export function CommittedDie({ value, color, position, dropPosition }: Committed
     const x = dropPosition[0] + (position[0] - dropPosition[0]) * t;
     const z = dropPosition[2] + (position[2] - dropPosition[2]) * t;
     // Y: base height + parabolic arc (small hop)
-    const y = DIE_SIZE / 2 + Math.sin(t * Math.PI) * DIE_SIZE * 0.8;
+    const y = DIE_SIZE / 2 + Math.sin(t * Math.PI) * DIE_SIZE * 2.0;
 
     groupRef.current.position.set(x, y, z);
   });

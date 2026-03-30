@@ -205,12 +205,17 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
             { x: randRange(-4, 4), y: randRange(-4, 4), z: randRange(-4, 4) },
             true,
           );
-          // Quick tap boost — if barely moving, add upward + lateral impulse
+          // Quick tap boost — if barely moving, add upward + lateral impulse + extra spin
           const vel = body.linvel();
           const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
           if (speed < 3) {
             body.applyImpulse(
               { x: randRange(-1.5, 1.5), y: randRange(4, 7), z: randRange(-1.5, 1.5) },
+              true,
+            );
+            // Extra angular impulse so quick taps still tumble well
+            body.applyTorqueImpulse(
+              { x: randRange(-6, 6), y: randRange(-6, 6), z: randRange(-6, 6) },
               true,
             );
           }

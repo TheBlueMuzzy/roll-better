@@ -619,11 +619,14 @@ function App() {
     // Trigger mitosis animations
     useGameStore.getState().setUnlockAnimations(allAnimations);
 
-    // Wait for animations to complete
+    // Wait for animations to complete — in-place mitosis is faster (0.7s vs 1.7s)
     const lastDelay = allAnimations.length > 0
       ? allAnimations[allAnimations.length - 1].delay
       : 0;
-    const totalWait = (lastDelay * 1000) + 1800;
+    const allInPlace = allAnimations.every(a =>
+      Math.abs(a.fromPos[0] - a.targetPos[0]) < 0.01 && Math.abs(a.fromPos[2] - a.targetPos[2]) < 0.01
+    );
+    const totalWait = (lastDelay * 1000) + (allInPlace ? 800 : 1800);
 
     setTimeout(() => {
       finalizeBatchUnlock(allAnimations);
