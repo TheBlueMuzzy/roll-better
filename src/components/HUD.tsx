@@ -24,18 +24,13 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
 
   const player = players[0];
   const score = player?.score ?? 0;
-  const poolSize = player?.poolSize ?? 0;
   const isRolling = phase === 'rolling';
-  const selectedCount = player?.selectedForUnlock?.length ?? 0;
-  const lockedCount = player?.lockedDice?.length ?? 0;
-  const mustUnlock = poolSize === 0 && lockedCount < 8;
-  const maxUnlocks = Math.max(0, 12 - poolSize - lockedCount);
-  const atUnlockCap = selectedCount >= maxUnlocks && maxUnlocks > 0;
   const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
   const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
   const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
+  const committedUnlocks = useGameStore((s) => s.committedUnlocks);
 
   // --- Seat state change notifications ---
   const [seatNotifications, setSeatNotifications] = useState<string[]>([]);
@@ -205,16 +200,14 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
-    if (hasSubmittedUnlock) {
+    if (animationsInProgress) {
+      statusText = '';
+    } else if (isOnlineGame && hasSubmittedUnlock) {
       statusText = 'Waiting for others...';
-    } else if (mustUnlock && selectedCount === 0) {
-      statusText = 'No dice left — unlock 1+';
-    } else if (atUnlockCap) {
-      statusText = `${selectedCount} selected (max 12 dice)`;
-    } else if (selectedCount > 0) {
-      statusText = `${selectedCount} selected`;
+    } else if (committedUnlocks.length > 0) {
+      statusText = `${committedUnlocks.length} unlocked`;
     } else {
-      statusText = 'Tap dice to unlock';
+      statusText = 'Drag dice to unlock';
     }
   } else if (phase === 'scoring') {
     statusText = `Round Complete! +${roundScore}pts`;
@@ -257,17 +250,6 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
         )}
 
       </div>
-
-      {/* Unlock/Skip button — centered in pool area during unlock phase, hidden during animations */}
-      {phase === 'unlocking' && !animationsInProgress && !hasSubmittedUnlock && (
-        <button
-          className={`hud-skip-btn${mustUnlock && selectedCount === 0 ? ' hud-skip-btn--disabled' : ''}`}
-          onClick={onConfirmUnlock}
-          disabled={mustUnlock && selectedCount === 0}
-        >
-          {selectedCount > 0 ? `UNLOCK ${selectedCount}` : mustUnlock ? 'MUST UNLOCK' : 'SKIP'}
-        </button>
-      )}
 
       {/* Seat state change notifications */}
       {seatNotifications.length > 0 && (
