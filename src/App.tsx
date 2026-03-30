@@ -16,6 +16,7 @@ import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE, ROLLING_X_OFFSET } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
+import { isInRollingZone } from './utils/dropZone';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
 import { Quaternion, Euler } from 'three';
 import type { UnlockAnimation, AIUnlockAnimation, CommittedUnlock } from './types/game';
@@ -637,11 +638,25 @@ function App() {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
 
+    // If player is mid-drag, auto-commit or cancel before proceeding
+    const dragState = useGameStore.getState().dragUnlockState;
+    if (dragState.active && dragState.currentPosition) {
+      if (isInRollingZone(dragState.currentPosition)) {
+        useGameStore.getState().completeDragUnlock();
+      } else {
+        useGameStore.getState().cancelDragUnlock();
+      }
+    } else if (dragState.active) {
+      // Active but no position yet — cancel
+      useGameStore.getState().cancelDragUnlock();
+    }
+
     // Mark timer as fired (sentinel -1) so the countdown bar won't flash back
     useGameStore.setState({ unlockTimerResetKey: -1 });
 
-    const committed = state.committedUnlocks;
-    const player = state.players[0];
+    // Re-read committed after potential auto-commit
+    const committed = useGameStore.getState().committedUnlocks;
+    const player = useGameStore.getState().players[0];
 
     if (committed.length === 0) {
       // Nothing was dragged — check must-unlock

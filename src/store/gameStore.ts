@@ -7,6 +7,7 @@ import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
+import { findNearestClearPosition } from '../utils/dropZone';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 export const PLAYER_COLORS = [
@@ -1052,6 +1053,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
+    // Snap drop position to nearest clear spot (avoid overlapping pool/committed dice)
+    const occupiedPositions: [number, number, number][] = [
+      ...state.roundState.remainingDicePositions,
+      ...state.committedUnlocks.map(cu => cu.position),
+    ];
+    const snappedPosition = findNearestClearPosition(currentPosition, occupiedPositions, DIE_SIZE);
+
     // Commit: add to committedUnlocks, remove from lockedDice
     const updatedPlayer = {
       ...player,
@@ -1062,7 +1070,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set({
       players,
-      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: currentPosition }],
+      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: snappedPosition }],
       dragUnlockState: { ...initialDragUnlockState },
       unlockTimerResetKey: state.unlockTimerResetKey + 1,
     });

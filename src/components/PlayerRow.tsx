@@ -116,7 +116,7 @@ function UnlockableDie({
     // Drag position override — world coords converted to local (subtract parent rowZ)
     if (isBeingDragged && dragUnlockState.currentPosition) {
       groupRef.current.position.x = dragUnlockState.currentPosition[0];
-      groupRef.current.position.y = DIE_SIZE * 0.75;
+      groupRef.current.position.y = DIE_SIZE * 2.5;
       groupRef.current.position.z = dragUnlockState.currentPosition[2] - rowZ;
       return; // skip lift/pulse/shake while dragging
     }

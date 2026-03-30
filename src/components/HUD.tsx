@@ -201,7 +201,9 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
   } else if (phase === 'locking') {
     statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
   } else if (phase === 'unlocking') {
-    if (animationsInProgress) {
+    if (unlockTimerResetKey < 0) {
+      statusText = '';  // Timer fired, finalizing — no text
+    } else if (animationsInProgress) {
       statusText = '';
     } else if (isOnlineGame && hasSubmittedUnlock) {
       statusText = 'Waiting for others...';

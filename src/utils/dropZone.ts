@@ -10,3 +10,40 @@ export function isInRollingZone(position: [number, number, number]): boolean {
   const maxZ = ROLLING_Z_MAX - PADDING;
   return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
 }
+
+/**
+ * Nudge a drop position away from occupied dice so they don't overlap.
+ * Tries expanding rings of candidate positions, staying within the rolling zone.
+ */
+export function findNearestClearPosition(
+  dropPos: [number, number, number],
+  occupiedPositions: [number, number, number][],
+  dieSize: number,
+): [number, number, number] {
+  const MIN_CLEARANCE = dieSize * 1.3; // Slightly more than die width
+
+  const isOverlapping = (pos: [number, number, number]) =>
+    occupiedPositions.some(occ => {
+      const dx = pos[0] - occ[0];
+      const dz = pos[2] - occ[2];
+      return Math.sqrt(dx * dx + dz * dz) < MIN_CLEARANCE;
+    });
+
+  if (!isOverlapping(dropPos)) return dropPos; // Already clear
+
+  // Try nudging in expanding rings
+  for (let radius = MIN_CLEARANCE; radius < MIN_CLEARANCE * 4; radius += dieSize * 0.5) {
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 6) { // 12 directions
+      const candidate: [number, number, number] = [
+        dropPos[0] + Math.cos(angle) * radius,
+        dropPos[1],
+        dropPos[2] + Math.sin(angle) * radius,
+      ];
+      if (!isOverlapping(candidate) && isInRollingZone(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return dropPos; // Fallback: use original position
+}
