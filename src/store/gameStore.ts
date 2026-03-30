@@ -118,6 +118,9 @@ interface GameStore extends GameState {
   updatePlayerSeatState: (playerId: string, seatState: SeatState, seatIndex: number) => void;
   handleSeatTakeover: (seatIndex: number, newPlayerId: string, newPlayerName: string, reason?: 'reclaim' | 'takeover') => void;
 
+  // Inactivity timer
+  resetUnlockTimerKey: () => void;
+
   // Online disconnect tracking
   setOnlineDisconnected: (disconnected: boolean) => void;
 
@@ -205,6 +208,7 @@ const initialState: GameState = {
   settings: defaultSettings,
   shownTips: [],
   gamePrefs: defaultGamePrefs,
+  unlockTimerResetKey: 0,
   isOnlineGame: false,
   isOnlineHost: false,
   onlinePlayerId: null,
@@ -1051,12 +1055,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       players,
       committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: currentPosition }],
       dragUnlockState: { ...initialDragUnlockState },
+      unlockTimerResetKey: state.unlockTimerResetKey + 1,
     });
   },
 
   clearCommittedUnlocks: () => {
     set({ committedUnlocks: [] });
   },
+
+  resetUnlockTimerKey: () => set({ unlockTimerResetKey: 0 }),
 
   showTip: (tipId: string) => {
     const state = get();

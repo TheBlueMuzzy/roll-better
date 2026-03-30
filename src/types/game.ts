@@ -130,6 +130,8 @@ export interface GameState {
   settings: Settings;
   shownTips: string[];
   gamePrefs: GamePrefs;
+  // Inactivity timer
+  unlockTimerResetKey: number;
   // Online mode
   isOnlineGame: boolean;
   isOnlineHost: boolean;
