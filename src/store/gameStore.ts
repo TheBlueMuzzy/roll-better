@@ -1043,11 +1043,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    // Cap check: each unlock nets +1 die total
-    // poolSize + lockedDice.length + committedUnlocks.length + 1 must be <= 12
+    // Cap check: each committed unlock will produce 2 pool dice when mitosis runs
+    // lockedDice.length is already reduced by prior commits, so account for pending +2 per commit
+    // Adding one more unlock: total after all mitosis = poolSize + (committedUnlocks.length + 1) * 2 + remaining locked
     const player = state.players[0]; // local player is always index 0
-    const wouldBeTotal = player.poolSize + player.lockedDice.length + state.committedUnlocks.length + 1;
-    if (wouldBeTotal > 12) {
+    const totalAfterMitosis = player.poolSize + (state.committedUnlocks.length + 1) * 2 + (player.lockedDice.length - 1);
+    if (totalAfterMitosis > 12) {
       // Cap exceeded — reset drag state (triggers snap-back)
       set({ dragUnlockState: { ...initialDragUnlockState } });
       return;

@@ -310,8 +310,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           selectedForUnlock={player.selectedForUnlock}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
-          canUnlock={!hasSubmittedUnlock && (12 - player.poolSize - player.lockedDice.length) > 0}
-          maxUnlocks={hasSubmittedUnlock ? 0 : Math.max(0, 12 - player.poolSize - player.lockedDice.length)}
+          canUnlock={!hasSubmittedUnlock && (player.poolSize + player.lockedDice.length + committedUnlocks.length * 2 + 1) <= 12}
+          maxUnlocks={hasSubmittedUnlock ? 0 : Math.max(0, Math.floor((12 - player.poolSize - player.lockedDice.length - committedUnlocks.length * 2) / 1))}
         />
 
         {/* AI player rows — below human row (outside Physics) */}
