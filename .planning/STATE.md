@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-v1.5 Hold-to-Gather-Roll milestone COMPLETE. Hold-gather-release gesture shipped with collision group physics, hockey stick speed curve, and tangential release.
+v1.6 Drag-to-Unlock milestone started. Replace tap-to-unlock with drag gesture — committed-on-drop, inactivity timer, batch mitosis.
 
 ## Version
 0.2.0.89
@@ -11,16 +11,16 @@ v1.5 Hold-to-Gather-Roll milestone COMPLETE. Hold-gather-release gesture shipped
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** The dice roll IS the product.
-**Current focus:** Next milestone TBD
+**Current focus:** v1.6 Drag-to-Unlock — unify interaction language with v1.5's gather-roll
 
 ## Current Position
 
-Phase: 43 of 43 (Polish & UAT) — v1.5 COMPLETE
-Plan: 01 complete
-Status: v1.5 milestone shipped
-Last activity: 2026-03-27 — Plan 43-01 complete (polish, release physics, scoring, UAT approved)
+Phase: 44 of 48 (Drag Detection & Drop Zone)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-29 — Milestone v1.6 created
 
-Progress: ██████████ 100%
+Progress: ░░░░░░░░░░ 0%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -76,11 +76,12 @@ Progress: ██████████ 100%
 - Milestone v1.4 created: Landscape-only layout conversion, 5 phases (Phase 35-39)
 - Phase 37.1 inserted after Phase 37: Convert HTML profile overlays to 3D elements (scaling fix)
 - Milestone v1.5 created: Hold-to-Gather-Roll, 4 phases (Phase 40-43)
+- Milestone v1.6 created: Drag-to-Unlock, 5 phases (Phase 44-48)
 
 ## Session Continuity
 
-Last session: 2026-03-27
-Stopped at: v1.5 milestone complete. All 4 phases shipped.
+Last session: 2026-03-29
+Stopped at: Milestone v1.6 initialization
 Resume file: None
 
 ### Recent Changes (2026-03-27)

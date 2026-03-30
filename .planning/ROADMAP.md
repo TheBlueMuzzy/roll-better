@@ -12,6 +12,7 @@ Build a premium browser-based multiplayer dice-matching game from scratch. Start
 - ✅ [v1.3 Drop-in/Drop-out](milestones/v1.3-ROADMAP.md) (Phases 27-34) — SHIPPED 2026-03-12
 - ✅ **v1.4 Landscape** — Phases 35-39 + 37.1 (SHIPPED 2026-03-26)
 - ✅ **v1.5 Hold-to-Gather-Roll** — Phases 40-43 (SHIPPED 2026-03-27)
+- 🚧 **v1.6 Drag-to-Unlock** — Phases 44-48 (in progress)
 
 ## Phases
 
@@ -185,9 +186,63 @@ Plans:
 Plans:
 - [x] 43-01: Polish pass — collision group release, hockey stick speed, scoring, UAT
 
+### 🚧 v1.6 Drag-to-Unlock (In Progress)
+
+**Milestone Goal:** Replace tap-to-select + UNLOCK button with a direct drag gesture. Player drags locked dice from their slot into the rolling area. Drop = committed (one-way). Inactivity timer ends the phase. Unifies the game's interaction language with v1.5's hold-to-gather-roll.
+
+#### Phase 44: Drag Detection & Drop Zone
+
+**Goal**: Add drag handler on locked dice (UnlockableDie). Detect touch/mouse drag start, track pointer position, define drop zone geometry for the rolling area. Die follows finger during drag.
+**Depends on**: v1.5 complete
+**Research**: Unlikely (R3F pointer events + established patterns from gather-roll)
+**Plans**: TBD
+
+Plans:
+- [ ] 44-01: TBD
+
+#### Phase 45: Drop Commit & Highlight State
+
+**Goal**: On drop in rolling zone, commit the die (one-way, no undo). Die snaps to nearest open spot in the rolling area. Unlocked dice stay visually highlighted (not split yet). Respect 12-die pool cap. Invalid drop (outside zone) snaps die back to slot.
+**Depends on**: Phase 44 (drag detection working)
+**Research**: Unlikely (internal state + visual feedback patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 45-01: TBD
+
+#### Phase 46: Inactivity Timer & Batch Mitosis
+
+**Goal**: Implement inactivity timer (4s initial, 3s reset on each drag action). When timer expires with zero actions → phase ends. All highlighted/unlocked dice play batch mitosis animation. Remove UNLOCK/SKIP buttons from HUD entirely. Skip = don't drag anything, timer expires.
+**Depends on**: Phase 45 (drop commit working)
+**Research**: Unlikely (timer patterns + existing mitosis animation)
+**Plans**: TBD
+
+Plans:
+- [ ] 46-01: TBD
+
+#### Phase 47: Online Play Integration
+
+**Goal**: Integrate drag-to-unlock with online multiplayer. Server sync for per-die unlock messages (or batch on phase end). Phase timer interaction with inactivity timer. AFK handling — existing escalation applies, bot auto-unlock continues as-is.
+**Depends on**: Phase 46 (local flow complete)
+**Research**: Unlikely (Partykit sync patterns established, but phase timer interaction needs design)
+**Plans**: TBD
+
+Plans:
+- [ ] 47-01: TBD
+
+#### Phase 48: Polish & UAT
+
+**Goal**: Edge cases (12-die cap feedback, drag near boundaries, fast multi-drag), feel tuning (drag responsiveness, snap speed, highlight visuals), full integration testing across viewports and online play.
+**Depends on**: Phases 44-47 (all mechanics complete)
+**Research**: Unlikely (tuning + testing)
+**Plans**: TBD
+
+Plans:
+- [ ] 48-01: TBD
+
 ## Progress
 
-**v1.0 + v1.1 + v1.2 + v1.3 + v1.4 complete.** 40 phases (incl. 37.1), 100+ plans shipped.
+**v1.0 + v1.1 + v1.2 + v1.3 + v1.4 + v1.5 complete.** 43 phases (incl. 37.1), 100+ plans shipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
@@ -234,4 +289,9 @@ Plans:
 | 41. Physics Attractor & Orbit | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 42. Release & Roll Mechanics | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 43. Polish & UAT | v1.5 | 1/1 | Complete | 2026-03-27 |
+| 44. Drag Detection & Drop Zone | v1.6 | 0/? | Not started | - |
+| 45. Drop Commit & Highlight State | v1.6 | 0/? | Not started | - |
+| 46. Inactivity Timer & Batch Mitosis | v1.6 | 0/? | Not started | - |
+| 47. Online Play Integration | v1.6 | 0/? | Not started | - |
+| 48. Polish & UAT | v1.6 | 0/? | Not started | - |
 
