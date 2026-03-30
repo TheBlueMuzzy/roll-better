@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 44 of 48 (Drag Detection & Drop Zone)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-29 — Milestone v1.6 created
+Plan: 01 complete, 02 next
+Status: In progress
+Last activity: 2026-03-29 — Plan 44-01 complete (drag state + pointer events)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██░░░░░░░░ 10%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -81,8 +81,16 @@ Progress: ░░░░░░░░░░ 0%
 ## Session Continuity
 
 Last session: 2026-03-29
-Stopped at: Milestone v1.6 initialization
+Stopped at: Plan 44-01 complete, ready for 44-02
 Resume file: None
+
+### Recent Changes (2026-03-29)
+- **Plan 44-01 complete**: Drag handler on locked dice
+  - DragUnlockState in store (start/update/cancel/complete)
+  - UnlockableDie onClick → pointer drag events
+  - Die follows pointer in world coords, local Z conversion via rowZ
+  - Commits: c050d20, 74dd862
+  - Key decision: world coords in store, convert to local in useFrame
 
 ### Recent Changes (2026-03-27)
 - **v1.5 MILESTONE COMPLETE**: Hold-to-Gather-Roll shipped
