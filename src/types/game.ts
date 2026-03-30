@@ -41,6 +41,14 @@ export interface AIUnlockAnimation {
   delay: number;                       // stagger timing
 }
 
+export interface DragUnlockState {
+  active: boolean;
+  slotIndex: number | null;
+  value: number | null;
+  originPosition: [number, number, number] | null;
+  currentPosition: [number, number, number] | null;
+}
+
 export type AIDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Player {
@@ -110,6 +118,7 @@ export interface GameState {
   currentRound: number;
   roundState: RoundState;
   gatherState: GatherState;
+  dragUnlockState: DragUnlockState;
   sessionTargetScore: number;
   settings: Settings;
   shownTips: string[];

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState, DragUnlockState } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState, SeatState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
@@ -81,6 +81,12 @@ interface GameStore extends GameState {
   startGathering: (touchPos: [number, number, number], dieCount: number) => void;
   updateGatherPosition: (touchPos: [number, number, number]) => void;
   stopGathering: () => void;
+
+  // Drag unlock
+  startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => void;
+  updateDragPosition: (pos: [number, number, number]) => void;
+  cancelDragUnlock: () => void;
+  completeDragUnlock: () => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -177,6 +183,14 @@ const initialGatherState: GatherState = {
   dieCount: 0,
 };
 
+const initialDragUnlockState: DragUnlockState = {
+  active: false,
+  slotIndex: null,
+  value: null,
+  originPosition: null,
+  currentPosition: null,
+};
+
 const initialState: GameState = {
   screen: 'menu',
   phase: 'lobby',
@@ -184,6 +198,7 @@ const initialState: GameState = {
   currentRound: 0,
   roundState: initialRoundState,
   gatherState: initialGatherState,
+  dragUnlockState: initialDragUnlockState,
   sessionTargetScore: 20,
   settings: defaultSettings,
   shownTips: [],
@@ -977,6 +992,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
       gatherState: { active: false, touchPosition: null, dieCount: 0 },
       phase: 'idle',
     });
+  },
+
+  // --- Drag unlock actions ---
+  startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => {
+    const state = get();
+    if (state.phase !== 'unlocking' || state.hasSubmittedUnlock) return;
+    set({
+      dragUnlockState: {
+        active: true,
+        slotIndex,
+        value,
+        originPosition: originPos,
+        currentPosition: originPos,
+      },
+    });
+  },
+
+  updateDragPosition: (pos: [number, number, number]) => {
+    const state = get();
+    if (!state.dragUnlockState.active) return;
+    set({ dragUnlockState: { ...state.dragUnlockState, currentPosition: pos } });
+  },
+
+  cancelDragUnlock: () => {
+    set({ dragUnlockState: { ...initialDragUnlockState } });
+  },
+
+  completeDragUnlock: () => {
+    set({ dragUnlockState: { ...initialDragUnlockState } });
   },
 
   showTip: (tipId: string) => {
