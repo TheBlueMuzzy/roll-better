@@ -555,8 +555,21 @@ function App() {
       // Die stays where it was dropped — no flight to a new position
       const targetPos: [number, number, number] = cu.position;
 
-      // Use findClearSpot for guaranteed-clear split targets
-      const { splitTargets } = findClearSpot(occupied, DIE_SIZE);
+      // Simple offset from drop position — clearance guaranteed by findNearestClearPosition (2.0x)
+      const SPLIT_OFFSET = DIE_SIZE * 0.7;
+      const angle = Math.random() * Math.PI * 2;
+      const splitTargets: [[number, number, number], [number, number, number]] = [
+        [
+          cu.position[0] + Math.cos(angle) * SPLIT_OFFSET,
+          DIE_SIZE / 2,
+          cu.position[2] + Math.sin(angle) * SPLIT_OFFSET,
+        ],
+        [
+          cu.position[0] - Math.cos(angle) * SPLIT_OFFSET,
+          DIE_SIZE / 2,
+          cu.position[2] - Math.sin(angle) * SPLIT_OFFSET,
+        ],
+      ];
       occupied.push(splitTargets[0], splitTargets[1]);
 
       const prevDelay = allAnimations.length > 0

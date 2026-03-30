@@ -20,7 +20,7 @@ export function findNearestClearPosition(
   occupiedPositions: [number, number, number][],
   dieSize: number,
 ): [number, number, number] {
-  const MIN_CLEARANCE = dieSize * 1.3; // Slightly more than die width
+  const MIN_CLEARANCE = dieSize * 2.0; // Room for mitosis split targets
 
   const isOverlapping = (pos: [number, number, number]) =>
     occupiedPositions.some(occ => {
