@@ -669,7 +669,7 @@ function App() {
     const allInPlace = allAnimations.every(a =>
       Math.abs(a.fromPos[0] - a.targetPos[0]) < 0.01 && Math.abs(a.fromPos[2] - a.targetPos[2]) < 0.01
     );
-    const totalWait = (lastDelay * 1000) + (allInPlace ? 800 : 1800);
+    const totalWait = (lastDelay * 1000) + (allInPlace ? 500 : 1800);
 
     setTimeout(() => {
       finalizeBatchUnlock(allAnimations);

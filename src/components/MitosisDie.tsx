@@ -22,9 +22,9 @@ const LERP_END = 0.5;
 const SHAKE_END = 1.3;
 const SPLIT_END = 1.7;
 
-// In-place timing (when fromPos ≈ targetPos, skip lerp, brief shake)
-const IP_SHAKE_END = 0.3;
-const IP_SPLIT_END = 0.7;
+// In-place timing (when fromPos ≈ targetPos, skip lerp and shake, straight to split)
+const IP_SHAKE_END = 0;     // no shake
+const IP_SPLIT_END = 0.4;   // just split
 
 export function MitosisDie({
   fromPos,
