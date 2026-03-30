@@ -1,6 +1,7 @@
 import { ROLLING_X_OFFSET, ARENA_HALF_X, ROLLING_Z_MIN, ROLLING_Z_MAX } from '../components/RollingArea';
 
-const PADDING = 0.5; // Tolerance inside edges
+const PADDING = 0.5; // Tolerance inside edges for basic zone check
+const DROP_PADDING = 1.2; // Extra inset for drop positions — room for mitosis split targets near walls
 
 export function isInRollingZone(position: [number, number, number]): boolean {
   const [x, , z] = position;
@@ -29,7 +30,17 @@ export function findNearestClearPosition(
       return Math.sqrt(dx * dx + dz * dz) < MIN_CLEARANCE;
     });
 
-  if (!isOverlapping(dropPos)) return dropPos; // Already clear
+  // Tighter bounds check — drop must be far enough from walls for split targets
+  const isInDropBounds = (pos: [number, number, number]) => {
+    const [x, , z] = pos;
+    const minX = (ROLLING_X_OFFSET - ARENA_HALF_X) + DROP_PADDING;
+    const maxX = (ROLLING_X_OFFSET + ARENA_HALF_X) - DROP_PADDING;
+    const minZ = ROLLING_Z_MIN + DROP_PADDING;
+    const maxZ = ROLLING_Z_MAX - DROP_PADDING;
+    return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
+  };
+
+  if (!isOverlapping(dropPos) && isInDropBounds(dropPos)) return dropPos; // Already clear and in bounds
 
   // Try nudging in expanding rings
   for (let radius = MIN_CLEARANCE; radius < MIN_CLEARANCE * 4; radius += dieSize * 0.5) {
@@ -39,7 +50,7 @@ export function findNearestClearPosition(
         dropPos[1],
         dropPos[2] + Math.sin(angle) * radius,
       ];
-      if (!isOverlapping(candidate) && isInRollingZone(candidate)) {
+      if (!isOverlapping(candidate) && isInDropBounds(candidate)) {
         return candidate;
       }
     }

@@ -573,12 +573,14 @@ function App() {
           center[2] - Math.sin(a) * SPLIT_OFFSET,
         ];
 
-        const aClear = occList.every(occ => {
+        const aInBounds = isInRollingZone(splitA);
+        const bInBounds = isInRollingZone(splitB);
+        const aClear = aInBounds && occList.every(occ => {
           const dx = splitA[0] - occ[0];
           const dz = splitA[2] - occ[2];
           return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
         });
-        const bClear = occList.every(occ => {
+        const bClear = bInBounds && occList.every(occ => {
           const dx = splitB[0] - occ[0];
           const dz = splitB[2] - occ[2];
           return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
@@ -604,12 +606,14 @@ function App() {
           center[2] - Math.sin(a) * bigOffset,
         ];
 
-        const aClear = occList.every(occ => {
+        const aInBounds2 = isInRollingZone(splitA);
+        const bInBounds2 = isInRollingZone(splitB);
+        const aClear = aInBounds2 && occList.every(occ => {
           const dx = splitA[0] - occ[0];
           const dz = splitA[2] - occ[2];
           return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
         });
-        const bClear = occList.every(occ => {
+        const bClear = bInBounds2 && occList.every(occ => {
           const dx = splitB[0] - occ[0];
           const dz = splitB[2] - occ[2];
           return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
