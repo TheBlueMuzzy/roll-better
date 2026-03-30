@@ -899,7 +899,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  processAIUnlocks: () => {
+  processAIUnlocks: (andClearAnimations?: boolean) => {
     const state = get();
     const players = [...state.players];
     let changed = false;
@@ -933,9 +933,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
-    if (changed) {
-      set({ players });
+    // Single atomic set — updates players + clears animations in one render
+    const update: Record<string, unknown> = {};
+    if (changed) update.players = players;
+    if (andClearAnimations) {
+      update.roundState = {
+        ...state.roundState,
+        aiUnlockAnimations: [],
+      };
     }
+    if (Object.keys(update).length > 0) set(update);
   },
 
   scoreRound: () => {

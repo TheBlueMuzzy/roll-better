@@ -373,8 +373,7 @@ function App() {
       const lastDelay = aiAnimations[aiAnimations.length - 1].delay;
       const totalWait = (lastDelay * 1000) + 600;
       setTimeout(() => {
-        useGameStore.getState().processAIUnlocks();
-        useGameStore.getState().clearAIUnlockAnimations();
+        useGameStore.getState().processAIUnlocks(true);
         setPhase('idle');
       }, totalWait);
     } else {
