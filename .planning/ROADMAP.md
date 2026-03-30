@@ -209,7 +209,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 45-01: TBD
+- [ ] 45-01: Drop commit logic (committedUnlocks state + completeDragUnlock + cap check)
+- [ ] 45-02: Highlighted dice in rolling zone + hide committed slots from lock row
 
 #### Phase 46: Inactivity Timer & Batch Mitosis
 
