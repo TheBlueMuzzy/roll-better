@@ -220,7 +220,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 46-01: Inactivity timer state + configurable RollingCountdown
+- [x] 46-01: Inactivity timer state + configurable RollingCountdown
 - [ ] 46-02: Batch mitosis on timer expire + phase transitions
 - [ ] 46-03: HUD cleanup (remove buttons) + old tap-to-select removal + UAT
 
@@ -295,7 +295,7 @@ Plans:
 | 43. Polish & UAT | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 44. Drag Detection & Drop Zone | v1.6 | 2/2 | Complete | 2026-03-29 |
 | 45. Drop Commit & Highlight State | v1.6 | 2/2 | Complete | 2026-03-29 |
-| 46. Inactivity Timer & Batch Mitosis | v1.6 | 0/? | Not started | - |
+| 46. Inactivity Timer & Batch Mitosis | v1.6 | 1/3 | In progress | - |
 | 47. Online Play Integration | v1.6 | 0/? | Not started | - |
 | 48. Polish & UAT | v1.6 | 0/? | Not started | - |
 

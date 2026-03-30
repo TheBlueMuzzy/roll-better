@@ -16,11 +16,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 46 of 48 (Inactivity Timer & Batch Mitosis)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-29 — Phase 45 complete (drop commit + highlight state)
+Plan: 01 complete, 02 next
+Status: In progress
+Last activity: 2026-03-29 — Plan 46-01 complete (inactivity timer + configurable countdown)
 
-Progress: ████░░░░░░ 40%
+Progress: ████░░░░░░ 45%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
