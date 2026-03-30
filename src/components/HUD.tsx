@@ -9,10 +9,11 @@ interface HUDProps {
   onRoll: () => void;
   onForceRelease: () => void;
   onConfirmUnlock: () => void;
+  onUnlockTimerExpire: () => void;
   onOpenSettings: () => void;
 }
 
-export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }: HUDProps) {
+export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpire, onOpenSettings }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -238,7 +239,7 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
         <RollingCountdown active={showIdleCountdown} onTimeout={handleIdleTimeout} />
         <RollingCountdown
           active={showUnlockInactivityTimer}
-          onTimeout={handleUnlockTimeout}
+          onTimeout={onUnlockTimerExpire}
           duration={unlockTimerResetKey === 0 ? 4000 : 3000}
           resetKey={unlockTimerResetKey}
         />

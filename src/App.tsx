@@ -709,6 +709,7 @@ function App() {
             onRoll={handleRoll}
             onForceRelease={handleForceRelease}
             onConfirmUnlock={handleConfirmUnlock}
+            onUnlockTimerExpire={handleUnlockTimerExpire}
             onOpenSettings={() => setSettingsOpen(true)}
           />
           {activeTip && !settingsOpen && (
