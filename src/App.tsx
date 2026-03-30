@@ -550,26 +550,90 @@ function App() {
     const allAnimations: UnlockAnimation[] = [];
     const DEG30 = (30 * Math.PI) / 180;
 
+    const SPLIT_OFFSET = DIE_SIZE * 0.7;
+    const MIN_CLEARANCE = DIE_SIZE * 1.3;
+    const ANGLE_ATTEMPTS = 12;
+
+    function computeClearSplitTargets(
+      center: [number, number, number],
+      occList: [number, number, number][],
+    ): [[number, number, number], [number, number, number]] {
+      const startAngle = Math.random() * Math.PI * 2;
+
+      for (let i = 0; i < ANGLE_ATTEMPTS; i++) {
+        const a = startAngle + (i * Math.PI * 2) / ANGLE_ATTEMPTS;
+        const splitA: [number, number, number] = [
+          center[0] + Math.cos(a) * SPLIT_OFFSET,
+          DIE_SIZE / 2,
+          center[2] + Math.sin(a) * SPLIT_OFFSET,
+        ];
+        const splitB: [number, number, number] = [
+          center[0] - Math.cos(a) * SPLIT_OFFSET,
+          DIE_SIZE / 2,
+          center[2] - Math.sin(a) * SPLIT_OFFSET,
+        ];
+
+        const aClear = occList.every(occ => {
+          const dx = splitA[0] - occ[0];
+          const dz = splitA[2] - occ[2];
+          return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
+        });
+        const bClear = occList.every(occ => {
+          const dx = splitB[0] - occ[0];
+          const dz = splitB[2] - occ[2];
+          return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
+        });
+
+        if (aClear && bClear) {
+          return [splitA, splitB];
+        }
+      }
+
+      // Fallback: try with larger offset
+      for (let i = 0; i < ANGLE_ATTEMPTS; i++) {
+        const a = startAngle + (i * Math.PI * 2) / ANGLE_ATTEMPTS;
+        const bigOffset = SPLIT_OFFSET * 1.5;
+        const splitA: [number, number, number] = [
+          center[0] + Math.cos(a) * bigOffset,
+          DIE_SIZE / 2,
+          center[2] + Math.sin(a) * bigOffset,
+        ];
+        const splitB: [number, number, number] = [
+          center[0] - Math.cos(a) * bigOffset,
+          DIE_SIZE / 2,
+          center[2] - Math.sin(a) * bigOffset,
+        ];
+
+        const aClear = occList.every(occ => {
+          const dx = splitA[0] - occ[0];
+          const dz = splitA[2] - occ[2];
+          return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
+        });
+        const bClear = occList.every(occ => {
+          const dx = splitB[0] - occ[0];
+          const dz = splitB[2] - occ[2];
+          return Math.sqrt(dx * dx + dz * dz) >= MIN_CLEARANCE;
+        });
+
+        if (aClear && bClear) {
+          return [splitA, splitB];
+        }
+      }
+
+      // Last resort: use first angle
+      const a = startAngle;
+      return [
+        [center[0] + Math.cos(a) * SPLIT_OFFSET, DIE_SIZE / 2, center[2] + Math.sin(a) * SPLIT_OFFSET],
+        [center[0] - Math.cos(a) * SPLIT_OFFSET, DIE_SIZE / 2, center[2] - Math.sin(a) * SPLIT_OFFSET],
+      ];
+    }
+
     for (const cu of committed) {
       const fromPos: [number, number, number] = cu.position;
       // Die stays where it was dropped — no flight to a new position
       const targetPos: [number, number, number] = cu.position;
 
-      // Simple offset from drop position — clearance guaranteed by findNearestClearPosition (2.0x)
-      const SPLIT_OFFSET = DIE_SIZE * 0.7;
-      const angle = Math.random() * Math.PI * 2;
-      const splitTargets: [[number, number, number], [number, number, number]] = [
-        [
-          cu.position[0] + Math.cos(angle) * SPLIT_OFFSET,
-          DIE_SIZE / 2,
-          cu.position[2] + Math.sin(angle) * SPLIT_OFFSET,
-        ],
-        [
-          cu.position[0] - Math.cos(angle) * SPLIT_OFFSET,
-          DIE_SIZE / 2,
-          cu.position[2] - Math.sin(angle) * SPLIT_OFFSET,
-        ],
-      ];
+      const splitTargets = computeClearSplitTargets(cu.position, occupied);
       occupied.push(splitTargets[0], splitTargets[1]);
 
       const prevDelay = allAnimations.length > 0
