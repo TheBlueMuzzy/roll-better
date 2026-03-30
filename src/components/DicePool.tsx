@@ -413,6 +413,36 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         return;
       }
 
+      // Active velocity check — detect nearly-stopped dice faster than Rapier onSleep
+      if (!hasFired.current && rollStartTime.current > 0) {
+        const allNearlyStopped = dieRefs.current.every((die, i) => {
+          if (i >= count) return true;
+          if (!die) return true;
+          return die.getSpeed() < 0.3;
+        });
+        if (allNearlyStopped) {
+          // Read face values directly and fire immediately
+          let allHaveValues = true;
+          for (let i = 0; i < count; i++) {
+            if (results.current[i] === null) {
+              const value = dieRefs.current[i]?.getResult();
+              const transform = dieRefs.current[i]?.getTransform();
+              if (value !== undefined && transform) {
+                results.current[i] = value;
+                positions.current[i] = transform.position;
+                rotations.current[i] = transform.rotation;
+                settled.current[i] = true;
+              } else {
+                allHaveValues = false;
+              }
+            }
+          }
+          if (allHaveValues) {
+            fireResults();
+          }
+        }
+      }
+
       // Absolute 10s settle timeout — prevents infinite oscillation (ISS-005)
       if (!hasFired.current && rollStartTime.current > 0 && Date.now() - rollStartTime.current > 10000) {
         console.warn('[DicePool] Absolute 10s settle timeout — force-firing results');

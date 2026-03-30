@@ -26,6 +26,8 @@ export interface PhysicsDieHandle {
   setAttractTarget(target: [number, number, number] | null, releaseVelocity?: [number, number, number]): void;
   /** Override attract scale (called by DicePool during gather) */
   setAttractScale(scale: number): void;
+  /** Returns combined linear + angular speed. Used for active settle detection. */
+  getSpeed(): number;
   /** Lift, rotate to best face, drop back — with stagger delay */
   snapFlat(delay: number): void;
   /** Smoothly lerp to position with best face up */
@@ -158,6 +160,15 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           position: [t.x, t.y, t.z] as [number, number, number],
           rotation: [euler.x, euler.y, euler.z] as [number, number, number],
         };
+      },
+
+      getSpeed() {
+        const body = bodyRef.current;
+        if (!body) return 0;
+        const lv = body.linvel();
+        const av = body.angvel();
+        return Math.sqrt(lv.x * lv.x + lv.y * lv.y + lv.z * lv.z) +
+               Math.sqrt(av.x * av.x + av.y * av.y + av.z * av.z);
       },
 
       setAttractTarget(target: [number, number, number] | null, releaseVelocity?: [number, number, number]) {
