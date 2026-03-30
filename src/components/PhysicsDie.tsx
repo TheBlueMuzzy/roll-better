@@ -541,8 +541,8 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         ccd
         restitution={0.35}
         friction={0.5}
-        angularDamping={0.3}
-        linearDamping={0.1}
+        angularDamping={1.0}
+        linearDamping={0.5}
         onContactForce={(payload) => {
           if (isRolling.current) {
             const normalizedForce = Math.max(0, Math.min(1, payload.totalForceMagnitude / 500));
