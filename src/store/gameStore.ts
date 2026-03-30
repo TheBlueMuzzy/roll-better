@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState, DragUnlockState } from '../types/game';
+import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState, DragUnlockState, CommittedUnlock } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState, SeatState } from '../types/protocol';
 import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
@@ -87,6 +87,7 @@ interface GameStore extends GameState {
   updateDragPosition: (pos: [number, number, number]) => void;
   cancelDragUnlock: () => void;
   completeDragUnlock: () => void;
+  clearCommittedUnlocks: () => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -199,6 +200,7 @@ const initialState: GameState = {
   roundState: initialRoundState,
   gatherState: initialGatherState,
   dragUnlockState: initialDragUnlockState,
+  committedUnlocks: [] as CommittedUnlock[],
   sessionTargetScore: 20,
   settings: defaultSettings,
   shownTips: [],
@@ -1020,7 +1022,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   completeDragUnlock: () => {
-    set({ dragUnlockState: { ...initialDragUnlockState } });
+    const state = get();
+    const { slotIndex, value, currentPosition } = state.dragUnlockState;
+    if (slotIndex === null || value === null || currentPosition === null) {
+      set({ dragUnlockState: { ...initialDragUnlockState } });
+      return;
+    }
+
+    // Cap check: each unlock nets +1 die total
+    // poolSize + lockedDice.length + committedUnlocks.length + 1 must be <= 12
+    const player = state.players[0]; // local player is always index 0
+    const wouldBeTotal = player.poolSize + player.lockedDice.length + state.committedUnlocks.length + 1;
+    if (wouldBeTotal > 12) {
+      // Cap exceeded — reset drag state (triggers snap-back)
+      set({ dragUnlockState: { ...initialDragUnlockState } });
+      return;
+    }
+
+    // Commit: add to committedUnlocks, remove from lockedDice
+    const updatedPlayer = {
+      ...player,
+      lockedDice: player.lockedDice.filter(ld => ld.goalSlotIndex !== slotIndex),
+    };
+    const players = [...state.players];
+    players[0] = updatedPlayer;
+
+    set({
+      players,
+      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: currentPosition }],
+      dragUnlockState: { ...initialDragUnlockState },
+    });
+  },
+
+  clearCommittedUnlocks: () => {
+    set({ committedUnlocks: [] });
   },
 
   showTip: (tipId: string) => {

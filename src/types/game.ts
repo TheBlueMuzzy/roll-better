@@ -49,6 +49,12 @@ export interface DragUnlockState {
   currentPosition: [number, number, number] | null;
 }
 
+export interface CommittedUnlock {
+  slotIndex: number;
+  value: number;
+  position: [number, number, number];  // world coords where it landed in rolling zone
+}
+
 export type AIDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Player {
@@ -119,6 +125,7 @@ export interface GameState {
   roundState: RoundState;
   gatherState: GatherState;
   dragUnlockState: DragUnlockState;
+  committedUnlocks: CommittedUnlock[];
   sessionTargetScore: number;
   settings: Settings;
   shownTips: string[];
