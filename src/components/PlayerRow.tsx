@@ -60,6 +60,8 @@ function UnlockableDie({
   const shakeStartRef = useRef<number | null>(null);
   const liftRef = useRef(0); // current lift amount, lerps toward target
   const isDragging = useRef(false);
+  const wasDragging = useRef(false);
+  const returnFromPos = useRef<[number, number, number] | null>(null);
 
   const dragUnlockState = useGameStore((s) => s.dragUnlockState);
   const startDragUnlock = useGameStore((s) => s.startDragUnlock);
@@ -77,6 +79,41 @@ function UnlockableDie({
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+
+    // Track drag→not-dragging transition for snap-back
+    if (isBeingDragged) {
+      wasDragging.current = true;
+    } else if (wasDragging.current) {
+      // Just stopped dragging — capture current position to lerp back from
+      returnFromPos.current = [
+        groupRef.current.position.x,
+        groupRef.current.position.y,
+        groupRef.current.position.z,
+      ];
+      wasDragging.current = false;
+    }
+
+    // Snap-back lerp animation (returning to slot after invalid drop)
+    if (returnFromPos.current !== null) {
+      const targetX = getSlotX(slotIndex);
+      const targetY = DIE_SIZE / 2;
+      const targetZ = 0;
+      const speed = Math.min(1, delta * 12);
+      groupRef.current.position.x += (targetX - groupRef.current.position.x) * speed;
+      groupRef.current.position.y += (targetY - groupRef.current.position.y) * speed;
+      groupRef.current.position.z += (targetZ - groupRef.current.position.z) * speed;
+      // Check if close enough to snap exactly
+      const dx = Math.abs(groupRef.current.position.x - targetX);
+      const dy = Math.abs(groupRef.current.position.y - targetY);
+      const dz = Math.abs(groupRef.current.position.z - targetZ);
+      if (dx < 0.01 && dy < 0.01 && dz < 0.01) {
+        groupRef.current.position.x = targetX;
+        groupRef.current.position.y = targetY;
+        groupRef.current.position.z = targetZ;
+        returnFromPos.current = null;
+      }
+      return; // skip pulse/shake/lift while returning
+    }
 
     // Drag position override — world coords converted to local (subtract parent rowZ)
     if (isBeingDragged && dragUnlockState.currentPosition) {
