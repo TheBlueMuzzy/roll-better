@@ -34,6 +34,7 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
   const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
+  const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
 
   // --- Seat state change notifications ---
   const [seatNotifications, setSeatNotifications] = useState<string[]>([]);
@@ -77,7 +78,8 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
 
   // --- AFK countdown logic ---
   const showIdleCountdown = isOnlineGame && phase === 'idle';
-  const showUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
+  const showUnlockInactivityTimer = !isOnlineGame && phase === 'unlocking' && !animationsInProgress;
+  const showOnlineUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
 
   const handleIdleTimeout = useCallback(() => {
     (window as unknown as Record<string, boolean>).__rbAfkRoll = true;
@@ -234,7 +236,13 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onOpenSettings }:
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
         <RollingCountdown active={showIdleCountdown} onTimeout={handleIdleTimeout} />
-        <RollingCountdown active={showUnlockCountdown} onTimeout={handleUnlockTimeout} />
+        <RollingCountdown
+          active={showUnlockInactivityTimer}
+          onTimeout={handleUnlockTimeout}
+          duration={unlockTimerResetKey === 0 ? 4000 : 3000}
+          resetKey={unlockTimerResetKey}
+        />
+        <RollingCountdown active={showOnlineUnlockCountdown} onTimeout={handleUnlockTimeout} />
         {/* During unlocking: status text only (buttons rendered centered below) */}
         {phase === 'unlocking' ? (
           <span className="hud-status">{statusText}</span>
