@@ -106,9 +106,11 @@ for (const face of faces) {
 interface Die3DProps {
   position?: [number, number, number];
   color?: string;
+  emissive?: string;
+  emissiveIntensity?: number;
 }
 
-export function Die3D({ position = [0, 0, 0], color = '#e8e0d4' }: Die3DProps) {
+export function Die3D({ position = [0, 0, 0], color = '#e8e0d4', emissive, emissiveIntensity }: Die3DProps) {
   return (
     <group position={position}>
       {/* Die body */}
@@ -125,6 +127,7 @@ export function Die3D({ position = [0, 0, 0], color = '#e8e0d4' }: Die3DProps) {
           metalness={0}
           roughness={0.35}
           envMapIntensity={1.0}
+          {...(emissive ? { emissive, emissiveIntensity: emissiveIntensity ?? 0 } : {})}
         />
       </RoundedBox>
 

@@ -13,6 +13,7 @@ import { GoalProfileGroup } from './GoalProfileGroup';
 import { GatherVisuals } from './GatherVisuals';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
+import { CommittedDie } from './CommittedDie';
 import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
@@ -65,6 +66,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const clearAILockAnimations = useGameStore((s) => s.clearAILockAnimations);
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
+    const committedUnlocks = useGameStore((s) => s.committedUnlocks);
     const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
     const clearAIUnlockAnimations = useGameStore((s) => s.clearAIUnlockAnimations);
     const player = players[0];
@@ -494,6 +496,16 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             delay={anim.delay}
             value={anim.value}
             color={player.color}
+          />
+        ))}
+
+        {/* Committed unlock dice — glowing dice sitting in the rolling zone */}
+        {committedUnlocks.map((cu) => (
+          <CommittedDie
+            key={`committed-${cu.slotIndex}`}
+            value={cu.value}
+            color={player.color}
+            position={cu.position}
           />
         ))}
 
