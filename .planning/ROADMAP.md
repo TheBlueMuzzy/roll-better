@@ -198,7 +198,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 44-01: TBD
+- [ ] 44-01: Drag handler on locked dice + drag state in store
+- [ ] 44-02: Drop zone detection + snap-back animation
 
 #### Phase 45: Drop Commit & Highlight State
 
