@@ -3,8 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
+import { useGameStore } from '../store/gameStore';
 import type { GamePhase, UnlockAnimation } from '../types/game';
+import { Plane, Vector3 } from 'three';
 import type { Group } from 'three';
+
+const _dragPlane = new Plane(new Vector3(0, 1, 0), 0); // Y=0 table plane
+const _dragIntersect = new Vector3();
 
 interface PlayerRowProps {
   z?: number;
@@ -39,6 +44,7 @@ function UnlockableDie({
   selectable,
   shaking,
   onToggle,
+  rowZ,
 }: {
   slotIndex: number;
   value: number;
@@ -47,10 +53,19 @@ function UnlockableDie({
   selectable: boolean;
   shaking: boolean;
   onToggle: () => void;
+  rowZ: number;
 }) {
   const groupRef = useRef<Group>(null);
   const shakeStartRef = useRef<number | null>(null);
   const liftRef = useRef(0); // current lift amount, lerps toward target
+  const isDragging = useRef(false);
+
+  const dragUnlockState = useGameStore((s) => s.dragUnlockState);
+  const startDragUnlock = useGameStore((s) => s.startDragUnlock);
+  const updateDragPosition = useGameStore((s) => s.updateDragPosition);
+  const cancelDragUnlock = useGameStore((s) => s.cancelDragUnlock);
+
+  const isBeingDragged = dragUnlockState.active && dragUnlockState.slotIndex === slotIndex;
 
   // Track shake start time
   if (shaking && shakeStartRef.current === null) {
@@ -61,6 +76,14 @@ function UnlockableDie({
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+
+    // Drag position override — world coords converted to local (subtract parent rowZ)
+    if (isBeingDragged && dragUnlockState.currentPosition) {
+      groupRef.current.position.x = dragUnlockState.currentPosition[0];
+      groupRef.current.position.y = DIE_SIZE * 0.75;
+      groupRef.current.position.z = dragUnlockState.currentPosition[2] - rowZ;
+      return; // skip lift/pulse/shake while dragging
+    }
 
     // Shake: horizontal oscillation that decays
     const baseX = getSlotX(slotIndex);
@@ -77,6 +100,9 @@ function UnlockableDie({
     } else {
       groupRef.current.position.x = baseX;
     }
+
+    // Reset Z in case we just stopped dragging
+    groupRef.current.position.z = 0;
 
     // Lift: translate Y up when selected, back down when deselected
     const liftTarget = isSelected ? LIFT_HEIGHT : 0;
@@ -95,15 +121,33 @@ function UnlockableDie({
 
   return (
     <group>
-      {/* Die mesh — tappable */}
+      {/* Die mesh — draggable */}
       <group
         ref={groupRef}
         position={[getSlotX(slotIndex), DIE_SIZE / 2, 0]}
         rotation={getRotationForFace(value)}
         scale={DIE_SIZE}
-        onClick={(e) => {
+        onPointerDown={(e) => {
           e.stopPropagation();
-          onToggle();
+          if (!selectable) return;
+          (e.target as Element).setPointerCapture?.(e.pointerId);
+          const originPosition: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, rowZ];
+          startDragUnlock(slotIndex, value, originPosition);
+          isDragging.current = true;
+        }}
+        onPointerMove={(e) => {
+          if (!isDragging.current) return;
+          e.stopPropagation();
+          if (e.ray.intersectPlane(_dragPlane, _dragIntersect)) {
+            updateDragPosition([_dragIntersect.x, DIE_SIZE / 2, _dragIntersect.z]);
+          }
+        }}
+        onPointerUp={(e) => {
+          if (!isDragging.current) return;
+          e.stopPropagation();
+          (e.target as Element).releasePointerCapture?.(e.pointerId);
+          isDragging.current = false;
+          cancelDragUnlock(); // temporary — Phase 44-02 adds drop zone check
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -180,6 +224,7 @@ export function PlayerRow({
                 selectable={isSelectable}
                 shaking={shakingSlot === i}
                 onToggle={() => onToggleUnlock(i)}
+                rowZ={z}
               />
             );
           }
