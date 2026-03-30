@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 46 of 48 (Inactivity Timer & Batch Mitosis)
-Plan: 02 complete, 03 next
-Status: In progress
-Last activity: 2026-03-29 — Plan 46-02 complete (batch mitosis + phase transitions)
+Phase: 47 of 48 (Online Play Integration)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-29 — Phase 46 complete (inactivity timer + batch mitosis + HUD cleanup)
 
-Progress: █████░░░░░ 50%
+Progress: ██████░░░░ 60%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
