@@ -15,12 +15,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ## Current Position
 
-Phase: 45 of 48 (Drop Commit & Highlight State)
-Plan: 01 complete, 02 next
-Status: In progress
-Last activity: 2026-03-29 — Plan 45-01 complete (committedUnlocks + completeDragUnlock)
+Phase: 46 of 48 (Inactivity Timer & Batch Mitosis)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-29 — Phase 45 complete (drop commit + highlight state)
 
-Progress: ███░░░░░░░ 30%
+Progress: ████░░░░░░ 40%
 
 ## Deploy Process
 - **Frontend**: Auto-deploys via GitHub Actions on push to master. Workflow includes `VITE_PARTY_HOST` env var.
@@ -85,11 +85,12 @@ Stopped at: Plan 44-01 complete, ready for 44-02
 Resume file: None
 
 ### Recent Changes (2026-03-29)
-- **Plan 45-01 complete**: Drop commit logic
-  - committedUnlocks[] top-level state, completeDragUnlock with cap check
-  - Valid drops remove from lockedDice, append to committedUnlocks
-  - Commits: 2401965, a7f1a78
-  - Key decision: committedUnlocks top-level (not roundState)
+- **Phase 45 COMPLETE**: Drop Commit & Highlight State
+  - 45-01: committedUnlocks[] state, completeDragUnlock with cap check, lockedDice removal
+  - 45-02: CommittedDie with emissive glow, Die3D emissive props, lock row auto-hides
+  - Commits: 2401965, a7f1a78, c9e57c8
+  - Key decisions: committedUnlocks top-level, emissive on Die3D, CommittedDie outside Physics
+  - Known: committed dice can overlap (Phase 48 polish), no mitosis yet (Phase 46)
 - **Phase 44 COMPLETE**: Drag Detection & Drop Zone
   - 44-01: DragUnlockState in store, UnlockableDie pointer drag events, die follows pointer
   - 44-02: isInRollingZone() boundary check, snap-back lerp on invalid drop, UAT approved
