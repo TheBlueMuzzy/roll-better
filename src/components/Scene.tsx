@@ -189,9 +189,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
 
     function handleAIUnlockComplete() {
       aiUnlockCompleteCount.current++;
-      if (aiUnlockCompleteCount.current >= aiUnlockExpectedCount.current && aiUnlockExpectedCount.current > 0) {
-        clearAIUnlockAnimations();
-      }
+      // Don't clear animations here — App.tsx setTimeout handles both
+      // processAIUnlocks + clearAIUnlockAnimations atomically to prevent flash
     }
 
     // Sync expected AI unlock count when aiUnlockAnimations changes
