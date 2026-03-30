@@ -220,7 +220,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 46-01: TBD
+- [ ] 46-01: Inactivity timer state + configurable RollingCountdown
+- [ ] 46-02: Batch mitosis on timer expire + phase transitions
+- [ ] 46-03: HUD cleanup (remove buttons) + old tap-to-select removal + UAT
 
 #### Phase 47: Online Play Integration
 
