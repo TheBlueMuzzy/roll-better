@@ -13,11 +13,13 @@ import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getGameSocket, setGameSocket, sendMessage } from './utils/partyClient';
 import { useOnlineGame } from './hooks/useOnlineGame';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
-import { DIE_SIZE } from './components/RollingArea';
+import { DIE_SIZE, ROLLING_X_OFFSET } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
-import type { UnlockAnimation, AIUnlockAnimation } from './types/game';
+import { Quaternion, Euler } from 'three';
+import type { UnlockAnimation, AIUnlockAnimation, CommittedUnlock } from './types/game';
+import { getFaceUpRotation } from './utils/diceUtils';
 import type { RoomPlayer } from './types/protocol';
 import { getAIUnlockDecision } from './utils/aiDecision';
 import versionData from '../version.json';
@@ -485,6 +487,147 @@ function App() {
       startAIUnlockAnimations();
     }
   }, [setPhase, startAIUnlockAnimations, isOnlineGame, sendUnlockRequest, sendSkipUnlock]);
+
+  // --- Batch mitosis: finalize state after animations complete ---
+  const finalizeBatchUnlock = useCallback((animations: UnlockAnimation[]) => {
+    const state = useGameStore.getState();
+    const players = [...state.players];
+    const player = { ...players[0] };
+
+    // Build pending new dice from animation data
+    const pendingNewDice: number[] = [];
+    const pendingNewDicePositions: [number, number, number][] = [];
+    const pendingNewDiceRotations: [number, number, number][] = [];
+
+    for (const anim of animations) {
+      pendingNewDice.push(anim.value, anim.value);
+      pendingNewDicePositions.push(anim.splitTargets[0], anim.splitTargets[1]);
+
+      // Compose face tilt + Y spin via quaternions (same as confirmUnlock)
+      const faceRot = getFaceUpRotation(anim.value);
+      for (const yRot of anim.splitYRotations) {
+        const faceQ = new Quaternion().setFromEuler(new Euler(faceRot[0], faceRot[1], faceRot[2]));
+        const yQ = new Quaternion().setFromEuler(new Euler(0, yRot, 0));
+        const combined = yQ.multiply(faceQ);
+        const result = new Euler().setFromQuaternion(combined);
+        pendingNewDiceRotations.push([result.x, result.y, result.z]);
+      }
+    }
+
+    // lockedDice already reduced by completeDragUnlock — just update poolSize
+    player.poolSize = player.poolSize + animations.length * 2;
+    player.selectedForUnlock = [];
+    players[0] = player;
+
+    useGameStore.setState({
+      players,
+      roundState: {
+        ...state.roundState,
+        pendingNewDice,
+        pendingNewDicePositions,
+        pendingNewDiceRotations,
+      },
+    });
+  }, []);
+
+  // --- Batch mitosis: build animations from committed unlocks and run them ---
+  const buildAndRunMitosis = useCallback((committed: CommittedUnlock[]) => {
+    if (committed.length === 0) {
+      // Nothing committed — skip directly to AI unlocks
+      if (!isOnlineGame) {
+        startAIUnlockAnimations();
+      }
+      return;
+    }
+
+    const state = useGameStore.getState();
+    const existingPoolPositions = [...state.roundState.remainingDicePositions];
+    const occupied: [number, number, number][] = [...existingPoolPositions];
+
+    const allAnimations: UnlockAnimation[] = [];
+    const DEG30 = (30 * Math.PI) / 180;
+
+    for (const cu of committed) {
+      const fromPos: [number, number, number] = cu.position;
+
+      const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
+      occupied.push(splitTargets[0], splitTargets[1]);
+
+      const prevDelay = allAnimations.length > 0
+        ? allAnimations[allAnimations.length - 1].delay
+        : 0;
+      const delay = allAnimations.length === 0
+        ? 0
+        : prevDelay + (0.25 + Math.random() * 0.25);
+
+      allAnimations.push({
+        slotIndex: cu.slotIndex,
+        value: cu.value,
+        fromPos,
+        targetPos,
+        splitTargets,
+        splitYRotations: [
+          (Math.random() * 2 - 1) * DEG30,
+          (Math.random() * 2 - 1) * DEG30,
+        ],
+        delay,
+      });
+    }
+
+    // Clear committed die visuals so MitosisDie replaces them
+    useGameStore.getState().clearCommittedUnlocks();
+    // Trigger mitosis animations
+    useGameStore.getState().setUnlockAnimations(allAnimations);
+
+    // Wait for animations to complete
+    const lastDelay = allAnimations.length > 0
+      ? allAnimations[allAnimations.length - 1].delay
+      : 0;
+    const totalWait = (lastDelay * 1000) + 1800;
+
+    setTimeout(() => {
+      finalizeBatchUnlock(allAnimations);
+      useGameStore.getState().clearUnlockAnimations();
+      // Reset timer key
+      useGameStore.getState().resetUnlockTimerKey();
+      // Online: server handles AI unlocks and phase transition
+      if (!isOnlineGame) {
+        startAIUnlockAnimations();
+      }
+    }, totalWait);
+  }, [isOnlineGame, startAIUnlockAnimations, finalizeBatchUnlock]);
+
+  // --- Timer expire handler: batch mitosis from committed unlocks ---
+  const handleUnlockTimerExpire = useCallback(() => {
+    const state = useGameStore.getState();
+    if (state.phase !== 'unlocking') return;
+
+    const committed = state.committedUnlocks;
+    const player = state.players[0];
+
+    if (committed.length === 0) {
+      // Nothing was dragged — check must-unlock
+      const mustUnlock = player.poolSize === 0 && player.lockedDice.length > 0 && player.lockedDice.length < 8;
+      if (mustUnlock) {
+        // Force-commit the first locked die to center of rolling area
+        const firstLocked = player.lockedDice[0];
+        const centerPos: [number, number, number] = [ROLLING_X_OFFSET, DIE_SIZE / 2, 0];
+        useGameStore.getState().forceCommitUnlock(firstLocked.goalSlotIndex, firstLocked.value, centerPos);
+        // Re-read and run mitosis
+        const freshCommitted = useGameStore.getState().committedUnlocks;
+        buildAndRunMitosis(freshCommitted);
+      } else {
+        // No must-unlock — skip: go straight to AI unlocks
+        useGameStore.getState().skipUnlock(0);
+        useGameStore.getState().resetUnlockTimerKey();
+        if (!isOnlineGame) {
+          startAIUnlockAnimations();
+        }
+      }
+    } else {
+      buildAndRunMitosis(committed);
+    }
+  }, [isOnlineGame, startAIUnlockAnimations, buildAndRunMitosis]);
 
   // AFK auto-unlock: server chose slots for us — trigger same animation pipeline as manual unlock
   const pendingAfkUnlock = useGameStore((s) => s.pendingAfkUnlock);

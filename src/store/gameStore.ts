@@ -88,6 +88,7 @@ interface GameStore extends GameState {
   cancelDragUnlock: () => void;
   completeDragUnlock: () => void;
   clearCommittedUnlocks: () => void;
+  forceCommitUnlock: (slotIndex: number, value: number, position: [number, number, number]) => void;
 
   // Tips
   showTip: (tipId: string) => void;
@@ -1061,6 +1062,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   clearCommittedUnlocks: () => {
     set({ committedUnlocks: [] });
+  },
+
+  forceCommitUnlock: (slotIndex: number, value: number, position: [number, number, number]) => {
+    const state = get();
+    const player = { ...state.players[0] };
+    player.lockedDice = player.lockedDice.filter(ld => ld.goalSlotIndex !== slotIndex);
+    const players = [...state.players];
+    players[0] = player;
+    set({
+      players,
+      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position }],
+    });
   },
 
   resetUnlockTimerKey: () => set({ unlockTimerResetKey: 0 }),
