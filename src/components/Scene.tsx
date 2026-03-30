@@ -7,6 +7,7 @@ import { RollingArea, DIE_SIZE } from './RollingArea';
 import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
+import { getRotationForFace } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
 import { PlayerProfileGroup } from './PlayerProfileGroup';
 import { GoalProfileGroup } from './GoalProfileGroup';
@@ -492,7 +493,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
               key={`ai-unlock-${anim.playerId}-${anim.slotIndex}-${i}`}
               fromPos={anim.fromPos}
               toPos={anim.toPos}
-              fromRotation={[0, 0, 0]}
+              fromRotation={getRotationForFace(anim.value)}
               value={anim.value}
               color={aiPlayer?.color || '#888'}
               delay={anim.delay}
