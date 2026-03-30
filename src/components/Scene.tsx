@@ -339,7 +339,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           color={player.color}
           score={player.score}
           startingDice={player.startingDice}
-          totalDice={player.poolSize + player.lockedDice.length}
+          totalDice={player.poolSize + player.lockedDice.length + committedUnlocks.length}
           position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75]}
           isBot={player.seatState === 'bot'}
         />

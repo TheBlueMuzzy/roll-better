@@ -309,14 +309,14 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       const allHaveResults = results.current.length === count && results.current.every((r) => r !== null);
       if (!allHaveResults) return;
 
-      // Clear existing timer and start fresh (500ms grace period)
+      // Clear existing timer and start fresh (short grace period)
       if (settleTimer.current) clearTimeout(settleTimer.current);
       settleTimer.current = setTimeout(() => {
         if (!hasFired.current) {
           console.log('[DicePool] Fallback settle — dice stopped moving, firing results');
           fireResults();
         }
-      }, 200);
+      }, 50);
     }, [count, fireResults]);
 
     // Result callback factory — marks die as settled, checks if ALL settled
