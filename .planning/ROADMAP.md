@@ -209,7 +209,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 45-01: Drop commit logic (committedUnlocks state + completeDragUnlock + cap check)
+- [x] 45-01: Drop commit logic (committedUnlocks state + completeDragUnlock + cap check)
 - [ ] 45-02: Highlighted dice in rolling zone + hide committed slots from lock row
 
 #### Phase 46: Inactivity Timer & Batch Mitosis
@@ -292,7 +292,7 @@ Plans:
 | 42. Release & Roll Mechanics | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 43. Polish & UAT | v1.5 | 1/1 | Complete | 2026-03-27 |
 | 44. Drag Detection & Drop Zone | v1.6 | 2/2 | Complete | 2026-03-29 |
-| 45. Drop Commit & Highlight State | v1.6 | 0/? | Not started | - |
+| 45. Drop Commit & Highlight State | v1.6 | 1/2 | In progress | - |
 | 46. Inactivity Timer & Batch Mitosis | v1.6 | 0/? | Not started | - |
 | 47. Online Play Integration | v1.6 | 0/? | Not started | - |
 | 48. Polish & UAT | v1.6 | 0/? | Not started | - |
