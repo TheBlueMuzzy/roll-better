@@ -67,6 +67,7 @@ function UnlockableDie({
   const startDragUnlock = useGameStore((s) => s.startDragUnlock);
   const updateDragPosition = useGameStore((s) => s.updateDragPosition);
   const cancelDragUnlock = useGameStore((s) => s.cancelDragUnlock);
+  const completeDragUnlock = useGameStore((s) => s.completeDragUnlock);
 
   const isBeingDragged = dragUnlockState.active && dragUnlockState.slotIndex === slotIndex;
 
@@ -190,8 +191,7 @@ function UnlockableDie({
             // Barely moved — cancel
             cancelDragUnlock();
           } else if (isInRollingZone(currentPos)) {
-            console.log('VALID DROP');
-            cancelDragUnlock(); // Phase 45 will change to completeDragUnlock + commit
+            completeDragUnlock();
           } else {
             cancelDragUnlock();
           }
