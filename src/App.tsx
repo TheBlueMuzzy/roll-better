@@ -546,11 +546,48 @@ function App() {
 
     const allAnimations: UnlockAnimation[] = [];
     const DEG30 = (30 * Math.PI) / 180;
+    const SPLIT_OFFSET = DIE_SIZE * 0.7;
+    const MIN_CLEARANCE = DIE_SIZE * 1.5;
+    const ANGLE_ATTEMPTS = 8;
 
     for (const cu of committed) {
       const fromPos: [number, number, number] = cu.position;
+      // Die stays where it was dropped — no flight to a new position
+      const targetPos: [number, number, number] = cu.position;
 
-      const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
+      // Compute split targets as offsets from drop position
+      const startAngle = Math.random() * Math.PI * 2;
+      let splitTargets: [[number, number, number], [number, number, number]] | null = null;
+      for (let a = 0; a < ANGLE_ATTEMPTS; a++) {
+        const angle = startAngle + (a * Math.PI) / ANGLE_ATTEMPTS;
+        const dx = Math.cos(angle) * SPLIT_OFFSET;
+        const dz = Math.sin(angle) * SPLIT_OFFSET;
+        const splitA: [number, number, number] = [targetPos[0] - dx, targetPos[1], targetPos[2] - dz];
+        const splitB: [number, number, number] = [targetPos[0] + dx, targetPos[1], targetPos[2] + dz];
+        // Check both split targets are clear of occupied dice
+        const clearA = occupied.every(occ => {
+          const odx = splitA[0] - occ[0]; const odz = splitA[2] - occ[2];
+          return Math.sqrt(odx * odx + odz * odz) >= MIN_CLEARANCE;
+        });
+        const clearB = occupied.every(occ => {
+          const odx = splitB[0] - occ[0]; const odz = splitB[2] - occ[2];
+          return Math.sqrt(odx * odx + odz * odz) >= MIN_CLEARANCE;
+        });
+        if (clearA && clearB) {
+          splitTargets = [splitA, splitB];
+          break;
+        }
+      }
+      // Fallback: use first angle regardless of overlap
+      if (!splitTargets) {
+        const angle = startAngle;
+        const dx = Math.cos(angle) * SPLIT_OFFSET;
+        const dz = Math.sin(angle) * SPLIT_OFFSET;
+        splitTargets = [
+          [targetPos[0] - dx, targetPos[1], targetPos[2] - dz],
+          [targetPos[0] + dx, targetPos[1], targetPos[2] + dz],
+        ];
+      }
       occupied.push(splitTargets[0], splitTargets[1]);
 
       const prevDelay = allAnimations.length > 0
@@ -588,8 +625,6 @@ function App() {
     setTimeout(() => {
       finalizeBatchUnlock(allAnimations);
       useGameStore.getState().clearUnlockAnimations();
-      // Reset timer key
-      useGameStore.getState().resetUnlockTimerKey();
       // Online: server handles AI unlocks and phase transition
       if (!isOnlineGame) {
         startAIUnlockAnimations();
@@ -601,6 +636,9 @@ function App() {
   const handleUnlockTimerExpire = useCallback(() => {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
+
+    // Mark timer as fired (sentinel -1) so the countdown bar won't flash back
+    useGameStore.setState({ unlockTimerResetKey: -1 });
 
     const committed = state.committedUnlocks;
     const player = state.players[0];
@@ -619,7 +657,6 @@ function App() {
       } else {
         // No must-unlock — skip: go straight to AI unlocks
         useGameStore.getState().skipUnlock(0);
-        useGameStore.getState().resetUnlockTimerKey();
         if (!isOnlineGame) {
           startAIUnlockAnimations();
         }

@@ -369,7 +369,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setScreen: (screen) => set({ screen }),
 
-  setPhase: (phase) => set({ phase }),
+  setPhase: (phase) => {
+    const prev = get().phase;
+    const updates: Partial<GameState> = { phase };
+    // Reset timer sentinel when leaving unlocking phase
+    if (prev === 'unlocking' && phase !== 'unlocking') {
+      updates.unlockTimerResetKey = 0;
+    }
+    set(updates);
+  },
 
   initGame: (playerCount: number, onlinePlayers?: { name: string; color: string }[]) => {
     // onlinePlayers: ordered array from lobby (local player first, then others).

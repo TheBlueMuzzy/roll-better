@@ -164,22 +164,22 @@ function UnlockableDie({
         rotation={getRotationForFace(value)}
         scale={DIE_SIZE}
         onPointerDown={(e) => {
-          e.stopPropagation();
           if (!selectable) return;
+          e.stopPropagation();
           (e.target as Element).setPointerCapture?.(e.pointerId);
           const originPosition: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, rowZ];
           startDragUnlock(slotIndex, value, originPosition);
           isDragging.current = true;
         }}
         onPointerMove={(e) => {
-          if (!isDragging.current) return;
+          if (!isDragging.current || !selectable) return;
           e.stopPropagation();
           if (e.ray.intersectPlane(_dragPlane, _dragIntersect)) {
             updateDragPosition([_dragIntersect.x, DIE_SIZE / 2, _dragIntersect.z]);
           }
         }}
         onPointerUp={(e) => {
-          if (!isDragging.current) return;
+          if (!isDragging.current || !selectable) return;
           e.stopPropagation();
           (e.target as Element).releasePointerCapture?.(e.pointerId);
           isDragging.current = false;
@@ -194,6 +194,7 @@ function UnlockableDie({
           }
         }}
         onPointerOver={(e) => {
+          if (!selectable) return;
           e.stopPropagation();
           document.body.style.cursor = 'pointer';
         }}
