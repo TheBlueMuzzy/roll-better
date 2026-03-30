@@ -414,11 +414,12 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       }
 
       // Active velocity check — detect nearly-stopped dice faster than Rapier onSleep
-      if (!hasFired.current && rollStartTime.current > 0) {
+      // Only runs after dice have been rolling for at least 0.5s (avoids firing at rest)
+      if (!hasFired.current && rollStartTime.current > 0 && Date.now() - rollStartTime.current > 500) {
         const allNearlyStopped = dieRefs.current.every((die, i) => {
           if (i >= count) return true;
           if (!die) return true;
-          return die.getSpeed() < 0.3;
+          return die.getSpeed() < 0.5;
         });
         if (allNearlyStopped) {
           // Read face values directly and fire immediately
