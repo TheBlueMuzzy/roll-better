@@ -74,7 +74,8 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
 
   // --- AFK countdown logic ---
   const showIdleCountdown = isOnlineGame && phase === 'idle';
-  const showUnlockInactivityTimer = !isOnlineGame && phase === 'unlocking' && !animationsInProgress;
+  const timerAlreadyFired = unlockTimerResetKey > 0 && committedUnlocks.length === 0;
+  const showUnlockInactivityTimer = !isOnlineGame && phase === 'unlocking' && !animationsInProgress && !timerAlreadyFired;
   const showOnlineUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
 
   const handleIdleTimeout = useCallback(() => {
@@ -233,7 +234,7 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
         <RollingCountdown
           active={showUnlockInactivityTimer}
           onTimeout={onUnlockTimerExpire}
-          duration={unlockTimerResetKey === 0 ? 4000 : 3000}
+          duration={3000}
           resetKey={unlockTimerResetKey}
         />
         <RollingCountdown active={showOnlineUnlockCountdown} onTimeout={handleUnlockTimeout} />
