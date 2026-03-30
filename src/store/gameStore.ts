@@ -1070,7 +1070,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set({
       players,
-      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: snappedPosition }],
+      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: snappedPosition, dropPosition: currentPosition }],
       dragUnlockState: { ...initialDragUnlockState },
       unlockTimerResetKey: state.unlockTimerResetKey + 1,
     });
@@ -1088,7 +1088,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     players[0] = player;
     set({
       players,
-      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position }],
+      committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position, dropPosition: position }],
     });
   },
 

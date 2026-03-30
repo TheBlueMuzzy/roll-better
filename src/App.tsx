@@ -543,12 +543,14 @@ function App() {
 
     const state = useGameStore.getState();
     const existingPoolPositions = [...state.roundState.remainingDicePositions];
-    const occupied: [number, number, number][] = [...existingPoolPositions];
+    // Include all committed die positions so split targets don't overlap them
+    const committedPositions = committed.map(cu => cu.position);
+    const occupied: [number, number, number][] = [...existingPoolPositions, ...committedPositions];
 
     const allAnimations: UnlockAnimation[] = [];
     const DEG30 = (30 * Math.PI) / 180;
     const SPLIT_OFFSET = DIE_SIZE * 0.7;
-    const MIN_CLEARANCE = DIE_SIZE * 1.5;
+    const MIN_CLEARANCE = DIE_SIZE * 1.3;
     const ANGLE_ATTEMPTS = 8;
 
     for (const cu of committed) {

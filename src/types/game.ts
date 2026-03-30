@@ -52,7 +52,8 @@ export interface DragUnlockState {
 export interface CommittedUnlock {
   slotIndex: number;
   value: number;
-  position: [number, number, number];  // world coords where it landed in rolling zone
+  position: [number, number, number];      // final snapped position
+  dropPosition: [number, number, number];  // raw drop position (before snap)
 }
 
 export type AIDifficulty = 'easy' | 'medium' | 'hard';

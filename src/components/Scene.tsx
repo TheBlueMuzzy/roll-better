@@ -480,6 +480,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             value={cu.value}
             color={player.color}
             position={cu.position}
+            dropPosition={cu.dropPosition}
           />
         ))}
 
