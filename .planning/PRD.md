@@ -682,8 +682,8 @@ Dice emerge FROM owner's icon and return TO it. Emergence done (SpawningDie scal
 **#3 — Drag-to-Unlock (Input System Overhaul)**
 Full drag input system. Swipe gesture replaces tap-to-toggle entirely (not dual-mode). Drop zone detection, visual feedback during drag, snap-back on invalid drop. This is a major system change — #4 and #5 are sub-features that depend on this being solved first.
 
-**#4 — Hold-to-Gather-Roll**
-Hold/long-press to gather dice and roll. Part of the drag input system (#3) — depends on the interaction model being redesigned first. Can't be built in isolation.
+**#4 — Hold-to-Gather-Roll** ✅ SHIPPED (v1.5, 2026-03-27)
+Shipped independently of #3. Hold gesture gathers dice into orbit, release flings with tangential momentum. Includes hockey-stick speed ramp, vacuum VFX, auto-release at 2.5s, AFK support.
 
 **#5 — Mouse-Based Dice Rolling (PC)**
 Drag-and-release physics throw for desktop. Part of the drag input system (#3) — same interaction paradigm, different input device. Depends on #3's architecture.

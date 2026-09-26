@@ -10,7 +10,7 @@ Enhancements discovered during execution. Not critical - address in future phase
 
 - **Priority:** P0 — blocks gameplay
 - **Discovered:** 2026-03-01 during 05-04 checkpoint 3 testing (build v0.1.0.51)
-- **Status:** OPEN — investigation complete, fix pending
+- **Status:** PARTIALLY FIXED (v1.5) — snapFlat cascade corrects canted dice after settle, wall nudge frees dice leaning against boundaries. No recurrence reported since v1.5 shipped. Root cause (canted face misread) addressed reactively but not preventatively.
 - **Reported by:** User (3 separate occurrences)
 
 #### Reproduction Reports
@@ -134,14 +134,13 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Quick
 - **Suggested phase:** Phase 3 (03-03 or patch)
 
-### ISS-002: Dice can lean (cant) against boundary walls and fail to settle
+### ISS-002: Dice can lean (cant) against boundary walls and fail to settle — PARTIALLY FIXED
 
 - **Discovered:** Phase 4 Task 3 checkpoint (2026-02-28)
+- **Status:** PARTIALLY FIXED (v1.5) — Wall nudge pushes walls outward by 0.2 units on settle to free canted dice. snapFlat cascade detects low-confidence face reads (dot < 0.95) and rotates dice flat. Reactive fix only — doesn't prevent canting during rolling. No recurrence reported since v1.5.
 - **Type:** Physics edge case
-- **Description:** A rolled die can end up leaning against the back wall OR against another die at an angle, unable to settle flat. Face detection can't determine the result because no face clearly points up. Options: (a) detect stuck/canted dice and give them a physics nudge, (b) add a timeout that re-rolls stuck dice, (c) add angled "kickout" colliders at wall bases to prevent leaning.
 - **Impact:** Medium (blocks result detection for that die)
-- **Effort:** Medium
-- **Suggested phase:** Phase 6 (animation/polish) or dedicated fix
+- **Remaining:** Preventative fix (kickout colliders at wall bases) still possible but may not be needed
 
 ### ISS-003: Online players see different goal dice — FIXED (server-generated goalValues)
 
@@ -157,14 +156,10 @@ These console.log statements are already in the code to catch the bug on next oc
 - **Effort:** Large — core Phase 16 (State Sync Protocol) scope
 - **Suggested phase:** Phase 16
 
-### ISS-005: Dice can intersect and get permanently stuck (never settle)
+### ISS-005: Dice can intersect and get permanently stuck (never settle) — FIXED
 
 - **Discovered:** Phase 17 Task 4 checkpoint (2026-03-04)
-- **Type:** Physics edge case
-- **Description:** Two dice can clip into each other and become stuck, oscillating forever. Physics reports them as never settling, so the game appears permanently in "rolling" state. Related to ISS-002 (canting). Fix options: (a) timeout — if dice don't settle within N seconds, force-read faces or re-roll stuck dice, (b) detect overlapping dice and give separation impulse, (c) reduce restitution to minimize bounce energy.
-- **Impact:** Low (rare, but game-breaking when it happens)
-- **Effort:** Medium
-- **Suggested phase:** Same fix pass as ISS-001/ISS-002
+- **Status:** CLOSED — fixed in v1.5 (Phase 43). Absolute 10s settle timeout in DicePool force-fires results if dice never stop oscillating. Fallback 200ms timer also handles stacked dice cycling sleep/wake.
 
 ### BUG-002: Online reveal buffering broken — data loss in setRollResults
 
