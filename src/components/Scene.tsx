@@ -18,6 +18,7 @@ import { CommittedDie } from './CommittedDie';
 import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
+import { isUnlockTurnOpen } from '../utils/unlockTurn';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -66,6 +67,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const unlockAnimations = useGameStore((s) => s.roundState.unlockAnimations);
     const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
     const committedUnlocks = useGameStore((s) => s.committedUnlocks);
+    const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
+    const unlockTurnOpen = isUnlockTurnOpen({ phase, timerAlreadyFired: unlockTimerResetKey < 0, hasSubmittedUnlock });
     const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
     const player = players[0];
 
@@ -309,8 +312,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           selectedForUnlock={player.selectedForUnlock}
           animatingSlotIndices={animatingSlotIndices}
           unlockAnimations={unlockAnimations}
-          canUnlock={!hasSubmittedUnlock && (player.poolSize + player.lockedDice.length + committedUnlocks.length * 2 + 1) <= 12}
-          maxUnlocks={hasSubmittedUnlock ? 0 : Math.max(0, Math.floor((12 - player.poolSize - player.lockedDice.length - committedUnlocks.length * 2) / 1))}
+          // Locked dice stay draggable-looking for the whole unlock phase (so a cancelled drag can glide
+          // back to its slot), but only accept a new drag while the turn is open and there's room (B006)
+          maxUnlocks={unlockTurnOpen ? Math.max(0, 12 - player.poolSize - player.lockedDice.length - committedUnlocks.length * 2) : 0}
         />
 
         {/* AI player rows — below human row (outside Physics) */}

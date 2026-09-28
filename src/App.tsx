@@ -690,20 +690,13 @@ function App() {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
 
-    // If player is mid-drag, auto-commit or cancel before proceeding
-    const dragState = useGameStore.getState().dragUnlockState;
-    if (dragState.active && dragState.currentPosition) {
-      if (isInRollingZone(dragState.currentPosition)) {
-        useGameStore.getState().completeDragUnlock();
-      } else {
-        useGameStore.getState().cancelDragUnlock();
-      }
-    } else if (dragState.active) {
-      // Active but no position yet — cancel
-      useGameStore.getState().cancelDragUnlock();
-    }
+    // B006: a drag still in progress resolves by where the die is — over the rolling zone it
+    // counts for this turn (at a clear spot), over the locked zone it snaps back.
+    // Must run BEFORE the turn is closed below, or the drag would always snap back.
+    useGameStore.getState().completeDragUnlock();
 
-    // Mark timer as fired (sentinel -1) so the countdown bar won't flash back
+    // Close the turn: timer sentinel -1 = no new drags until the next unlock phase,
+    // and the countdown bar won't flash back
     useGameStore.setState({ unlockTimerResetKey: -1 });
 
     // Online: tell the server everything this player dragged — ONE message per turn (B003 / TDD D15).

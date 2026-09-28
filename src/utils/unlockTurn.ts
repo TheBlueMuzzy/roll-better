@@ -41,8 +41,11 @@ export interface UnlockTurnState {
 
 /** Can the player pick up (or drop) a locked die right now? */
 export function isUnlockTurnOpen(state: UnlockTurnState): boolean {
-  const { phase, hasSubmittedUnlock } = state;
-  return phase === 'unlocking' && !hasSubmittedUnlock;
+  const { phase, timerAlreadyFired, hasSubmittedUnlock } = state;
+  if (phase !== 'unlocking') return false;
+  if (timerAlreadyFired) return false;   // the 3 s timer closed the turn (solo + online)
+  if (hasSubmittedUnlock) return false;  // online: choice already sent
+  return true;
 }
 
 export interface DragReleaseInput {
@@ -57,11 +60,13 @@ export interface DragReleaseInput {
  * 'snap-back' = the die flies back to its slot.
  */
 export function resolveDragRelease(input: DragReleaseInput): 'commit' | 'snap-back' {
-  const { overRollingZone, withinCap } = input;
+  const { turnOpen, overRollingZone, withinCap } = input;
+  if (!turnOpen) return 'snap-back'; // too late — the turn is already closed
   return overRollingZone && withinCap ? 'commit' : 'snap-back';
 }
 
 /** The timer key after a die is committed — each commit restarts the 3 s timer. */
 export function nextUnlockTimerKey(current: number): number {
+  if (current < 0) return current; // -1 = timer already fired; never restart it
   return current + 1;
 }
