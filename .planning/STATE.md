@@ -1,6 +1,7 @@
 # Project State
 
 ## Current Status
+**2026-09-28 — Hotfix v0.2.1:** online drag-to-unlock was broken on the live site since phase 46 (drags never reached the server; AFK countdown fired instead). Fixed + guarded by src/utils/unlockTurn.test.ts; build type-check fixed. Verified with a two-browser online test. Muzzy to confirm on two phones.
 v1.6 Drag-to-Unlock milestone started. Replace tap-to-unlock with drag gesture — committed-on-drop, inactivity timer, batch mitosis.
 
 ## Version

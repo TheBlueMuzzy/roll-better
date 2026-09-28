@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
-  "version": "0.2.0",
-  "build": 92,
+  "version": "0.2.1",
+  "build": 0,
   "history": [
     {
       "version": "0.2.0.92",
@@ -382,6 +382,11 @@
       "version": "0.2.0.38",
       "date": "2026-03-26",
       "summary": "Hold-to-gather attractor system: spring-damped forces, orbital goals, debug dots, ramping damping"
+    },
+    {
+      "version": "0.2.1",
+      "date": "2026-09-28",
+      "summary": "Hotfix: online drag-to-unlock reaches the server again (B003); build type-check fixed (B004)"
     }
   ]
 }
