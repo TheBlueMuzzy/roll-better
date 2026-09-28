@@ -7,7 +7,8 @@ import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
-import { findNearestClearPosition } from '../utils/dropZone';
+import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
+import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey } from '../utils/unlockTurn';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 export const PLAYER_COLORS = [
@@ -1020,7 +1021,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // --- Drag unlock actions ---
   startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => {
     const state = get();
-    if (state.phase !== 'unlocking' || state.hasSubmittedUnlock) return;
+    // B006: no new drags once the turn is closed (timer fired / choice sent to the server)
+    if (!isUnlockTurnOpen({ phase: state.phase, timerAlreadyFired: state.unlockTimerResetKey < 0, hasSubmittedUnlock: state.hasSubmittedUnlock })) return;
     set({
       dragUnlockState: {
         active: true,
@@ -1042,8 +1044,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ dragUnlockState: { ...initialDragUnlockState } });
   },
 
+  // Ends a drag — called on finger release AND when the 3 s timer fires mid-drag.
+  // Decides commit vs snap-back (resolveDragRelease in unlockTurn.ts).
   completeDragUnlock: () => {
     const state = get();
+    if (!state.dragUnlockState.active) return;
     const { slotIndex, value, currentPosition } = state.dragUnlockState;
     if (slotIndex === null || value === null || currentPosition === null) {
       set({ dragUnlockState: { ...initialDragUnlockState } });
@@ -1055,8 +1060,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Adding one more unlock: total after all mitosis = poolSize + (committedUnlocks.length + 1) * 2 + remaining locked
     const player = state.players[0]; // local player is always index 0
     const totalAfterMitosis = player.poolSize + (state.committedUnlocks.length + 1) * 2 + (player.lockedDice.length - 1);
-    if (totalAfterMitosis > 12) {
-      // Cap exceeded — reset drag state (triggers snap-back)
+
+    const outcome = resolveDragRelease({
+      turnOpen: isUnlockTurnOpen({ phase: state.phase, timerAlreadyFired: state.unlockTimerResetKey < 0, hasSubmittedUnlock: state.hasSubmittedUnlock }),
+      overRollingZone: isInRollingZone(currentPosition),
+      withinCap: totalAfterMitosis <= 12,
+    });
+    if (outcome === 'snap-back') {
+      // Reset drag state — PlayerRow lerps the die back to its slot
       set({ dragUnlockState: { ...initialDragUnlockState } });
       return;
     }
@@ -1080,7 +1091,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       players,
       committedUnlocks: [...state.committedUnlocks, { slotIndex, value, position: snappedPosition, dropPosition: currentPosition }],
       dragUnlockState: { ...initialDragUnlockState },
-      unlockTimerResetKey: state.unlockTimerResetKey + 1,
+      unlockTimerResetKey: nextUnlockTimerKey(state.unlockTimerResetKey),
     });
   },
 
