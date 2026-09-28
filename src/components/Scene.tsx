@@ -20,6 +20,7 @@ import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
+import { roundScore } from '../utils/scoring';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -368,7 +369,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           potentialScore={(() => {
             const totalDice = player.poolSize + player.lockedDice.length;
             const projectedPool = Math.max(0, totalDice - 8);
-            return Math.max(0, 8 - projectedPool * 2);
+            return roundScore(projectedPool);
           })()}
         />
 

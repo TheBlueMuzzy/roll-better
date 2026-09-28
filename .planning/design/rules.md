@@ -68,8 +68,8 @@ Each turn has these phases, executed simultaneously for all players:
 When 1+ players lock all 8 dice matching the Goal:
 
 **Points calculation:**
-- Base: **8 points**, minus **2 per leftover die** (changed in v1.5 from the old `[1, 0, 1, 1]` penalty list)
-- Formula: `points = max(0, 8 − 2 × remainingPool)`
+- Points by leftover dice: **8 / 6 / 4 / 2 / 1** for 0 / 1 / 2 / 3 / 4 left (Muzzy 2026-09-28 — a win always scores at least 1). History: v1.0 penalty list `[1, 0, 1, 1]` → v1.5 `8 − 2 × leftover` (4 left scored 0) → now.
+- The numbers live in `content/tuning/scoring.json` (`pointsByLeftoverDice`) — edit them there.
 - Remaining pool = dice NOT locked (total dice − 8 locked). Max remaining pool is 4 (since total cap is 12).
 
 | Remaining Pool | Points |
@@ -78,9 +78,9 @@ When 1+ players lock all 8 dice matching the Goal:
 | 1              | 6 |
 | 2              | 4 |
 | 3              | 2 |
-| 4              | 0 |
+| 4              | 1 |
 
-**Strategic note:** A sloppy win still beats a slow perfect attempt that never completes — but with 2 per leftover die, a 4-leftover win now scores nothing (it still counts as a round win for the handicap). Early rounds favor aiming for 8 (perfect locks). As the session progresses, players who are behind benefit from aggressive unlocking — more dice means faster wins even at lower scores. The core tension: a fast sloppy win (4–6 pts) beats a slow perfect attempt that never completes (0 pts).
+**Strategic note:** A sloppy win still beats a slow perfect attempt that never completes — but with 2 per leftover die, a 4-leftover win still scores 1 — every win is worth something. Early rounds favor aiming for 8 (perfect locks). As the session progresses, players who are behind benefit from aggressive unlocking — more dice means faster wins even at lower scores. The core tension: a fast sloppy win (4–6 pts) beats a slow perfect attempt that never completes (0 pts).
 
 - All players who complete the Goal on the same turn score
 - Players who did NOT complete the Goal score 0 for that round
@@ -108,7 +108,7 @@ Applied after every round:
 - **All Goal dice are the same number** (e.g., eight 3s): Rare but valid. Players only need to roll 3s. Still plays normally.
 - **Player has pool of 1**: They roll 1 die. If it doesn't match anything unlocked, they have 0 locked and 1 in pool. If they unlock a locked die, pool grows to 2. Starting from 1 is hard but not impossible.
 - **Player has 0 pool dice and < 8 locked**: Must-unlock rule forces at least 1 unlock before next roll.
-- **Player at 12 total dice and wins**: They score 0 points (8 − 2×4 remaining pool). Their Z still decreases by 1.
+- **Player at 12 total dice and wins**: They score 1 point (4 leftover dice). Their Z still decreases by 1.
 - **Multiple players hit 20+ on same round**: All are winners. The Winners Screen shows all of them.
 - **Player disconnects mid-round (online)**: AI seamlessly takes over for disconnected player (game continues without pause). On reconnect, player takes back control from AI immediately. No data lost — PartyKit maintains room state.
 - **Host exits to menu, remaining player hits Play Again (online)**: Game restarts with bots filling all empty slots. Works correctly.

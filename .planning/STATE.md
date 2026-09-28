@@ -3,7 +3,7 @@
 ## ▶ RESUME HERE
 Housekeeping done 2026-09-28: GDD rebuilt on the BMUZ-2 template (~110 lines, detail moved word for word to `design/` + `research/audience.md`), TDD slimmed, VISION.md → `archive/vision.md` (ideas were already in ROADMAP Later). F47 approved ✅, F49 ✅.
 Next: sprint 01 still has the roll physics bugs — `/develop` task 7 (B007 dice escape + hang, P1), 8, 9 (B008 gather misses dice). Then the UI-kit rollout (ROADMAP Ideas) needs `/define` first: kit additions + the Cartoon-vs-dark-table art call.
-Muzzy: scoring fix (GDD §9) — Muzzy is deciding the new rule.
+Muzzy: new scoring (8/6/4/2/1) is on the work branch — reaches the live game at /deliver (needs `npx partykit deploy` too).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
@@ -24,7 +24,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - Physics decides the dice (`getFaceUp`), offline and online. No fake RNG.
 - Online = invisible layer: your own screen behaves like offline; nobody waits for another human. Others' results stay hidden until you've acted.
 - Unlock online = your own 3 s drag timer, then ONE `unlock_request`/`skip_unlock` (TDD D15 — Muzzy's decision, don't re-argue).
-- Scoring = max(0, 8 − 2 × dice left in pool) (43-01). Handicap every round, starting dice 1–12. Client cap: pool + locked + unlocks ≤ 12.
+- Scoring = points by dice left in pool, 8/6/4/2/1 (D18) — ONE list in `content/tuning/scoring.json`, used by phone, star preview AND server via `src/utils/scoring.ts`; never re-inline it. Handicap every round, starting dice 1–12. Client cap: pool + locked + unlocks ≤ 12.
 - AFK: 2 consecutive auto-actions → bot takes the seat. Timers table: TDD §2b.
 **Architecture** (detail in TDD §2/§2b)
 - Client-authoritative dice, server-authoritative locking (`findAutoLocks` on the server). Every `phase_change` carries a full snapshot, applied after animations (5 s safety).

@@ -43,7 +43,7 @@
   6. **Unlock:** drag locked dice into the rolling area. When the turn ends, each one splits into 2 (net +1 die). A 3 s inactivity timer ends the turn and every drag restarts it; doing nothing = skip.
   7. **Must-unlock:** 0 dice in the pool and fewer than 8 locked → you must unlock at least one (the game picks one if the timer runs out).
   8. **Dice cap:** 12 dice total (pool + locked + 2 per unlock).
-  9. **Scoring:** the round winner(s) score **8 − 2 per die left in the pool** (minimum 0). Everyone else scores 0.
+  9. **Scoring:** the round winner(s) score by dice left in the pool — 0 left = **8**, 1 = **6**, 2 = **4**, 3 = **2**, 4 = **1** (Muzzy 2026-09-28; numbers in `content/tuning/scoring.json`). Everyone else scores 0.
   10. **Handicap:** win the round → start the next with 1 fewer die (min 1); lose → 1 more (max 12).
 - **Controls** (same on phone and desktop): **Roll** — press and hold in the rolling area to gather, release to throw. **Unlock** — drag a locked die from your row into the rolling area. Settings — gear icon. Screens and HUD: `design/screens.md`.
 - **Mechanics:**
@@ -53,7 +53,7 @@
 | Simultaneous rolling | everyone rolls at once, results revealed with animation → Sensation + Fellowship |
 | Auto-lock | no busywork after the roll; the eye goes straight to the matches → Sensation |
 | Drag-to-unlock + mitosis | weigh "more dice now" against "points later" → Challenge |
-| 8 − 2 per leftover die | tension between a fast sloppy win and a slow clean one → Challenge |
+| Points drop per leftover die (8/6/4/2/1) | tension between a fast sloppy win and a slow clean one → Challenge |
 | Handicap | losers get more dice next round and stay in the race → Fellowship (nobody drops out) |
 
 ## 5. Systems
@@ -84,6 +84,5 @@ Release stages: prototype → alpha → beta → 1.0. **Done** for a stage = all
 
 ## 9. Open questions
 - What stage is the live game (alpha / beta / 1.0), and what's the next release? (sets `Release target:` in ROADMAP)
-- Scoring: since v1.5 a win with 4 leftover dice scores **0** (8 − 2×4). Intended — a win that still helps your handicap but not your score — or should the floor be higher?
 - No skip-lock: players can't refuse a matching die. Deliberate simplification — revisit if unlock choices feel thin.
 - UI art direction for the game-ui kit rollout: bright Cartoon UI vs the dark table.

@@ -8,6 +8,7 @@ import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
 import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey, returnParkedDice } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
+import { roundScore } from '../utils/scoring';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 
 // Player colors — defined here to avoid circular dependency with Die3D
@@ -873,8 +874,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Only score players who completed the goal (all 8 slots locked)
       if (p.lockedDice.length === 8) {
         // poolSize = remaining unlocked dice at time of win
-        // 8d=8pts, 9d=6pts, 10d=4pts, 11d=2pts, 12d=0pts
-        computedRoundScore = Math.max(0, 8 - p.poolSize * 2);
+        // points per leftover die: content/tuning/scoring.json
+        computedRoundScore = roundScore(p.poolSize);
         return { ...p, score: p.score + computedRoundScore };
       }
       return p;

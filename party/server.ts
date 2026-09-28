@@ -12,6 +12,7 @@ import type {
 import { findAutoLocks } from "../src/utils/matchDetection";
 import { getAIUnlockDecision } from "../src/utils/aiDecision";
 import { maxUnlocksAllowed } from "../src/utils/diceCap";
+import { roundScore } from "../src/utils/scoring";
 
 const MAX_PLAYERS = 8;
 
@@ -1238,10 +1239,10 @@ export default class RollBetterServer implements Party.Server {
       const winner = this.gameState.players.find((p) => p.id === winnerId);
       if (!winner) continue;
 
-      const roundScore = Math.max(0, 8 - winner.poolSize * 2);
-      winner.score += roundScore;
-      winnersData.push({ playerId: winnerId, roundScore });
-      this.log(`Scoring: ${winner.name} won with ${roundScore} points (pool: ${winner.poolSize}) — total: ${winner.score}`);
+      const points = roundScore(winner.poolSize);
+      winner.score += points;
+      winnersData.push({ playerId: winnerId, roundScore: points });
+      this.log(`Scoring: ${winner.name} won with ${points} points (pool: ${winner.poolSize}) — total: ${winner.score}`);
     }
 
     // Set phase to scoring

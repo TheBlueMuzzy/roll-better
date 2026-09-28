@@ -1,0 +1,4 @@
+{
+  "_help": "Points a round winner scores, by how many dice are left over in their pool (not in a Goal slot). First number = 0 leftover dice, last = 4 (the most possible, since 12 dice is the cap). Players who don't finish the Goal score 0.",
+  "pointsByLeftoverDice": [8, 6, 4, 2, 1]
+}
