@@ -25,7 +25,7 @@ const ROLLING_Z_HALF = (ROLLING_Z_MAX - ROLLING_Z_MIN) / 2;   // 5
 export const DIE_SIZE = 0.8;
 
 // Wall thickness and height
-const WALL_THICKNESS = 0.25;
+export const WALL_THICKNESS = 0.25; // half-thickness (Rapier cuboid args are half-extents)
 const WALL_HEIGHT = 8; // tall enough to catch dice at peak of roll arc
 
 // Orbit height — must match gatherPoints.ts

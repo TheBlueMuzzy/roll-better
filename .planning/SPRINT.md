@@ -16,10 +16,11 @@ Notes: Server code changes → `npx partykit deploy` needed at /deliver.
 
 ## Roll physics bugs — B007 dice escape + hang · B008 gather misses dice
 Done when: no die can leave the rolling area (or it's instantly put back), rolls never hang waiting for a lost die, and gather sweeps every die in the rolling area.
-- [ ] 🤖 7. Failing test first (B007): pure helper that says whether a die is outside the rolling area — `src/utils/` + test
+- [x] 🤖 7. Failing test first (B007): pure helper that says whether a die is outside the rolling area — `src/utils/` + test
 - [ ] 🤖 8. Safety net: a die outside bounds is put back inside and settles (`src/components/PhysicsDie.tsx`, `DicePool.tsx`); fix the dead release fling — `stopGathering` clears the touch point before release reads it (`gameStore.ts` ~1013, `DicePool.tsx` ~372); cap release speed
 - [ ] 🤖 9. B008: log gather per die (dev only), reproduce, fix the cause — may already be solved by task 8 (escaped dice coming back from far below) (`DicePool.tsx`, `PhysicsDie.tsx`)
 Check: a scripted 50-roll run with no die out of bounds and no 10 s timeout firing; gather logs show every die attracted and spun.
+Notes: 7 — `src/utils/rollBounds.ts` (+ test) reads the wall numbers straight from RollingArea (exported `WALL_THICKNESS`); "inside" = the walls' inside faces, a die high in the air still counts as inside. Test failed (no module) before the helper existed, 9/9 after. New `content/tuning/physics.json` (outOfBoundsMargin 0.25, maxReleaseSpeed).
 
 ## F49 🐞 Deploy builds the same way as local — ✅
 Done when: the GitHub deploy fails if the type check or tests fail.
