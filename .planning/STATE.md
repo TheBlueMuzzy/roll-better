@@ -1,17 +1,18 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-F47 tasks 1–5 done (B006 fixed, not released): the unlock turn closes when the 3 s timer fires, a held drag resolves by zone, nothing is left parked; server AFK unlocks use the drag path; server cap = phone cap (`diceCap.ts`); D16 `unlock_activity` keeps active draggers from being AFK'd. `npm test` 53 ✓, build ✓, `npm run e2e` ✓. Next: Muzzy's task 6 (two phones + solo late drag), then `/develop` → B007 task 7.
-Muzzy: try a late drag solo on desktop — drag a locked die right as the 3 s bar ends: over the rolling area it should count (split), over your row it should slide back; after that you can't pick dice up until next turn.
-Muzzy: check B003 on two real phones — both players drag dice in an online game and each sees the other's unlock — then tell Claude so B003 → verified.
+Sprint 01 on `dev/v1-6-drag-to-unlock`. F47 (+B006 late drag) is built and checked (56 tests, build, solo + online e2e pass; a timing sweep couldn't reproduce any gap; a parked die now returns to its slot at phase end) — waiting for Muzzy's "approved". F49 (deploy runs tests + full build) done.
+Next: `/develop` → roll physics bugs: task 7 (failing test: die outside the rolling area), 8 (safety net + fix the dead release fling), 9 (B008 gather misses dice).
+Also pending (Claude): slim this project's GDD (481 lines) and TDD (301) to the new BMUZ-2 size and merge VISION.md into ROADMAP → Ideas; draft GDD Experience targets (MDA) for Muzzy to confirm.
+Muzzy: approve F47 after trying a late drag on the dev version (`/play` → localhost:5173) — the LIVE site doesn't have it until /deliver.
+Muzzy: check B003 on two real phones on the LIVE site, then tell Claude → verified.
 Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
-Muzzy: What stage is the live game (alpha/beta/1.0), and what's next?
-Muzzy: confirm the draft scope in GDD §3b (musts / should / could / won't).
+Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §3b. · Obsidian setup (vault = Documents/dev) when there's 5 minutes.
 
 ## Where we are
 Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
-Doing: F47 — tasks 1–5 done; waiting on Muzzy's task 6 (phones + solo late drag)
-Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.0
+Doing: F47 — needs review (Muzzy); physics bugs next
+Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
 ## Key facts
@@ -48,6 +49,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - GDD out of date: §4.5 scoring table (code: 8 − 2 per leftover die); §6.1 portrait layout (landscape-only since v1.4); §10 known issues ("no drag-to-unlock").
 
 ## Log
+- 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
 - 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).
 - 2026-09-28 — Hotfix v0.2.1: B003 online drag-to-unlock fixed (one batched unlock_request, TDD D15) + B004 build type-check fixed; released. Converted planning to BMUZ-2.
 - 2026-09-26 — Docs: ISSUES + PRD refresh.
