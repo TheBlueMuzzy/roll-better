@@ -7,6 +7,8 @@ import { DIE_SIZE, ROLLING_X_OFFSET } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
 import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey } from '../utils/unlockTurn';
+import { maxUnlocksAllowed } from '../utils/diceCap';
+import { getGameSocket, sendMessage } from '../utils/partyClient';
 
 // Player colors — defined here to avoid circular dependency with Die3D
 export const PLAYER_COLORS = [
@@ -966,16 +968,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    // Cap check: each committed unlock will produce 2 pool dice when mitosis runs
-    // lockedDice.length is already reduced by prior commits, so account for pending +2 per commit
-    // Adding one more unlock: total after all mitosis = poolSize + (committedUnlocks.length + 1) * 2 + remaining locked
+    // 12-dice cap (shared with the server — diceCap.ts). lockedDice is already reduced by earlier
+    // commits, so add them back to get the locked count at the start of the turn.
     const player = state.players[0]; // local player is always index 0
-    const totalAfterMitosis = player.poolSize + (state.committedUnlocks.length + 1) * 2 + (player.lockedDice.length - 1);
+    const alreadyCommitted = state.committedUnlocks.length;
+    const withinCap = alreadyCommitted + 1 <= maxUnlocksAllowed(player.poolSize, player.lockedDice.length + alreadyCommitted);
 
     const outcome = resolveDragRelease({
       turnOpen: isUnlockTurnOpen({ phase: state.phase, timerAlreadyFired: state.unlockTimerResetKey < 0, hasSubmittedUnlock: state.hasSubmittedUnlock }),
       overRollingZone: isInRollingZone(currentPosition),
-      withinCap: totalAfterMitosis <= 12,
+      withinCap,
     });
     if (outcome === 'snap-back') {
       // Reset drag state — PlayerRow lerps the die back to its slot
@@ -1004,6 +1006,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       dragUnlockState: { ...initialDragUnlockState },
       unlockTimerResetKey: nextUnlockTimerKey(state.unlockTimerResetKey),
     });
+
+    // Online: tell the server we're actively unlocking, so its backstop doesn't count us AFK (TDD D16)
+    if (state.isOnlineGame) {
+      const socket = getGameSocket();
+      if (socket) sendMessage(socket, { type: 'unlock_activity' });
+    }
   },
 
   clearCommittedUnlocks: () => {

@@ -19,6 +19,7 @@ import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
+import { maxUnlocksAllowed } from '../utils/diceCap';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -314,7 +315,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           unlockAnimations={unlockAnimations}
           // Locked dice stay draggable-looking for the whole unlock phase (so a cancelled drag can glide
           // back to its slot), but only accept a new drag while the turn is open and there's room (B006)
-          maxUnlocks={unlockTurnOpen ? Math.max(0, 12 - player.poolSize - player.lockedDice.length - committedUnlocks.length * 2) : 0}
+          maxUnlocks={unlockTurnOpen ? maxUnlocksAllowed(player.poolSize, player.lockedDice.length + committedUnlocks.length) - committedUnlocks.length : 0}
         />
 
         {/* AI player rows — below human row (outside Physics) */}

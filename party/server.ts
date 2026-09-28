@@ -11,8 +11,15 @@ import type {
 } from "../src/types/protocol";
 import { findAutoLocks } from "../src/utils/matchDetection";
 import { getAIUnlockDecision } from "../src/utils/aiDecision";
+import { maxUnlocksAllowed } from "../src/utils/diceCap";
 
 const MAX_PLAYERS = 8;
+
+// Unlock backstop: how long the server waits for everyone's unlock choice before auto-resolving AFK players.
+const UNLOCK_BACKSTOP_MS = 25_000;
+// D16: when a player commits a drag (unlock_activity), make sure the backstop leaves them at least
+// this long — their own 3 s inactivity timer ends the turn well before, so an active player is never AFK'd.
+const UNLOCK_ACTIVITY_GRACE_MS = 10_000;
 
 const AI_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 function randomDifficulty(): string {
@@ -298,6 +305,9 @@ export default class RollBetterServer implements Party.Server {
         break;
       case "skip_unlock":
         this.handleSkipUnlock(sender, !!parsed.afk);
+        break;
+      case "unlock_activity":
+        this.handleUnlockActivity(sender);
         break;
       case "play_again":
         this.handlePlayAgain(sender);
@@ -961,13 +971,13 @@ export default class RollBetterServer implements Party.Server {
       }
     }
 
-    // Cap unlocks: pool cannot exceed 12
-    const maxUnlocks = Math.floor((12 - player.poolSize) / 2);
-    const cappedSlots = slotIndices.slice(0, Math.max(0, maxUnlocks));
+    // Cap unlocks: pool + locked + 2 per unlock ≤ 12 — same rule as the phone (src/utils/diceCap.ts)
+    const maxUnlocks = maxUnlocksAllowed(player.poolSize, player.lockedDice.length);
+    const cappedSlots = slotIndices.slice(0, maxUnlocks);
     if (cappedSlots.length === 0) {
-      // Pool already at or near 12 — treat as skip
+      // Already at the 12-dice cap — treat as skip
       this.gameState.unlockResponses.set(sender.id, { type: "skip" });
-      this.log(`Player ${player.name} unlock rejected — pool already at ${player.poolSize}/12`);
+      this.log(`Player ${player.name} unlock rejected — at the 12-dice cap (pool ${player.poolSize}, locked ${player.lockedDice.length})`);
       this.checkAllUnlockResponses();
       return;
     }
@@ -1177,16 +1187,39 @@ export default class RollBetterServer implements Party.Server {
       // Execute pending mid-game seat claims at phase boundary
       this.executePendingSeatClaims();
 
-      // Start AFK timeout — 25 seconds (client's 20s + 5s margin so client fires first)
-      this.phaseTimerStartedAt = Date.now();
-      this.phaseTimerDuration = 25_000;
-      this.unlockTimeoutTimer = setTimeout(() => {
-        this.unlockTimeoutTimer = null;
-        this.phaseTimerStartedAt = null;
-        this.phaseTimerDuration = null;
-        this.autoSkipUnresponsivePlayers();
-      }, 25_000);
+      // Start the unlock backstop. Each phone ends its own turn with a 3 s drag inactivity timer
+      // (TDD D15); this only catches players who are really gone. Extended by unlock_activity (D16).
+      this.startUnlockBackstop(UNLOCK_BACKSTOP_MS);
     }
+  }
+
+  /** (Re)start the unlock backstop timer. phaseTimer* also sets a disconnected player's grace time. */
+  private startUnlockBackstop(ms: number) {
+    if (this.unlockTimeoutTimer) clearTimeout(this.unlockTimeoutTimer);
+    this.phaseTimerStartedAt = Date.now();
+    this.phaseTimerDuration = ms;
+    this.unlockTimeoutTimer = setTimeout(() => {
+      this.unlockTimeoutTimer = null;
+      this.phaseTimerStartedAt = null;
+      this.phaseTimerDuration = null;
+      this.autoSkipUnresponsivePlayers();
+    }, ms);
+  }
+
+  /**
+   * D16: a player just committed a drag, so they're actively unlocking — not AFK.
+   * Make sure the backstop leaves them at least UNLOCK_ACTIVITY_GRACE_MS to send their choice.
+   */
+  private handleUnlockActivity(sender: Party.Connection) {
+    if (!this.gameState || this.gameState.phase !== "unlocking") return;
+    if (this.gameState.unlockResponses.has(sender.id)) return;
+    const player = this.gameState.players.find((p) => p.id === sender.id && p.isOnline);
+    if (!player) return;
+    if (!this.unlockTimeoutTimer || this.phaseTimerStartedAt === null || this.phaseTimerDuration === null) return;
+    const remaining = this.phaseTimerStartedAt + this.phaseTimerDuration - Date.now();
+    if (remaining >= UNLOCK_ACTIVITY_GRACE_MS) return;
+    this.log(`Unlock activity from ${player.name} — backstop extended (${remaining}ms → ${UNLOCK_ACTIVITY_GRACE_MS}ms)`);
+    this.startUnlockBackstop(UNLOCK_ACTIVITY_GRACE_MS);
   }
 
   /**
@@ -1562,8 +1595,8 @@ export default class RollBetterServer implements Party.Server {
   // ─── AFK Handling ───────────────────────────────────────────────────
 
   /**
-   * Auto-skip any online players who haven't responded to unlock/skip
-   * within the timeout period (20 seconds).
+   * Auto-resolve any online players who haven't sent unlock_request/skip_unlock
+   * before the unlock backstop (25 s, extended by unlock_activity — D16).
    */
   private autoSkipUnresponsivePlayers() {
     if (!this.gameState || this.gameState.phase !== "unlocking") return;
@@ -1622,7 +1655,7 @@ export default class RollBetterServer implements Party.Server {
 
   /**
    * Auto-roll random dice for any online players who haven't submitted
-   * roll results within the timeout period (20 seconds).
+   * roll results within the rolling backstop (25 s — the client's 20 s AFK countdown + 5 s margin).
    */
   private autoRollUnresponsivePlayers() {
     if (!this.gameState || this.gameState.phase !== "rolling") {

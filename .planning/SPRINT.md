@@ -7,7 +7,7 @@ Done when: solo and online, the unlock turn behaves the same — a drag in progr
 - [x] 🤖 1. Failing test first (B006): a drag can still start/finish after the timer fires — pure helpers in `src/utils/unlockTurn.ts` + `unlockTurn.test.ts`
 - [x] 🤖 2. Close the turn when the timer fires: block new drags (`startDragUnlock` / `completeDragUnlock` in `src/store/gameStore.ts`, `canUnlock` in `src/components/Scene.tsx`, `PlayerRow.tsx` handlers); an in-progress drag resolves by zone (rolling zone → commit at a clear spot; locked zone → snap back) in `handleUnlockTimerExpire` (`src/App.tsx`); don't reset `unlockTimerResetKey` from -1
 - [x] 🤖 3. Clear parked dice when the unlock phase ends (`setPhase`, `initRound` in `gameStore.ts`); server AFK unlocks run through the drag path + batch mitosis instead of the old `handleConfirmUnlock` (`App.tsx` ~753, `applyOnlineUnlockResult` in `gameStore.ts`)
-- [ ] 🤖 4. Server matches the phone: 12-die cap uses pool + locked + 2 per unlock (shared pure helper + test; `party/server.ts` ~964); unlock backstop fits the 3 s drag timer; fix stale "20 s" comments (`server.ts` ~1180, ~1566)
+- [x] 🤖 4. Server matches the phone: 12-die cap uses pool + locked + 2 per unlock (shared pure helper + test; `party/server.ts` ~964); unlock backstop fits the 3 s drag timer; fix stale "20 s" comments (`server.ts` ~1180, ~1566)
 - [ ] 🤖 5. Keep checks as scripts: `e2e/online-unlock.mjs` (two browsers, from the B003 repro) + a solo late-drag check
 - [ ] 🙋 6. Two-phone online game (verifies B003) + try a late drag solo on desktop
 Check: tests + build pass; e2e script passes; Muzzy's two-phone game and solo late drag behave as above.

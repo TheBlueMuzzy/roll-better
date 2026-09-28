@@ -25,7 +25,7 @@ flowchart LR
 - **3D view** — `Scene.tsx` orchestrates goal row, player rows, pool and animation dice (`AnimatingDie`, `MitosisDie`, `SpawningDie`, `CommittedDie`); the draggable locked die is `UnlockableDie` inside `PlayerRow.tsx`; gather VFX in `GatherVisuals.tsx`.
 - **HUD** — `HUD.tsx`: status text + countdown bars (idle/roll AFK, unlock inactivity).
 - **Online** — client: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines: rooms, seats, AFK, host migration, locking, unlock relay); message types in `src/types/protocol.ts`.
-- **Pure logic (tested)** — `src/utils/matchDetection.ts`, `aiDecision.ts`, `unlockTurn.ts` (+ `.test.ts`); also `dropZone.ts`, `clearSpot.ts`, `diceUtils.ts`.
+- **Pure logic (tested)** — `src/utils/matchDetection.ts`, `aiDecision.ts`, `unlockTurn.ts`, `diceCap.ts` (+ `.test.ts`); also `dropZone.ts`, `diceUtils.ts`.
 
 **Golden rules** (the few architecture rules that must never be broken):
 - R3F: never React state for per-frame updates — mutate refs in `useFrame`.
@@ -39,10 +39,12 @@ flowchart LR
 **Multiplayer** (moved here from old GDD §5.3)
 - **Who's in charge:** each phone rolls its own physics and reports values (client-authoritative dice); the server runs `findAutoLocks` itself (server-authoritative locking), validates unlocks, advances phases when everyone has acted, runs AFK backstops and bots, owns rooms/seats.
 - **Rolling:** roll → your locks animate locally at once → `roll_result` to server → server relays `player_lock_result` to everyone else → others buffer it until they've locked themselves, then reveal with the profile-emerge animation → when all have rolled, `phase_change: unlocking`.
-- **Unlocking (since v0.2.1, D15):** you drag dice; your own 3 s inactivity timer ends your turn → your mitosis plays locally → ONE `unlock_request` (all dragged slots) or `skip_unlock` → server validates, applies, relays `unlock_result` to others (buffered until they've submitted) → when all responded, `phase_change: idle`.
+- **Unlocking (since v0.2.1, D15):** you drag dice; your own 3 s inactivity timer ends your turn → your mitosis plays locally → ONE `unlock_request` (all dragged slots) or `skip_unlock` → server validates, applies, relays `unlock_result` to others (buffered until they've submitted) → when all responded, `phase_change: idle`. Each committed drag also sends `unlock_activity` so the backstop never AFKs an active player (D16).
+- **Turn end (F47/B006):** when the 3 s timer fires, a drag in progress resolves by zone (rolling zone → counts, parked at a clear spot; locked zone → snaps back), then the turn is closed — no new drags until the next unlock phase (`isUnlockTurnOpen` / `resolveDragRelease` in `unlockTurn.ts`). Leaving the unlock phase and `initRound` clear parked dice (`committedUnlocks`). A server AFK unlock for you goes through the same path: its slots become parked dice → the same batch mitosis.
+- **12-dice cap:** pool + locked + 2 per unlock ≤ 12 — one shared helper (`src/utils/diceCap.ts`) used by the phone and the server.
 - **Deferred snapshot:** a `phase_change` that arrives mid-animation is held, polled every 100 ms, applied when animations clear (5 s force-apply).
 - **Watchdog:** 1 s heartbeat; stuck >5 s in `locking`/`scoring`/`roundEnd` → `phase_sync_request`; 3 stalls in a row → force `idle`.
-- **Messages** — client → server: `join`, `leave`, `start_game`, `roll_result`, `unlock_request`, `skip_unlock`, `rolling_timeout`, `play_again`, `phase_sync_request`, `seat_claim`. Server → client: `connected`, `room_state`, `player_joined`, `player_left`, `error` (with `code`, e.g. `room_full`), `game_starting` (server-made goal values), `roll_results`, `player_lock_result`, `phase_change`, `round_start`, `unlock_result`, `scoring`, `session_end`, `phase_sync`, `rejoin_state`, `player_reconnected`, `seat_state_changed`, `seat_list`, `seat_claim_result`, `seat_takeover`, `play_again_ack`, `room_closed`.
+- **Messages** — client → server: `join`, `leave`, `start_game`, `roll_result`, `unlock_request`, `skip_unlock`, `unlock_activity` (D16), `rolling_timeout`, `play_again`, `phase_sync_request`, `seat_claim`. Server → client: `connected`, `room_state`, `player_joined`, `player_left`, `error` (with `code`, e.g. `room_full`), `game_starting` (server-made goal values), `roll_results`, `player_lock_result`, `phase_change`, `round_start`, `unlock_result`, `scoring`, `session_end`, `phase_sync`, `rejoin_state`, `player_reconnected`, `seat_state_changed`, `seat_list`, `seat_claim_result`, `seat_takeover`, `play_again_ack`, `room_closed`.
 - **Identity + seats:** `conn.id` (sessionStorage, per tab) for the socket; `persistentId` (localStorage) owns the seat. Seat states: `human-active` / `human-afk` / `bot`. Rejoin with the same id → `rejoin_state` full snapshot. Duplicate `persistentId` → old tab evicted (`connected_elsewhere`). Mid-game joiners claim bot seats at phase boundaries (first claim wins). Host migrates to the next active human; all-bot room → `room_closed`.
 - **AFK:** 2 consecutive auto-actions → bot takes the seat.
 - **What each deploy contains:** push to `master` → GitHub Actions builds the front end (with `VITE_PARTY_HOST`) → Pages. Server changes need `npx partykit deploy` by hand — a front-end release does NOT update the server.
@@ -134,15 +136,14 @@ GameState {
 |---|---|---|---|---|
 | Roll AFK countdown | 20 s | client (`RollingCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
 | Roll backstop | 25 s | server | rolling phase starts | server auto-rolls non-responders |
-| Unlock inactivity | 3 s, restarts on every drag | client (HUD, offline + online) | `unlocking`, animations done | auto-commit mid-drag die → mitosis; online: send one `unlock_request`/`skip_unlock` (D15) |
-| Unlock backstop | 25 s | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock (still counts toward AFK escalation) |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15) |
+| Unlock backstop | 25 s; each `unlock_activity` tops it up to ≥ 10 s left (D16) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
 | Deferred snapshot safety | 5 s | client | `phase_change` held behind animations | force-apply |
 | Watchdog | 1 s tick, 5 s stall | client | always online | `phase_sync_request` |
 | Disconnect grace | remaining phase time (non-timed phases: none) | server | player drops | seat → bot |
 | Empty-room keepalive | 10 s | server | last connection closes | room closed |
 | Gather auto-release | 2.5 s | client | holding to gather | dice released (roll) |
 
-⚠ The unlock backstop's comment still says "client's 20 s + 5 s margin" — that 20 s client unlock countdown was removed in v0.2.1. A player who keeps dragging for 25 s gets backstopped mid-turn (see ROADMAP F47).
 
 ## 3. Data the game reads (editable by Muzzy — in Obsidian or the Dev Kit)
 | File | What's in it | Edited with |
@@ -210,14 +211,14 @@ src/
     ├── aiDecision.ts                # AI unlock strategies (Easy/Medium/Hard)
     ├── aiDecision.test.ts           # Unit tests for AI decisions
     ├── diceUtils.ts                 # getFaceUp(), getFaceUpRotation()
-    ├── clearSpot.ts                 # Find empty pool positions for unlocking
+    ├── diceCap.ts                   # 12-dice unlock cap — shared by phone + server (tested)
     ├── partyClient.ts               # PartySocket wrapper
     ├── soundManager.ts              # Web Audio API sound effects
     └── haptics.ts                   # Vibration API wrapper
 ```
 - **Naming:** PascalCase components, camelCase utils, protocol messages snake_case (`unlock_request`).
 - **Readable code:** plain names, small files, a one-line comment on anything non-obvious. No clever tricks. (App.tsx, gameStore.ts and server.ts are well past "small".)
-- **Tests:** rules and logic get tests (`npm test` → vitest); every fixed bug gets a test that guards it. Feel is judged by Muzzy, not tests. Tested today: `matchDetection`, `aiDecision`, `unlockTurn` — nothing for the store, App flow or server.
+- **Tests:** rules and logic get tests (`npm test` → vitest); every fixed bug gets a test that guards it. Feel is judged by Muzzy, not tests. Tested today: `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap` — nothing for the store, App flow or server (the e2e scripts below cover the unlock flow).
 - **Testable by design:** game rules live in small pure functions (no screen, no network) so they can be tested; big glue files stay thin. (`unlockTurn.ts` is the pattern: the B003 rule pulled out of HUD/App so it could be tested.)
 - **Same build everywhere:** the deploy (CI) should run the same `npm run build` as local, type check included. ⚠ Today `.github/workflows/deploy.yml` runs `npx vite build`, which skips `tsc` — that's how B004 stayed hidden. Follow-up: ROADMAP F49.
 - **Branches:** one work branch per delivery (`dev/<milestone>`), merged by /deliver. ⚠ `master` auto-deploys to the live site — never build straight on it.
@@ -232,7 +233,7 @@ src/
 
 ## 6. Security & fairness
 - Clients report their own dice values (client-authoritative) — a cheater could fake rolls. Accepted: casual friends-with-room-codes game.
-- Server runs `findAutoLocks` itself, so a client can't lock dice that don't match; it validates unlock slot indices and caps unlocks (pool ≤ 12).
+- Server runs `findAutoLocks` itself, so a client can't lock dice that don't match; it validates unlock slot indices and caps unlocks with the phone's rule (pool + locked + 2 per unlock ≤ 12, `diceCap.ts`).
 - Secrets: API keys never in the repo or the built game; `.env` is gitignored. `VITE_PARTY_HOST` is not a secret.
 
 ## 7. Compliance & legal (general audience — not made for kids)
@@ -246,6 +247,14 @@ src/
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D16 · 2026-09-28 · Unlock backstop vs the 3 s drag timer: each committed drag pings the server (unlock_activity)
+  Proposed by: Claude (F47 task 4)
+  Options: longer fixed backstop (turn can be ~7 windows × 3 s + lead-in ≈ 26 s, so 35 s+) /
+  per-player deadline worked out from the cap / activity ping that tops the backstop up
+  Chose: activity ping — on unlock_activity the server makes sure ≥ 10 s remain on the (room-wide) backstop.
+  Why: an actively dragging player can never be AFK'd however many dice they drag, real AFK is still
+  caught at 25 s, and it's one tiny message per drag (≤ 7 per turn). Cost: an active dragger can delay
+  AFK detection of someone else by a few seconds. Revisit if the backstop becomes per-player.
 D15 · 2026-09-28 · Online drag-to-unlock: each phone sends ONE batched unlock_request when its own inactivity timer ends
   Proposed by: Claude (hotfix B003); Muzzy suggested the alternative
   Options: server decides every player's unlocks itself at timer end / each phone owns its timer and sends one batch
