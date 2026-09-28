@@ -1,17 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 01 on `dev/v1-6-drag-to-unlock`. F47 (+B006 late drag) is built and checked (56 tests, build, solo + online e2e pass; a timing sweep couldn't reproduce any gap; a parked die now returns to its slot at phase end) — waiting for Muzzy's "approved". F49 (deploy runs tests + full build) done.
-Next: `/develop` → roll physics bugs: task 7 (failing test: die outside the rolling area), 8 (safety net + fix the dead release fling), 9 (B008 gather misses dice).
-Also pending (Claude): slim this project's GDD (481 lines) and TDD (301) to the new BMUZ-2 size and merge VISION.md into ROADMAP → Ideas; draft GDD Experience targets (MDA) for Muzzy to confirm.
-Muzzy: approve F47 after trying a late drag on the dev version (`/play` → localhost:5173) — the LIVE site doesn't have it until /deliver.
-Muzzy: check B003 on two real phones on the LIVE site, then tell Claude → verified.
-Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
-Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §3b. · Obsidian setup (vault = Documents/dev) when there's 5 minutes.
+Housekeeping done 2026-09-28: GDD rebuilt on the BMUZ-2 template (~110 lines, detail moved word for word to `design/` + `research/audience.md`), TDD slimmed, VISION.md → `archive/vision.md` (ideas were already in ROADMAP Later). F47 approved ✅, F49 ✅.
+Next: sprint 01 still has the roll physics bugs — `/develop` task 7 (B007 dice escape + hang, P1), 8, 9 (B008 gather misses dice). Then the UI-kit rollout (ROADMAP Ideas) needs `/define` first: kit additions + the Cartoon-vs-dark-table art call.
+Muzzy: confirm the draft Experience targets (GDD §2) + open questions (GDD §9 — incl. is a 0-point win with 4 leftover dice intended?).
+Muzzy: check B003 on two real phones on the LIVE site → verified. · Did your late-drag retry (B006) come out clean? → verified.
+Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
 Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
-Doing: F47 — needs review (Muzzy); physics bugs next
+Doing: housekeeping done; roll physics bugs (B007, B008) next
 Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
@@ -19,7 +17,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 **Run/deploy**
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
-- Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). ⚠ CI runs `npx vite build` (no type check) — F49. So: build on work branches, merge to master only via /deliver.
+- Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
 - Server: `npx partykit deploy` by hand, only when `party/` changes — a front-end release doesn't update it.
 - Version lives in `version.json` AND `package.json` (keep both in step). Tags `vX.Y.Z`. Default branch `master`, remote `origin` = github.com/TheBlueMuzzy/roll-better.
 **Rules**
@@ -44,9 +42,6 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - 46-03: `processAIUnlocks(true)` clears state + animations in one update (else AI unlock dice flash); don't re-add an early `clearAIUnlockAnimations`.
 - StrictMode double-fires effects in dev — init logic idempotent, `hasFired` refs guard callbacks.
 - 46-03 tried more angular damping — reverted; keep 0.3.
-**GDD out of date**
-- GDD out of date: §4.3/§4.4/§6.3/§12 (tap-to-roll, tap-to-unlock + UNLOCK/SKIP buttons, 20 s unlock timer → now hold-to-gather roll, drag-to-unlock, 3 s inactivity timer).
-- GDD out of date: §4.5 scoring table (code: 8 − 2 per leftover die); §6.1 portrait layout (landscape-only since v1.4); §10 known issues ("no drag-to-unlock").
 
 ## Log
 - 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
