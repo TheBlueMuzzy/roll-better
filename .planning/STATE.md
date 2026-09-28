@@ -4,6 +4,7 @@
 Converted to BMUZ-2 on 2026-09-28 (old GSD files in `.planning/archive/gsd/`). Live v0.2.1 hotfix: online drag-to-unlock works again (B003 fixed, guarded by `src/utils/unlockTurn.test.ts`, checked in two browsers).
 Next: `/sprint` to plan what's left of F47 (stale glowing dice when the server ends the unlock phase, 25 s backstop vs slow draggers, server 12-die cap rule, AFK unlock path) plus F49 (CI runs `npm run build`). Then F48 polish + B005 tip text.
 Muzzy: check B003 on two real phones — both players drag dice in an online game and each sees the other's unlock — then tell Claude so B003 → verified.
+Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next?
 Muzzy: confirm the draft scope in GDD §3b (musts / should / could / won't).
 
