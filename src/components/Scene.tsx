@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
@@ -67,7 +67,6 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
     const committedUnlocks = useGameStore((s) => s.committedUnlocks);
     const aiUnlockAnimations = useGameStore((s) => s.roundState.aiUnlockAnimations);
-    const clearAIUnlockAnimations = useGameStore((s) => s.clearAIUnlockAnimations);
     const player = players[0];
 
     // Track how many lerp animations have completed (human)

@@ -74,7 +74,7 @@ interface GameStore extends GameState {
   checkSessionEnd: () => boolean;
 
   // AI
-  processAIUnlocks: () => void;
+  processAIUnlocks: (andClearAnimations?: boolean) => void;
   setAIUnlockAnimations: (anims: AIUnlockAnimation[]) => void;
   clearAIUnlockAnimations: () => void;
 
