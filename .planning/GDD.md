@@ -1,8 +1,10 @@
-# Roll Better — Product Requirements Document
+# Roll Better — Game Design Document (GDD)
 
-> Living document. Updated each design phase.
-> Current status: **v1.2 — Three milestones shipped (MVP + Online Multiplayer + Polish)**
+> Living document — /discover and /define write it, /gdd shows it. (Was `PRD.md` until the BMUZ-2 conversion, 2026-09-28.)
+> Shipped: v1.0–v1.5; v1.6 Drag-to-Unlock in progress — live build v0.2.1. Milestones and features: `ROADMAP.md`.
+> How it's built (tech stack, netcode, state, physics numbers): `TDD.md`.
 > Full rules reference: `.planning/research/core-rules.md`
+> ⚠ Some sections predate shipped work (hold-to-gather roll, drag-to-unlock, landscape, scoring) — see STATE Key facts → "GDD out of date".
 
 ---
 
@@ -13,6 +15,8 @@
 - **Platform**: Web (React + TypeScript + Vite + Three.js/R3F)
 - **Players**: 2–4 per session (offline), 2–8 per session (online, AI backfill)
 - **Target audience**: Casual/mobile gamers who play Wordle, Yahtzee, and board games with friends — people who want quick, thrilling multiplayer rounds without downloading an app.
+- **Core value**: The dice roll IS the product. Every design decision serves the moment of the roll — 3D physics, satisfying animations, dramatic reveals, social spectacle.
+- **Constraints** (from the old PROJECT.md, still in force): free hosting tiers only (GitHub Pages + PartyKit/Cloudflare free tier); zero data collection — no accounts, no tracking; must run smoothly on mobile Safari (iPhone) and Chrome Android; physics decides every die (no fake RNG); premium dice look (clearcoat + HDRI) is mandatory; no monetization of any kind (fair forever).
 
 ---
 
@@ -70,6 +74,22 @@
 5. **Catch-up is built in.** The handicap system means no one gets left behind. Losing makes you stronger next round.
 6. **Zero friction.** No account required. Share a 4-letter room code. Click and play. Mobile-first, desktop-friendly.
 7. **Juice everything.** Every interaction gets feedback — lerps, pops, spawns, sounds. The game should feel alive.
+
+---
+
+## 3b. Scope
+Draft made at the BMUZ-2 conversion from the roadmap and the old future-ideas list — **Muzzy to confirm**. The release stages (alpha / beta / 1.0) haven't been picked yet, so musts are for "the next release".
+
+| Must — next release | Should | Could | Won't (this game) |
+|---|---|---|---|
+| Drag-to-unlock offline (F44–F46 ✅) | Tutorial system rework (VISION #6) | Unlock/commit dice outline style (#1) | Monetization of any kind — fair forever |
+| Drag-to-unlock online (F47) | Full audio pass (#7) | Return-to-icon animations (#2) | Shake-to-roll — removed v1.2, unreliable on phones |
+| Drag polish + UAT (F48) | | Mouse throw rolling on PC (#5) | Accounts / data collection — zero-friction, zero-data promise |
+| CI builds like local (F49) | | Upgrades: spots + special dice (#9) | Portrait layout — landscape-only since v1.4 |
+| | | Dice skins, table textures, profile art (#10–#12) | |
+| | | Daily challenge, shareable result cards, spectator, tournament, friends/rematch, replays (old PROJECT.md "future" list) | |
+
+Releases for this game: prototype → alpha → beta → 1.0 (rename or drop stages if Muzzy wants). **Done** for a release = every Must for it is done.
 
 ---
 
@@ -133,7 +153,7 @@ Each turn has these phases, executed simultaneously for all players:
 
 ### 4.4 Turn Timing
 - All players roll simultaneously — each taps on their own screen when ready
-- Each player sees their OWN results immediately. Other players' results are hidden until you've rolled and locked in, then revealed with animation (see §5.3.1 for full data flow)
+- Each player sees their OWN results immediately. Other players' results are hidden until you've rolled and locked in, then revealed with animation (full data flow: `TDD.md` §2b Multiplayer)
 - Same pattern for unlocking: your choice applies immediately, others' choices revealed only after you've acted
 - **Rolling AFK timer**: 20-second countdown. When it expires, auto-roll triggers. Client-driven with server-side fallback.
 - **Unlock phase timer**: 20-second countdown. When it expires, AI makes the unlock decision for that player for that single action — player retains control next turn.
@@ -220,134 +240,16 @@ AI makes unlock decisions based on difficulty-specific strategies. AI "rolls" us
 
 AI difficulty is randomly assigned per bot (Easy, Medium, or Hard). There is no user-facing difficulty selector.
 
-### 5.3 Networking (PartyKit on Cloudflare)
-- **Protocol**: WebSocket via PartyKit (Cloudflare free tier)
-- **Server**: PartyKit room server (Cloudflare Workers edge runtime)
-  - Validates moves and computes locks (runs `findAutoLocks` on reported values)
-  - Relays each player's results to other players as they arrive (no batching)
-  - Manages phase transitions (advances phase when all players have acted)
-  - Manages AFK timers + AI takeover on timeout (both rolling and unlock phases)
-  - Handles room lifecycle (create, join, close, cleanup)
-- **Client**: Rolls physics dice locally, sends settled values to server. Receives other players' results from server. Applies own results locally without waiting for server response.
-- **Reconnection**: Player can rejoin with same room code. AI surrenders control back to player on reconnect.
-- **Latency tolerance**: Simultaneous turn-based action — latency up to 500ms is acceptable. Visual lerps mask network delay.
-- **No accounts**: Anonymous play only. Persistent identity deferred to future milestone.
+### 5.3 Online Play
+How the netcode works (who owns what, message flow, deferred snapshots, watchdog, timers) moved to `TDD.md` §2b Multiplayer. The player-facing rules:
 
-#### 5.3.1 Online Data Flow — Rolling Phase
-The online experience must feel identical to local play. The server is invisible plumbing — same animations, same timing, same player agency. Each player controls their own game.
-
-**Per-player flow (no batching, no waiting for others):**
-1. Player taps to roll → physics dice tumble and settle on their screen (identical to offline)
-2. Client reads face values from physics → applies own locks locally and immediately (same code path as offline — player sees their locks animate without any server round-trip)
-3. Client sends settled values to server in parallel: `{type: "roll_result", values: [3, 1]}`
-4. Server receives values → runs `findAutoLocks` → sends that player's lock result to all OTHER clients (not back to sender — sender already applied locally)
-5. Other clients receive the lock result:
-   - If the receiving player has NOT yet rolled → **buffer the result silently**. Show nothing. The player is still looking at "Tap to Roll."
-   - If the receiving player HAS already rolled and locked in → **reveal immediately with animation** (profile-emerge pattern: dice scale from 0→1 and fly from profile icon to row slots)
-6. When all players have rolled and locked → server sends `phase_change: "unlocking"`
-
-**Reveal timing (client-side buffering):**
-- You never see another player's locks until your own lock animation has completed
-- After your locks finish animating, all buffered results from players who rolled before you are revealed at once (each animated)
-- Players who roll after you — their results appear immediately as they arrive (each animated)
-- Last player to roll sees everyone else's locks reveal in a burst after their own locks animate
-
-#### 5.3.2 Online Data Flow — Unlocking Phase
-Same pattern as rolling — each player's choice flows independently through the server.
-
-1. Player selects locked dice and taps UNLOCK (or taps SKIP) → client applies own unlock locally and immediately (same code path as offline)
-2. Client sends choice to server: `{type: "unlock_request", slotIndices: [2]}` or `{type: "skip_unlock"}`
-3. Server validates → sends result to all OTHER clients
-4. Other clients receive the result:
-   - If the receiving player has NOT yet chosen → **buffer silently**
-   - If the receiving player HAS already chosen → **reveal immediately with animation**
-5. When all players have responded → server sends `phase_change: "idle"` → next roll cycle
-
-#### 5.3.3 Deferred Snapshot Application
-When the server sends a `phase_change` while animations are still playing on the client:
-- The client **captures** the player snapshot from the message
-- **Defers** applying the phase transition and snapshot until all animations complete
-- Polls every 100ms: when animations clear, applies the snapshot + phase change
-- Safety timeout: force-applies after 5 seconds to prevent permanent stalls
-- **Why**: Applying a snapshot mid-animation can change pool sizes, causing extra dice to spawn or disappear
-
-#### 5.3.4 Watchdog & Phase Sync
-A heartbeat runs every 1 second to detect stalls:
-- If the game has been in a transient phase (`locking`, `scoring`, `roundEnd`) for >5 seconds, the client requests a `phase_sync_request` from the server
-- Server responds with `phase_sync: { phase, players, goalValues }` — authoritative state
-- If client phase ≠ server phase: force-sync, clear all animations
-- After 3 consecutive stalls: force to `idle` (self-healing)
-
-#### 5.3.5 Design Principles for Online Play
+#### Design Principles for Online Play
 - **The local experience is the source of truth.** Online is an invisible layer on top. If you turned off the network, each player's own experience would look identical to offline.
 - **No player waits for any other player to act.** You tap, your dice roll, your locks animate. You never see a loading spinner or "waiting for other players" during your own actions.
 - **Information is private until you've acted.** You don't see what others rolled/locked/unlocked until you've done the same. This prevents influence and preserves the feeling of playing your own game.
 - **Every reveal is animated.** "Immediately" means "with the standard animation" (profile-emerge for locks, appropriate animation for unlocks). Nothing pops into position.
 
-### 5.4 State Management
-Core game state managed in Zustand (`src/store/gameStore.ts`):
-
-```
-GameState {
-  // Navigation
-  screen: 'menu' | 'lobby' | 'game' | 'winners'
-  phase: 'lobby' | 'rolling' | 'locking' | 'unlocking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd'
-
-  // Game
-  players: Player[]
-  currentRound: number
-  sessionTargetScore: number         // Default 20
-
-  // Round state
-  roundState: {
-    goalValues: number[8]            // Sorted ascending
-    rollResults: number[] | null
-    rollNumber: number
-    lastLockCount: number
-    roundScore: number
-    lockAnimations: LockAnimation[]
-    unlockAnimations: UnlockAnimation[]
-    aiLockAnimations: LockAnimation[]
-    aiUnlockAnimations: AIUnlockAnimation[]
-    poolExiting: boolean
-    poolSpawning: boolean
-    goalTransition: 'none' | 'exiting' | 'entering'
-  }
-
-  // Player shape
-  Player {
-    id: string
-    name: string
-    color: string                    // Hex color from curated palette
-    isAI: boolean
-    isHost: boolean
-    poolSize: number                 // Dice in rolling pool
-    lockedDice: (number | null)[8]   // 8 slots, null if empty
-    startingDice: number             // Z value
-    score: number                    // Total session points
-    selectedForUnlock: boolean[8]    // Toggle state during unlock phase
-    isReady: boolean                 // Lobby ready state
-  }
-
-  // Settings
-  settings: {
-    audioVolume: number              // 0–100
-    performanceMode: 'advanced' | 'simple'
-    hapticsEnabled: boolean
-    tipsEnabled: boolean
-    confirmationEnabled: boolean
-  }
-
-  // Online
-  isOnlineGame: boolean
-  isOnlineHost: boolean
-  onlinePlayerId: string | null
-  onlinePlayerIds: string[]          // Maps server IDs to local player indices
-  pendingLockReveals: PlayerLockResultData[]
-  pendingUnlockReveals: UnlockRevealData[]
-  hasSubmittedUnlock: boolean
-}
-```
+(Old §5.4 State Management moved to `TDD.md` §2b.)
 
 ---
 
@@ -502,120 +404,12 @@ Note: Shake-to-roll was implemented in v1.0 and removed in v1.2 (too unreliable 
 ---
 
 ## 7. Technical Architecture
-
-### 7.1 Tech Stack
-- **Framework**: React 18+ with TypeScript
-- **Build**: Vite
-- **3D Rendering**: Three.js via React Three Fiber (R3F)
-- **3D Helpers**: @react-three/drei (RoundedBox, Environment maps)
-- **Physics**: @react-three/rapier (Rust/WASM via Rapier — high performance)
-- **Dice Materials**: meshPhysicalMaterial with clearcoat
-- **State Management**: Zustand (works natively with R3F, avoids React re-renders for game state)
-- **Audio**: Web Audio API via custom `soundManager.ts`
-- **Haptics**: Vibration API via custom `haptics.ts`
-- **Networking**: PartyKit WebSocket client + server (Cloudflare Workers edge)
-- **Deployment**: GitHub Pages (auto-deploy via GitHub Actions on push to master) + PWA (installable, auto-updates)
-
-### 7.2 Project Structure
-```
-src/
-├── main.tsx                         # App entry point
-├── App.tsx                          # Screen router, phase effects, game event handlers
-├── App.css                          # All styles
-├── index.css                        # Base styles
-│
-├── store/
-│   └── gameStore.ts                 # Zustand store — all game state + actions
-│
-├── types/
-│   ├── game.ts                      # GamePhase, Player, RoundState, LockAnimation, etc.
-│   └── protocol.ts                  # WebSocket message types (client ↔ server)
-│
-├── components/
-│   ├── MainMenu.tsx                 # Offline setup: player count, difficulty, play button
-│   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start (merged into MainMenu inline flow)
-│   ├── WinnersScreen.tsx            # Final rankings, play again, menu
-│   ├── HUD.tsx                      # Status text, roll/unlock/skip buttons, AFK countdown
-│   ├── Settings.tsx                 # Audio, performance, haptics, tips toggles
-│   ├── HowToPlay.tsx                # In-game rules reference modal
-│   ├── TipBanner.tsx                # Contextual tutorial hints
-│   ├── RollingCountdown.tsx         # AFK countdown bar (rolling + unlock phases)
-│   ├── TouchIndicator.tsx           # Visual touch feedback
-│   │
-│   ├── Scene.tsx                    # Main R3F canvas — orchestrates all 3D components
-│   ├── RollingArea.tsx              # Physics arena: floor + 4 walls
-│   ├── DicePool.tsx                 # Pool management, physics dice, settle detection
-│   ├── PhysicsDie.tsx               # Single physics die: rigid body + settle events
-│   ├── Die3D.tsx                    # 3D die visual: RoundedBox + pip dots
-│   │
-│   ├── GoalRow.tsx                  # 8 Goal dice with entry/exit animations
-│   ├── GoalIndicators.tsx           # Colored wedges under Goal showing player locks
-│   ├── GoalProfileGroup.tsx         # Star icon + score display (far left of Goal)
-│   │
-│   ├── PlayerRow.tsx                # One player's 8 lock slots + icon
-│   ├── PlayerIcon.tsx               # Color swatch + score + X/Y/Z
-│   ├── PlayerProfileGroup.tsx       # AI/other player icon (scaled, positioned)
-│   │
-│   ├── AnimatingDie.tsx             # Lock animation: pool → slot lerp
-│   ├── MitosisDie.tsx               # Unlock animation: slot → 2 dice arc to pool
-│   ├── SpawningDie.tsx              # Pool spawn animation: icon → pool position
-│   └── GravityController.tsx        # Accelerometer-based gravity tilt
-│
-├── hooks/
-│   ├── useOnlineGame.ts             # Server message listener, phase sync, watchdog, buffering
-│   ├── useRoom.ts                   # Lobby: room creation/joining, game start detection
-│   └── useAccelerometerGravity.ts   # Tilt-based gravity for rolling dice
-│
-└── utils/
-    ├── matchDetection.ts            # findAutoLocks() — pure logic (7 unit tests)
-    ├── matchDetection.test.ts       # Unit tests for match detection
-    ├── aiDecision.ts                # AI unlock strategies (Easy/Medium/Hard)
-    ├── aiDecision.test.ts           # Unit tests for AI decisions
-    ├── diceUtils.ts                 # getFaceUp(), getFaceUpRotation()
-    ├── clearSpot.ts                 # Find empty pool positions for unlocking
-    ├── partyClient.ts               # PartySocket wrapper
-    ├── soundManager.ts              # Web Audio API sound effects
-    └── haptics.ts                   # Vibration API wrapper
-```
-
-### 7.3 Key Technical Decisions
-- **R3F Golden Rule**: NEVER use React state for per-frame updates. Mutate refs in useFrame. All dice physics, lerps, and animations run in useFrame loops, not React re-renders.
-- **Physics**: Rapier for realistic 3D dice tumbling. Dice are rigid bodies with correct mass/inertia. Physics runs in the rolling area; locked dice are visual-only (not physics objects).
-- **Dice values**: Read from physics simulation — `getFaceUp(quaternion)` dot-products each face normal against the up vector to determine which face is up. No fake random numbers; the physics determines the outcome. This is true for BOTH offline and online play.
-- **Client-authoritative values, server-authoritative locking**: Each client rolls physics dice locally and reports settled values to the server. Server computes locks via `findAutoLocks` and relays results to other players. The physics the player sees ARE the values that get used — no mismatch.
-- **Shared geometry/materials**: `Die3D.tsx` creates pip geometry and material at module level (once), shared by all die instances for performance.
-- **DicePool generation keys**: `key={`${generation}-${i}`}` — generation counter bumps when pool shrinks to force remount with correct initial face values (fixes BUG-001 where wrong die stayed in pool after locking).
-- **Initial roll force**: Apply impulse at an OFFSET point (not center of mass) to induce natural rotation. Add random initial angular velocity per die for variety.
-- **Settle detection**: Per-die: velocity + angular velocity both < 0.1 for 0.5s. DicePool orchestrates: waits for ALL dice settled or 500ms fallback timer after first settle.
-- **React StrictMode**: Dev mode double-fires effects. All init logic must be idempotent or reset state before re-running. Animation refs (`hasFired`) prevent duplicates.
-
-**Physics parameters (tuned for feel):**
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Gravity | [0, -50, 0] | Faster than real (real = -9.81). Punchy feel. |
-| Mass | 1 | Standard for d6 |
-| Floor restitution | 0.5 | Bouncy wood surface |
-| Wall restitution | 0.3 | Walls absorb more energy |
-| Friction | 0.6 | Controls rolling vs sliding |
-| Angular damping | 0.3 | How fast spin dies. Lower = longer spins. |
-| Die size | 0.589 | Relative to arena, fits 8 across with spacing |
-| Edge bevel | 0.07 | Ratio to die size. Critical for visual quality. |
+Moved to `TDD.md` (stack §1, systems §2, physics numbers + build notes §2b, project structure §4).
 
 ---
 
 ## 8. Milestones
-
-All milestones shipped. Full phase-by-phase history in `.planning/ROADMAP.md` and `.planning/MILESTONES.md`.
-
-### v1.0 MVP (Phases 1–13, shipped 2026-03-03)
-Complete local dice-matching game: 3D physics dice, AI opponents (Easy/Medium/Hard), auto-lock matching, unlock with mitosis animation, scoring with handicap system, sessions to 20 points, sound effects, HUD, settings, How to Play, mobile-first responsive UI.
-
-### v1.1 Online Multiplayer (Phases 14–21, shipped 2026-03-05)
-Real-time online multiplayer via PartyKit WebSockets, Jackbox-style 4-letter room codes, client-authoritative dice with server-authoritative locking, disconnect/reconnect resilience with 60s keepalive, AFK timers (20s), AI backfill and takeover, GitHub Pages deployment with PWA, privacy policy + IARC compliance.
-
-### v1.2 Polish (Phases 22–26, shipped 2026-03-06)
-Simplified main menu (removed difficulty selector, added How to Play + Upgrades buttons), removed shake-to-roll, settings gear icon (bottom-right) with audio slider fix, AI difficulty randomized per bot, merged lobby into main menu with inline Create/Join flow, verified How to Play accuracy.
+Moved to `ROADMAP.md` (shipped milestones v1.0–v1.5, current v1.6 features, Later).
 
 ---
 
@@ -654,70 +448,13 @@ Simplified main menu (removed difficulty selector, added How to Play + Upgrades 
 - **Audio**: Sound effects are basic procedural stubs. No collision-triggered sounds, no spatial audio, no multi-layered roll sounds yet. Full audio pass is a future milestone.
 - **Haptics**: Basic Vibration API only. No per-bounce pulses or nuanced patterns yet.
 - **No skip-lock**: Players cannot opt out of auto-locking a matching die. This is a deliberate simplification but may need revisiting.
-- **No drag-to-unlock**: Unlock uses tap-to-toggle + confirm button only. Drag interaction deferred (see §11, #2).
-- **Unlock highlight**: Uses a white floor ring under dice — placeholder for proper dice outlines (see §11, #1).
+- **No drag-to-unlock**: Unlock uses tap-to-toggle + confirm button only. Drag interaction deferred (see VISION.md #2).
+- **Unlock highlight**: Uses a white floor ring under dice — placeholder for proper dice outlines (see VISION.md #1).
 
 ---
 
 ## 11. Future Ideas
-
-Numbered master list. New ideas captured in `.planning/VISION.md` during sessions, then merged here. This is the single source of truth.
-
-### Shipped (removed from active list)
-- ~~#8 — Drop-in/Drop-out~~ → SHIPPED v1.3
-- ~~#13 — Landscape-Only Layout~~ → SHIPPED v1.4
-- ~~#14 — Collapsible Goal Area~~ → REMOVED (landscape solved the space problem)
-- ~~#15 — Auto-Ready on Join~~ → SHIPPED v1.3
-
-### Polish
-
-**#1 — Unlock Dice Outline Style**
-Replace floor-ring highlight with outlines ON the die (drei Edges or wireframe mesh). Defer until art pass — visual style TBD. Current white ring on the floor under selectable dice is a placeholder.
-
-**#2 — Visual Language: Emergence/Return**
-Dice emerge FROM owner's icon and return TO it. Emergence done (SpawningDie scales 0→1 from icon position). Missing: return-to-icon — when dice exit the pool or get locked, they currently scale to 0 in place instead of arcing back toward the player icon. Half the visual grammar is incomplete.
-
-### Interaction
-
-**#3 — Drag-to-Unlock (Input System Overhaul)**
-Full drag input system. Swipe gesture replaces tap-to-toggle entirely (not dual-mode). Drop zone detection, visual feedback during drag, snap-back on invalid drop. This is a major system change — #4 and #5 are sub-features that depend on this being solved first.
-
-**#4 — Hold-to-Gather-Roll** ✅ SHIPPED (v1.5, 2026-03-27)
-Shipped independently of #3. Hold gesture gathers dice into orbit, release flings with tangential momentum. Includes hockey-stick speed ramp, vacuum VFX, auto-release at 2.5s, AFK support.
-
-**#5 — Mouse-Based Dice Rolling (PC)**
-Drag-and-release physics throw for desktop. Part of the drag input system (#3) — same interaction paradigm, different input device. Depends on #3's architecture.
-
-### Tutorial
-
-**#6 — Tutorial System Rework**
-Current tip system is loose but functional (TipBanner with one-time-per-session tips). Needs a full design pass. Includes: "you should unlock" recurring tip until 8+ dice, and likely other tutorial improvements for onboarding. The unlock tip is one specific note within a bigger tutorial task.
-
-### Audio
-
-**#7 — Full Audio Pass**
-Multi-layered dice sounds (impact, tumble, scrape, settle), collision-triggered audio, spatial 3D. Current sounds are procedural stubs. Defer until visual look is figured out — audio should match the aesthetic.
-
-### System
-
-**#9 — Upgrades System (Spots + Special Dice)**
-Major progression system accessed from the Upgrades menu button (already on main menu as placeholder). Two unlockable types:
-- **Spots**: Special rules for lock-in slots. When a die locks into a spot, the player gets a bonus (effects TBD — needs design pass).
-- **Special Dice**: Dice with special rules that can be "bought" mid-game. If you roll doubles of anything, you can trade both dice in for a special die from your personal market.
-- **Market**: Each player has 6 side-screen market slots. Not all must be filled. One of each maximum. Filled with spots and dice from unlocked options.
-- **Upgrades Menu**: 6 loadout slots with drag/drop from an unlocked grid of options. Pre-game customization.
-- Scale comparable to #3 (drag system). Needs full game design pass before implementation.
-
-### Cosmetics
-
-**#10 — Custom Dice Colors / Skins**
-Cosmetic unlocks. Requires light shader work — tinting/swapping materials on the existing meshPhysicalMaterial setup.
-
-**#11 — Customizable Tabletop Texture**
-Player-selectable surfaces (wood types, felt, etc.). Current dark walnut is placeholder. Same shader/material category as #10.
-
-**#12 — Player Profile Art**
-Pre-set (possibly unlockable/earnable) avatar images replacing placeholder circle avatars. Muzzy to design in Illustrator. Layout is structurally correct — just needs assets swapped in.
+Moved to `VISION.md` (same numbers, #1–#12). Ideas sorted into Should/Could are in §3b Scope and ROADMAP → Later.
 
 ---
 

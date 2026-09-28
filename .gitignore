@@ -38,3 +38,6 @@ lerna-debug.log*
 # Project
 .planning/STATE.md.bak
 proto/results/
+
+# Playwright MCP screenshots
+.playwright-mcp/
