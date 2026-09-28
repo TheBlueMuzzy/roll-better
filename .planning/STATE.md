@@ -1,17 +1,17 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Converted to BMUZ-2 on 2026-09-28 (old GSD files in `.planning/archive/gsd/`). Live v0.2.1 hotfix: online drag-to-unlock works again (B003 fixed, guarded by `src/utils/unlockTurn.test.ts`, checked in two browsers).
-Next: `/sprint` to plan what's left of F47 (stale glowing dice when the server ends the unlock phase, 25 s backstop vs slow draggers, server 12-die cap rule, AFK unlock path) plus F49 (CI runs `npm run build`). Then F48 polish + B005 tip text.
+Sprint 01 planned on branch `dev/v1-6-drag-to-unlock`: F47 online leftovers + B006 late drag, roll physics bugs B007/B008, F49 CI build. Next: `/develop` → F47 task 1 (failing test for B006).
+Late-drag rule (Muzzy): a drag in progress when the timer ends resolves by zone (rolling zone → counts, safe landing spot; locked zone → snaps back); after that the turn is closed.
 Muzzy: check B003 on two real phones — both players drag dice in an online game and each sees the other's unlock — then tell Claude so B003 → verified.
 Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next?
 Muzzy: confirm the draft scope in GDD §3b (musts / should / could / won't).
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: none
-Doing: between sprints (F47 mostly done by the hotfix)
-Branch: master   Version: 0.2.1.0
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
+Doing: F47 — building (task 1 next)
+Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
 ## Key facts
