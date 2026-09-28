@@ -13,7 +13,7 @@
 - **References:** Balatro (the "bend your luck" fantasy) · Dice Forge (dice as objects you invest in) · King of Tokyo (social spectacle of shared rolls) · Knucklebones (simple rules, fast rounds) · Wordle (daily ritual, shareable). Anti: MONOPOLY GO / Yahtzee with Buddies (predatory, pay-to-win).
 - **Constraints:** free hosting only (GitHub Pages + PartyKit free tier) · zero data collection, no accounts · smooth on iPhone Safari + Android Chrome · physics decides every die (no fake RNG) · premium dice look (clearcoat + HDRI) · no monetization of any kind.
 
-## 2. Experience targets  (MDA — DRAFT 2026-09-28, Muzzy to confirm)
+## 2. Experience targets  (MDA — confirmed by Muzzy 2026-09-28)
 | | Target | In players' words | We'll know when… (watchable) | Seen? |
 |---|---|---|---|---|
 | Primary | Sensation — the roll as spectacle | "Did you SEE that roll?!" | players react out loud / show the screen to someone mid-game | — |

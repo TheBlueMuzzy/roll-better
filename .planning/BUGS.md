@@ -35,7 +35,7 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
-### B006 · P1 · fixed 2026-09-28 · fixed in 58a54a6 (+ e5fa134) · not released · Guarded by: src/utils/unlockTurn.test.ts (B006 tests) + `npm run e2e:solo`
+### B006 · P1 · verified 2026-09-28 (Muzzy: "it's all working") · fixed in 58a54a6 (+ e5fa134) · not released · Guarded by: src/utils/unlockTurn.test.ts (B006 tests) + `npm run e2e:solo`
 A die dragged just after the unlock timer ended got stuck in the rolling area uncounted, then split a few rolls later.
 Cause: after the 3 s timer fired the phase stays `unlocking` while the split animations play, and nothing stopped a new drag from starting or committing; the late die sat in `committedUnlocks` (never cleared) until the next unlock turn's mitosis. The late commit also bumped the timer key from -1 back to 0.
 Fix (Muzzy's rule, F47): a drag in progress when the timer fires resolves by zone (rolling zone → counts at a clear spot; locked zone → snaps back), then the turn is closed — no new drags until the next unlock phase (`isUnlockTurnOpen` / `resolveDragRelease` / `nextUnlockTimerKey` in `unlockTurn.ts`). Leaving the unlock phase and `initRound` clear parked dice.

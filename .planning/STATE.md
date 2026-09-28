@@ -3,8 +3,7 @@
 ## ▶ RESUME HERE
 Housekeeping done 2026-09-28: GDD rebuilt on the BMUZ-2 template (~110 lines, detail moved word for word to `design/` + `research/audience.md`), TDD slimmed, VISION.md → `archive/vision.md` (ideas were already in ROADMAP Later). F47 approved ✅, F49 ✅.
 Next: sprint 01 still has the roll physics bugs — `/develop` task 7 (B007 dice escape + hang, P1), 8, 9 (B008 gather misses dice). Then the UI-kit rollout (ROADMAP Ideas) needs `/define` first: kit additions + the Cartoon-vs-dark-table art call.
-Muzzy: confirm the draft Experience targets (GDD §2) + open questions (GDD §9 — incl. is a 0-point win with 4 leftover dice intended?).
-Muzzy: check B003 on two real phones on the LIVE site → verified. · Did your late-drag retry (B006) come out clean? → verified.
+Muzzy: scoring fix (GDD §9) — Muzzy is deciding the new rule.
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
