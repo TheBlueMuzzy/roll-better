@@ -7,6 +7,7 @@
 ## 1. At a glance
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install (old docs said React 18; `package.json` says 19 — code wins)
+- **UI:** game-ui kit (src/ui/kit, content/ui/) — Muzzy's Game UI kit from `dev/framework`, style Cartoon; Settings is the first screen on it (`src/ui/SettingsScreen.tsx`). Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
 - **Dev Kit tools used:** none yet. `content/tuning`, `content/text`, `content/data` folders exist but are empty — every tweakable is still hardcoded (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — before any netcode sprint; B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers in §2b → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
@@ -24,6 +25,7 @@ flowchart LR
 - **Turn flow / glue** — `src/App.tsx` (~860 lines): phase effects, roll, unlock timer expiry, batch mitosis, online unlock submit. Most "what happens next" logic lives here, not in the store.
 - **3D view** — `Scene.tsx` orchestrates goal row, player rows, pool and animation dice (`AnimatingDie`, `MitosisDie`, `SpawningDie`, `CommittedDie`); the draggable locked die is `UnlockableDie` inside `PlayerRow.tsx`; gather VFX in `GatherVisuals.tsx`.
 - **HUD** — `HUD.tsx`: status text + countdown bars (idle/roll AFK, unlock inactivity).
+- **UI kit screens** — `src/ui/` (game-ui kit): `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window (z 80 via `--kit-overlay-z`); Settings rows from `content/ui/settings.json`, values wired to the store's settings. Old page-wide CSS (index.css, App.css `*` reset) sits in `@layer game-base` so it can't reach kit parts.
 - **Online** — client: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines: rooms, seats, AFK, host migration, locking, unlock relay); message types in `src/types/protocol.ts`.
 - **Pure logic (tested)** — `src/utils/matchDetection.ts`, `aiDecision.ts`, `unlockTurn.ts`, `diceCap.ts` (+ `.test.ts`); also `dropZone.ts`, `diceUtils.ts`.
 
@@ -152,6 +154,8 @@ GameState {
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
 | `content/text/en.json` | (empty — player text lives in the components) | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
+| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
+| `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
 
 ## 4. Standards (so any engineer could pick this up)
 - **Folders:** `src/components` (React + R3F views), `src/store` (state), `src/hooks` (online + input hooks), `src/utils` (pure logic + tests), `src/types` (game + protocol types), `party/` (server), `public/` (privacy.html, icons), `proto/` (Python balance sims), `content/` (data, empty so far).
@@ -251,6 +255,9 @@ src/
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D17 · 2026-09-28 · UI: game-ui kit, style Cartoon — Muzzy 2026-09-28; fits 'social by default' + 'juice everything'
+  First screen: Settings (F07 try-out of the framework's game-ui skill). Kit screens go through <ScreenStack overlay>
+  (the game isn't built from kit Screens and #root is a letterboxed 16:9 box, so the overlay covers the whole window).
 D16 · 2026-09-28 · Unlock backstop vs the 3 s drag timer: each committed drag pings the server (unlock_activity)
   Proposed by: Claude (F47 task 4)
   Options: longer fixed backstop (turn can be ~7 windows × 3 s + lead-in ≈ 26 s, so 35 s+) /

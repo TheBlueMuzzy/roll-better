@@ -1,11 +1,12 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { MainMenu } from './components/MainMenu';
 import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
-import { Settings } from './components/Settings';
+import { ScreenStack, kitScreens, screens, useScreens } from './ui/kit';
+import { SettingsScreen } from './ui/SettingsScreen';
 import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -29,7 +30,13 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Kit screens (Settings, its Confirm) — open with screens.push('settings')
+  const kitScreenList = useMemo(() => ({
+    ...kitScreens,
+    settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
+  }), []);
+  const settingsOpen = useScreens().includes('settings');
+  const openSettings = useCallback(() => screens.push('settings'), []);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
   const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
@@ -696,7 +703,7 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={openSettings} />
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
@@ -715,7 +722,7 @@ function App() {
             onRoll={handleRoll}
             onForceRelease={handleForceRelease}
             onUnlockTimerExpire={handleUnlockTimerExpire}
-            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenSettings={openSettings}
           />
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
@@ -736,7 +743,7 @@ function App() {
       {screen === 'winners' && (
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onUnstick={() => sceneRef.current?.unstickAll()} />
+      <ScreenStack overlay screens={kitScreenList} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
       <div className="build-version">{version}</div>
