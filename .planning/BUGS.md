@@ -1,14 +1,7 @@
 # Roll Better — Bugs
-Open: 4 (P0 0 · P1 2 · P2 1 · P3 1) · watching: 2
+Open: 3 (P0 0 · P1 1 · P2 1 · P3 1) · watching: 2
 
 ## Open
-### B006 · P1 · open · found 2026-09-28 in F46 · v0.2.1.0 · solo vs AI · desktop
-A die dragged just after the unlock timer ends gets stuck in the rolling area, then splits a few rolls later
-Steps: 1. Reach the unlock phase  2. Let the 3 s timer run out  3. Drag a locked die into the rolling area right as it ends
-Expected: either the drag is refused (die snaps back to its slot) or it counts for this turn · Actual: the die sits in the rolling area uncounted, then registers and splits a few rolls later · How often: seen once (timing-dependent)
-Likely area: happens OFFLINE, so it's the F46 inactivity-timer flow itself (not the online fix) — a drag isn't blocked once the timer has ended/mitosis started, and a late-committed die (`committedUnlocks`) waits for the next unlock phase. Same family as the F47 leftover "stale committed dice"
-Evidence: Muzzy playtest on live v0.2.1
-
 ### B007 · P1 · open · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
 Some dice fly out of the rolling area and the game hangs as if a die is still rolling, then recovers on its own
 Steps: 1. Roll (hold-to-gather-roll)  2. Some dice leave the rolling area
@@ -42,6 +35,12 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B006 · P1 · fixed 2026-09-28 · fixed in 58a54a6 (+ e5fa134) · not released · Guarded by: src/utils/unlockTurn.test.ts (B006 tests) + `npm run e2e:solo`
+A die dragged just after the unlock timer ended got stuck in the rolling area uncounted, then split a few rolls later.
+Cause: after the 3 s timer fired the phase stays `unlocking` while the split animations play, and nothing stopped a new drag from starting or committing; the late die sat in `committedUnlocks` (never cleared) until the next unlock turn's mitosis. The late commit also bumped the timer key from -1 back to 0.
+Fix (Muzzy's rule, F47): a drag in progress when the timer fires resolves by zone (rolling zone → counts at a clear spot; locked zone → snaps back), then the turn is closed — no new drags until the next unlock phase (`isUnlockTurnOpen` / `resolveDragRelease` / `nextUnlockTimerKey` in `unlockTurn.ts`). Leaving the unlock phase and `initRound` clear parked dice.
+Verified by: e2e solo script — before (6cd34d5): late drag accepted, die left parked, next turn pool +4; after: refused, nothing parked, pool +2. Waiting for Muzzy's desktop late-drag try (sprint task 6) → then `verified`.
+
 ### B003 · P0 · fixed 2026-09-28 · fixed in d535e6d · released v0.2.1 · Guarded by: src/utils/unlockTurn.test.ts
 Online: dragging dice to unlock never reached the server — the other players never saw your unlock, and the old 20 s AFK countdown then unlocked other dice for you and flagged you AFK (2nd time → bot took your seat). Live since the v1.6 drag work (phase 46).
 Cause: online, the drag inactivity timer was switched off (HUD gated it on `!isOnlineGame`) and the timer-end handler never sent the drags to the server.

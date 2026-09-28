@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "party:dev": "partykit dev",
-    "party:deploy": "partykit deploy"
+    "party:deploy": "partykit deploy",
+    "e2e": "npm run e2e:solo && npm run e2e:online",
+    "e2e:solo": "node e2e/solo-late-drag.mjs",
+    "e2e:online": "node e2e/online-unlock.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -35,6 +38,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "playwright-core": "^1.63.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1",

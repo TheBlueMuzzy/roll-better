@@ -1,8 +1,8 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 01 planned on branch `dev/v1-6-drag-to-unlock`: F47 online leftovers + B006 late drag, roll physics bugs B007/B008, F49 CI build. Next: `/develop` → F47 task 1 (failing test for B006).
-Late-drag rule (Muzzy): a drag in progress when the timer ends resolves by zone (rolling zone → counts, safe landing spot; locked zone → snaps back); after that the turn is closed.
+F47 tasks 1–5 done (B006 fixed, not released): the unlock turn closes when the 3 s timer fires, a held drag resolves by zone, nothing is left parked; server AFK unlocks use the drag path; server cap = phone cap (`diceCap.ts`); D16 `unlock_activity` keeps active draggers from being AFK'd. `npm test` 53 ✓, build ✓, `npm run e2e` ✓. Next: Muzzy's task 6 (two phones + solo late drag), then `/develop` → B007 task 7.
+Muzzy: try a late drag solo on desktop — drag a locked die right as the 3 s bar ends: over the rolling area it should count (split), over your row it should slide back; after that you can't pick dice up until next turn.
 Muzzy: check B003 on two real phones — both players drag dice in an online game and each sees the other's unlock — then tell Claude so B003 → verified.
 Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next?
@@ -10,7 +10,7 @@ Muzzy: confirm the draft scope in GDD §3b (musts / should / could / won't).
 
 ## Where we are
 Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
-Doing: F47 — building (task 1 next)
+Doing: F47 — tasks 1–5 done; waiting on Muzzy's task 6 (phones + solo late drag)
 Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
@@ -33,6 +33,8 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - Identity: `conn.id` (sessionStorage) per tab, `persistentId` (localStorage) owns the seat; rejoin → `rejoin_state`; host migrates, all-bot room dissolves.
 **Don't re-break**
 - B003: HUD must run the unlock inactivity timer online too, and timer-end must send the drags to the server (`unlockTurn.ts` + test). No separate 20 s online unlock countdown.
+- B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`.
+- 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).
 - BUG-002: `setRollResults` must NOT clear `pendingLockReveals`/`pendingUnlockReveals` (only `initRound` + flush do); unlock value fallback is `goalValues[slot]`, never `1`; deferred phase polling keeps its 5 s timeout.
 - ISS-003: the server generates goal values (in `game_starting`) — clients never roll their own goal.
@@ -46,6 +48,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - GDD out of date: §4.5 scoring table (code: 8 − 2 per leftover die); §6.1 portrait layout (landscape-only since v1.4); §10 known issues ("no drag-to-unlock").
 
 ## Log
+- 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).
 - 2026-09-28 — Hotfix v0.2.1: B003 online drag-to-unlock fixed (one batched unlock_request, TDD D15) + B004 build type-check fixed; released. Converted planning to BMUZ-2.
 - 2026-09-26 — Docs: ISSUES + PRD refresh.
 - 2026-03-30 — Phase 46 done: inactivity timer, batch in-place mitosis, UNLOCK/SKIP removed, faster settle, AI unlock flash fixes (build 92).
