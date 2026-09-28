@@ -3,17 +3,17 @@ import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 import { RollingCountdown } from './RollingCountdown';
 import type { SeatState } from '../types/protocol';
+import { shouldRunUnlockTimer } from '../utils/unlockTurn';
 
 
 interface HUDProps {
   onRoll: () => void;
   onForceRelease: () => void;
-  onConfirmUnlock: () => void;
   onUnlockTimerExpire: () => void;
   onOpenSettings: () => void;
 }
 
-export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpire, onOpenSettings }: HUDProps) {
+export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSettings }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -75,8 +75,9 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
   // --- AFK countdown logic ---
   const showIdleCountdown = isOnlineGame && phase === 'idle';
   const timerAlreadyFired = unlockTimerResetKey < 0;
-  const showUnlockInactivityTimer = !isOnlineGame && phase === 'unlocking' && !animationsInProgress && !timerAlreadyFired;
-  const showOnlineUnlockCountdown = isOnlineGame && phase === 'unlocking' && !hasSubmittedUnlock && !animationsInProgress;
+  // Drag inactivity timer ends the unlock turn — offline AND online (B003 / TDD D15).
+  // Online there is no separate 20 s unlock countdown any more; the server's 25 s timer catches real AFK.
+  const showUnlockInactivityTimer = shouldRunUnlockTimer({ isOnlineGame, phase, animationsInProgress, timerAlreadyFired, hasSubmittedUnlock });
 
   const handleIdleTimeout = useCallback(() => {
     (window as unknown as Record<string, boolean>).__rbAfkRoll = true;
@@ -91,46 +92,6 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
     }
   }, [onRoll, onForceRelease]);
 
-  const handleUnlockTimeout = useCallback(() => {
-    const state = useGameStore.getState();
-    const p = state.players[0];
-    if (!p) return;
-
-    // Clear any manual selections first — AFK AI takes over completely
-    for (const slot of p.selectedForUnlock) {
-      useGameStore.getState().toggleUnlockSelection(0, slot);
-    }
-
-    // Re-read player state after clearing selections
-    const fresh = useGameStore.getState().players[0];
-    if (!fresh) return;
-
-    const totalDice = fresh.poolSize + fresh.lockedDice.length;
-
-    if (totalDice < 8 && fresh.lockedDice.length > 0) {
-      // Unlock as many as possible without exceeding 8 total dice
-      // Each unlock adds 1 net die (removes 1 locked, adds 2 to pool)
-      const maxUnlocks = Math.min(fresh.lockedDice.length, 8 - totalDice);
-      const slotsToUnlock = fresh.lockedDice.slice(0, maxUnlocks).map(ld => ld.goalSlotIndex);
-      for (const slot of slotsToUnlock) {
-        useGameStore.getState().toggleUnlockSelection(0, slot);
-      }
-      console.log('[HUD] AFK unlock timeout — unlocking', slotsToUnlock.length, 'to reach 8 dice');
-    } else if (fresh.poolSize === 0 && fresh.lockedDice.length < 8) {
-      // Must unlock at least 1 (no dice to roll)
-      const slot = fresh.lockedDice[0]?.goalSlotIndex;
-      if (slot !== undefined) {
-        useGameStore.getState().toggleUnlockSelection(0, slot);
-      }
-      console.log('[HUD] AFK unlock timeout — must-unlock 1');
-    } else {
-      console.log('[HUD] AFK unlock timeout — auto-skipping');
-    }
-
-    // Trigger the confirm/skip (same as pressing the button)
-    (window as unknown as Record<string, boolean>).__rbAfkUnlock = true;
-    onConfirmUnlock();
-  }, [onConfirmUnlock]);
 
   // --- Score counting animation ---
   const scoreRef = useRef<HTMLSpanElement>(null);
@@ -239,7 +200,6 @@ export function HUD({ onRoll, onForceRelease, onConfirmUnlock, onUnlockTimerExpi
           duration={3000}
           resetKey={unlockTimerResetKey}
         />
-        <RollingCountdown active={showOnlineUnlockCountdown} onTimeout={handleUnlockTimeout} />
         {/* During unlocking: status text only (buttons rendered centered below) */}
         {phase === 'unlocking' ? (
           <span className="hud-status">{statusText}</span>

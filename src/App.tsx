@@ -17,6 +17,7 @@ import { DIE_SIZE, ROLLING_X_OFFSET } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
 import { findClearSpot } from './utils/clearSpot';
 import { isInRollingZone } from './utils/dropZone';
+import { buildUnlockSubmission } from './utils/unlockTurn';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
 import { Quaternion, Euler } from 'three';
 import type { UnlockAnimation, AIUnlockAnimation, CommittedUnlock } from './types/game';
@@ -705,6 +706,19 @@ function App() {
     // Mark timer as fired (sentinel -1) so the countdown bar won't flash back
     useGameStore.setState({ unlockTimerResetKey: -1 });
 
+    // Online: tell the server everything this player dragged — ONE message per turn (B003 / TDD D15).
+    // Setting hasSubmittedUnlock also reveals other players' buffered unlocks.
+    const reportToServer = (finalCommitted: CommittedUnlock[]) => {
+      if (!isOnlineGame || useGameStore.getState().hasSubmittedUnlock) return;
+      const submission = buildUnlockSubmission(finalCommitted);
+      if (submission.type === 'unlock_request') {
+        sendUnlockRequest(submission.slotIndices);
+      } else {
+        sendSkipUnlock();
+      }
+      useGameStore.getState().setHasSubmittedUnlock(true);
+    };
+
     // Re-read committed after potential auto-commit
     const committed = useGameStore.getState().committedUnlocks;
     const player = useGameStore.getState().players[0];
@@ -719,18 +733,21 @@ function App() {
         useGameStore.getState().forceCommitUnlock(firstLocked.goalSlotIndex, firstLocked.value, centerPos);
         // Re-read and run mitosis
         const freshCommitted = useGameStore.getState().committedUnlocks;
+        reportToServer(freshCommitted);
         buildAndRunMitosis(freshCommitted);
       } else {
         // No must-unlock — skip: go straight to AI unlocks
+        reportToServer([]);
         useGameStore.getState().skipUnlock(0);
         if (!isOnlineGame) {
           startAIUnlockAnimations();
         }
       }
     } else {
+      reportToServer(committed);
       buildAndRunMitosis(committed);
     }
-  }, [isOnlineGame, startAIUnlockAnimations, buildAndRunMitosis]);
+  }, [isOnlineGame, startAIUnlockAnimations, buildAndRunMitosis, sendUnlockRequest, sendSkipUnlock]);
 
   // AFK auto-unlock: server chose slots for us — trigger same animation pipeline as manual unlock
   const pendingAfkUnlock = useGameStore((s) => s.pendingAfkUnlock);
@@ -811,7 +828,6 @@ function App() {
           <HUD
             onRoll={handleRoll}
             onForceRelease={handleForceRelease}
-            onConfirmUnlock={handleConfirmUnlock}
             onUnlockTimerExpire={handleUnlockTimerExpire}
             onOpenSettings={() => setSettingsOpen(true)}
           />
