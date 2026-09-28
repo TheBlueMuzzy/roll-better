@@ -62,8 +62,8 @@ export async function stopServers() {
 }
 
 export async function launchBrowser() {
+  // Playwright's own bundled Chromium — never Muzzy's installed Chrome (install: npx playwright-core install chromium)
   return chromium.launch({
-    channel: 'chrome',
     headless: true,
     args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
