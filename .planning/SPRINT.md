@@ -23,5 +23,5 @@ Check: a scripted 50-roll run with no die out of bounds and no 10 s timeout firi
 
 ## F49 🐞 Deploy builds the same way as local
 Done when: the GitHub deploy fails if the type check or tests fail.
-- [ ] 🤖 10. `.github/workflows/deploy.yml`: `npm run build` (type check included) + `npm test` instead of `npx vite build`
+- [x] 🤖 10. `.github/workflows/deploy.yml`: `npm run build` (type check included) + `npm test` instead of `npx vite build`
 Check: workflow run on the branch/merge shows both steps.
