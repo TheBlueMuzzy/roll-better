@@ -15,7 +15,6 @@ import { useOnlineGame } from './hooks/useOnlineGame';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE, ROLLING_X_OFFSET } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
-import { findClearSpot } from './utils/clearSpot';
 import { isInRollingZone } from './utils/dropZone';
 import { buildUnlockSubmission } from './utils/unlockTurn';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
@@ -65,7 +64,7 @@ function App() {
   // Online game hook — message routing + action senders
   const { sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
 
-  // Read online mode flag (used by phase useEffects, handleRoll, handleConfirmUnlock)
+  // Read online mode flag (used by phase useEffects, handleRoll, unlock turn handlers)
   const isOnlineGame = useGameStore((s) => s.isOnlineGame);
 
   // Performance settings
@@ -384,111 +383,6 @@ function App() {
     }
   }, [setPhase]);
 
-  // UNLOCK button: process unlocks with mitosis animation, then go to idle
-  const handleConfirmUnlock = useCallback(() => {
-    const state = useGameStore.getState();
-    if (state.phase !== 'unlocking') return;
-
-    // Guard: ignore if animation is already in progress
-    if (state.roundState.unlockAnimations.length > 0) return;
-    if (state.roundState.aiUnlockAnimations.length > 0) return;
-
-    const player = state.players[0];
-    const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
-
-    if (isOnlineGame && !state.hasSubmittedUnlock) {
-      // Only send to server if not already submitted (AFK auto-unlock sets this before triggering)
-      if (player.selectedForUnlock.length > 0) {
-        // Send to server immediately (server waits for all)
-        sendUnlockRequest(player.selectedForUnlock);
-        // Mark as submitted so HUD shows "Waiting..." and prevents re-interaction
-        useGameStore.getState().setHasSubmittedUnlock(true);
-        // Fall through to the animated path below (same as offline)
-      } else if (mustUnlock) {
-        return; // Can't skip — must select at least 1
-      } else {
-        sendSkipUnlock();
-        useGameStore.getState().skipUnlock(0);
-        useGameStore.getState().setHasSubmittedUnlock(true);
-        return; // Skip path: no animation, just wait for server
-      }
-    }
-
-    if (player.selectedForUnlock.length > 0) {
-      // --- ANIMATED PATH: mitosis animation before state change ---
-      const selectedSlots = [...player.selectedForUnlock];
-      const lockedDice = player.lockedDice;
-      const existingPoolPositions = [...state.roundState.remainingDicePositions];
-
-      // Build occupied list: current pool dice positions
-      const occupied: [number, number, number][] = [...existingPoolPositions];
-
-      const allAnimations: UnlockAnimation[] = [];
-
-      for (const slotIndex of selectedSlots) {
-        // Find the locked die value for this slot
-        const lockedEntry = lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
-        if (!lockedEntry) continue;
-
-        // Source position: player row slot
-        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.75];
-
-        // Find a clear spot (avoids existing pool dice + previously computed targets)
-        const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
-
-        // Add both split targets to occupied so subsequent unlocks don't overlap
-        occupied.push(splitTargets[0], splitTargets[1]);
-
-        const DEG30 = (30 * Math.PI) / 180;
-        // Stagger: each die starts 250–500ms after the previous
-        const prevDelay = allAnimations.length > 0
-          ? allAnimations[allAnimations.length - 1].delay
-          : 0;
-        const delay = allAnimations.length === 0
-          ? 0
-          : prevDelay + (0.25 + Math.random() * 0.25);
-
-        allAnimations.push({
-          slotIndex,
-          value: lockedEntry.value,
-          fromPos,
-          targetPos,
-          splitTargets,
-          splitYRotations: [
-            (Math.random() * 2 - 1) * DEG30,
-            (Math.random() * 2 - 1) * DEG30,
-          ],
-          delay,
-        });
-      }
-
-      // Trigger animations
-      useGameStore.getState().setUnlockAnimations(allAnimations);
-
-      // Wait for last animation's delay + full animation duration (1.7s) + buffer
-      const lastDelay = allAnimations.length > 0
-        ? allAnimations[allAnimations.length - 1].delay
-        : 0;
-      const totalWait = (lastDelay * 1000) + 1800;
-      setTimeout(() => {
-        useGameStore.getState().confirmUnlock(0);
-        useGameStore.getState().clearUnlockAnimations();
-        // Online: server handles AI unlocks and phase transition
-        if (!isOnlineGame) {
-          startAIUnlockAnimations();
-        }
-      }, totalWait);
-
-    } else if (mustUnlock) {
-      // Can't skip — player has 0 dice to roll, must unlock at least 1
-      return;
-    } else {
-      // SKIP path: no human animation, start AI unlock animations immediately
-      useGameStore.getState().skipUnlock(0);
-      startAIUnlockAnimations();
-    }
-  }, [setPhase, startAIUnlockAnimations, isOnlineGame, sendUnlockRequest, sendSkipUnlock]);
-
   // --- Batch mitosis: finalize state after animations complete ---
   const finalizeBatchUnlock = useCallback((animations: UnlockAnimation[]) => {
     const state = useGameStore.getState();
@@ -731,7 +625,6 @@ function App() {
       } else {
         // No must-unlock — skip: go straight to AI unlocks
         reportToServer([]);
-        useGameStore.getState().skipUnlock(0);
         if (!isOnlineGame) {
           startAIUnlockAnimations();
         }
@@ -742,16 +635,16 @@ function App() {
     }
   }, [isOnlineGame, startAIUnlockAnimations, buildAndRunMitosis, sendUnlockRequest, sendSkipUnlock]);
 
-  // AFK auto-unlock: server chose slots for us — trigger same animation pipeline as manual unlock
+  // AFK auto-unlock: the server's backstop chose slots for us. The store already turned them into
+  // committed dice (applyOnlineUnlockResult) — play the same batch mitosis as a normal drag turn.
+  // If our own split animation is somehow still playing, wait for it; never drop the result.
   const pendingAfkUnlock = useGameStore((s) => s.pendingAfkUnlock);
+  const ownMitosisPlaying = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   useEffect(() => {
-    if (!pendingAfkUnlock) return;
-    // Mark as submitted so handleConfirmUnlock skips sending to server (already processed)
-    useGameStore.getState().setHasSubmittedUnlock(true);
+    if (!pendingAfkUnlock || ownMitosisPlaying) return;
     useGameStore.getState().clearPendingAfkUnlock();
-    // Small delay to let React render the selectedForUnlock state first
-    setTimeout(() => handleConfirmUnlock(), 50);
-  }, [pendingAfkUnlock, handleConfirmUnlock]);
+    buildAndRunMitosis(useGameStore.getState().committedUnlocks);
+  }, [pendingAfkUnlock, ownMitosisPlaying, buildAndRunMitosis]);
 
   // AFK auto-roll: programmatic roll with rollAll (lift + impulse + torque).
   // Used by HUD idle timeout when player hasn't started gathering.

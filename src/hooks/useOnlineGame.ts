@@ -119,11 +119,14 @@ export function useOnlineGame(): UseOnlineGameReturn {
 
           // Defer phase transition AND snapshot if animations are still playing
           // (applying snapshot mid-animation causes poolSize to change, spawning extra dice)
+          // pendingAfkUnlock: the server just unlocked for us (AFK) and our split animation hasn't
+          // started yet — wait for it, or the snapshot would change our dice before the animation
           const hasAnimations =
             state.roundState.aiUnlockAnimations.length > 0 ||
             state.roundState.aiLockAnimations.length > 0 ||
             state.roundState.lockAnimations.length > 0 ||
-            state.roundState.unlockAnimations.length > 0;
+            state.roundState.unlockAnimations.length > 0 ||
+            state.pendingAfkUnlock;
 
           // Capture snapshot for deferred application
           const snapshotPlayers = msg.players;
@@ -148,7 +151,8 @@ export function useOnlineGame(): UseOnlineGameReturn {
                 s.roundState.aiUnlockAnimations.length > 0 ||
                 s.roundState.aiLockAnimations.length > 0 ||
                 s.roundState.lockAnimations.length > 0 ||
-                s.roundState.unlockAnimations.length > 0;
+                s.roundState.unlockAnimations.length > 0 ||
+                s.pendingAfkUnlock;
               if (!stillAnimating) {
                 clearInterval(deferredPhaseInterval!);
                 deferredPhaseInterval = null;

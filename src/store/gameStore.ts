@@ -1,11 +1,9 @@
 import { create } from 'zustand';
 import type { GamePhase, GameState, GamePrefs, LockedDie, LockAnimation, UnlockAnimation, AIUnlockAnimation, Settings, Player, GatherState, DragUnlockState, CommittedUnlock } from '../types/game';
 import type { UnlockResultMessage, LockedDieSync, PlayerSyncState, SeatState } from '../types/protocol';
-import { Euler, Quaternion } from 'three';
 import { findAutoLocks } from '../utils/matchDetection';
-import { getFaceUpRotation } from '../utils/diceUtils';
 import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
-import { DIE_SIZE } from '../components/RollingArea';
+import { DIE_SIZE, ROLLING_X_OFFSET } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
 import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey } from '../utils/unlockTurn';
@@ -62,9 +60,6 @@ interface GameStore extends GameState {
   clearAILockAnimations: () => void;
 
   // Unlocking
-  toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => void;
-  confirmUnlock: (playerIndex: number) => void;
-  skipUnlock: (playerIndex: number) => void;
   setUnlockAnimations: (anims: UnlockAnimation[]) => void;
   clearUnlockAnimations: () => void;
 
@@ -373,10 +368,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase) => {
     const prev = get().phase;
-    const updates: Partial<GameState> = { phase };
-    // Reset timer sentinel when leaving unlocking phase
+    const updates: Partial<GameStore> = { phase };
+    // Leaving the unlock phase: reset the timer sentinel and clear anything left over from the
+    // unlock turn, so no die is ever left parked/glowing in the rolling area (B006)
     if (prev === 'unlocking' && phase !== 'unlocking') {
       updates.unlockTimerResetKey = 0;
+      updates.committedUnlocks = [];
+      updates.dragUnlockState = { ...initialDragUnlockState };
+      updates.pendingAfkUnlock = false;
     }
     set(updates);
   },
@@ -473,7 +472,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!options?.skipPhase) {
       updates.phase = 'idle';
     }
-    set({ ...updates, hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [] });
+    set({
+      ...updates,
+      hasLocalPlayerLocked: false, pendingLockReveals: [], hasSubmittedUnlock: false, pendingAfkUnlock: false, pendingUnlockReveals: [],
+      // New round: no parked/dragged dice and a fresh unlock timer (B006)
+      committedUnlocks: [], dragUnlockState: { ...initialDragUnlockState }, unlockTimerResetKey: 0,
+    });
   },
 
   setGoalTransition: (goalTransition: 'none' | 'exiting' | 'entering') => {
@@ -765,99 +769,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     players[playerIndex] = player;
 
     set({ players, phase: 'idle' });
-  },
-
-  toggleUnlockSelection: (playerIndex: number, goalSlotIndex: number) => {
-    const state = get();
-    // Prevent re-selection after submitting unlock choice (online)
-    if (state.hasSubmittedUnlock) return;
-    const players = [...state.players];
-    const player = { ...players[playerIndex] };
-
-    const idx = player.selectedForUnlock.indexOf(goalSlotIndex);
-    if (idx === -1) {
-      // Check 12-die cap: each unlock adds 1 net die (pool+2, locked-1)
-      // Total after unlock = poolSize + lockedCount + numUnlocks
-      const wouldBeTotal = player.poolSize + player.lockedDice.length + (player.selectedForUnlock.length + 1);
-      if (wouldBeTotal > 12) {
-        // Can't select more — would exceed 12 dice cap
-        return;
-      }
-      player.selectedForUnlock = [...player.selectedForUnlock, goalSlotIndex];
-    } else {
-      player.selectedForUnlock = player.selectedForUnlock.filter((s) => s !== goalSlotIndex);
-    }
-
-    players[playerIndex] = player;
-    set({ players });
-  },
-
-  confirmUnlock: (playerIndex: number) => {
-    const state = get();
-    const players = [...state.players];
-    const player = { ...players[playerIndex] };
-
-    const slotsToUnlock = player.selectedForUnlock;
-
-    // Get values of dice being unlocked (before removing them)
-    // If snapshot already removed these locks, unlockedValues will be empty
-    const unlockedValues = player.lockedDice
-      .filter((ld) => slotsToUnlock.includes(ld.goalSlotIndex))
-      .map((ld) => ld.value);
-
-    // Each unlock returns the die + 1 bonus die of the same value
-    const pendingNewDice = unlockedValues.flatMap((v) => [v, v]);
-
-    // Extract split target positions + rotations from unlock animations (still in state at this point)
-    // so new physics dice appear exactly where the MitosisDie animation ended
-    const pendingNewDicePositions: [number, number, number][] = [];
-    const pendingNewDiceRotations: [number, number, number][] = [];
-    for (const anim of state.roundState.unlockAnimations) {
-      pendingNewDicePositions.push(anim.splitTargets[0], anim.splitTargets[1]);
-      // Compose face tilt + Y spin via quaternions so Euler stays correct
-      const faceRot = getFaceUpRotation(anim.value);
-      for (const yRot of anim.splitYRotations) {
-        const faceQ = new Quaternion().setFromEuler(new Euler(faceRot[0], faceRot[1], faceRot[2]));
-        const yQ = new Quaternion().setFromEuler(new Euler(0, yRot, 0));
-        const combined = yQ.multiply(faceQ); // Y spin applied in world space
-        const result = new Euler().setFromQuaternion(combined);
-        pendingNewDiceRotations.push([result.x, result.y, result.z]);
-      }
-    }
-
-    // Only modify lockedDice/poolSize if snapshot hasn't already done it
-    // (online: phase_change snapshot can arrive before this timer fires)
-    const slotsStillLocked = slotsToUnlock.filter(
-      slot => player.lockedDice.some(ld => ld.goalSlotIndex === slot)
-    );
-    if (slotsStillLocked.length > 0) {
-      player.lockedDice = player.lockedDice.filter(
-        (ld) => !slotsToUnlock.includes(ld.goalSlotIndex),
-      );
-      player.poolSize = player.poolSize + slotsStillLocked.length * 2;
-    }
-    player.selectedForUnlock = [];
-
-    players[playerIndex] = player;
-    set({
-      players,
-      roundState: {
-        ...state.roundState,
-        pendingNewDice,
-        pendingNewDicePositions,
-        pendingNewDiceRotations,
-      },
-    });
-  },
-
-  skipUnlock: (playerIndex: number) => {
-    const state = get();
-    const players = [...state.players];
-    const player = { ...players[playerIndex] };
-
-    player.selectedForUnlock = [];
-    players[playerIndex] = player;
-    set({ players });
   },
 
   setUnlockAnimations: (anims: UnlockAnimation[]) => {
@@ -1174,16 +1085,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   syncAllPlayerState: (serverPlayers: PlayerSyncState[]) => {
     const state = get();
-    // Skip local player's poolSize/lockedDice if unlock animation is in progress
-    // (confirmUnlock owns those fields until animation completes — snapshot would stomp the handoff)
+    // Skip local player's poolSize/lockedDice while our own unlock is still playing out
+    // (batch mitosis owns those fields until it finishes — snapshot would stomp the handoff)
     const localUnlockInProgress = state.hasSubmittedUnlock &&
-      (state.roundState.unlockAnimations.length > 0 || state.players[0]?.selectedForUnlock.length > 0);
+      (state.roundState.unlockAnimations.length > 0 || state.committedUnlocks.length > 0 || state.pendingAfkUnlock);
     const players = state.players.map((p, i) => {
       const serverId = state.onlinePlayerIds[i];
       const sp = serverPlayers.find(s => s.id === serverId);
       if (!sp) return p;
       if (i === 0 && localUnlockInProgress) {
-        // Only sync score/startingDice — let confirmUnlock handle poolSize/lockedDice
+        // Only sync score/startingDice — let batch mitosis handle poolSize/lockedDice
         return { ...p, score: sp.score, startingDice: sp.startingDice, seatState: sp.seatState, seatIndex: sp.seatIndex };
       }
       return {
@@ -1212,18 +1123,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (playerIndex === -1) return; // Unknown — ignore
 
     if (playerIndex === 0) {
-      // Self — check if this is an AFK auto-unlock (server-initiated, not player-initiated)
-      if (state.hasSubmittedUnlock) return; // Player already submitted locally via confirmUnlock
+      // Self — only happens when the server's backstop decided for us (AFK auto-unlock)
+      if (state.hasSubmittedUnlock) return; // we already sent our own choice
+      if (state.phase !== 'unlocking') return; // too late to animate — the next snapshot carries the result
 
-      // AFK auto-unlock: server chose which slots to unlock.
-      // Set selectedForUnlock + flag so App.tsx can trigger the mitosis animation pipeline.
+      // Show it exactly like a drag turn: the server's dice become committed dice at clear spots,
+      // then App runs the same batch mitosis (pendingAfkUnlock). The turn is closed from here.
       console.log("[applyOnlineUnlockResult] AFK auto-unlock for local player, slots:", unlockedSlots);
+      const player = { ...state.players[0] };
+      // Dice we had dragged that the server did NOT unlock go back to their slots
+      const committed = state.committedUnlocks.filter(cu => unlockedSlots.includes(cu.slotIndex));
+      const returned = state.committedUnlocks.filter(cu => !unlockedSlots.includes(cu.slotIndex));
+      let lockedDice = [...player.lockedDice, ...returned.map(cu => ({ goalSlotIndex: cu.slotIndex, value: cu.value }))];
+      // Dice the server unlocked that we hadn't dragged: park them at a clear spot in the rolling area
+      for (const slot of unlockedSlots) {
+        if (committed.some(cu => cu.slotIndex === slot)) continue;
+        const locked = lockedDice.find(ld => ld.goalSlotIndex === slot);
+        if (!locked) continue;
+        const occupied = [...state.roundState.remainingDicePositions, ...committed.map(cu => cu.position)];
+        const position = findNearestClearPosition([ROLLING_X_OFFSET, DIE_SIZE / 2, 0], occupied, DIE_SIZE);
+        committed.push({ slotIndex: slot, value: locked.value, position, dropPosition: position });
+        lockedDice = lockedDice.filter(ld => ld.goalSlotIndex !== slot);
+      }
+      player.lockedDice = lockedDice;
       const players = [...state.players];
-      const player = { ...players[0] };
-      player.selectedForUnlock = [...unlockedSlots];
       players[0] = player;
 
-      set({ players, pendingAfkUnlock: true });
+      set({
+        players,
+        committedUnlocks: committed,
+        dragUnlockState: { ...initialDragUnlockState }, // a drag in progress is overruled by the server
+        unlockTimerResetKey: -1,                          // turn closed
+        pendingAfkUnlock: true,
+      });
+      // The server already has our choice — stop our own timer and reveal others' buffered unlocks
+      get().setHasSubmittedUnlock(true);
       return;
     }
 
