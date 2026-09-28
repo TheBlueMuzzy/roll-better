@@ -49,3 +49,6 @@ flowchart LR
 - Mouse throw rolling on PC — could (VISION #5)
 - Upgrades system: spots + special dice — could, needs a full design pass (VISION #9)
 - Dice skins, tabletop textures, player profile art — could (VISION #10–#12)
+
+## Ideas
+- 2026-09-28 — Rest of the UI on the game-ui kit (Cartoon): main menu + online lobby first, then How to Play / Winners / countdown / tip banner, HUD last. Needs kit additions: game-box mode (16:9 frame), seat-claim list, labels pinned to 3D. Art question: bright Cartoon UI vs the dark table. Settings already done (kit 0.1.3).
