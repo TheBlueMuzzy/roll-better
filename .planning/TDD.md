@@ -136,7 +136,7 @@ GameState {
 |---|---|---|---|---|
 | Roll AFK countdown | 20 s | client (`RollingCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
 | Roll backstop | 25 s | server | rolling phase starts | server auto-rolls non-responders |
-| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15) |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
 | Unlock backstop | 25 s; each `unlock_activity` tops it up to ≥ 10 s left (D16) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
 | Deferred snapshot safety | 5 s | client | `phase_change` held behind animations | force-apply |
 | Watchdog | 1 s tick, 5 s stall | client | always online | `phase_sync_request` |

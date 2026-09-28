@@ -5,6 +5,7 @@ import {
   isUnlockTurnOpen,
   resolveDragRelease,
   nextUnlockTimerKey,
+  returnParkedDice,
 } from './unlockTurn';
 
 // B003 — online, dragging dice to unlock did nothing for the other player.
@@ -104,5 +105,28 @@ describe('nextUnlockTimerKey — B006 late drag', () => {
 
   it('once the timer has fired (-1) it stays fired — a late drop never restarts it', () => {
     expect(nextUnlockTimerKey(-1)).toBe(-1);
+  });
+});
+
+// B006 follow-up — whatever the timing, a parked die is never carried past its own unlock phase.
+// Before: leaving the unlock phase just emptied the parked list, so a die parked there vanished
+// (already removed from the locked row, never split). Now it goes back to its slot.
+describe('returnParkedDice — B006 leaving the unlock phase', () => {
+  it('a die still parked when the unlock phase ends goes back to its slot', () => {
+    const locked = [{ goalSlotIndex: 0, value: 1 }];
+    expect(returnParkedDice(locked, [{ slotIndex: 4, value: 5 }])).toEqual([
+      { goalSlotIndex: 0, value: 1 },
+      { goalSlotIndex: 4, value: 5 },
+    ]);
+  });
+
+  it('nothing parked → locked dice unchanged', () => {
+    const locked = [{ goalSlotIndex: 2, value: 3 }];
+    expect(returnParkedDice(locked, [])).toBe(locked);
+  });
+
+  it('never duplicates a die that is already in its slot', () => {
+    const locked = [{ goalSlotIndex: 4, value: 5 }];
+    expect(returnParkedDice(locked, [{ slotIndex: 4, value: 5 }])).toEqual(locked);
   });
 });

@@ -70,3 +70,18 @@ export function nextUnlockTimerKey(current: number): number {
   if (current < 0) return current; // -1 = timer already fired; never restart it
   return current + 1;
 }
+
+/**
+ * Leaving the unlock phase: any die still parked in the rolling area (committed but never split)
+ * goes back to its slot. Its turn is over — it must never be carried into a later turn (B006) and
+ * never silently disappear either. Returns the player's new lockedDice.
+ */
+export function returnParkedDice<T extends { goalSlotIndex: number; value: number }>(
+  lockedDice: T[],
+  parked: { slotIndex: number; value: number }[],
+): { goalSlotIndex: number; value: number }[] {
+  const back = parked
+    .filter((p) => !lockedDice.some((l) => l.goalSlotIndex === p.slotIndex))
+    .map((p) => ({ goalSlotIndex: p.slotIndex, value: p.value }));
+  return back.length === 0 ? lockedDice : [...lockedDice, ...back];
+}

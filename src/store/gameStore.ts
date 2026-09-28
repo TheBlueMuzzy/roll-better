@@ -6,7 +6,7 @@ import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE, ROLLING_X_OFFSET } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
-import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey } from '../utils/unlockTurn';
+import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey, returnParkedDice } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 
@@ -374,6 +374,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Leaving the unlock phase: reset the timer sentinel and clear anything left over from the
     // unlock turn, so no die is ever left parked/glowing in the rolling area (B006)
     if (prev === 'unlocking' && phase !== 'unlocking') {
+      // A die still parked here missed its turn's split — it goes back to its slot, never carried over
+      const parked = get().committedUnlocks;
+      if (parked.length > 0) {
+        const players = [...get().players];
+        players[0] = { ...players[0], lockedDice: returnParkedDice(players[0].lockedDice, parked) };
+        updates.players = players;
+      }
       updates.unlockTimerResetKey = 0;
       updates.committedUnlocks = [];
       updates.dragUnlockState = { ...initialDragUnlockState };

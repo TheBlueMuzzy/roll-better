@@ -33,7 +33,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - Identity: `conn.id` (sessionStorage) per tab, `persistentId` (localStorage) owns the seat; rejoin → `rejoin_state`; host migrates, all-bot room dissolves.
 **Don't re-break**
 - B003: HUD must run the unlock inactivity timer online too, and timer-end must send the drags to the server (`unlockTurn.ts` + test). No separate 20 s online unlock countdown.
-- B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`.
+- B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`. Leaving the unlock phase: a still-parked die goes BACK to its slot (`returnParkedDice`), never dropped or carried over. Race check: `node e2e/unlock-race-sweep.mjs [passes] [pages] [step]`.
 - 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).
 - BUG-002: `setRollResults` must NOT clear `pendingLockReveals`/`pendingUnlockReveals` (only `initRound` + flush do); unlock value fallback is `goalValues[slot]`, never `1`; deferred phase polling keeps its 5 s timeout.
