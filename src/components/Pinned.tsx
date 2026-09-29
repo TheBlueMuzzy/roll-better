@@ -31,6 +31,7 @@ interface PinnedProps {
   fit: [number, number];
   rem?: number;
   anchor?: 'right' | 'center';
+  name?: string; // shows up as data-pin="name", so code can find this piece on the page
   children: ReactNode;
 }
 
@@ -39,7 +40,7 @@ const Z_RANGE = [5, 0];
 // CSS px in one rem at normal text size (a bigger text setting makes pinned pieces bigger too)
 const REM_PX = 16;
 
-export function Pinned({ position, fit, rem, anchor = 'right', children }: PinnedProps) {
+export function Pinned({ position, fit, rem, anchor = 'right', name, children }: PinnedProps) {
   const size = useThree((s) => s.size);
   const camera = useThree((s) => s.camera);
   // The piece's own box (inside drei's div). drei draws it in its own React root a moment later,
@@ -79,7 +80,7 @@ export function Pinned({ position, fit, rem, anchor = 'right', children }: Pinne
 
   return (
     <Html position={position} zIndexRange={Z_RANGE} pointerEvents="none">
-      <div ref={attachBox} className="kit-scope pinned" data-anchor={anchor}>
+      <div ref={attachBox} className="kit-scope pinned" data-anchor={anchor} data-pin={name}>
         {children}
       </div>
     </Html>
