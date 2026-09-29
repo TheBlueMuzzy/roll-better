@@ -1,13 +1,13 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-On branch `dev/v1.6` (not live): Roll Better now runs on the **framework Dev Kit 0.1.1** (table felt = game tab in `src/devkit-game/`) and **UI kit 0.2.2** (menu items in the game's order, Results dim, toasts via ToastStack place + side-room variables, Pinned = small adapter around kit PinnedBox, `npm run check:ui`). TDD/GDD slimmed (detail moved to design/). All checks + e2e green. Muzzy approved 2026-09-29.
-Next: F48 drag polish with Muzzy (v1.6's last must), then `/deliver`.
-Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
+Sprint 05 planned (F48 drag polish): no stuck/swapped dice, 12-cap dims + shake/toast, rolling-area highlight, drag numbers in content/tuning/drag.json + framework Dev Kit Tuning tab. Branch dev/v1.6 (framework Dev Kit 0.1.1 + UI kit 0.2.2 already approved on it).
+Next: `/develop` → F48 task 2 (lost pointer mid-drag).
+Muzzy: two-phone online check (task 8) · confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none
-Doing: framework Dev Kit + kit 0.2.2 moved in (approved)
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: 05
+Doing: F48 — building
 Branch: dev/v1.6   Version: 0.3.0.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 
