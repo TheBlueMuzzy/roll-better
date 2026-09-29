@@ -1,0 +1,7 @@
+{
+  "_help": "Table colours — edit here, or live in the Dev Kit (dev build: press ` → Color tab → Save). rows = the felt under the Goal row and player rows; rolling = the felt under the rolling area (a touch darker); divider = the faint line between them, drawn at dividerOpacity (0 = hidden, 1 = solid).",
+  "rows": "#2b2f63",
+  "rolling": "#252858",
+  "divider": "#ffffff",
+  "dividerOpacity": 0.12
+}

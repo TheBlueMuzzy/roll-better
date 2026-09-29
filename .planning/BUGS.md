@@ -1,12 +1,41 @@
 # Roll Better — Bugs
-Open: 1 (P0 0 · P1 0 · P2 0 · P3 1) · watching: 2
+Open: 0 (P0 0 · P1 0 · P2 0 · P3 0) · watching: 2
 
 ## Open
-### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
-A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
-Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
-Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.
-Evidence: `npm run e2e:physics` put-back counts (1–3 per run), dev log `[PhysicsDie] out of bounds`
+### B011 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Row chip too wide: gap between the avatar and the chip's left edge
+Expected: avatar sits flush at the chip's left edge · Where: kit PlayerChip (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B013 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+B1–B4 avatar initials are bold and hard to read
+Expected: lighter weight (or regular) · Where: kit Avatar (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B014 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Green 'you' ring around the avatar touches the 'S2' text
+Expected: clears once the avatar is flush left (B011) · Where: kit PlayerChip (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B015 · P2 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Status text ('Hold to Roll', 'Locked 1!') looks like a button — it isn't one
+Expected: plain white text, no card. Rule: non-buttons never look like buttons · Where: kit: plain HUD text piece (framework) + StatusPin.tsx
+Evidence: Muzzy screenshots 2026-09-29
+
+### B016 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Instruction text + its timers sit at the bottom
+Expected: move to the top, level with the Goal dice · Where: game: StatusPin.tsx placement
+Evidence: Muzzy screenshots 2026-09-29
+
+### B018 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Round badge + settings gear are tiny next to everything else
+Expected: larger (not huge) · Where: kit icon button / badge sizes (framework) + game HUD
+Evidence: Muzzy screenshots 2026-09-29
+
+### B019 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+'Round 1' is a badge but it's only information
+Expected: plain white text, left of the ★8 Goal chip · Where: game HUD
+Evidence: Muzzy screenshots 2026-09-29
 
 ### B001 · P2 · watching · found 2026-03-01 · v0.1.0.51 · (old BUG-001)
 Dice that match the Goal sometimes don't lock — some matches silently dropped
@@ -22,6 +51,26 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B009 · P2 · fixed 2026-09-29 in 721fe24 · Guarded by: `src/utils/dieCollisionGroups.test.ts` + `npm run e2e:physics` (now FAILS if the safety net puts back even one die) · found 2026-09-29 in B007 fix · dev build · e2e
+A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
+Steps: 1. Hold-to-gather near the left wall (or drag off the rolling area → back wall)  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 mixed rolls (16 in 30 drag-off-area rolls) end up inside the wall, then teleport back · How often: occasional (e2e)
+Cause: while gathering, dice were made "ghosts" with `setSensor(true)`. Rapier decides whether a pair of colliders is sensor or solid when their boxes FIRST overlap — a die orbiting against a wall (the orbit ring sits right at the wall) kept that pair as a sensor pair after `setSensor(false)` at release, so the wall stopped nothing until the die fully left it. The logs showed it: every put-back was a die released touching the wall (gap ≤ 0), still growing back, drifting in at an unchanged 2–7 u/s over 7–21 physics steps — no bounce at all. Reproduced with plain Rapier (no React): sensor → solid slides in, even through a thick fixed wall; switching collision groups instead bounces. NOT tunnelling, not the collider growing, not kinematic walls, not thin walls (the first guess was wrong).
+Fix: ghost mode uses collision groups (`src/utils/dieCollisionGroups.ts`: GHOST → RELEASE → SOLID), never `setSensor` — Rapier re-checks groups every step. Same change for the unstick slide. Walls, fling strength, tumble, tuning numbers unchanged; safety net kept as last resort (dev log now says which wall / state / speed / size / steps since release).
+Evidence: before — 30 drag-off-area rolls: 16 put-backs, 2 caught out of bounds. After — 5 × 50 mixed rolls + 40 drag-to-wall + 40 drag-off-area (330 rolls): 0 put-backs, 0 out of bounds, 0 timeouts, 0 missed dice. Research: Rapier CCD only stops NEW impacts (https://rapier.rs/docs/user_guides/javascript/rigid_body_ccd/); common dice-box advice is thick walls with the inner face kept in place (https://github.com/laconicman/DiceLab/pull/1) — not needed here.
+
+### B012 · P3 · fixed 2026-09-29 · Guarded by: colours only live in `content/ui/table.json` (look check by Muzzy) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Table is brown (light + dark) — doesn't fit the Cartoon UI colours
+Expected: a dark but fun table colour, editable in content/ui/table.json (Dev Kit Color tool later, F59) · Where: game: Scene.tsx table + background
+Fix: deep indigo felt — rows `#2b2f63`, rolling area a touch darker `#252858`, divider white at 12 %. Read from `content/ui/table.json` by `Scene.tsx` + `RollingArea.tsx`. Lighting/HDRI untouched; empty-slot ghost squares still readable, left as they are. Letterbox bars stay black (outside the table).
+Evidence: Muzzy screenshots 2026-09-29
+
+### B017 · P2 · fixed 2026-09-29 in c050030 · Guarded by: `src/utils/tableLayout.test.ts` · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Row chips cover the locked dice
+Expected: shift the whole locked-dice area right, shrinking the rolling area · Where: game: Scene/GoalRow ROW_X_OFFSET + RollingArea walls
+Cause: the camera looks straight down from the middle, so a die's top face is drawn ~7% further out than its feet — the first die reached past the chip's right edge on screen.
+Fix: rows moved right (`ROW_X_OFFSET` −4 → −3.4), chips stay against the left edge of the view (`PROFILE_X_OFFSET` 0.65 → 1.25), divider + rows' floor at `SPLIT_X` 0.7, rolling area now 1.0 → 9.5 (was 0.5 → 9.5; 8.5 wide — 12 dice fit). Only the two walls are hardcoded (`RollingArea.tsx`); centre/half-width, `rollBounds.ts`, `dropZone.ts`, gather points and spawns derive from them. Race-sweep e2e reads slot x from the game.
+Evidence: Muzzy screenshots 2026-09-29 · after: chips end 201 px, first die starts ~225 px (1440×900)
+
 ### B010 · P3 · fixed 2026-09-29 · Guarded by: `node e2e/b010-drag-over-profile.mjs <folder>` (screenshots — visual check) · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
 Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
 Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
@@ -29,7 +78,7 @@ Expected: pips stay black · Actual: pips look white/see-through while lifted ov
 Update (Muzzy, same day): dragging a die all the way left, it draws BEHIND the 3D profile UI (player icon etc.), and the pips are see-through — the UI shows through the pip holes. So it's draw order / depth, not reflection: the profile group likely renders on top (renderOrder / depthTest off / transparent), and the pip discs don't sort the same way as the die body. The leftmost slot is simply the only place a lifted die overlaps the profile group.
 Fix direction: the die being dragged (and its pips) should draw above the profile UI — check renderOrder/depthTest/transparent on the profile group + pip materials (`PlayerProfileGroup.tsx`, `PlayerIcon.tsx`, `Die3D.tsx`).
 Evidence: Muzzy report
-Cause: the star/avatar icons draw with no depth test, and three.js sorts by distance — the icon landed AFTER the pips but BEFORE the die body, so it painted over the pips, then the body covered the icon everywhere except the pips (see-through holes). Fix: the draggable locked die draws after the profile UI (`Die3D renderOrder={30}` in PlayerRow). Note: three.js resets draw order at every nested group, so it has to be set on Die3D's own group, not a parent. Before/after screenshots checked.
+Cause: the star/avatar icons draw with no depth test, and three.js sorts by distance — the icon landed AFTER the pips but BEFORE the die body, so it painted over the pips, then the body covered the icon everywhere except the pips (see-through holes). Fix: the draggable locked die draws after the profile UI (`Die3D renderOrder={30}` in PlayerRow). Note: three.js resets draw order at every nested group, so it has to be set on Die3D's own group, not a parent. Before/after screenshots checked. Update v1.7 (F58): the 3D profile icons are gone — row badges are page-level kit chips drawn over the table, so the chip under a dragged die now fades instead (`RowChips.tsx`); the check script shoots that.
 
 ### B005 · P3 · fixed 2026-09-29 · Guarded by: src/utils/playerText.test.ts · found 2026-09-28 in F46 · v0.2.1.0
 First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)

@@ -3,6 +3,7 @@
 // and gives scripts a way to call the real Zustand store inside the page.
 import { spawn, execSync } from 'node:child_process';
 import net from 'node:net';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 export const VITE_PORT = 5199;
@@ -81,6 +82,40 @@ export function store(page, src, arg) {
     // eslint-disable-next-line no-new-func
     return await new Function('s', 'a', `return (async () => { ${body} })()`)(useGameStore, a);
   }, [src, arg]);
+}
+
+// Button words come from the game's own text file, so renaming a button there doesn't break the checks
+export const text = JSON.parse(readFileSync(new URL('../content/text/en.json', import.meta.url), 'utf8'));
+const button = (page, name) => page.getByRole('button', { name, exact: true });
+
+/** Main menu → Play (a local game against the computer). */
+export async function playLocal(page) {
+  await button(page, text.mainMenu.play).click();
+}
+
+/** Main menu → Play online → Create a room. Returns the room code. */
+export async function createRoom(page) {
+  await button(page, text.mainMenu.playOnline).click();
+  await button(page, text.lobby.create).click();
+  const title = page.getByText(new RegExp('^' + text.lobby.room.replace('{code}', '[A-Z]{4}') + '$'));
+  await title.waitFor({ timeout: 15000 });
+  const code = (await title.innerText()).match(/[A-Z]{4}/)[0];
+  log('room code', code);
+  return code;
+}
+
+/** Main menu → Play online → type the code → Join. Waits until the room shows up. */
+export async function joinRoom(page, code) {
+  await button(page, text.mainMenu.playOnline).click();
+  const boxes = page.getByRole('textbox', { name: /letter \d of 4/ });
+  for (let i = 0; i < 4; i++) await boxes.nth(i).fill(code[i]);
+  await button(page, text.lobby.join).click();
+  await page.getByText(text.lobby.room.replace('{code}', code), { exact: true }).waitFor({ timeout: 15000 });
+}
+
+/** In the room, the host presses Start game. */
+export async function startOnlineGame(page) {
+  await button(page, text.lobby.start).click();
 }
 
 /** A real hold-to-gather roll on the rolling area (right side of the screen). */

@@ -4,7 +4,7 @@
 //   B) drag held over the ROLLING zone when the timer fires → counts this turn (parked at a clear
 //      spot, split into 2 pool dice).
 // Run: npm run e2e:solo   (starts its own Vite on :5199 and stops it afterwards)
-import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const MAX_MS = 240_000;
 
@@ -16,7 +16,7 @@ run(async () => {
   page.on('pageerror', (e) => errors.push(e.message));
 
   await page.goto(GAME_URL);
-  await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+  await playLocal(page);
   await page.waitForTimeout(2000);
   await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false } });`);
 

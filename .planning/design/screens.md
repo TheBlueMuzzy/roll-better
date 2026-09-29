@@ -3,16 +3,28 @@
 
 ### 6.1 Screen Layout
 
-**Landscape only (since v1.4).** Phones held sideways (either way round). Desktop uses the same landscape layout. The top-to-bottom breakdown below is from the portrait era — the pieces are the same (goal row, player rows with 3D profile groups, rolling area, HUD) but arranged for landscape; exact layout lives in the code (`Scene.tsx`).
+**Landscape only (since v1.4).** Phones held sideways (either way round). Desktop uses the same landscape layout. The top-to-bottom breakdown below is from the portrait era — the pieces are the same (goal row, player rows with their chips, rolling area, HUD) but arranged for landscape: rows on the left half, rolling area on the right; exact layout lives in the code (`Scene.tsx`, `RowChips.tsx`).
 
-#### Main Menu
-- Game title "Roll Better"
-- **Offline**: Player count selector (2, 3, 4) + PLAY button. AI difficulty is randomized per bot (no selector).
-- **Online**: Inline CREATE / JOIN flow on the main menu (no separate lobby screen). CREATE shows room code + player list inline. JOIN shows code entry field inline. Host sees START GAME button when players are ready.
-- How to Play button → rules modal
-- Upgrades button (placeholder for future cosmetics)
-- Settings gear icon (bottom-right) → opens settings modal
-- Build version overlay in lower-left corner (`vX.Y.Z.B`)
+#### Main Menu, online and help (game-ui kit, Cartoon — v1.7 sprint 02)
+All front-door screens are kit screens on the Cartoon light-blue page (Muzzy's pick; colours in `content/ui/style.json`), inside the game's 16:9 box. Words: `content/text/en.json`.
+- **Main menu** (`src/ui/MainMenuScreen.tsx`, kit `MainMenu`): title + subtitle, then Play (local, you + 3 bots), Play online, Settings, How to play, Upgrades (disabled, "Coming soon"). Version in the bottom-left corner.
+- **Play online** (`src/ui/LobbyScreen.tsx`, kit `Lobby`; rules in `src/ui/OnlineRoom.tsx`): Create a room, or type a friend's 4-letter code and Join. Back / Esc / tapping the dim leaves.
+- **Room** (kit `Lobby` with a code): "Room ABCD", players with colour avatars, Host badge, Copy code, Leave, Start game (host). Players are ready as soon as they join. Play Again after a game returns here.
+- **Game in progress** (kit `SeatPicker`, kit 0.1.6): someone joining a running game picks a bot's seat (name, colour, score, locks) → "Seat claimed! Joining next round…" (Cancel) → in the game at the next round.
+- **Reconnecting** (kit `Reconnecting` dialog, blocks taps) and "X reconnected" (kit toast).
+- **How to Play** (kit `HowToPlay`): 6 pages with page dots, Back / Next / Got it — from the menu and in game.
+- **Settings / Credits** (kit, since v1.6/v0.2.2).
+
+#### In game (game-ui kit, Cartoon — v1.7 sprint 03)
+The 3D table, dice and rows stay as they were; everything you READ on it is a kit piece. Words: `content/text/en.json` (`hud`, `chips`, `tips`, `roundIntro`, `winners`).
+- **Row chips** (kit `PlayerChip`, `src/ui/RowChip.tsx`, pinned by `src/components/RowChips.tsx`): one per row, just left of its first slot — colour avatar with initials (bots read "B2"), "S2 | T5" (S = dice you start the round with, T = dice you have now), ★ score that counts up. Your chip has the highlight ring. The Goal row's chip is ★ + the points you'd score if you finished the Goal now. One line each: on a landscape phone rows are ~39 px apart. A chip fades while a die you're dragging is over it, so the die stays readable (B010).
+- **Status banner** (kit `TurnBanner`, `src/ui/StatusBanner.tsx`, pinned by `src/components/StatusPin.tsx`) at the bottom of the rolling area: Hold to Roll / Rolling… / Locked 3! / No matches / Drag dice to unlock / 2 unlocked / Waiting for others… / Round complete! +6 pts / Next round…. Pops in on every change.
+- **Timers** (kit `Bar` beside the banner): online 20 s roll AFK timer; 3 s unlock timer (accent colour) that restarts on every drag and ends the turn.
+- **HUD** (kit `Hud`, `src/ui/GameHud.tsx`): "Round 2" badge top-right, Settings gear bottom-right. Empty space lets every tap through to the table.
+- **Round N** (kit `HudText` with `pop`, beside the Goal chip): plain white text that does a quick grow-and-settle when a new round starts (Muzzy 2026-09-29 — replaced the old centre-screen "Round N" flash).
+- **Tips and messages** (kit toasts, over the rolling area so they never cover the Goal row): one-time tips (tap to close, 4 s, one at a time, off in Settings); online seat messages ("Sam is on autopilot", "Bot took over for Sam", "Sam is back", "Sam joined the game") and "Sam reconnected".
+- **Winners** (kit `Results`, `src/ui/WinnersScreen.tsx`): over a dimmed table — "You win!" / "Sam wins!" / "Tie!", rounds played, everyone best first in their colour (ties share a place), ★ on the winner(s), "You" badge, Play again + Menu. Same online and offline.
+- Pinned pieces scale with the table (same size ON the table on a phone and a desktop) — `src/components/Pinned.tsx`.
 
 #### Game Screen (Play Area) — top to bottom:
 
@@ -24,20 +36,18 @@
   - 2-way tie: circle split into 2 colors
   - N-way tie: N equal wedges
   - No one locked: gray/empty circle
-- Far left: star icon (Goal profile) with score display
+- Far left: the Goal chip — ★ + the points you'd score if you finished the Goal now
 
 **B. Player Rows (middle ~50% of screen)**
 - **Your row** is always the topmost player row (closest to Goal)
 - Other players' rows below yours
 - Each row:
-  - **Left side**: Player icon (color swatch)
-    - Center of icon: current **total score** (large, readable)
-    - Below icon: **X/Y/Z** in small text (pool / max / starting)
+  - **Left side**: the player's chip (kit PlayerChip): colour avatar + initials, S (starting dice) | T (total dice), ★ score
   - **Right side**: 8 dice slots in a horizontal row, aligned with the Goal dice above
     - Empty slots: subtle shadow/outline
     - Locked dice: 3D dice in player's color, face-up showing value
     - During unlock phase: draggable dice show a ring; none show at the 12-die cap
-    - When another player locks dice (online): dice lerp FROM their player icon INTO their row slots
+    - When another player locks dice: dice fly FROM beside their chip INTO their row slots
 
 **C. Dice Pool & Rolling Area (bottom ~35% of screen)**
 - Your unlocked dice sit here between rolls
@@ -46,15 +56,15 @@
 - After rolling, dice settle and animate:
   - Matching dice → lerp up to your row slots (auto-lock, staggered)
   - Non-matching dice → scale-down exit, then respawn at pool positions
-- **HUD overlay**: Status text (phase-dependent), countdown bars (20 s roll AFK, 3 s unlock inactivity) — no action buttons since v1.6
-- **Contextual tip banner**: Shows tutorial hints (e.g., "Hold the rolling area to gather your dice, then release to roll") — toggleable in settings
+- **Status banner** pinned at the bottom, timer bar beside it (see "In game" above) — no action buttons since v1.6
+- **Tips**: kit toasts at the top of the rolling area (e.g., "Hold the rolling area to gather your dice, then release to roll") — toggleable in settings
 
-#### Winners Screen
-- Final rankings sorted by score (descending)
-- Each player shown with color, name, final score
-- Winner(s) highlighted
-- **PLAY AGAIN** button (restarts with same settings)
-- **MENU** button (returns to main menu)
+#### Winners Screen (kit Results since v1.7)
+- "You win!" / "{name} wins!" / "Tie!" + rounds played
+- Final rankings sorted by score (descending), ties share a place; each player with colour avatar, name, points
+- ★ on the winner(s), "You" on you; rows arrive one after another
+- **Play again** (offline: same settings; online: back to the room)
+- **Menu** (returns to main menu)
 
 ### 6.3 Input
 

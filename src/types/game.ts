@@ -37,7 +37,7 @@ export interface AIUnlockAnimation {
   slotIndex: number;                   // which goal slot being unlocked
   value: number;                       // face value of the die
   fromPos: [number, number, number];   // absolute world position of the slot in AI's row
-  toPos: [number, number, number];     // AI profile group position
+  toPos: [number, number, number];     // beside the AI's row chip (where its dice fly back to)
   delay: number;                       // stagger timing
 }
 

@@ -3,7 +3,8 @@
 import { Credits, screens } from './kit'
 import credits from '../../content/credits.json'
 import { playUIClick } from '../utils/soundManager'
+import { text } from './words'
 
 export function CreditsScreen() {
-  return <Credits assets={credits} onBack={() => { playUIClick(); screens.pop() }} />
+  return <Credits assets={credits} words={text.credits} onBack={() => { playUIClick(); screens.pop() }} />
 }

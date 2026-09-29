@@ -1,16 +1,17 @@
-import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
+import { Color, Mesh, MeshStandardMaterial, type MeshBasicMaterial, type Object3D } from 'three';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, DIE_SIZE } from './RollingArea';
+import { RollingArea, DIE_SIZE, SPLIT_X } from './RollingArea';
 import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
 import { getRotationForFace } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
-import { PlayerProfileGroup } from './PlayerProfileGroup';
-import { GoalProfileGroup } from './GoalProfileGroup';
+import { RowChips } from './RowChips';
 import { GatherVisuals } from './GatherVisuals';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
@@ -20,7 +21,29 @@ import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
-import { roundScore } from '../utils/scoring';
+import table from '../../content/ui/table.json';
+import { tableColors, type TableColors } from '../store/tableColors';
+
+// The rolling-area felt is drawn by RollingArea.tsx straight from table.json. To recolour it live
+// (Dev Kit Color tool) we find its material once — the standard material still wearing table.json's
+// rolling colour — and tag it. TODO: once B009 is merged, RollingArea can read tableColors itself.
+function findRollingFelt(root: Object3D, skip: unknown): MeshStandardMaterial[] {
+  const fileColor = new Color(table.rolling).getHex();
+  const tagged: MeshStandardMaterial[] = [];
+  const untagged: MeshStandardMaterial[] = [];
+  root.traverse((obj) => {
+    const mat = obj instanceof Mesh ? obj.material : null;
+    if (!(mat instanceof MeshStandardMaterial) || mat === skip) return;
+    if (mat.userData.rollingFelt) tagged.push(mat);
+    else if (mat.color.getHex() === fileColor) untagged.push(mat);
+  });
+  const found = tagged.length ? tagged : untagged;
+  found.forEach((mat) => { mat.userData.rollingFelt = true; });
+  return found;
+}
+
+// Left edge of the rows' floor — past the left edge of the view (the view is about ±11 wide)
+const ROWS_FLOOR_LEFT_X = -12;
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -39,6 +62,20 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
   function Scene({ onRollStart, onResults }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
     const rollingAreaRef = useRef<RollingAreaHandle>(null);
+
+    // Table colours can change live (Dev Kit Color tool): repaint the materials, no re-render
+    const rowsFeltRef = useRef<MeshStandardMaterial>(null);
+    const dividerRef = useRef<MeshBasicMaterial>(null);
+    const threeScene = useThree((s) => s.scene);
+    useEffect(() => {
+      const paint = (c: TableColors) => {
+        rowsFeltRef.current?.color.set(c.rows);
+        dividerRef.current?.color.set(c.divider);
+        if (dividerRef.current) dividerRef.current.opacity = c.dividerOpacity;
+        findRollingFelt(threeScene, rowsFeltRef.current).forEach((mat) => mat.color.set(c.rolling));
+      };
+      return tableColors.subscribe(paint);
+    }, [threeScene]);
 
     // Read store values
     const phase = useGameStore((s) => s.phase);
@@ -291,14 +328,14 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           </AccumulativeShadows>
         )}
 
-        {/* Placement zone floor — covers left side (rows area) */}
+        {/* Placement zone floor — covers left side (rows area), from past the left edge of the view up to the divider */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[-5, 0.001, 0]}
+          position={[(ROWS_FLOOR_LEFT_X + SPLIT_X) / 2, 0.001, 0]}
           receiveShadow
         >
-          <planeGeometry args={[12, 14]} />
-          <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
+          <planeGeometry args={[SPLIT_X - ROWS_FLOOR_LEFT_X, 14]} />
+          <meshStandardMaterial ref={rowsFeltRef} color={tableColors.get().rows} roughness={0.8} metalness={0.0} />
         </mesh>
 
         {/* Goal row — dice at top of screen with transition animation (outside Physics) */}
@@ -339,51 +376,20 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           );
         })}
 
-        {/* Profile groups — avatar circle + star-score + stats, left of each row */}
-        <PlayerProfileGroup
-          name={player.name}
-          color={player.color}
-          score={player.score}
-          startingDice={player.startingDice}
-          totalDice={player.poolSize + player.lockedDice.length + committedUnlocks.length}
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75]}
-          isBot={player.seatState === 'bot'}
-        />
-
-        {/* AI player profile groups */}
-        {players.slice(1).map((aiPlayer, idx) => (
-          <PlayerProfileGroup
-            key={`profile-${aiPlayer.id}`}
-            name={aiPlayer.name}
-            color={aiPlayer.color}
-            score={aiPlayer.score}
-            startingDice={aiPlayer.startingDice}
-            totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
-            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75 + (idx + 1) * 1.25]}
-            isBot={aiPlayer.seatState === 'bot'}
-          />
-        ))}
-
-        {/* Goal profile group — star icon left of goal row, shows potential score */}
-        <GoalProfileGroup
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -5.0]}
-          potentialScore={(() => {
-            const totalDice = player.poolSize + player.lockedDice.length;
-            const projectedPool = Math.max(0, totalDice - 8);
-            return roundScore(projectedPool);
-          })()}
-        />
+        {/* Kit PlayerChips pinned left of each row: Goal (potential score), you, everyone else */}
+        <RowChips />
 
         {/* Subtle vertical divider between rows area and rolling area */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.01, 0]}
+          position={[SPLIT_X, 0.01, 0]}
         >
           <planeGeometry args={[0.02, 12]} />
           <meshBasicMaterial
-            color="#ffffff"
+            ref={dividerRef}
+            color={tableColors.get().divider}
             transparent
-            opacity={0.12}
+            opacity={tableColors.get().dividerOpacity}
             depthWrite={false}
           />
         </mesh>

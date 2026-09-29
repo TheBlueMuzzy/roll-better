@@ -19,7 +19,7 @@
 //
 // Run: node e2e/unlock-race-sweep.mjs [passes=2] [pages=3] [step=10]
 //   (starts its own Vite on :5199 and stops it afterwards)
-import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const PASSES = Number(process.argv[2] ?? 2);
 const PAGES = Number(process.argv[3] ?? 3);
@@ -141,7 +141,7 @@ const PROJECT = `
 
 async function newGame(page) {
   await page.goto(GAME_URL);
-  await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+  await playLocal(page);
   await page.waitForTimeout(2000);
   await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false }, sessionTargetScore: 99999 });`);
   await store(page, INSTALL);
@@ -160,7 +160,7 @@ async function worker(id, browser, jobs, results) {
       cap: g.players[0].poolSize + g.players[0].lockedDice.length,
       anim: g.roundState.unlockAnimations.length + g.roundState.aiUnlockAnimations.length,
       lockAnim: g.roundState.lockAnimations.length + g.roundState.aiLockAnimations.length,
-      bar: !!document.querySelector('.rolling-countdown'), intervals: window.__rb.intervals.length };`);
+      bar: !!document.querySelector('.pinned [role="progressbar"]'), intervals: window.__rb.intervals.length };`);
     if (st.phase === 'sessionEnd' || st.screen === 'winners') { await newGame(page); continue; }
     if (st.phase === 'idle') { await holdToRoll(page); lastProgress = Date.now(); continue; }
     const ready = st.phase === 'unlocking' && st.key === 0 && st.anim === 0 && st.lockAnim === 0 && st.locked.length > 0 && st.bar;
@@ -173,7 +173,12 @@ async function worker(id, browser, jobs, results) {
 
     const job = jobs.shift();
     const slot = st.locked[0];
-    const [dieXY, rollXY] = await store(page, PROJECT, [[-4 + (slot - 3.5) * 0.96, 0.4, -3.75], [5, 0.4, 1.5]]);
+    // The die's slot and a spot in the rolling area, from the game's own layout numbers
+    const [slotX, rollX] = await page.evaluate(async (i) => [
+      (await import('/src/components/GoalRow.tsx')).getSlotX(i),
+      (await import('/src/components/RollingArea.tsx')).ROLLING_X_OFFSET,
+    ], slot);
+    const [dieXY, rollXY] = await store(page, PROJECT, [[slotX, 0.4, -3.75], [rollX, 0.4, 1.5]]);
     const r = await store(page, TRIAL, { ...job, slot, die: dieXY, roll: rollXY });
     lastProgress = Date.now();
     const t = r.turn;

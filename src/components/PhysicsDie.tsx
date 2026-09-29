@@ -6,12 +6,28 @@ import { Die3D } from './Die3D';
 import { getFaceUpConfidence, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
 import { playDiceImpact, playDiceSettle } from '../utils/soundManager';
-import { isOutOfRollBounds, putBackInRollBounds } from '../utils/rollBounds';
+import { isOutOfRollBounds, putBackInRollBounds, ROLL_BOUNDS } from '../utils/rollBounds';
 import physics from '../../content/tuning/physics.json';
+import { GHOST_GROUPS, RELEASE_GROUPS, SOLID_GROUPS } from '../utils/dieCollisionGroups';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
+}
+
+// DIAG B009 (dev only)
+function diagWhichWall(p: [number, number, number]): string {
+  const w: string[] = [];
+  if (p[0] < ROLL_BOUNDS.minX) w.push('left');
+  if (p[0] > ROLL_BOUNDS.maxX) w.push('right');
+  if (p[2] < ROLL_BOUNDS.minZ) w.push('back');
+  if (p[2] > ROLL_BOUNDS.maxZ) w.push('front');
+  if (p[1] < ROLL_BOUNDS.floorY) w.push('floor');
+  return w.join('+') || 'none';
+}
+function diagWallGap(p: [number, number, number], half: number): string {
+  const gaps = [p[0] - ROLL_BOUNDS.minX, ROLL_BOUNDS.maxX - p[0], p[2] - ROLL_BOUNDS.minZ, ROLL_BOUNDS.maxZ - p[2]];
+  return (Math.min(...gaps) - half).toFixed(2);
 }
 
 // --- Public API exposed via ref ---
@@ -77,6 +93,9 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
     const releaseElapsedRef = useRef(-1);     // -1 = not releasing, >=0 = scaling back up
     const releaseStartScale = useRef(0.25);  // scale at moment of release
     const visualGroupRef = useRef<import('three').Group>(null);
+    // DIAG B009 (dev only): physics steps since release + where/how it was released
+    const diagStepsSinceRelease = useRef(-1);
+    const diagRelease = useRef('');
 
 
     // Compute initial rotation ONCE on mount (stored in ref so re-renders don't change it)
@@ -187,9 +206,9 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
               { x: randRange(-1.5, 1.5), y: randRange(-1.5, 1.5), z: randRange(-1.5, 1.5) },
               true
             );
-            // Sensor mode: pass through walls and other dice during attraction
+            // Ghost mode: pass through walls and other dice during attraction (B009: groups, not sensor)
             for (let c = 0; c < bodyRef.current.numColliders(); c++) {
-              bodyRef.current.collider(c).setSensor(true);
+              bodyRef.current.collider(c).setCollisionGroups(GHOST_GROUPS);
             }
           }
         }
@@ -205,9 +224,8 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           // Group 1 membership + filter for group 0 only = collide with floor/walls,
           // not other dice (also in group 1). Restored to default on scale-up complete.
           for (let c = 0; c < body.numColliders(); c++) {
-            body.collider(c).setSensor(false);
             // membership=0x0002 (group 1), filter=0xFFFD (all except group 1)
-            body.collider(c).setCollisionGroups((0x0002 << 16) | 0xFFFD);
+            body.collider(c).setCollisionGroups(RELEASE_GROUPS);
           }
           // Apply tangential velocity from orbit (computed by DicePool)
           if (releaseVelocity) {
@@ -239,6 +257,11 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           if (sideways > physics.maxReleaseSpeed) {
             const k = physics.maxReleaseSpeed / sideways;
             body.setLinvel({ x: out.x * k, y: out.y, z: out.z * k }, true);
+          }
+          if (import.meta.env.DEV) {
+            const p = body.translation(); const v = body.linvel();
+            diagStepsSinceRelease.current = 0;
+            diagRelease.current = `rel pos=[${p.x.toFixed(2)},${p.y.toFixed(2)},${p.z.toFixed(2)}] vel=[${v.x.toFixed(1)},${v.y.toFixed(1)},${v.z.toFixed(1)}] scale=${attractScaleRef.current.toFixed(2)} gap=${diagWallGap([p.x, p.y, p.z], (DIE_SIZE / 2) * attractScaleRef.current)}`;
           }
           // Start scale-up (collider + visual ramp together from current size)
           releaseStartScale.current = attractScaleRef.current;
@@ -316,7 +339,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         body.setGravityScale(0, true);
         for (let c = 0; c < body.numColliders(); c++) {
-          body.collider(c).setSensor(true);
+          body.collider(c).setCollisionGroups(GHOST_GROUPS);
           body.collider(c).setHalfExtents({ x: DIE_SIZE / 2, y: DIE_SIZE / 2, z: DIE_SIZE / 2 });
         }
         // Reset any in-flight gather/snap state
@@ -358,7 +381,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           if (body) {
             for (let c = 0; c < body.numColliders(); c++) {
               // Default: all groups membership, all groups filter
-              body.collider(c).setCollisionGroups((0xFFFF << 16) | 0xFFFF);
+              body.collider(c).setCollisionGroups(SOLID_GROUPS);
             }
           }
         }
@@ -369,7 +392,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
     // Attractor + out-of-bounds safety net. Runs before EVERY physics step (fixed 1/60 s),
     // not once per drawn frame: after a slow frame (shader compile, phone hiccup) Rapier
     // catches up with several steps in a row, and a pull velocity sized for one short frame
-    // then overshot the orbit — the dice are sensors while gathering, so they flew straight
+    // then overshot the orbit — the dice pass through everything while gathering, so they flew straight
     // through the walls (B007).
     useBeforePhysicsStep((world) => {
       const body = bodyRef.current;
@@ -381,10 +404,14 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       // (while gathering: onto its orbit spot; otherwise just inside the walls, where it
       // drops and settles) — so a roll never waits on a lost die.
       const now = body.translation();
+      if (import.meta.env.DEV && diagStepsSinceRelease.current >= 0) diagStepsSinceRelease.current++;
       if (isOutOfRollBounds([now.x, now.y, now.z])) {
         const back = target ?? putBackInRollBounds([now.x, now.y, now.z]);
         if (import.meta.env.DEV) {
-          console.warn(`[PhysicsDie] out of bounds at [${now.x.toFixed(2)}, ${now.y.toFixed(2)}, ${now.z.toFixed(2)}] → put back at [${back.map((v) => v.toFixed(2)).join(', ')}]${target ? ' (gathering)' : ''}`);
+          const v = body.linvel();
+          const state = target ? 'gathering' : releaseElapsedRef.current >= 0 ? 'releasing(scale-up)' : unstickPhaseRef.current !== 'done' ? 'unstick' : snapPhaseRef.current !== 'done' ? 'snap' : 'rolling';
+          const half = body.numColliders() ? body.collider(0).halfExtents().x : -1;
+          console.warn(`[PhysicsDie] out of bounds at [${now.x.toFixed(2)}, ${now.y.toFixed(2)}, ${now.z.toFixed(2)}] → put back at [${back.map((v) => v.toFixed(2)).join(', ')}]${target ? ' (gathering)' : ''} DIAG wall=${diagWhichWall([now.x, now.y, now.z])} state=${state} speed=${Math.hypot(v.x, v.y, v.z).toFixed(1)} vel=[${v.x.toFixed(1)},${v.y.toFixed(1)},${v.z.toFixed(1)}] half=${half.toFixed(3)} steps=${diagStepsSinceRelease.current} groups=${body.numColliders() ? (body.collider(0).collisionGroups() >>> 0).toString(16) : '?'} | ${diagRelease.current}`);
         }
         body.setTranslation({ x: back[0], y: back[1], z: back[2] }, true);
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -495,8 +522,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         // Restore normal physics state
         body.setGravityScale(1, true);
         for (let c = 0; c < body.numColliders(); c++) {
-          body.collider(c).setSensor(false);
-          body.collider(c).setCollisionGroups((0xFFFF << 16) | 0xFFFF);
+          body.collider(c).setCollisionGroups(SOLID_GROUPS);
         }
       }
     });

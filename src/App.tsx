@@ -1,15 +1,19 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
+import { StatusPin } from './components/StatusPin';
 import type { SceneHandle } from './components/Scene';
-import { MainMenu } from './components/MainMenu';
-import { WinnersScreen } from './components/WinnersScreen';
-import { HUD } from './components/HUD';
-import { ScreenStack, kitScreens, screens, useScreens } from './ui/kit';
+import { ScreenStack, ToastStack, kitScreens, screens, toast, toasts, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { CreditsScreen } from './ui/CreditsScreen';
-import { HowToPlay } from './components/HowToPlay';
-import { TipBanner } from './components/TipBanner';
+import { MainMenuScreen } from './ui/MainMenuScreen';
+import { LobbyScreen } from './ui/LobbyScreen';
+import { OnlineRoomProvider } from './ui/OnlineRoom';
+import { ReconnectingScreen } from './ui/ReconnectingScreen';
+import { HowToPlayScreen } from './ui/HowToPlayScreen';
+import { WinnersScreen } from './ui/WinnersScreen';
+import { GameHud } from './ui/GameHud';
+import { text, fill } from './ui/words';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getGameSocket, setGameSocket, sendMessage } from './utils/partyClient';
@@ -31,29 +35,35 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  // Kit screens (Settings, its Confirm, Credits) — open with screens.push('settings')
+  // Kit screens (Settings, its Confirm, Credits, Play online, How to play, Reconnecting) — open with screens.push('settings')
   const kitScreenList = useMemo(() => ({
     ...kitScreens,
     settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
     credits: CreditsScreen,
+    online: LobbyScreen,
+    reconnecting: ReconnectingScreen,
+    howToPlay: HowToPlayScreen,
   }), []);
-  const settingsOpen = useScreens().includes('settings');
+  const openScreens = useScreens();
+  const settingsOpen = openScreens.includes('settings');
   const openSettings = useCallback(() => screens.push('settings'), []);
-  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
-  const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
   const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
-  const [reconnectToast, setReconnectToast] = useState<string | null>(null);
 
   const audioInited = useRef(false);
   const showTip = useGameStore((s) => s.showTip);
 
-  /** Try to show a tip — only if tips enabled, not already shown, and no tip currently active */
-  const tryShowTip = useCallback((id: string, text: string) => {
-    if (activeTip) return; // one tip at a time
+  // Tips are kit toasts you can tap away (words in content/text/en.json "tips").
+  // One at a time: a new tip waits until the last one is gone (timed out or tapped).
+  const tipToastId = useRef<number | null>(null);
+  const tipShowing = useSyncExternalStore(toasts.subscribe, () => toasts.current.some((t) => t.id === tipToastId.current));
+
+  /** Try to show a tip — only if tips enabled, not already shown, no tip showing and Settings closed */
+  const tryShowTip = useCallback((id: string, tipText: string) => {
+    if (tipShowing || settingsOpen) return;
     if (!shouldShowTip(id)) return;
     showTip(id);
-    setActiveTip({ id, text });
-  }, [activeTip, showTip]);
+    tipToastId.current = toast(tipText, { dismissible: true, seconds: 4 });
+  }, [tipShowing, settingsOpen, showTip]);
 
   const screen = useGameStore((s) => s.screen);
   const setScreen = useGameStore((s) => s.setScreen);
@@ -98,12 +108,20 @@ function App() {
     }
   }, [localSeatState, isOnlineGame, setPhase, setScreen]);
 
-  // Reconnect toast listener
+  // Lost connection during an online game → the kit Reconnecting dialog, until we're back.
+  // Esc / Back can't close it early: it just opens again while still disconnected.
+  const showReconnecting = isOnlineDisconnected && (screen === 'game' || screen === 'winners');
+  useEffect(() => {
+    const top = openScreens[openScreens.length - 1];
+    if (showReconnecting && !openScreens.includes('reconnecting')) screens.push('reconnecting');
+    if (!showReconnecting && top === 'reconnecting') screens.pop();
+  }, [showReconnecting, openScreens]);
+
+  // Reconnect toast listener ("Sam reconnected" — kit toast, words in content/text/en.json)
   useEffect(() => {
     const handler = (e: Event) => {
       const name = (e as CustomEvent).detail.name;
-      setReconnectToast(`${name} reconnected`);
-      setTimeout(() => setReconnectToast(null), 3000);
+      toast(fill(text.toasts.reconnected, { name }));
     };
     window.addEventListener('player-reconnected', handler);
     return () => window.removeEventListener('player-reconnected', handler);
@@ -170,8 +188,10 @@ function App() {
   // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
     // Send intentional "leave" so server can distinguish from network drop
+    // (Online: WinnersScreen already left the room via useRoom.leave — an intentional close.
+    // This is the fallback if a socket is somehow still open.)
     const socket = getGameSocket();
-    if (socket) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
       sendMessage(socket, { type: "leave" });
       socket.close();
     }
@@ -220,17 +240,17 @@ function App() {
   // --- Contextual tips ---
   useEffect(() => {
     if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
-      tryShowTip('first-roll', 'Hold the rolling area to gather your dice, then release to roll');
+      tryShowTip('first-roll', text.tips.firstRoll);
     }
     if (phase === 'locking' && lastLockCount > 0) {
-      tryShowTip('first-lock', 'Matched! Dice lock to the Goal row automatically');
+      tryShowTip('first-lock', text.tips.firstLock);
     }
     if (phase === 'unlocking') {
       const mustUnlockNow = playerPoolSize === 0 && playerLockedCount < 8;
       if (mustUnlockNow && shownTips.includes('first-unlock')) {
-        tryShowTip('must-unlock', 'No dice to roll \u2014 you must unlock at least one');
+        tryShowTip('must-unlock', text.tips.mustUnlock);
       } else {
-        tryShowTip('first-unlock', 'Drag locked dice into the rolling area to unlock them — each splits in two');
+        tryShowTip('first-unlock', text.tips.firstUnlock);
       }
     }
   }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);
@@ -656,7 +676,7 @@ function App() {
   }, [pendingAfkUnlock, ownMitosisPlaying, buildAndRunMitosis]);
 
   // AFK auto-roll: programmatic roll with rollAll (lift + impulse + torque).
-  // Used by HUD idle timeout when player hasn't started gathering.
+  // Used by StatusPin's idle timeout when player hasn't started gathering.
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
 
@@ -704,8 +724,8 @@ function App() {
   const fov = 55;
 
   return (
-    <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={openSettings} />
+    <OnlineRoomProvider onGameStart={handleOnlineGameStart}>
+      {screen === 'menu' && <MainMenuScreen version={version} onPlay={handlePlay} />}
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
@@ -719,37 +739,27 @@ function App() {
               onRollStart={handleRollStart}
               onResults={handleResults}
             />
+            <StatusPin
+              onRoll={handleRoll}
+              onForceRelease={handleForceRelease}
+              onUnlockTimerExpire={handleUnlockTimerExpire}
+            />
           </Canvas>
-          <HUD
-            onRoll={handleRoll}
-            onForceRelease={handleForceRelease}
-            onUnlockTimerExpire={handleUnlockTimerExpire}
-            onOpenSettings={openSettings}
-          />
-          {activeTip && !settingsOpen && (
-            <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
-          )}
-          {isOnlineDisconnected && (
-            <div className="connection-overlay">
-              <div className="connection-overlay-content">
-                <div className="connection-spinner" />
-                <span>Reconnecting...</span>
-              </div>
-            </div>
-          )}
-          {reconnectToast && (
-            <div className="reconnect-toast">{reconnectToast}</div>
-          )}
+          <div className="game-hud">
+            <GameHud onOpenSettings={openSettings} />
+          </div>
         </div>
       )}
       {screen === 'winners' && (
-        <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+        <div className="winners-layer">
+          <WinnersScreen onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+        </div>
       )}
       <ScreenStack overlay screens={kitScreenList} />
-      {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
+      <ToastStack />
       <TouchIndicator />
-      <div className="build-version">{version}</div>
-    </>
+      {screen !== 'menu' && <div className="build-version">{version}</div>}
+    </OnlineRoomProvider>
   );
 }
 

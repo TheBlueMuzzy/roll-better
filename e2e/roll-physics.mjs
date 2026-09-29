@@ -4,10 +4,11 @@
 // different gestures (quick tap, normal hold, full charge, swirling, dragging off the rolling
 // area, holding against a wall). Every frame it checks every die against the rolling area
 // (src/utils/rollBounds.ts — the same walls the game builds).
-//   PASS = no die ever out of bounds, the 10 s settle timeout never fires, and every gather
-//          log line says all dice were pulled into the spin.
+//   PASS = no die ever out of bounds, the safety net never had to put a die back (B009), the
+//          10 s settle timeout never fires, and every gather log line says all dice were pulled
+//          into the spin.
 // Run: npm run e2e:physics [rolls]   (default 50; starts its own Vite on :5199, stops it after)
-import { startServer, launchBrowser, store, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const ROLLS = Number(process.argv[2] || 50);
 const ONLY = process.argv[3]; // optional: only this gesture (debugging)
@@ -50,7 +51,7 @@ run(async () => {
 
   async function startGame() {
     await page.goto(GAME_URL);
-    await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+    await playLocal(page);
     await page.waitForTimeout(2000);
     await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false } });`);
     // Every frame: is any die out of bounds? (uses the game's own helper)
@@ -156,6 +157,9 @@ run(async () => {
   if (partial.length) partial.slice(0, 5).forEach((l) => log('   ', l));
   check(`did ${ROLLS} rolls`, rolls >= ROLLS);
   check('no die out of bounds (after put-back safety net)', escapedRolls.length === 0);
+  // B009: the safety net is the last resort — it should never have to fire. (Dev build only:
+  // the put-back line is logged in dev, which is what this script runs.)
+  check('the out-of-bounds safety net never had to put a die back (B009)', rescues.length === 0);
   check('the 10 s settle timeout never fired', timeouts.length === 0);
   check('every gather held for 0.6 s+ of physics pull swept every die into the spin', judged.length > 0 && partial.length === 0);
   check('no page errors', errors.length === 0);

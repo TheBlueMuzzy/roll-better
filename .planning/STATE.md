@@ -1,15 +1,14 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-v0.2.2 is live. Defined v1.7 — Cartoon UI everywhere (ROADMAP, TDD D19): F50–F58; ready now: F50 (16:9 box) and F57 (pinned-to-3D labels). Build order: F50 → F51 + F53 → F54 → F55 → F56 → F57 → F58 → F52.
-Next: `/sprint` to line up the first sprint.
-Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
+v1.7 approved (not live). Now in parallel: B009 physics helper (research → fix dice escapes) + Sprint 04 (F60 Dev Kit console → F59 Color tool). Then `/deliver`, then F48 with Muzzy, then Obsidian setup (vault = Documents/dev — Muzzy wants a walkthrough).
+Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: define → develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: none (01 done)
-Doing: — (v1.7 defined; next /sprint)
-Branch: master   Version: 0.2.2.0
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
+Stage: develop   Milestone: v1.8 — Dev Kit: colours first   Sprint: 04 — Tune the colours yourself
+Doing: F60 Dev Kit console + B009 (helper)
+Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, beta
 
 ## Key facts
 **Run/deploy**
@@ -32,8 +31,10 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not 
 **Don't re-break**
 - B003: HUD must run the unlock inactivity timer online too, and timer-end must send the drags to the server (`unlockTurn.ts` + test). No separate 20 s online unlock countdown.
 - B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`. Leaving the unlock phase: a still-parked die goes BACK to its slot (`returnParkedDice`), never dropped or carried over. Race check: `node e2e/unlock-race-sweep.mjs [passes] [pages] [step]`.
-- B007/B008 physics: dice have ONE cube collider (`colliders={false}` on the RigidBody, density 2) — never let Rapier auto-build colliders from the pip meshes. Gather pull runs in `useBeforePhysicsStep` (not useFrame); nothing may settle while gathering; release goes through `releaseGather`. Out-of-bounds safety net in PhysicsDie (`rollBounds.ts`). Check: `npm run e2e:physics` (headless runs ~3–6 fps — short taps aren't judged).
+- B007/B008 physics: dice have ONE cube collider (`colliders={false}` on the RigidBody, density 2) — never let Rapier auto-build colliders from the pip meshes. Gather pull runs in `useBeforePhysicsStep` (not useFrame); nothing may settle while gathering; release goes through `releaseGather`. B009: dice pass through things by switching collision groups (`dieCollisionGroups.ts`), NEVER `setSensor` — a sensor flipped back to solid while touching a wall doesn't collide with it. Out-of-bounds safety net in PhysicsDie (`rollBounds.ts`) is the last resort and should never fire. Check: `npm run e2e:physics` (fails on any put-back; headless runs ~3–6 fps — short taps aren't judged).
 - Server input: `unlock_request` rejects non-arrays and de-duplicates slots; the unlock phase has a 45 s hard limit (`UNLOCK_MAX_PHASE_MS`) no matter how many `unlock_activity` pings. DicePool releases a gather ended by anything other than the player (fallback in useFrame) — don't remove it, or an online phase change mid-gather hangs the next roll.
+- e2e scripts share ports (Vite 5199, PartyKit 2999): run them ONE AT A TIME — two at once crash each other (a crashed run is not a game bug).
+- Online → Menu must leave through `useRoom.leave()` (intentional close) — a bare socket.close() looks like a dropped connection and a "Reconnecting" dialog sticks over the next solo game. Guarded by `npm run e2e:menu`.
 - 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).
 - BUG-002: `setRollResults` must NOT clear `pendingLockReveals`/`pendingUnlockReveals` (only `initRound` + flush do); unlock value fallback is `goalValues[slot]`, never `1`; deferred phase polling keeps its 5 s timeout.
@@ -45,6 +46,8 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not 
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Sprint 03 built (autonomous): framework kit 0.1.7 + 0.1.8, F57 pinning, F54 winners, F55 toasts + Round banner, F56 HUD, F58 PlayerChips; old HUD/TipBanner/Winners/3D badges deleted. All checks PASS.
+- 2026-09-29 — Sprint 02 built (autonomous): kit 0.1.5→0.1.6, F50 game box + en.json, F51 menu, F52 lobby + SeatPicker + reconnecting, F53 How to Play, old menu deleted (−963 lines), e2e:midgame added. Sprint 03 planned.
 - 2026-09-29 — Released v0.2.2: sprint 01 (F47, B006, B007/B008 physics, F49) + scoring 8/6/4/2/1 + bug sweep (B005, B010) + Credits screen + review fixes (45 s unlock limit, server-ended gather release, unlock_request validation).
 - 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
 - 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).

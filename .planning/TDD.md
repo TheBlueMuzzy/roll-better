@@ -2,14 +2,14 @@
 
 > How the game is built. Plain English first; code names in `backticks` only where they help.
 > Living document — /define writes it, /develop keeps it true, /tdd shows it.
-> Last updated: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
+> Last updated: 2026-09-29 (Dev Kit console + Color tool, D20). Before: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
 
 ## 1. At a glance
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
 - **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
-- **Dev Kit tools used:** none yet. `content/tuning/scoring.json` is the first tweakable moved out of code; `content/text` and `content/data` are empty (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
+- **Dev Kit tools used (v1.8):** **Console** (` key / triple-tap top-right; `src/devkit/`, always in dev + in release builds while `content/devkit.json` `inReleaseBuilds` is true (through beta; off at 1.0 — D20 addendum); Save goes through the dev-server plugin `vite-plugins/devkitSave.ts`, release builds get Copy for Claude instead; `npm run check:devkit` proves both settings) and **Color** (the 15 UI kit colours + the table colours, live, colour-blind preview; writes `content/ui/style.json` tweaks + `content/ui/table.json`). `content/tuning/scoring.json`, `content/text/en.json` are the other data files (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
 ```mermaid
@@ -24,7 +24,7 @@ flowchart LR
 - **Physics dice** — `PhysicsDie.tsx` (one die: rigid body, settle, snap flat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces), `RollingArea.tsx` (floor + walls).
 - **Turn flow / glue** — `src/App.tsx` (~860 lines): phase effects, roll, unlock timer expiry, batch mitosis, online unlock submit. Most "what happens next" logic lives here, not in the store.
 - **3D view** — `Scene.tsx` runs the goal row, player rows, pool and the animation dice (lock, mitosis, spawn, committed); the draggable locked die is `UnlockableDie` in `PlayerRow.tsx`; gather effects in `GatherVisuals.tsx`.
-- **HUD** — `HUD.tsx`: status text + countdown bars (roll AFK, unlock inactivity).
+- **In-game UI (v1.7)** — kit pieces: `src/ui/GameHud.tsx` (round badge + gear), `src/ui/RoundBanner.tsx`, `src/ui/WinnersScreen.tsx`, tips/messages as kit toasts. Pinned to the table with `src/components/Pinned.tsx` (drei Html, scaled to a world-size box): `RowChips.tsx` (a PlayerChip per row; fades under a dragged die) and `StatusPin.tsx` (status banner + the two AFK timers, via `src/hooks/useCountdown.ts`).
 - **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
 - **Online** — phone side: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines); message types in `src/types/protocol.ts`.
 - **Pure logic (tested)** — `src/utils/`: `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap` (+ `.test.ts`); also `dropZone`, `diceUtils`.
@@ -53,10 +53,10 @@ flowchart LR
 **Timers** — every timer in one table, so two timers never fight:
 | Timer | Length | Owned by | Starts when | On expiry |
 |---|---|---|---|---|
-| Roll AFK countdown | 20 s | client (`RollingCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
+| Roll AFK countdown | 20 s | client (`StatusPin` → `useCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
 | Roll backstop | 25 s (client's 20 s + 5 s margin) | server | first `roll_result` arrives (idle → rolling) | server auto-rolls non-responders |
 | Gather auto-release | 2.5 s | client (`DicePool`) | holding to gather | dice released (roll) |
-| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (`StatusPin` → `useCountdown`, offline + online; was HUD until v1.7) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
 | Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
 | Scoring pause | 2 s | server | round won (scoring) | handicap applied, next round |
 | Round-end pause | 0.5 s | server | `roundEnd` | next round starts |
@@ -70,10 +70,12 @@ flowchart LR
 |---|---|---|
 | `content/tuning/*.json` | `scoring.json` (points per leftover die); physics + timer numbers (§2b) are next candidates | Dev Kit → Tuning |
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
-| `content/text/en.json` | (empty — player text lives in the components) | Obsidian / Dev Kit → Text |
+| `content/text/en.json` | every player-facing word, one section per screen (menu, lobby, How to Play, credits so far — the rest move in as screens go onto the kit); loaded by `src/ui/words.ts` | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
-| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
+| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` — tweaks override the preset (Color tool saves only colours that differ from it) | Dev Kit → Color / Obsidian |
 | `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
+| `content/ui/table.json` | Table colours: rows felt, rolling-area felt, divider line + opacity (B012); read through `src/store/tableColors.ts` so the Dev Kit can repaint the 3D table live | Dev Kit → Color / Obsidian |
+| `content/devkit.json` | `inReleaseBuilds`: is the Dev Kit in the live build? `true` through beta (friends can open it), `false` at 1.0 (/deliver sets it) — read at build time by `vite.config.ts` (D20 addendum) | Obsidian / /deliver |
 
 ## 4. Standards (so any engineer could pick this up)
 - **Folders:** `src/components` (React + 3D views), `src/store` (state), `src/hooks` (online + input), `src/utils` (pure logic + tests), `src/types` (game + message types), `src/ui` (game-ui kit), `party/` (server), `e2e/` (browser check scripts), `public/` (privacy page, icons), `proto/` (Python balance sims), `content/` (data, empty so far). Old file-by-file map + state shape: [design/tech-internals.md](design/tech-internals.md).
@@ -112,11 +114,27 @@ flowchart LR
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D20 · 2026-09-29 · Dev Kit (F60/F59): its own React root outside #root, loaded only in dev; saves through a dev-server-only Vite plugin
+  Options: Leva/tweakpane panel / our own panel / edit JSON by hand   Chose: our own small panel (`src/devkit/`) — plain styling, not the game's
+  kit, so restyling the game never restyles the tool. Dynamic import behind import.meta.env.DEV → zero bytes in the live build (checked by
+  npm run check:devkit). Save = POST /__devkit/save (apply: 'serve'; only content/**.json; keeps _help; skips the hot-reload for files it just
+  wrote so the game isn't reset). 3D table colours go through a tiny subscribe store (`tableColors`) that repaints materials — no React re-render.
+  Stop-gap: RollingArea.tsx (physics helper's file during B009) still reads table.json itself, so Scene finds that felt material by colour;
+  once B009 lands, RollingArea should read `tableColors` and `findRollingFelt` in Scene.tsx can go.
+  Addendum 2026-09-29 · Proposed by: Muzzy — the Dev Kit ships in release builds before 1.0, so friends testing the live link can use it.
+  content/devkit.json "inReleaseBuilds" (true through beta; /deliver sets false at 1.0) → vite.config.ts `define` bakes it into
+  __DEVKIT_IN_RELEASE__ (env DEVKIT_IN_RELEASE=true|false overrides for one build); main.tsx loads the Dev Kit when DEV || that flag, so
+  false = dead code = zero Dev Kit bytes. Release builds have no dev server, so no Save: CAN_SAVE (saveContent.ts) = DEV; the Color tool
+  shows Copy for Claude as the main button + a "changes last until you refresh" note; nothing persists (no localStorage). The save
+  plugin stays apply: 'serve'. npm run check:devkit builds both ways and checks each in a browser (off: nothing in dist, ` inert;
+  on: ` opens, no Save, save endpoint 404). Rule for future tools: anything that can affect play (force dice, level loader, cheats)
+  must be offline-only and disabled in online games.
+
 D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
   Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
   Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
   so a badge fades while a dragged die passes over it. New kit pieces (pinned label, seat-claim list) are built in this game
-  first, then copied back to dev/framework/ui-kit as Built. Every player-facing word goes to content/text/en.json as screens move.
+  in dev/framework/ui-kit first (the game-ui rule: never edit the game's kit copy), then installed with install-kit. Every player-facing word goes to content/text/en.json as screens move.
 
 D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
   Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content
