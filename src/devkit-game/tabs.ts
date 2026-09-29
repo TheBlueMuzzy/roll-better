@@ -5,5 +5,8 @@
 //      with Save (saveContentFile) and Copy for Claude (copyText) from '../devkit/saveContent'
 //   2. list it below:  { id: 'table', label: 'Table', Panel: TableTab }
 import type { ComponentType } from 'react'
+import { TableTab } from './TableTab'
 
-export const gameTabs: { id: string; label: string; Panel: ComponentType }[] = []
+export const gameTabs: { id: string; label: string; Panel: ComponentType }[] = [
+  { id: 'table', label: 'Table', Panel: TableTab },
+]

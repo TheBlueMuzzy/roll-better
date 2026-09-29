@@ -1,5 +1,5 @@
 // The 3D table's colours while the game runs. Starts from content/ui/table.json.
-// The Dev Kit Color tool (dev builds only) changes them live with tableColors.set(); the Scene
+// The Dev Kit's Table tab (src/devkit-game/TableTab.tsx) changes them live with tableColors.set(); the Scene
 // listens with tableColors.subscribe() and repaints the materials directly — no React re-render.
 import table from '../../content/ui/table.json';
 
