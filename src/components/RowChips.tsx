@@ -8,15 +8,15 @@ import { Pinned } from './Pinned';
 import { GoalRowChip, PlayerRowChip } from '../ui/RowChip';
 
 // Where the rows are (same numbers as Scene.tsx's rows): Goal row, then player rows 1.25 apart
-export const GOAL_ROW_Z = -5.0;
-export const FIRST_PLAYER_ROW_Z = -3.75;
-export const ROW_SPACING = 1.25;
+const GOAL_ROW_Z = -5.0;
+const FIRST_PLAYER_ROW_Z = -3.75;
+const ROW_SPACING = 1.25;
 
 // Each chip's right edge sits just left of the row's first slot; it fits in the space between
 // there and the left edge of the view (fit, in world units). CHIP_REM keeps every chip the same size.
 // The Goal row's dice are bigger and stand taller, so its chip sits a little further up and left.
-export const CHIP_RIGHT_X = getSlotX(0) - PROFILE_X_OFFSET;
-export const CHIP_FIT: [number, number] = [2.95, 1.15];
+const CHIP_RIGHT_X = getSlotX(0) - PROFILE_X_OFFSET;
+const CHIP_FIT: [number, number] = [2.95, 1.15];
 const CHIP_REM = 0.34;
 const GOAL_CHIP_POSITION: [number, number, number] = [CHIP_RIGHT_X - 0.3, 0, GOAL_ROW_Z - 0.15];
 
