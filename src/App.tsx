@@ -12,7 +12,6 @@ import { OnlineRoomProvider } from './ui/OnlineRoom';
 import { ReconnectingScreen } from './ui/ReconnectingScreen';
 import { HowToPlayScreen } from './ui/HowToPlayScreen';
 import { WinnersScreen } from './ui/WinnersScreen';
-import { RoundBanner } from './ui/RoundBanner';
 import { GameHud } from './ui/GameHud';
 import { text, fill } from './ui/words';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -749,10 +748,6 @@ function App() {
           </div>
         </div>
       )}
-      {/* Always mounted, so it sees the game start (shows only while playing) */}
-      <div className="round-banner-layer">
-        <RoundBanner />
-      </div>
       {screen === 'winners' && (
         <div className="winners-layer">
           <WinnersScreen onPlayAgain={handlePlayAgain} onMenu={handleMenu} />

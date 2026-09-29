@@ -82,9 +82,6 @@
     "goal": "Goal",
     "goalScore": "{n} points if you finish the Goal now"
   },
-  "roundIntro": {
-    "round": "Round {n}"
-  },
   "tips": {
     "firstRoll": "Hold the rolling area to gather your dice, then release to roll",
     "firstLock": "Matched! Dice lock to the Goal row automatically",

@@ -4,7 +4,8 @@
 //   All on ONE line: on a landscape phone the rows are only ~39 px apart, and a second line (name or
 //   a Bot badge) would make every chip a third smaller. Bots read as "B2" in their avatar.
 //   Goal row:   just ★ and the points you'd score if you finished the Goal with the dice you have now,
-//               with "Round N" as plain text to its left (B019: information, not a badge).
+//               with "Round N" as plain text to its left (B019: information, not a badge). It pops
+//               (grow-and-settle) when a new round starts — that replaced the old "Round N" flash.
 // dim: faded while a dragged die passes over the chip, so the die stays readable (B010).
 // Words in content/text/en.json (chips).
 import { HudText, PlayerChip, Row } from './kit'
@@ -58,7 +59,7 @@ export function GoalCorner({ potentialScore, dim }: { potentialScore: number; di
   const round = useGameStore((s) => s.currentRound)
   return (
     <Row gap="s" className="kit-nowrap">
-      <HudText size="s">{fill(text.hud.round, { n: round })}</HudText>
+      <HudText size="s" pop>{fill(text.hud.round, { n: round })}</HudText>
       <GoalRowChip potentialScore={potentialScore} dim={dim} />
     </Row>
   )
