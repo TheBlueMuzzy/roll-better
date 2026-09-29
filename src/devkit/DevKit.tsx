@@ -1,11 +1,14 @@
-// THE BMUZ DEV KIT — developer tools that live inside the game, in dev builds only.
-// main.tsx loads it (via mount.tsx) with a dynamic import behind import.meta.env.DEV, so the live build has none of it.
+// THE BMUZ DEV KIT — developer tools that live inside the game.
+// main.tsx loads it (via mount.tsx) with a dynamic import: always in dev; in release builds only while
+// content/devkit.json "inReleaseBuilds" is true (through beta). When it's false, the live build has none of it.
+// Release builds can't Save (no dev server) — tools offer Copy for Claude instead (CAN_SAVE in saveContent.ts).
 //   Open:  the ` key (desktop) or triple-tap the top-right corner (phone)
 //   Close: Esc, the ✕ button, or ` again
 // Tools are tabs across the top. To add a tool: make a component and add it to TABS below.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
 import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { ColorTab } from './color/ColorTab'
+import { CAN_SAVE } from './saveContent'
 import './devkit.css'
 
 // Searched for by the live-build check (Sprint 04 task 3) — it must never appear in dist/
@@ -106,6 +109,9 @@ export function DevKit() {
           ✕
         </button>
       </header>
+      {!CAN_SAVE && (
+        <p className="devkit-live-note">Live build: changes last until you refresh — copy them for Claude to keep.</p>
+      )}
       {TABS.map((t) => (
         <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel">
           <t.Panel />

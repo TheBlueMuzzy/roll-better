@@ -58,6 +58,15 @@
 }
 .devkit-close:hover, .devkit-tab:hover { background: #2c2e3a; }
 
+.devkit-live-note {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: #3a3320;
+  color: #ffd98a;
+  border-bottom: 1px solid #34353f;
+}
+
 .devkit-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
 .devkit-body[hidden] { display: none; }
 

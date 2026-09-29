@@ -1,5 +1,12 @@
 // Shared by every Dev Kit tool: write a content/ JSON file, and copy text for Claude.
 
+/**
+ * Can this build write content/ files? Only under `npm run dev` — the Save endpoint lives in the dev server.
+ * A release build (the live link, while content/devkit.json has the Dev Kit on) can't: there,
+ * tools show "Copy for Claude" instead of Save, and changes last only until a refresh.
+ */
+export const CAN_SAVE = import.meta.env.DEV
+
 /** Write a content/ JSON file through the dev server (vite-plugins/devkitSave.ts). Throws with a plain reason. */
 export async function saveContentFile(path: string, data: object): Promise<void> {
   let res: Response

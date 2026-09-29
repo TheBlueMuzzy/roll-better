@@ -9,7 +9,7 @@ import tableFile from '../../../content/ui/table.json'
 import { presets } from '../../ui/kit/styles'
 import { applyStyle } from '../../ui/kit'
 import { tableColors } from '../../store/tableColors'
-import { copyText, saveContentFile } from '../saveContent'
+import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { ColourBlindPreview } from './ColourBlindPreview'
 import {
   DIVIDER_OPACITY_NAME,
@@ -82,7 +82,7 @@ export function ColorTab() {
   }
 
   async function copyForClaude() {
-    const text = copyForClaudeText(document.title, listChanges(loaded, colours), !uiDirty && !tableDirty)
+    const text = copyForClaudeText(document.title, listChanges(loaded, colours), !uiDirty && !tableDirty, !CAN_SAVE)
     if (await copyText(text)) {
       setCopyFallback(null)
       setStatus({ kind: 'ok', text: 'Copied — paste it into your chat with Claude.' })
@@ -156,14 +156,17 @@ export function ColorTab() {
       </div>
 
       <footer className="devkit-footer">
-        <button className="devkit-btn devkit-btn-main" disabled={!uiDirty && !tableDirty} onClick={save}>
-          Save
-        </button>
-        <button className="devkit-btn" onClick={copyForClaude}>
+        {/* Live build: no dev server to save through, so Copy for Claude is the main button (see CAN_SAVE) */}
+        {CAN_SAVE && (
+          <button className="devkit-btn devkit-btn-main" disabled={!uiDirty && !tableDirty} onClick={save}>
+            Save
+          </button>
+        )}
+        <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
           Copy for Claude
         </button>
         <button className="devkit-btn" disabled={!uiDirty && !tableDirty} onClick={() => setColours(saved)} title="Put every colour back to what's saved">
-          Undo unsaved
+          {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
         </button>
         {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
         {copyFallback && <textarea className="ct-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}

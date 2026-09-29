@@ -110,6 +110,9 @@ describe('copyForClaudeText', () => {
   it('says when changes are not saved yet', () => {
     expect(copyForClaudeText('Roll Better', changes, false)).toContain('NOT all saved yet')
   })
+  it('asks Claude to write them in when they come from the live build (no Save there)', () => {
+    expect(copyForClaudeText('Roll Better', changes, false, true)).toContain('tried in the live build, NOT saved')
+  })
   it('says so when nothing changed', () => {
     expect(copyForClaudeText('Roll Better', [], true)).toBe('No colour changes in the Dev Kit (Roll Better) since the game loaded.')
   })

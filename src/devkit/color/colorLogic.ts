@@ -104,11 +104,13 @@ export const uiChanged = (a: UiColours, b: UiColours) => UI_COLOURS.some(({ toke
  *   Colour changes from the Dev Kit (Roll Better) — saved to content/ui/style.json and content/ui/table.json:
  *   - Main buttons (primary): #ffc629 → #ff9f1c
  */
-export function copyForClaudeText(game: string, changes: Change[], allSaved: boolean): string {
+export function copyForClaudeText(game: string, changes: Change[], allSaved: boolean, liveBuild = false): string {
   if (changes.length === 0) return `No colour changes in the Dev Kit (${game}) since the game loaded.`
-  const status = allSaved
+  let status = allSaved
     ? 'saved to content/ui/style.json and content/ui/table.json'
     : 'NOT all saved yet (press Save in the Dev Kit to write them to content/)'
+  // The live build can't save — these only exist in that browser tab until Claude writes them in
+  if (liveBuild) status = 'tried in the live build, NOT saved — please write them into content/ui/style.json and content/ui/table.json'
   const lines = changes.map((c) => `- ${c.name}: ${c.from} → ${c.to}`)
   return [`Colour changes from the Dev Kit (${game}) — ${status}:`, ...lines].join('\n')
 }

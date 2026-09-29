@@ -1,4 +1,4 @@
-// Starts the Dev Kit. main.tsx imports this ONLY in dev builds (import.meta.env.DEV).
+// Starts the Dev Kit. main.tsx imports this in dev, and in release builds while content/devkit.json "inReleaseBuilds" is true.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { DevKit } from './DevKit'
