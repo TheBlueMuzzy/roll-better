@@ -67,15 +67,15 @@ flowchart LR
 
 ## v1.8 — Dev Kit: colours first  ← current
 Goal: Muzzy presses ` in the dev build, tweaks any UI or table colour with a picker, sees it live, and saves it into content/ — no more colour questions (Muzzy 2026-09-29: "fewer loops").
-- 🔨 F60 🧱 Dev Kit console — should · sprint 4
+- ✅ F60 🧱 Dev Kit console — should · sprint 4 · approved 2026-09-29
   what: ` / triple-tap opens a right-side panel with tabs, dev build only (never live); Save writes content/ JSON through a dev-server endpoint; Copy for Claude. Built here, then moved to the shared Dev Kit (dev/tools/bmuz-devkit)
-- 🔨 F59 🔧 Dev Kit Color tool — should · needs: F60 · sprint 4
+- ✅ F59 🔧 Dev Kit Color tool — should · needs: F60 · sprint 4 · approved 2026-09-29
   what: every kit style colour (content/ui/style.json tweaks over the Cartoon preset) + table colours (content/ui/table.json) with swatch, picker, reset; live preview incl. the 3D table; colour-blind preview toggle
   why: Muzzy tunes the look himself → fewer loops, faster taste calls
 
 ```mermaid
 flowchart LR
-  F60[🔨 F60 Dev Kit console] --> F59[🔨 F59 Color tool]
+  F60[✅ F60 Dev Kit console] --> F59[✅ F59 Color tool]
 ```
 
 ## Later
@@ -92,4 +92,5 @@ Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - Dice skins, tabletop textures, player profile art — could (#10–#12)
 
 ## Ideas
+- 2026-09-29 — Dev Kit tabs next (Muzzy): **Spacing** (gaps/margins/radius from style.json), **Type** (fonts + sizes), game-specific **Tuning** tabs (e.g. power curves, timers, physics — content/tuning), a **Level loader**. And Dev Kit access on released builds — see the options discussed 2026-09-29 (test build vs passphrase; release can't Save to files; online fairness).
 - 2026-09-29 — Colour-blind: with Deuteranopia, red (B1) and green (B3) player chips look nearly the same (Dev Kit Color tool preview). Initials still differ; consider a colour-blind-safe player palette or a shape/pattern per player.

@@ -16,7 +16,7 @@ Done when: the Color tab lists the 15 kit style colours (friendly names, current
 - [x] 🤖 6. Save + Copy for Claude (only changed values; tweaks equal to the preset are dropped)
 - [x] 🤖 7. Colour-blind preview toggle (deuteranopia / protanopia / tritanopia via CSS/SVG filter on the game)
 - [x] 🤖 8. Checks: tests for the pure bits (diff / tweak cleanup), build, e2e still pass, screenshots of the panel open over a game (844×390 + 1440×900); update TDD §1/§3 + DEVKIT.md catalog
-- [ ] 🙋 9. Muzzy tries it: open with `, change a colour, save, refresh — it stuck
+- [x] 🙋 9. Approved by Muzzy 2026-09-29 ("it's approved for sure"). Muzzy tries it: open with `, change a colour, save, refresh — it stuck
 
 Notes (task 1): shell = `src/devkit/DevKit.tsx` (panel + tabs; add a tool by adding to TABS) + `mount.tsx` (own React root outside #root) + `devkit.css`. main.tsx: `if (import.meta.env.DEV) import('./devkit/mount')`. The panel stays mounted while hidden so unsaved edits survive closing. Triple-tap gotcha: the third tap's click lands on ✕ once the panel opens — ✕ ignores clicks for 0.5 s after a triple-tap. ` is ignored while typing in a text box.
 Notes (task 2): `vite-plugins/devkitSave.ts` (+ tests) — POST `/__devkit/save` `{path, data}`. Refuses anything not `content/**.json` (no `..`, no backslashes, must be an object), re-checks the resolved path is inside content/, keeps an existing `_help` first, writes 2-space JSON + newline. It also skips Vite's hot-reload for a file it just wrote (the game already shows those values; a reload would reset the game). Checked with curl against a probe file (deleted after).
