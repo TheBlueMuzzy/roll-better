@@ -34,13 +34,13 @@ flowchart LR
 
 ## v1.7 — Cartoon UI everywhere  ← current
 Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, lobby, How to Play, winners, HUD and player badges look like Settings/Credits; the dark table stays (Muzzy 2026-09-29, D19).
-- 🟢 F50 🧱 Kit screens sit inside the game's 16:9 box — should
+- 🔨 F50 🧱 Kit screens sit inside the game's 16:9 box — should · sprint 2
   what: kit screens/HUD use the game frame, not the letterbox bars; check first — may already be true
-- ⏳ F51 🎮 Main menu + Create/Join on the kit — should · needs: F50
+- 🔨 F51 🎮 Main menu + Create/Join on the kit — should · needs: F50 · sprint 2
   why: one look from the first screen → the game reads as one finished thing → trust (Fair forever, Zero friction)
-- ⏳ F52 🎮 Online room lobby + reconnecting on the kit — should · needs: F51
+- 🔨 F52 🎮 Online room lobby + reconnecting on the kit — should · needs: F51 · sprint 2
   what: kit Lobby (room) + Reconnecting; kit addition: seat-claim list for mid-game joins (build here, copy back to the framework)
-- ⏳ F53 🎮 How to Play on the kit — should · needs: F50
+- 🔨 F53 🎮 How to Play on the kit — should · needs: F50 · sprint 2
 - ⏳ F54 🎮 Winners → kit Results / Post-game — should · needs: F50
   why: a big, readable finish → players see who won and hit Play Again → Fellowship
 - ⏳ F55 ✨ Tips + messages → kit toasts; round start → kit Countdown / Round intro — should · needs: F50
@@ -54,9 +54,9 @@ Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, 
 
 ```mermaid
 flowchart LR
-  F50[🟢 F50 16:9 box] --> F51[⏳ F51 Main menu]
-  F51 --> F52[⏳ F52 Lobby]
-  F50 --> F53[⏳ F53 How to Play]
+  F50[🔨 F50 16:9 box] --> F51[🔨 F51 Main menu]
+  F51 --> F52[🔨 F52 Lobby]
+  F50 --> F53[🔨 F53 How to Play]
   F50 --> F54[⏳ F54 Winners]
   F50 --> F55[⏳ F55 Toasts + countdown]
   F50 --> F56[⏳ F56 HUD]
@@ -68,6 +68,7 @@ flowchart LR
 Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - ✨ Clearer unlock timer (last-second warning) — could · parked for the art redesign (Muzzy 2026-09-28)
 - Watch: B001 (matching dice sometimes don't lock), B002 (dice cant against walls) — patched in v1.5, see BUGS.md
+- F59 🔧 Dev Kit Color tool — could · every colour in `content/ui/style.json` listed with a swatch + picker, live preview, save → the file (Muzzy 2026-09-29: "fewer loops" on colour calls). First tool of the Dev Kit in this game, then moved to the shared kit.
 - 🔧 Dev Kit tools recommended by the TDD: Multiplayer (second player, lag/disconnect) before the next netcode sprint; Tuning (physics + timers → content/tuning); Bug capture
 - Tutorial system rework — should (#6)
 - Full audio pass — should (#7)

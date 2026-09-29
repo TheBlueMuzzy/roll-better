@@ -1,14 +1,14 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-v0.2.2 is live. Defined v1.7 — Cartoon UI everywhere (ROADMAP, TDD D19): F50–F58; ready now: F50 (16:9 box) and F57 (pinned-to-3D labels). Build order: F50 → F51 + F53 → F54 → F55 → F56 → F57 → F58 → F52.
-Next: `/sprint` to line up the first sprint.
+Sprint 02 — The front door is Cartoon (F50 16:9 box, F51 main menu, F52 online lobby, F53 How to Play) on `dev/v1-7-cartoon-ui`. Menu backdrop = Cartoon light blue (Muzzy).
+Next: `/develop` → task 1 (check kit screens stay inside the 16:9 box).
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: define → develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: none (01 done)
-Doing: — (v1.7 defined; next /sprint)
-Branch: master   Version: 0.2.2.0
+Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 02 — The front door is Cartoon
+Doing: F50 — ready to build
+Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
 
 ## Key facts
