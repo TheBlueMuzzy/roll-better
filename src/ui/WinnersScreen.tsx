@@ -7,6 +7,7 @@ import { Results, Screen } from './kit'
 import { useGameStore } from '../store/gameStore'
 import { playUIClick } from '../utils/soundManager'
 import { text, fill } from './words'
+import { useOnlineRoom } from './OnlineRoom'
 
 type WinnersScreenProps = {
   onPlayAgain: () => void
@@ -18,6 +19,10 @@ export function WinnersScreen({ onPlayAgain, onMenu }: WinnersScreenProps) {
   const players = useGameStore((s) => s.players)
   const currentRound = useGameStore((s) => s.currentRound)
   const me = players[0] // the local player is always first in the store
+  const { leave } = useOnlineRoom()
+  // Menu from an online game: leave the room the intentional way first, so the socket closing
+  // isn't mistaken for a dropped connection (that left a stuck "Reconnecting" over the next solo game)
+  const toMenu = () => { if (useGameStore.getState().isOnlineGame) leave(); onMenu() }
 
   // Title: "You win!", "Sam wins!" or "Tie!" when the top score is shared
   const topScore = Math.max(...players.map((p) => p.score))
@@ -37,7 +42,7 @@ export function WinnersScreen({ onPlayAgain, onMenu }: WinnersScreenProps) {
         title={title}
         message={fill(w.rounds, { n: currentRound })}
         onRematch={click(onPlayAgain)}
-        onQuit={click(onMenu)}
+        onQuit={click(toMenu)}
         words={w}
       />
     </Screen>

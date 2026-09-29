@@ -188,8 +188,10 @@ function App() {
   // Menu handler — return to main menu (reset phase to avoid stale sessionEnd)
   const handleMenu = useCallback(() => {
     // Send intentional "leave" so server can distinguish from network drop
+    // (Online: WinnersScreen already left the room via useRoom.leave — an intentional close.
+    // This is the fallback if a socket is somehow still open.)
     const socket = getGameSocket();
-    if (socket) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
       sendMessage(socket, { type: "leave" });
       socket.close();
     }

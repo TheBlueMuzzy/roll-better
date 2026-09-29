@@ -57,6 +57,12 @@ export function devkitSave(): Plugin {
           res.end(JSON.stringify(body))
         }
         if (req.method !== 'POST') return reply(405, { error: 'POST only' })
+        // Only the game's own page may save: the dev server is on the Wi-Fi (--host), and any web page
+        // could otherwise POST here. A same-page fetch sends Origin = this server; JSON forces that check.
+        const origin = req.headers.origin
+        const host = req.headers.host
+        if (!origin || !host || new URL(origin).host !== host) return reply(403, { error: 'Save only from the game page' })
+        if (!String(req.headers['content-type'] ?? '').startsWith('application/json')) return reply(415, { error: 'JSON only' })
 
         let raw = ''
         req.on('data', (chunk) => (raw += chunk))

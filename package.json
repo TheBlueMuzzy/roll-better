@@ -15,6 +15,7 @@
     "e2e:solo": "node e2e/solo-late-drag.mjs",
     "e2e:online": "node e2e/online-unlock.mjs",
     "e2e:midgame": "node e2e/midgame-join.mjs",
+    "e2e:menu": "node e2e/menu-after-online.mjs",
     "e2e:physics": "node e2e/roll-physics.mjs",
     "check:devkit": "node e2e/devkit-release-check.mjs"
   },
