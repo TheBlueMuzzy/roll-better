@@ -5,7 +5,7 @@ Changes for Muzzy: in the dev build, ` opens a Dev Kit panel on the right; its C
 
 ## F60 🧱 Dev Kit console
 Done when: ` (desktop) or a triple-tap in a corner (phone) toggles a right-side panel with tabs in the DEV build only; the live build has no trace of it; Save can write a content/ JSON file; Copy for Claude copies a plain-English change list.
-- [ ] 🤖 1. `src/devkit/` — console shell (key/triple-tap, right-side panel, tabs, close), loaded only when `import.meta.env.DEV` (dynamic import so the live bundle has none of it)
+- [x] 🤖 1. `src/devkit/` — console shell (key/triple-tap, right-side panel, tabs, close), loaded only when `import.meta.env.DEV` (dynamic import so the live bundle has none of it)
 - [ ] 🤖 2. Dev-server save endpoint (a small Vite plugin in `vite.config.ts`, `apply: 'serve'`): POST → writes a JSON file, only under `content/`, pretty-printed, keeps `_help`
 - [ ] 🤖 3. Check: live build (`npm run build`) contains no devkit code / endpoint; ` does nothing there
 
@@ -18,4 +18,5 @@ Done when: the Color tab lists the 15 kit style colours (friendly names, current
 - [ ] 🤖 8. Checks: tests for the pure bits (diff / tweak cleanup), build, e2e still pass, screenshots of the panel open over a game (844×390 + 1440×900); update TDD §1/§3 + DEVKIT.md catalog
 - [ ] 🙋 9. Muzzy tries it: open with `, change a colour, save, refresh — it stuck
 
+Notes (task 1): shell = `src/devkit/DevKit.tsx` (panel + tabs; add a tool by adding to TABS) + `mount.tsx` (own React root outside #root) + `devkit.css`. main.tsx: `if (import.meta.env.DEV) import('./devkit/mount')`. The panel stays mounted while hidden so unsaved edits survive closing. Triple-tap gotcha: the third tap's click lands on ✕ once the panel opens — ✕ ignores clicks for 0.5 s after a triple-tap. ` is ignored while typing in a text box.
 Notes: The Dev Kit is a developer tool, not game UI — plain functional styling is fine (the game-ui rules apply to src/ui/, not src/devkit/).
