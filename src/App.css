@@ -147,50 +147,6 @@ body {
   gap: var(--sp-sm);
 }
 
-.hud-status {
-  pointer-events: auto;
-  cursor: pointer;
-  font-size: var(--fs-lg);
-  font-weight: bold;
-  color: #ffffff;
-  letter-spacing: 2px;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-}
-
-.hud-status--rolling {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-
-.hud-skip-btn {
-  position: absolute;
-  top: 55%;
-  left: 75%;
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
-  cursor: pointer;
-  font-size: var(--fs-md);
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--border-radius);
-  padding: var(--sp-md) var(--sp-xl);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.hud-skip-btn:active {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.hud-skip-btn--disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-
 /* --- Settings gear button in HUD --- */
 
 .settings-gear {

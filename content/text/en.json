@@ -52,6 +52,18 @@
     "reconnected": "{name} reconnected"
   },
   "hud": {
+    "status": {
+      "starting": "Starting…",
+      "holdToRoll": "Hold to Roll",
+      "rolling": "Rolling…",
+      "locked": "Locked {n}!",
+      "noMatches": "No matches",
+      "waiting": "Waiting for others…",
+      "unlocked": "{n} unlocked",
+      "dragToUnlock": "Drag dice to unlock",
+      "roundComplete": "Round complete! +{n} pts",
+      "nextRound": "Next round…"
+    },
     "seat": {
       "autopilot": "{name} is on autopilot",
       "botTookOver": "Bot took over for {name}",

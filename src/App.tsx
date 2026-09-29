@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
+import { StatusPin } from './components/StatusPin';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
 import { ScreenStack, ToastStack, kitScreens, screens, toast, toasts, useScreens } from './ui/kit';
@@ -737,6 +738,7 @@ function App() {
               onRollStart={handleRollStart}
               onResults={handleResults}
             />
+            <StatusPin />
           </Canvas>
           <HUD
             onRoll={handleRoll}

@@ -19,20 +19,17 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
-  const lastLockCount = useGameStore((s) => s.roundState.lastLockCount);
   const roundScore = useGameStore((s) => s.roundState.roundScore);
   const players = useGameStore((s) => s.players);
   const isOnlineGame = useGameStore((s) => s.isOnlineGame);
 
   const player = players[0];
   const score = player?.score ?? 0;
-  const isRolling = phase === 'rolling';
   const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
   const animationsInProgress = unlockAnimating || aiUnlockAnimating;
   const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
   const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
-  const committedUnlocks = useGameStore((s) => s.committedUnlocks);
 
   // --- Seat state change notifications (kit toasts, words in content/text/en.json hud.seat) ---
   const prevSeatStatesRef = useRef<Map<string, SeatState>>(new Map());
@@ -144,38 +141,6 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
     };
   }, [phase, score, roundScore, animateScore]);
 
-  // Status text based on phase
-  let statusText: string;
-  if (phase === 'lobby') {
-    statusText = 'Starting...';
-  } else if (phase === 'idle') {
-    statusText = 'Hold to Roll';
-  } else if (phase === 'rolling') {
-    statusText = 'Rolling...';
-  } else if (phase === 'locking') {
-    statusText = lastLockCount > 0 ? `Locked ${lastLockCount}!` : 'No matches';
-  } else if (phase === 'unlocking') {
-    if (unlockTimerResetKey < 0) {
-      statusText = '';  // Timer fired, finalizing — no text
-    } else if (animationsInProgress) {
-      statusText = '';
-    } else if (isOnlineGame && hasSubmittedUnlock) {
-      statusText = 'Waiting for others...';
-    } else if (committedUnlocks.length > 0) {
-      statusText = `${committedUnlocks.length} unlocked`;
-    } else {
-      statusText = 'Drag dice to unlock';
-    }
-  } else if (phase === 'scoring') {
-    statusText = `Round Complete! +${roundScore}pts`;
-  } else if (phase === 'roundEnd') {
-    statusText = 'Next Round...';
-  } else if (phase === 'sessionEnd') {
-    statusText = '';
-  } else {
-    statusText = '';
-  }
-
   return (
     <div className="hud">
       {/* Top bar — round + score */}
@@ -193,18 +158,7 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
           duration={3000}
           resetKey={unlockTimerResetKey}
         />
-        {/* During unlocking: status text only (buttons rendered centered below) */}
-        {phase === 'unlocking' ? (
-          <span className="hud-status">{statusText}</span>
-        ) : (
-          /* All other phases: status text */
-          <span
-            className={`hud-status${isRolling ? ' hud-status--rolling' : ''}`}
-          >
-            {statusText}
-          </span>
-        )}
-
+        {/* Status words: a kit banner pinned over the rolling area (StatusPin.tsx, inside the Canvas) */}
       </div>
 
       {/* Settings gear button — bottom-right */}
