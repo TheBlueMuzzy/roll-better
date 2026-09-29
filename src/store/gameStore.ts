@@ -6,7 +6,7 @@ import { getSlotX, PROFILE_X_OFFSET } from '../components/GoalRow';
 import { DIE_SIZE, ROLLING_X_OFFSET } from '../components/RollingArea';
 import { getAIUnlockDecision, randomDifficulty } from '../utils/aiDecision';
 import { findNearestClearPosition, isInRollingZone } from '../utils/dropZone';
-import { isUnlockTurnOpen, resolveDragRelease, nextUnlockTimerKey, returnParkedDice } from '../utils/unlockTurn';
+import { isUnlockTurnOpen, canStartDrag, resolveDragRelease, nextUnlockTimerKey, returnParkedDice } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
 import { roundScore } from '../utils/scoring';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
@@ -83,7 +83,7 @@ interface GameStore extends GameState {
   stopGathering: () => void;
 
   // Drag unlock
-  startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => void;
+  startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => boolean;
   updateDragPosition: (pos: [number, number, number]) => void;
   cancelDragUnlock: () => void;
   completeDragUnlock: () => void;
@@ -940,10 +940,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // --- Drag unlock actions ---
+  // Returns true if the die was picked up. Refused (false): the turn is closed (B006 — timer fired /
+  // choice sent to the server), another die is already being dragged, or this die isn't in the row (F48).
   startDragUnlock: (slotIndex: number, value: number, originPos: [number, number, number]) => {
     const state = get();
-    // B006: no new drags once the turn is closed (timer fired / choice sent to the server)
-    if (!isUnlockTurnOpen({ phase: state.phase, timerAlreadyFired: state.unlockTimerResetKey < 0, hasSubmittedUnlock: state.hasSubmittedUnlock })) return;
+    const allowed = canStartDrag({
+      turnOpen: isUnlockTurnOpen({ phase: state.phase, timerAlreadyFired: state.unlockTimerResetKey < 0, hasSubmittedUnlock: state.hasSubmittedUnlock }),
+      dragActive: state.dragUnlockState.active,
+      stillLocked: state.players[0]?.lockedDice.some((d) => d.goalSlotIndex === slotIndex) ?? false,
+    });
+    if (!allowed) return false;
     set({
       dragUnlockState: {
         active: true,
@@ -953,6 +959,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         currentPosition: originPos,
       },
     });
+    return true;
   },
 
   updateDragPosition: (pos: [number, number, number]) => {

@@ -189,14 +189,16 @@ function UnlockableDie({
         onPointerDown={(e) => {
           if (!selectable) return;
           e.stopPropagation();
-          (e.target as Element).setPointerCapture?.(e.pointerId);
+          // F48: one drag at a time — a second finger (on this die or another) is ignored
+          if (isDragging.current) return;
           const originPosition: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, rowZ];
-          startDragUnlock(slotIndex, value, originPosition);
+          if (!startDragUnlock(slotIndex, value, originPosition)) return;
+          (e.target as Element).setPointerCapture?.(e.pointerId);
           isDragging.current = true;
           dragPointerId.current = e.pointerId;
         }}
         onPointerMove={(e) => {
-          if (!isDragging.current || !selectable) return;
+          if (!isDragging.current || !selectable || e.pointerId !== dragPointerId.current) return;
           e.stopPropagation();
           if (e.ray.intersectPlane(_dragPlane, _dragIntersect)) {
             updateDragPosition([_dragIntersect.x, DIE_SIZE / 2, _dragIntersect.z]);
@@ -204,7 +206,7 @@ function UnlockableDie({
         }}
         onPointerUp={(e) => {
           // No `selectable` check here: the turn may have closed mid-drag — still let go cleanly
-          if (!isDragging.current) return;
+          if (!isDragging.current || e.pointerId !== dragPointerId.current) return;
           e.stopPropagation();
           endDrag(); // before releasing, so the lostpointercapture that follows is ignored
           (e.target as Element).releasePointerCapture?.(e.pointerId);

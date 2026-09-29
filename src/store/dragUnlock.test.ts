@@ -70,3 +70,36 @@ describe('lost finger mid-drag — resolves at once by zone (F48)', () => {
     expect(store().committedUnlocks.length).toBe(1);
   });
 });
+
+describe('one drag at a time (F48)', () => {
+  beforeEach(() => unlockTurnWith([3, 5]));
+
+  it('a second finger on another die is refused — the first drag carries on', () => {
+    expect(store().startDragUnlock(0, 3, SLOT_POS)).toBe(true);
+    store().updateDragPosition(OVER_ROLLING_AREA);
+    expect(store().startDragUnlock(1, 5, [-4, 0.4, ROW_Z])).toBe(false);
+    expect(store().dragUnlockState.slotIndex).toBe(0);
+    expect(store().dragUnlockState.currentPosition).toEqual(OVER_ROLLING_AREA);
+  });
+
+  it('the same die cannot be grabbed twice', () => {
+    store().startDragUnlock(0, 3, SLOT_POS);
+    store().updateDragPosition(OVER_ROLLING_AREA);
+    expect(store().startDragUnlock(0, 3, SLOT_POS)).toBe(false);
+    expect(store().dragUnlockState.currentPosition).toEqual(OVER_ROLLING_AREA);
+  });
+
+  it('a die already parked in the rolling area cannot be picked up again', () => {
+    store().startDragUnlock(0, 3, SLOT_POS);
+    store().updateDragPosition(OVER_ROLLING_AREA);
+    store().completeDragUnlock();
+    expect(store().startDragUnlock(0, 3, SLOT_POS)).toBe(false);
+    expect(store().committedUnlocks.length).toBe(1);
+  });
+
+  it('after a drop, the next die can be picked up', () => {
+    store().startDragUnlock(0, 3, SLOT_POS);
+    store().completeDragUnlock();
+    expect(store().startDragUnlock(1, 5, [-4, 0.4, ROW_Z])).toBe(true);
+  });
+});

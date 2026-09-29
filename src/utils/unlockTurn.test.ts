@@ -3,6 +3,7 @@ import {
   shouldRunUnlockTimer,
   buildUnlockSubmission,
   isUnlockTurnOpen,
+  canStartDrag,
   resolveDragRelease,
   nextUnlockTimerKey,
   returnParkedDice,
@@ -74,6 +75,26 @@ describe('isUnlockTurnOpen — B006 late drag', () => {
   it('outside the unlock phase, locked dice cannot be picked up', () => {
     expect(isUnlockTurnOpen({ ...open, phase: 'idle' })).toBe(false);
     expect(isUnlockTurnOpen({ ...open, phase: 'rolling' })).toBe(false);
+  });
+});
+
+describe('canStartDrag — F48 one drag at a time', () => {
+  const free = { turnOpen: true, dragActive: false, stillLocked: true };
+
+  it('a locked die can be picked up while the turn is open and nothing else is dragged', () => {
+    expect(canStartDrag(free)).toBe(true);
+  });
+
+  it('a second finger is ignored while another die is being dragged', () => {
+    expect(canStartDrag({ ...free, dragActive: true })).toBe(false);
+  });
+
+  it('a die already parked in the rolling area cannot be grabbed again', () => {
+    expect(canStartDrag({ ...free, stillLocked: false })).toBe(false);
+  });
+
+  it('nothing can be picked up once the turn is closed (B006)', () => {
+    expect(canStartDrag({ ...free, turnOpen: false })).toBe(false);
   });
 });
 
