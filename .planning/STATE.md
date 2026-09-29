@@ -1,13 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-AUTONOMOUS overnight (Muzzy 2026-09-29: "auto complete all of those tasks"; then: ~5 h to "completely revamp the look/UI" → all of v1.7 = sprint 02, then sprint 03 with F54–F58; collect game-ui/BMUZ improvement notes in ~/.claude/config/bmuz/BMUZ-PLAN.md). Context auto-hold at 65%. Sprint 02 on `dev/v1-7-cartoon-ui`: F50 built (kit screens in the 16:9 box, kit 0.1.5, `content/text/en.json`). In progress: framework SeatPicker (kit 0.1.6) + menus/lobby/How to Play onto the kit. Then: install 0.1.6, seat picker (task 8), delete old menu (10), checks (11), docs (13). Stops before /deliver.
-Muzzy (morning): look-check on phone + desktop (task 14) → "approved" · then `/deliver` if happy.
+AUTONOMOUS overnight run (Muzzy 2026-09-29: all of v1.7 + game-ui lessons in ~/.claude/config/bmuz/BMUZ-PLAN.md; context auto-hold at 65%; stops before /deliver).
+Sprint 02 BUILT (archive/sprints/sprint-02.md): kit front door — main menu, Create/Join, room, seat picker (kit 0.1.6), reconnecting, How to Play; old menu deleted; e2e solo/online/midgame PASS. F50–F53 🎛️ awaiting Muzzy's look.
+Sprint 03 — The table is Cartoon too (SPRINT.md): F57 PlayerChip + pinning → F54 winners → F55 toasts + round banner → F56 HUD → F58 badges. Framework kit 0.1.7 (lobby fixes + game box) building; 0.1.8 (PlayerChip, Results upgrade, dismissible toast) next.
+Muzzy (morning): look-check front door + table on phone/desktop (`/play`) → "approved" · then `/deliver`.
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 02 — The front door is Cartoon
-Doing: F50 — ready to build
+Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 03 — The table is Cartoon too
+Doing: F57 — kit PlayerChip + pinning (framework kit 0.1.7/0.1.8)
 Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
 
@@ -45,6 +47,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not 
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Sprint 02 built (autonomous): kit 0.1.5→0.1.6, F50 game box + en.json, F51 menu, F52 lobby + SeatPicker + reconnecting, F53 How to Play, old menu deleted (−963 lines), e2e:midgame added. Sprint 03 planned.
 - 2026-09-29 — Released v0.2.2: sprint 01 (F47, B006, B007/B008 physics, F49) + scoring 8/6/4/2/1 + bug sweep (B005, B010) + Credits screen + review fixes (45 s unlock limit, server-ended gather release, unlock_request validation).
 - 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
 - 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).
