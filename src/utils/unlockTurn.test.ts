@@ -3,9 +3,11 @@ import {
   shouldRunUnlockTimer,
   buildUnlockSubmission,
   isUnlockTurnOpen,
+  canStartDrag,
   resolveDragRelease,
   nextUnlockTimerKey,
   returnParkedDice,
+  shouldShowCapToast,
 } from './unlockTurn';
 
 // B003 — online, dragging dice to unlock did nothing for the other player.
@@ -77,6 +79,26 @@ describe('isUnlockTurnOpen — B006 late drag', () => {
   });
 });
 
+describe('canStartDrag — F48 one drag at a time', () => {
+  const free = { turnOpen: true, dragActive: false, stillLocked: true };
+
+  it('a locked die can be picked up while the turn is open and nothing else is dragged', () => {
+    expect(canStartDrag(free)).toBe(true);
+  });
+
+  it('a second finger is ignored while another die is being dragged', () => {
+    expect(canStartDrag({ ...free, dragActive: true })).toBe(false);
+  });
+
+  it('a die already parked in the rolling area cannot be grabbed again', () => {
+    expect(canStartDrag({ ...free, stillLocked: false })).toBe(false);
+  });
+
+  it('nothing can be picked up once the turn is closed (B006)', () => {
+    expect(canStartDrag({ ...free, turnOpen: false })).toBe(false);
+  });
+});
+
 describe('resolveDragRelease — B006 late drag', () => {
   const inTime = { turnOpen: true, overRollingZone: true, withinCap: true };
 
@@ -128,5 +150,19 @@ describe('returnParkedDice — B006 leaving the unlock phase', () => {
   it('never duplicates a die that is already in its slot', () => {
     const locked = [{ goalSlotIndex: 4, value: 5 }];
     expect(returnParkedDice(locked, [{ slotIndex: 4, value: 5 }])).toEqual(locked);
+  });
+});
+
+describe('shouldShowCapToast — F48 "Max 12 dice" is not spammed', () => {
+  it('shows the first time', () => {
+    expect(shouldShowCapToast(1000, null, 2)).toBe(true);
+  });
+
+  it('tapping again within the cooldown shows nothing', () => {
+    expect(shouldShowCapToast(2500, 1000, 2)).toBe(false);
+  });
+
+  it('shows again once the cooldown has passed', () => {
+    expect(shouldShowCapToast(3000, 1000, 2)).toBe(true);
   });
 });

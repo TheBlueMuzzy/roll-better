@@ -1,4 +1,5 @@
-// Starts the Dev Kit. main.tsx imports this in dev, and in release builds while content/devkit.json "inReleaseBuilds" is true.
+// Starts the Dev Kit. main.tsx imports this in dev, and in release builds while content/devkit.json "inReleaseBuilds" is true:
+//   if (import.meta.env.DEV || __DEVKIT_IN_RELEASE__) import('./devkit/mount').then((m) => m.mountDevKit())
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { DevKit } from './DevKit'

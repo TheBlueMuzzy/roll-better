@@ -1,0 +1,28 @@
+# Sprint 05 — Dragging dice feels solid and clear, on any screen
+Started 2026-09-29 · Milestone v1.6 · Features: F48
+Branch `dev/v1.6` (not live until /deliver).
+
+## F48 ✨ Drag polish + UAT
+Done when: no stuck or swapped dice (lost finger, two fingers, screen edges, portrait + landscape), the 12-dice cap is obvious, the rolling area shows when a drop will count, and Muzzy tunes drag feel himself in the Dev Kit.
+why: dragging is the only way to unlock now → it must feel sure and readable → players act without hesitating (Mastery / Flow)
+- [x] 🤖 1. Tip + How to Play say "drag" (B005 — fixed 2026-09-29, guarded by src/utils/playerText.test.ts)
+- [x] 🤖 2. Lost pointer mid-drag (pointercancel / lostpointercapture) resolves the drag at once by zone — src/components/PlayerRow.tsx, src/store/gameStore.ts (cancelDragUnlock / completeDragUnlock) + test in src/utils/unlockTurn.test.ts
+- [x] 🤖 3. One drag at a time: a second finger is ignored while a drag is active — gameStore.startDragUnlock + PlayerRow isDragging + test
+- [x] 🤖 4. 12-dice cap: locked dice dim at the cap, and trying to drag one shakes it + toast "Max 12 dice" (text in content/text/en.json) — Scene.tsx L357, PlayerRow.tsx
+- [x] 🤖 5. Rolling area highlights while a dragged die is over it (RollingArea.tsx reads dragUnlockState); die stays under the finger (grab offset + lift-height ray fix) — try 2 highlight looks behind a tuning value
+- [x] 🤖 6. (done 2026-09-29: Dev Kit 0.2.0 installed; game part 2026-09-29: content/tuning/drag.json + src/tuning/drag.ts; Tuning tab = framework helper) Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
+- [x] 🤖 7. Real-pointer e2e: drags near edges, lost pointer, two fingers, 12-cap — phone portrait + landscape + desktop (new e2e script, run one at a time); update design/tech-internals.md drag state notes
+- [x] 🙋 8. Two-phone online check (drag, cap, timer) on the dev link
+- [x] 🤖 9. Tune drag feel with Muzzy in the Dev Kit Tuning tab (tuning)
+Check: new drag e2e + e2e:solo + e2e:online + unlock-race-sweep green; Muzzy's phone check
+Ask Muzzy: —
+Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approved (Muzzy 2026-09-29) — build in framework devkit first.
+- Surprise (task 2): R3F never calls a mesh's onPointerCancel / onLostPointerCapture (it only turns them into pointer-out), so the die listens for `pointercancel` + `lostpointercapture` on the page (matched by pointerId).
+- Surprise (task 5): RollingArea can't import the store (circular import RollingArea → store → GoalRow → RollingArea crashes on load: "DIE_SIZE before initialization"). The highlight is its own component, `DropZoneHighlight.tsx`, rendered by Scene.
+- Task 4: the old `shakingSlot` prop was never passed by anyone — replaced by the die starting its own shake when pressed at the cap.
+- Task 5: highlight default = "tint" (the whole drop zone brightens — reads at a glance on a phone even with a thumb over part of it); "outline" is one switch away in drag.json.
+- Store drag rules are now unit-tested against the real store: src/store/dragUnlock.test.ts.
+- Surprise (checks): `e2e/unlock-race-sweep.mjs` had silently stopped working since the kit 0.2.x Pinned change (7e8689a renamed `.pinned` → `.kit-pinned`): it waited forever for the timer bar and never dropped a die. Selector fixed; 204 drops, 0 FAIL.
+- Task 7: `npm run e2e:drag` (e2e/drag-real.mjs) — 10 checks × 3 sizes, ~90 s, 3 runs in a row all green. It CAUGHT a real bug: since kit 0.2 (7e8689a dropped the `.pinned { pointer-events: none }` CSS) the Goal chip's invisible layout box sat over the top of the first dice on a phone and swallowed presses there. Fixed in `Pinned.tsx` (drei Html `style={{ pointerEvents: 'none' }}` — its `pointerEvents` prop does nothing outside transform mode).
+- Task 6: Dev Kit 0.2.0 Tuning tab lists every content/tuning/*.json (sliders use drag.json's `_ranges`, `_help` shows under each row). drag + physics follow the sliders live without Save (drag.ts: `onTuning` → `Object.assign(drag, data)`; PhysicsDie.tsx + rollBounds.ts: `liveTuning('physics', …)`). scoring.json left unwired on purpose — party/server.ts shares it and must not import Dev Kit code.
+Muzzy approved F48 2026-09-29: "EXACTLY what I was looking for … all tuned." Tuning: defaults kept (no drag.json changes saved); zone highlight stays `tint`.

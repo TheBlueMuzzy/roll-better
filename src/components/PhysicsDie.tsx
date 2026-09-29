@@ -7,7 +7,10 @@ import { getFaceUpConfidence, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
 import { playDiceImpact, playDiceSettle } from '../utils/soundManager';
 import { isOutOfRollBounds, putBackInRollBounds, ROLL_BOUNDS } from '../utils/rollBounds';
-import physics from '../../content/tuning/physics.json';
+import physicsFile from '../../content/tuning/physics.json';
+import { liveTuning } from '../devkit/tuning/liveTuning';
+
+const physics = liveTuning('physics', physicsFile); // follows the Dev Kit's Tuning sliders live
 import { GHOST_GROUPS, RELEASE_GROUPS, SOLID_GROUPS } from '../utils/dieCollisionGroups';
 
 // --- Helper: random float in [min, max] ---
@@ -254,8 +257,8 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           // (content/tuning/physics.json → maxReleaseSpeed)
           const out = body.linvel();
           const sideways = Math.sqrt(out.x * out.x + out.z * out.z);
-          if (sideways > physics.maxReleaseSpeed) {
-            const k = physics.maxReleaseSpeed / sideways;
+          if (sideways > physics.current.maxReleaseSpeed) {
+            const k = physics.current.maxReleaseSpeed / sideways;
             body.setLinvel({ x: out.x * k, y: out.y, z: out.z * k }, true);
           }
           if (import.meta.env.DEV) {

@@ -6,6 +6,7 @@ import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, DIE_SIZE, SPLIT_X } from './RollingArea';
+import { DropZoneHighlight } from './DropZoneHighlight';
 import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
@@ -20,7 +21,7 @@ import { SpawningDie } from './SpawningDie';
 import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
-import { maxUnlocksAllowed } from '../utils/diceCap';
+import { unlocksLeft, isAtDiceCap } from '../utils/diceCap';
 import table from '../../content/ui/table.json';
 import { tableColors, type TableColors } from '../store/tableColors';
 
@@ -354,7 +355,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           unlockAnimations={unlockAnimations}
           // Locked dice stay draggable-looking for the whole unlock phase (so a cancelled drag can glide
           // back to its slot), but only accept a new drag while the turn is open and there's room (B006)
-          maxUnlocks={unlockTurnOpen ? maxUnlocksAllowed(player.poolSize, player.lockedDice.length + committedUnlocks.length) - committedUnlocks.length : 0}
+          maxUnlocks={unlockTurnOpen ? unlocksLeft(player.poolSize, player.lockedDice.length, committedUnlocks.length) : 0}
+          // F48: at the 12-dice cap the locked dice show dimmed, and pressing one shakes it + "Max 12 dice"
+          atCap={unlockTurnOpen && isAtDiceCap(player.poolSize, player.lockedDice.length, committedUnlocks.length)}
         />
 
         {/* AI player rows — below human row (outside Physics) */}
@@ -484,6 +487,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             color={player.color}
           />
         ))}
+
+        {/* F48: rolling area lights up while a dragged die is over it (drop will count) */}
+        <DropZoneHighlight />
 
         {/* Committed unlock dice — glowing dice sitting in the rolling zone */}
         {committedUnlocks.map((cu) => (

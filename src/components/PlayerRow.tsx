@@ -1,15 +1,28 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
 import type { GamePhase, UnlockAnimation } from '../types/game';
-import { Plane, Vector3 } from 'three';
+import { Color, Plane, Vector3, type Ray } from 'three';
+import { drag, useDragTuningEdits } from '../tuning/drag';
+import { toast } from '../ui/kit';
+import { text, fill } from '../ui/words';
+import { MAX_DICE } from '../utils/diceCap';
+import { shouldShowCapToast } from '../utils/unlockTurn';
 import type { Group } from 'three';
 
-const _dragPlane = new Plane(new Vector3(0, 1, 0), 0); // Y=0 table plane
+// F48: the finger's ray is met at the height the dragged die floats at (not the table), so the die
+// is drawn right under the finger instead of drifting off it in perspective.
+const _dragPlane = new Plane(new Vector3(0, 1, 0), 0);
 const _dragIntersect = new Vector3();
+
+/** Where the finger's ray meets the dragged die's height (fills _dragIntersect). False if it never does. */
+function pointAtDragHeight(ray: Ray): boolean {
+  _dragPlane.constant = -DIE_SIZE * drag.dragHeight; // plane y = drag height
+  return ray.intersectPlane(_dragPlane, _dragIntersect) !== null;
+}
 
 interface PlayerRowProps {
   z?: number;
@@ -17,22 +30,18 @@ interface PlayerRowProps {
   lockedValues?: (number | null)[];
   phase?: GamePhase;
   selectedForUnlock?: number[];
-  shakingSlot?: number | null;
   animatingSlotIndices?: number[];
   unlockAnimations?: UnlockAnimation[];
   canUnlock?: boolean;
   maxUnlocks?: number;
+  atCap?: boolean; // F48: the 12-dice cap is reached — locked dice dim and can't be dragged
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
-const OUTLINE_SIZE = DIE_SIZE * 1.15; // slightly larger than die for outline effect
-const LIFT_HEIGHT = 0.3; // Y offset when selected ("picked up")
-const PULSE_SPEED = 3; // scale pulse frequency
-const PULSE_AMOUNT = 0.03; // subtle pulse amplitude
+// Drag feel numbers (lift, pulse, shake, ring, snap-back, cap dim…) live in content/tuning/drag.json → `drag`
 
-const SHAKE_DURATION = 0.15; // seconds
-const SHAKE_INTENSITY = 0.08; // world units
-const SHAKE_FREQ = 90; // oscillations per second
+const CAP_DIM_TOWARD = new Color('#2b2b2b'); // a die at the 12-dice cap fades toward this (drag.capDim)
+let lastCapToastAt: number | null = null; // shared by every die: one toast for the whole row
 
 /** Animated wrapper for locked dice during unlock phase */
 function UnlockableDie({
@@ -41,7 +50,7 @@ function UnlockableDie({
   color,
   isSelected,
   selectable,
-  shaking,
+  capped,
   rowZ,
 }: {
   slotIndex: number;
@@ -49,29 +58,53 @@ function UnlockableDie({
   color: string;
   isSelected: boolean;
   selectable: boolean;
-  shaking: boolean;
+  capped: boolean;
   rowZ: number;
 }) {
   const groupRef = useRef<Group>(null);
   const shakeStartRef = useRef<number | null>(null);
   const liftRef = useRef(0); // current lift amount, lerps toward target
   const isDragging = useRef(false);
+  const dragPointerId = useRef<number | null>(null); // the finger (or mouse) holding this die
+  const grabOffset = useRef<[number, number]>([0, 0]); // die centre minus finger point (x, z), so it doesn't jump on pickup
   const wasDragging = useRef(false);
   const returnFromPos = useRef<[number, number, number] | null>(null);
 
   const dragUnlockState = useGameStore((s) => s.dragUnlockState);
   const startDragUnlock = useGameStore((s) => s.startDragUnlock);
   const updateDragPosition = useGameStore((s) => s.updateDragPosition);
-  const completeDragUnlock = useGameStore((s) => s.completeDragUnlock);
 
   const isBeingDragged = dragUnlockState.active && dragUnlockState.slotIndex === slotIndex;
 
-  // Track shake start time
-  if (shaking && shakeStartRef.current === null) {
-    shakeStartRef.current = Date.now();
-  } else if (!shaking) {
-    shakeStartRef.current = null;
-  }
+  // Let go of the die: the store decides commit vs snap-back (rolling zone, 12-dice cap, turn still
+  // open) from the last place the die was seen. If the timer already resolved this drag, this does nothing.
+  const endDrag = () => {
+    isDragging.current = false;
+    dragPointerId.current = null;
+    useGameStore.getState().completeDragUnlock();
+  };
+
+  // F48: the finger can be lost mid-drag without a normal release — the phone takes over the touch
+  // (pointercancel: a system gesture, a notification, the page scrolling) or the pointer capture is
+  // dropped (lostpointercapture). R3F doesn't pass either to the die, so listen on the page and
+  // resolve the drag right away, exactly like letting go at the last known spot.
+  useEffect(() => {
+    const onPointerLost = (e: PointerEvent) => {
+      if (!isDragging.current || e.pointerId !== dragPointerId.current) return;
+      endDrag();
+    };
+    window.addEventListener('pointercancel', onPointerLost, true);
+    window.addEventListener('lostpointercapture', onPointerLost, true);
+    return () => {
+      window.removeEventListener('pointercancel', onPointerLost, true);
+      window.removeEventListener('lostpointercapture', onPointerLost, true);
+    };
+  }, []);
+
+  // At the 12-dice cap the die wears a dimmed colour
+  // (colour, ring size and ring opacity are read while drawing — this redraws them when the Dev Kit edits drag.json)
+  useDragTuningEdits();
+  const dieColor = capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, drag.capDim).getHexString() : color;
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
@@ -94,7 +127,7 @@ function UnlockableDie({
       const targetX = getSlotX(slotIndex);
       const targetY = DIE_SIZE / 2;
       const targetZ = 0;
-      const speed = Math.min(1, delta * 12);
+      const speed = Math.min(1, delta * drag.snapBackSpeed);
       groupRef.current.position.x += (targetX - groupRef.current.position.x) * speed;
       groupRef.current.position.y += (targetY - groupRef.current.position.y) * speed;
       groupRef.current.position.z += (targetZ - groupRef.current.position.z) * speed;
@@ -113,9 +146,13 @@ function UnlockableDie({
 
     // Drag position override — world coords converted to local (subtract parent rowZ)
     if (isBeingDragged && dragUnlockState.currentPosition) {
-      groupRef.current.position.x = dragUnlockState.currentPosition[0];
-      groupRef.current.position.y = DIE_SIZE * 2.5;
-      groupRef.current.position.z = dragUnlockState.currentPosition[2] - rowZ;
+      const targetX = dragUnlockState.currentPosition[0];
+      const targetZ = dragUnlockState.currentPosition[2] - rowZ;
+      // followSmoothing 0 = glued to the finger; higher = the die trails a little (seconds)
+      const follow = drag.followSmoothing > 0 ? 1 - Math.exp(-delta / drag.followSmoothing) : 1;
+      groupRef.current.position.x += (targetX - groupRef.current.position.x) * follow;
+      groupRef.current.position.y = DIE_SIZE * drag.dragHeight;
+      groupRef.current.position.z += (targetZ - groupRef.current.position.z) * follow;
       return; // skip lift/pulse/shake while dragging
     }
 
@@ -123,9 +160,9 @@ function UnlockableDie({
     const baseX = getSlotX(slotIndex);
     if (shakeStartRef.current !== null) {
       const elapsed = (Date.now() - shakeStartRef.current) / 1000;
-      if (elapsed < SHAKE_DURATION) {
-        const decay = 1 - elapsed / SHAKE_DURATION;
-        const offset = Math.sin(elapsed * SHAKE_FREQ) * SHAKE_INTENSITY * decay;
+      if (elapsed < drag.shakeSeconds) {
+        const decay = 1 - elapsed / drag.shakeSeconds;
+        const offset = Math.sin(elapsed * drag.shakeSpeed) * drag.shakeDistance * decay;
         groupRef.current.position.x = baseX + offset;
       } else {
         groupRef.current.position.x = baseX;
@@ -139,13 +176,13 @@ function UnlockableDie({
     groupRef.current.position.z = 0;
 
     // Lift: translate Y up when selected, back down when deselected
-    const liftTarget = isSelected ? LIFT_HEIGHT : 0;
-    liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * 10);
+    const liftTarget = isSelected ? drag.liftHeight : 0;
+    liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * drag.liftSpeed);
     groupRef.current.position.y = DIE_SIZE / 2 + liftRef.current;
 
     // Pulse: gentle scale pulse on selectable unselected dice (shows interactivity)
     if (!isSelected && selectable) {
-      const pulse = 1 + Math.sin(Date.now() * 0.001 * PULSE_SPEED) * PULSE_AMOUNT;
+      const pulse = 1 + Math.sin(Date.now() * 0.001 * drag.pulseSpeed) * drag.pulseAmount;
       groupRef.current.scale.setScalar(DIE_SIZE * pulse);
     } else {
       // Selected or unselectable dice stay at base scale
@@ -162,32 +199,52 @@ function UnlockableDie({
         rotation={getRotationForFace(value)}
         scale={DIE_SIZE}
         onPointerDown={(e) => {
+          if (capped) {
+            // F48: can't drag at the 12-dice cap — a little shake + "Max 12 dice" (not once per tap)
+            e.stopPropagation();
+            shakeStartRef.current = Date.now();
+            const now = Date.now();
+            if (shouldShowCapToast(now, lastCapToastAt, drag.capToastSeconds)) {
+              lastCapToastAt = now;
+              toast(fill(text.toasts.maxDice, { max: MAX_DICE }));
+            }
+            return;
+          }
           if (!selectable) return;
           e.stopPropagation();
-          (e.target as Element).setPointerCapture?.(e.pointerId);
+          // F48: one drag at a time — a second finger (on this die or another) is ignored
+          if (isDragging.current) return;
           const originPosition: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, rowZ];
-          startDragUnlock(slotIndex, value, originPosition);
+          if (!startDragUnlock(slotIndex, value, originPosition)) return;
+          (e.target as Element).setPointerCapture?.(e.pointerId);
           isDragging.current = true;
+          dragPointerId.current = e.pointerId;
+          // Remember where on the die the finger grabbed it (keepGrabOffset 0 = centre it under the finger)
+          grabOffset.current = [
+            (getSlotX(slotIndex) - e.point.x) * drag.keepGrabOffset,
+            (rowZ - e.point.z) * drag.keepGrabOffset,
+          ];
+          // Lift it straight up under the finger now, not on the first move
+          if (pointAtDragHeight(e.ray)) {
+            updateDragPosition([_dragIntersect.x + grabOffset.current[0], DIE_SIZE / 2, _dragIntersect.z + grabOffset.current[1]]);
+          }
         }}
         onPointerMove={(e) => {
-          if (!isDragging.current || !selectable) return;
+          if (!isDragging.current || !selectable || e.pointerId !== dragPointerId.current) return;
           e.stopPropagation();
-          if (e.ray.intersectPlane(_dragPlane, _dragIntersect)) {
-            updateDragPosition([_dragIntersect.x, DIE_SIZE / 2, _dragIntersect.z]);
+          if (pointAtDragHeight(e.ray)) {
+            updateDragPosition([_dragIntersect.x + grabOffset.current[0], DIE_SIZE / 2, _dragIntersect.z + grabOffset.current[1]]);
           }
         }}
         onPointerUp={(e) => {
           // No `selectable` check here: the turn may have closed mid-drag — still let go cleanly
-          if (!isDragging.current) return;
+          if (!isDragging.current || e.pointerId !== dragPointerId.current) return;
           e.stopPropagation();
+          endDrag(); // before releasing, so the lostpointercapture that follows is ignored
           (e.target as Element).releasePointerCapture?.(e.pointerId);
-          isDragging.current = false;
-          // The store decides commit vs snap-back (rolling zone, 12-dice cap, turn still open).
-          // If the timer already resolved this drag, this does nothing.
-          completeDragUnlock();
         }}
         onPointerOver={(e) => {
-          if (!selectable) return;
+          if (!selectable && !capped) return;
           e.stopPropagation();
           document.body.style.cursor = 'pointer';
         }}
@@ -198,7 +255,7 @@ function UnlockableDie({
         {/* B010: draw this die (body AND pips) after other no-depth-test table marks, so they never
             show through the pip holes when a lifted die passes over them. (The row badges beside
             each row are page-level kit chips since F58: they fade under a dragged die — RowChips.tsx.) */}
-        <Die3D color={color} renderOrder={30} />
+        <Die3D color={dieColor} renderOrder={30} />
       </group>
 
       {/* White outline ring — only visible when selectable or already selected */}
@@ -207,11 +264,11 @@ function UnlockableDie({
           position={[getSlotX(slotIndex), 0.03, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <ringGeometry args={[OUTLINE_SIZE * 0.45, OUTLINE_SIZE * 0.55]} />
+          <ringGeometry args={[DIE_SIZE * drag.ringSize * 0.45, DIE_SIZE * drag.ringSize * 0.55]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
-            opacity={isSelected ? 1.0 : 0.5}
+            opacity={isSelected ? drag.ringSelectedOpacity : drag.ringOpacity}
             depthWrite={false}
           />
         </mesh>
@@ -226,11 +283,11 @@ export function PlayerRow({
   lockedValues = Array(SLOT_COUNT).fill(null),
   phase,
   selectedForUnlock = [],
-  shakingSlot = null,
   animatingSlotIndices = [],
   unlockAnimations = [],
   canUnlock = true,
   maxUnlocks = 0,
+  atCap = false,
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
   const remainingSelections = maxUnlocks - selectedForUnlock.length;
@@ -262,7 +319,7 @@ export function PlayerRow({
                 color={color}
                 isSelected={isThisSelected}
                 selectable={isSelectable}
-                shaking={shakingSlot === i}
+                capped={atCap && !isThisSelected}
                 rowZ={z}
               />
             );

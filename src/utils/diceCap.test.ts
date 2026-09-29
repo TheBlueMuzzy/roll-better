@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { totalDiceAfterUnlocks, maxUnlocksAllowed, MAX_DICE } from './diceCap';
+import { totalDiceAfterUnlocks, maxUnlocksAllowed, unlocksLeft, isAtDiceCap, MAX_DICE } from './diceCap';
 
 // F47 — the server's cap only looked at the pool ((12 − pool) / 2), the phone counted
 // pool + locked + 2 per unlock. Now both use these helpers.
@@ -38,5 +38,27 @@ describe('maxUnlocksAllowed — 12-dice cap (phone and server)', () => {
         }
       }
     }
+  });
+});
+
+// F48 — at the cap the locked dice show dimmed, so the player can see why they won't move
+describe('unlocksLeft / isAtDiceCap — the dimmed-dice signal', () => {
+  it('counts the dice already dragged out this turn', () => {
+    // pool 2 + 7 locked at the start may unlock 3; after dragging 2 out, 1 is left
+    expect(unlocksLeft(2, 5, 2)).toBe(1);
+    expect(isAtDiceCap(2, 5, 2)).toBe(false);
+  });
+
+  it('at the cap once the last allowed die is dragged out', () => {
+    expect(unlocksLeft(2, 4, 3)).toBe(0);
+    expect(isAtDiceCap(2, 4, 3)).toBe(true);
+  });
+
+  it('already at 12 dice before dragging anything: every locked die is dimmed', () => {
+    expect(isAtDiceCap(6, 6, 0)).toBe(true);
+  });
+
+  it('no locked dice left: nothing to dim', () => {
+    expect(isAtDiceCap(12, 0, 0)).toBe(false);
   });
 });

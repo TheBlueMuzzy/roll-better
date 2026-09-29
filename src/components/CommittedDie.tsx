@@ -4,6 +4,7 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { getRotationForFace } from './GoalRow';
 import type { Group } from 'three';
+import { drag } from '../tuning/drag';
 
 interface CommittedDieProps {
   value: number;
@@ -13,7 +14,7 @@ interface CommittedDieProps {
 }
 
 /** Visual-only glowing die shown in the rolling zone for committed unlocks. No physics.
- *  Animates from dropPosition to position with a small arc on mount. */
+ *  Animates from dropPosition to position with a small arc on mount (hop + glow: content/tuning/drag.json). */
 export function CommittedDie({ value, color, position, dropPosition }: CommittedDieProps) {
   const groupRef = useRef<Group>(null);
   const animProgress = useRef(0);
@@ -22,7 +23,7 @@ export function CommittedDie({ value, color, position, dropPosition }: Committed
     if (!groupRef.current) return;
     if (animProgress.current >= 1) return;
 
-    animProgress.current = Math.min(1, animProgress.current + delta * 6);
+    animProgress.current = Math.min(1, animProgress.current + delta * drag.parkedHopSpeed);
     // Cubic ease-out
     const t = 1 - Math.pow(1 - animProgress.current, 3);
 
@@ -30,7 +31,7 @@ export function CommittedDie({ value, color, position, dropPosition }: Committed
     const x = dropPosition[0] + (position[0] - dropPosition[0]) * t;
     const z = dropPosition[2] + (position[2] - dropPosition[2]) * t;
     // Y: base height + parabolic arc (small hop)
-    const y = DIE_SIZE / 2 + Math.sin(t * Math.PI) * DIE_SIZE * 2.0;
+    const y = DIE_SIZE / 2 + Math.sin(t * Math.PI) * DIE_SIZE * drag.parkedHopHeight;
 
     groupRef.current.position.set(x, y, z);
   });
@@ -42,7 +43,7 @@ export function CommittedDie({ value, color, position, dropPosition }: Committed
       rotation={getRotationForFace(value)}
       scale={DIE_SIZE}
     >
-      <Die3D color={color} emissive={color} emissiveIntensity={0.3} />
+      <Die3D color={color} emissive={color} emissiveIntensity={drag.parkedGlow} />
     </group>
   );
 }

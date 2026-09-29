@@ -21,20 +21,20 @@ export function MainMenuScreen({ version, onPlay }: MainMenuScreenProps) {
     onPlay(4)
   }
 
-  // The kit lists its buttons in a fixed order (continue, play, settings, how to play…).
-  // Its first slot is the big main button, so local play goes there and online play second.
+  // Buttons in the game's order: local play is the big main one, online second (kit MainMenu items).
   // The version sits in the bottom-left corner, not MainMenu's own bottom row: on a landscape
-  // phone (390 tall) five buttons + that row don't fit and the version lands on Upgrades.
+  // phone (390 tall) that row would land on the Upgrades button.
   return (
     <div className="kit-page menu-page">
       <MainMenu
         title={w.title}
         subtitle={w.subtitle}
-        words={{ continue: w.play, play: w.playOnline, settings: w.settings, howToPlay: w.howToPlay }}
-        onContinue={playLocal}
-        onPlay={() => open('online')}
-        onSettings={() => open('settings')}
-        onHowToPlay={() => open('howToPlay')}
+        items={[
+          { label: w.play, onClick: playLocal },
+          { label: w.playOnline, onClick: () => open('online') },
+          { label: w.settings, onClick: () => open('settings') },
+          { label: w.howToPlay, onClick: () => open('howToPlay') },
+        ]}
       >
         <Button variant="secondary" disabled>
           {w.upgrades} <Badge>{w.comingSoon}</Badge>

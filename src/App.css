@@ -32,17 +32,13 @@ body {
   --kit-frame-h: var(--game-h);
 }
 
-/* Kit toasts (tips, messages) sit at the BOTTOM of the rolling area — the right half of the game box.
-   The top is taken by the instructions (level with the Goal dice, B016) and the left by the rows.
-   Never in a letterbox bar. (Kit toasts have no placement option of their own: top centre of the window.) */
-.kit-toasts {
-  --side-bar: calc((100vw - var(--game-w)) / 2);
-  inset: auto 0 0;
-  margin-top: 0;
-  margin-bottom: calc((100dvh - var(--game-h)) / 2 + var(--gap-m));
-  margin-left: calc(var(--side-bar) + var(--game-w) / 2 + var(--gap-m));
-  margin-right: calc(var(--side-bar) + var(--gap-m) * 4); /* clear of the gear */
-  max-inline-size: none;
+/* Kit toasts (tips, messages) sit at the BOTTOM of the rolling area — the right half of the game box
+   (<ToastStack place="bottom" /> in App.tsx; the kit keeps them out of the letterbox bars).
+   The top is taken by the instructions (level with the Goal dice, B016) and the left by the rows,
+   so the left half is kept clear, and the right edge clear of the gear (the kit adds one gap-m on each side). */
+:root {
+  --kit-toasts-start: calc(var(--game-w) / 2);
+  --kit-toasts-end: calc(var(--gap-m) * 3);
 }
 
 #root {
@@ -62,27 +58,6 @@ body {
 :root {
   /* UI kit screens (Settings, How to Play, online) sit where the old settings did: above the game */
   --kit-overlay-z: 80;
-}
-
-/* --- Pinned kit UI (src/components/Pinned.tsx) ---
-   A kit piece stuck to a 3D point, scaled (--pin-scale, set by Pinned) to fit its box on the table.
-   Scale first, then shift so the anchor point lands on the piece's right-middle (or middle).
-   Hidden until its first measure, so it never flashes at the wrong size. Never catches taps. */
-.pinned {
-  width: max-content;
-  transform-origin: 0 0;
-  transform: scale(var(--pin-scale, 1)) translate(-100%, -50%);
-  visibility: hidden;
-}
-.pinned[data-anchor="center"] {
-  transform: scale(var(--pin-scale, 1)) translate(-50%, -50%);
-}
-.pinned[data-ready] {
-  visibility: visible;
-}
-.pinned,
-.pinned * {
-  pointer-events: none;
 }
 
 /* --- In-game HUD (kit Hud, src/ui/GameHud.tsx) ---

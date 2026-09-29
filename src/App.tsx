@@ -756,7 +756,7 @@ function App() {
         </div>
       )}
       <ScreenStack overlay screens={kitScreenList} />
-      <ToastStack />
+      <ToastStack place="bottom" />
       <TouchIndicator />
       {screen !== 'menu' && <div className="build-version">{version}</div>}
     </OnlineRoomProvider>

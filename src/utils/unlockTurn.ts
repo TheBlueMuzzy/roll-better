@@ -48,6 +48,21 @@ export function isUnlockTurnOpen(state: UnlockTurnState): boolean {
   return true;
 }
 
+export interface DragStartInput {
+  turnOpen: boolean;     // isUnlockTurnOpen() right now
+  dragActive: boolean;   // a die is already being dragged
+  stillLocked: boolean;  // the die is still in the player's row (not already parked in the rolling area)
+}
+
+/**
+ * F48: can this die be picked up? One drag at a time — a second finger is ignored while a die is
+ * being dragged — and a die can't be grabbed twice.
+ */
+export function canStartDrag(input: DragStartInput): boolean {
+  const { turnOpen, dragActive, stillLocked } = input;
+  return turnOpen && !dragActive && stillLocked;
+}
+
 export interface DragReleaseInput {
   turnOpen: boolean;        // isUnlockTurnOpen() at the moment the drag ends
   overRollingZone: boolean; // where the die is when the drag ends
@@ -84,4 +99,12 @@ export function returnParkedDice<T extends { goalSlotIndex: number; value: numbe
     .filter((p) => !lockedDice.some((l) => l.goalSlotIndex === p.slotIndex))
     .map((p) => ({ goalSlotIndex: p.slotIndex, value: p.value }));
   return back.length === 0 ? lockedDice : [...lockedDice, ...back];
+}
+
+/**
+ * F48: pressing a die at the 12-dice cap shows a "Max 12 dice" toast — but at most once every
+ * `cooldownSeconds`, however fast the player taps. `lastShownMs` = null if it hasn't shown yet.
+ */
+export function shouldShowCapToast(nowMs: number, lastShownMs: number | null, cooldownSeconds: number): boolean {
+  return lastShownMs === null || nowMs - lastShownMs >= cooldownSeconds * 1000;
 }

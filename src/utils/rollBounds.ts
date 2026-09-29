@@ -9,7 +9,10 @@ import {
   WALL_THICKNESS,
   DIE_SIZE,
 } from '../components/RollingArea';
-import physics from '../../content/tuning/physics.json';
+import physicsFile from '../../content/tuning/physics.json';
+import { liveTuning } from '../devkit/tuning/liveTuning';
+
+const physics = liveTuning('physics', physicsFile); // follows the Dev Kit's Tuning sliders live
 
 /** The inside faces of the four walls, and the top of the floor. */
 export const ROLL_BOUNDS = {
@@ -26,7 +29,7 @@ export const ROLL_BOUNDS = {
  */
 export function isOutOfRollBounds(position: [number, number, number]): boolean {
   const [x, y, z] = position;
-  const m = physics.outOfBoundsMargin;
+  const m = physics.current.outOfBoundsMargin;
   return (
     x < ROLL_BOUNDS.minX - m ||
     x > ROLL_BOUNDS.maxX + m ||

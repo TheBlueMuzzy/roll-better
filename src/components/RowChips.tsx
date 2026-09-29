@@ -11,6 +11,7 @@ import { roundScore } from '../utils/scoring';
 import { playScoreComplete } from '../utils/soundManager';
 import { getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { DIE_SIZE } from './RollingArea';
+import { drag } from '../tuning/drag';
 import { Pinned } from './Pinned';
 import { GoalCorner, PlayerRowChip } from '../ui/RowChip';
 
@@ -27,10 +28,9 @@ const CHIP_FIT: [number, number] = [2.95, 1.15];
 const CHIP_REM = 0.34;
 const GOAL_CHIP_POSITION: [number, number, number] = [CHIP_RIGHT_X - 0.3, 0, GOAL_ROW_Z - 0.15];
 
-// A dragged die is lifted (PlayerRow: DIE_SIZE × 2.5 up), so on screen it shows up further out than
-// the spot under it. The check therefore happens on SCREEN: the die's drawn square against each
-// chip's drawn box (chips carry data-pin, see Pinned).
-const DRAG_LIFT = DIE_SIZE * 2.5;
+// A dragged die is lifted (content/tuning/drag.json → dragHeight, in die sizes), so on screen it shows
+// up further out than the spot under it. The check therefore happens on SCREEN: the die's drawn square
+// against each chip's drawn box (chips carry data-pin, see Pinned).
 const _point = new Vector3();
 
 // Screen pixel (page coordinates) where a world point is drawn
@@ -43,6 +43,7 @@ function toScreen(x: number, y: number, z: number, camera: Camera, canvas: DOMRe
 function chipsUnderDie(dragPos: [number, number, number], camera: Camera, canvasEl: HTMLCanvasElement): string {
   const canvas = canvasEl.getBoundingClientRect();
   const [x, , z] = dragPos;
+  const DRAG_LIFT = DIE_SIZE * drag.dragHeight;
   const [cx, cy] = toScreen(x, DRAG_LIFT, z, camera, canvas);
   const [edgeX] = toScreen(x + DIE_SIZE / 2, DRAG_LIFT, z, camera, canvas);
   const r = Math.abs(edgeX - cx); // half the die's size on screen

@@ -1,5 +1,5 @@
 # Roll Better — Online play in detail
-> Detail for TDD §2b Multiplayer — keep in step with TDD.md
+> Detail for TDD §2b Multiplayer + Timers and the D15–D16 decisions — keep in step with TDD.md
 
 (Moved from the TDD's §2b on 2026-09-28; the TDD keeps the summary and the Timers table.)
 
@@ -30,3 +30,29 @@ Types live in `src/types/protocol.ts`.
 
 ## What each deploy contains
 Push to `master` → GitHub Actions runs `npm test` + `npm run build` (with `VITE_PARTY_HOST`) → Pages. Server changes need `npx partykit deploy` (or `npm run party:deploy`) by hand — a front-end release does NOT update the server.
+
+## Timers — full notes
+(Moved from the TDD §2b Timers table on 2026-09-29; the table there keeps one short line per timer.)
+- **Unlock inactivity (3 s, client):** restarts on every committed drag; owned by `StatusPin` → `useCountdown`, offline + online (was the HUD until v1.7); starts in `unlocking` once animations are done. On expiry: a mid-drag die resolves by zone (commit / snap back), the turn is closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs`.
+- **Unlock backstop (server):** 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit). On expiry `autoSkipUnresponsivePlayers` → the client gets an AFK unlock, played through the drag path (still counts toward AFK escalation).
+- **Roll backstop (server):** 25 s = the client's 20 s + 5 s margin; starts when the first `roll_result` arrives (idle → rolling); auto-rolls non-responders.
+
+## Decisions — full text (D15–D16)
+(Moved word for word from the TDD §8 Decisions log on 2026-09-29; the TDD keeps one line per decision.)
+```
+D16 · 2026-09-28 · Unlock backstop vs the 3 s drag timer: each committed drag pings the server (unlock_activity)
+  Proposed by: Claude (F47 task 4)
+  Options: longer fixed backstop (turn can be ~7 windows × 3 s + lead-in ≈ 26 s, so 35 s+) /
+  per-player deadline worked out from the cap / activity ping that tops the backstop up
+  Chose: activity ping — on unlock_activity the server makes sure ≥ 10 s remain on the (room-wide) backstop.
+  Why: an actively dragging player can never be AFK'd however many dice they drag, real AFK is still
+  caught at 25 s, and it's one tiny message per drag (≤ 7 per turn). Cost: an active dragger can delay
+  AFK detection of someone else by a few seconds. Revisit if the backstop becomes per-player.
+  2026-09-29 (pre-release review): the top-ups had no limit, so a client pinging every 9 s could hold the whole room in the unlock phase → added a 45 s hard limit per phase (a real turn is ≈ 26 s at most).
+D15 · 2026-09-28 · Online drag-to-unlock: each phone sends ONE batched unlock_request when its own inactivity timer ends
+  Proposed by: Claude (hotfix B003); Muzzy suggested the alternative
+  Options: server decides every player's unlocks itself at timer end / each phone owns its timer and sends one batch
+  Chose: per-phone batch — Muzzy's decision (he approved it over his own server-decides idea). Why: your own dice never wait
+  on a server round-trip and a drag near the deadline can't be lost; the server's 25 s backstop still catches real AFK.
+  Revisit if we ever go server-authoritative for anti-cheat.
+```

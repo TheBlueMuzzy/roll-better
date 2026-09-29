@@ -8,15 +8,15 @@ Release target: 1.0 — musts not set yet (/define) · live stage: beta (Muzzy 2
 ## v1.4 — Landscape  ✅ shipped 2026-03-26
 ## v1.5 — Hold-to-Gather-Roll  ✅ shipped 2026-03-27
 
-## v1.6 — Drag-to-Unlock  ← current  (open: F48)  (→ release stage not set)
+## v1.6 — Drag-to-Unlock  ← current  (all done — ready to /deliver)  (→ release stage not set)
 Goal: players unlock by dragging locked dice into the rolling area — offline and online — with no UNLOCK/SKIP buttons.
-Live now: v0.3.0 (2026-09-29) — everything except F48.
+Live now: v0.3.0 (2026-09-29) — everything except F48 (done on dev/v1.6, approved 2026-09-29).
 - ✅ F44 🎮 Drag detection & drop zone — must:next
 - ✅ F45 🎮 Drop commit & highlight state — must:next · needs: F44
 - ✅ F46 🎮 Inactivity timer & batch mitosis — must:next · needs: F45
 - ✅ F47a ❓ Decide online unlock messages: per-drag or one batch — Muzzy picked one batch per phone (TDD D15)
 - ✅ F47 🎮 Online play integration — must:next · needs: F46, F47a · sprint 1 (+B006) · approved 2026-09-28
-- 🟢 F48 ✨ Polish & UAT — must:next · needs: F46, ~F47
+- ✅ F48 ✨ Polish & UAT — must:next · needs: F46, ~F47 · sprint 5
   what: 12-die cap feedback, drag near boundaries, fast multi-drag, drag feel tuning, full online + viewport UAT; fix B005 tip text
 - ✅ F49 🐞 CI builds the same way as local — must:next · sprint 1
   what: deploy workflow runs `npm run build` (type check included) instead of `npx vite build` — root cause of B004 staying hidden; 1 task
@@ -27,7 +27,7 @@ flowchart LR
   F45 --> F46[✅ F46 Timer + batch mitosis]
   F46 --> F47[✅ F47 Online integration]
   F47a[✅ F47a Batch or per-drag?] --> F47
-  F46 --> F48[🟢 F48 Polish + UAT]
+  F46 --> F48[✅ F48 Polish + UAT]
   F47 -.working.-> F48
   F49[✅ F49 CI same build]
 ```
@@ -94,3 +94,4 @@ Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 ## Ideas
 - 2026-09-29 — Dev Kit tabs next (Muzzy): **Spacing** (gaps/margins/radius from style.json), **Type** (fonts + sizes), game-specific **Tuning** tabs (e.g. power curves, timers, physics — content/tuning), a **Level loader**. And Dev Kit access on released builds — see the options discussed 2026-09-29 (test build vs passphrase; release can't Save to files; online fairness).
 - 2026-09-29 — Colour-blind: with Deuteranopia, red (B1) and green (B3) player chips look nearly the same (Dev Kit Color tool preview). Initials still differ; consider a colour-blind-safe player palette or a shape/pattern per player.
+- 2026-09-29 — Phone held upright: the whole game is a 390×219 letterboxed strip, so HUD text is ~9 px (readable but tiny). A real portrait layout, or a "turn your phone" hint? (seen in F48 e2e)
