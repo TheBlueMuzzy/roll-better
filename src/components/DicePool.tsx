@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useBeforePhysicsStep } from '@react-three/rapier';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
@@ -136,6 +137,10 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     const gatherStartDistRef = useRef<(number | null)[]>([]);
     const lastGoalsRef = useRef<[number, number, number][]>([]);
     const gatherStartMsRef = useRef(0); // real clock (gatherElapsed is capped per frame)
+    const gatherPhysicsSecondsRef = useRef(0); // physics time the pull actually ran
+    useBeforePhysicsStep((world) => {
+      if (wasGatheringRef.current) gatherPhysicsSecondsRef.current += world.timestep;
+    });
     const rollStartTime = useRef(0);
 
     // Settle tracking — per-die booleans (handles dice bumping each other)
@@ -373,8 +378,9 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       }
       // The pull takes ~1 s to reach the ring — a quick tap can't be judged
       const heldSeconds = (performance.now() - gatherStartMsRef.current) / 1000;
-      if (heldSeconds < 0.6) {
-        console.log(`[Gather] quick tap (${heldSeconds.toFixed(2)}s) — too short to judge the pull`);
+      const pulledSeconds = gatherPhysicsSecondsRef.current;
+      if (heldSeconds < 0.6 || pulledSeconds < 0.6) {
+        console.log(`[Gather] quick tap (${heldSeconds.toFixed(2)}s held, ${pulledSeconds.toFixed(2)}s of pull) — too short to judge the pull`);
         return;
       }
       const lines: string[] = [];
@@ -396,7 +402,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       const summary = missed.length === 0
         ? `all ${count} dice swept in`
         : `MISSED ${missed.length}/${count} dice [${missed.join(', ')}]`;
-      console.log(`[Gather] release after ${heldSeconds.toFixed(2)}s: ${summary} — ${lines.join(' | ')}`);
+      console.log(`[Gather] release after ${heldSeconds.toFixed(2)}s (${pulledSeconds.toFixed(2)}s of pull): ${summary} — ${lines.join(' | ')}`);
     }
 
     // Dev-only: lets e2e/roll-physics.mjs read where every die is (B007/B008 checks)
@@ -485,6 +491,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         gatherStartDistRef.current = Array.from({ length: count }, () => null);
         lastGoalsRef.current = [];
         gatherStartMsRef.current = performance.now();
+        gatherPhysicsSecondsRef.current = 0;
         // B007: no roll is in flight while gathering — the roll starts at release.
         // Block every settle path (speed check, fallback timer, 10 s timeout) until then,
         // or dice sitting still before the pull (e.g. a pool that just spawned) would

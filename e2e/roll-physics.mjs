@@ -25,6 +25,11 @@ const GESTURES = [
   { name: 'drag-to-wall', hold: 2000, moveTo: [990, 540] },
 ];
 
+if (ONLY && !GESTURES.some((g) => g.name === ONLY)) {
+  console.log(`unknown gesture "${ONLY}" — use one of: ${GESTURES.map((g) => g.name).join(', ')}`);
+  process.exit(1);
+}
+
 run(async () => {
   await startServer('vite', `npx vite --port ${VITE_PORT} --strictPort`, VITE_PORT);
   const browser = await launchBrowser();
@@ -37,7 +42,7 @@ run(async () => {
   const recent = []; // last console lines, printed if a roll gets stuck
   page.on('console', (m) => {
     const t = m.text();
-    recent.push(t.slice(0, 200)); if (recent.length > 40) recent.shift();
+    recent.push(t.slice(0, 300)); if (recent.length > 40) recent.shift();
     if (t.includes('Absolute 10s settle timeout')) timeouts.push(t);
     if (t.includes('[PhysicsDie] out of bounds')) { rescues.push(t); log('   ', t); }
     if (t.startsWith('[Gather]')) { gatherLines.push(t); if (t.includes('MISSED') || process.env.VERBOSE) log('   ', t); }
@@ -143,12 +148,16 @@ run(async () => {
   const check = (name, pass) => { checks.push(pass); log(pass ? '  ok  ' : '  FAIL', name); };
   log(`rolls: ${rolls}, rolls with a die out of bounds: ${escapedRolls.length}, 10 s timeouts: ${timeouts.length}, put-backs: ${rescues.length}`);
   const partial = gatherLines.filter((l) => l.includes('MISSED'));
-  log(`gather log lines: ${gatherLines.length}, with missed dice: ${partial.length}`);
+  const judged = gatherLines.filter((l) => l.includes('release after'));
+  const tooShort = gatherLines.filter((l) => l.includes('quick tap') || l.includes('before the first pull frame'));
+  // A "quick tap" is judged by physics time, not the clock: in this headless browser a frame can
+  // take 0.3–0.8 s, so a 150 ms tap can end before a single physics step has pulled anything.
+  log(`gathers: ${gatherLines.length} (judged ${judged.length}, too short to judge ${tooShort.length}), with missed dice: ${partial.length}`);
   if (partial.length) partial.slice(0, 5).forEach((l) => log('   ', l));
   check(`did ${ROLLS} rolls`, rolls >= ROLLS);
   check('no die out of bounds (after put-back safety net)', escapedRolls.length === 0);
   check('the 10 s settle timeout never fired', timeouts.length === 0);
-  check('every gather pulled every die into the spin', gatherLines.length > 0 && partial.length === 0);
+  check('every gather held for 0.6 s+ of physics pull swept every die into the spin', judged.length > 0 && partial.length === 0);
   check('no page errors', errors.length === 0);
   if (errors.length) log('page errors:', errors.slice(0, 5));
   return checks.every(Boolean);
