@@ -228,7 +228,7 @@ function App() {
       if (mustUnlockNow && shownTips.includes('first-unlock')) {
         tryShowTip('must-unlock', 'No dice to roll \u2014 you must unlock at least one');
       } else {
-        tryShowTip('first-unlock', 'Tap locked dice to select, then press UNLOCK');
+        tryShowTip('first-unlock', 'Drag locked dice into the rolling area to unlock them — each splits in two');
       }
     }
   }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);

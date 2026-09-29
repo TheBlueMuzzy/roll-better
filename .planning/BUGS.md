@@ -1,5 +1,5 @@
 # Roll Better — Bugs
-Open: 3 (P0 0 · P1 0 · P2 0 · P3 3) · watching: 2
+Open: 2 (P0 0 · P1 0 · P2 0 · P3 2) · watching: 2
 
 ## Open
 ### B010 · P3 · open · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
@@ -16,12 +16,6 @@ Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounc
 Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.
 Evidence: `npm run e2e:physics` put-back counts (1–3 per run), dev log `[PhysicsDie] out of bounds`
 
-### B005 · P3 · open · found 2026-09-28 in F46 · v0.2.1.0
-First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)
-Steps: 1. Start a new session with tips on  2. Reach the first turn where you must unlock
-Expected: tip explains dragging a locked die into the rolling area · Actual: old tap/UNLOCK text · How often: every first must-unlock
-Evidence: `src/App.tsx` → `tryShowTip('first-unlock', …)`
-
 ### B001 · P2 · watching · found 2026-03-01 · v0.1.0.51 · (old BUG-001)
 Dice that match the Goal sometimes don't lock — some matches silently dropped
 Steps: 1. Roll  2. Several dice show a Goal value (e.g. two 1s, Goal has three 1s)
@@ -36,6 +30,13 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B005 · P3 · fixed 2026-09-29 · Guarded by: src/utils/playerText.test.ts · found 2026-09-28 in F46 · v0.2.1.0
+First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)
+Steps: 1. Start a new session with tips on  2. Reach the first turn where you must unlock
+Expected: tip explains dragging a locked die into the rolling area · Actual: old tap/UNLOCK text · How often: every first must-unlock
+Evidence: `src/App.tsx` → `tryShowTip('first-unlock', …)`
+Fix: tip + How to Play page 3 now say to drag locked dice into the rolling area (each splits in two). How to Play had the same stale text.
+
 ### B007 · P1 · verified 2026-09-29 (Muzzy: "physics stuff looks good!") · fixed in 2c1846d · Guarded by: src/utils/rollBounds.test.ts + `npm run e2e:physics` · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
 Some dice fly out of the rolling area and the game hangs as if a die is still rolling, then recovers on its own
 Steps: 1. Roll (hold-to-gather-roll)  2. Some dice leave the rolling area
