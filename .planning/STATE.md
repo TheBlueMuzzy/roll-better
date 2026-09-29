@@ -1,19 +1,20 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Released v0.3.0 (beta) 2026-09-29 — live: https://thebluemuzzy.github.io/roll-better/ (Cartoon UI everywhere, Dev Kit Color tool — ` works on the live link until 1.0, B009 fixed). BMUZ skills updated with this project's lessons (open kit gaps listed in ~/.claude/config/bmuz/BMUZ-PLAN.md → next framework kit pass).
-Next (Muzzy said "go" = start here): extract the Dev Kit into the Game Framework as a module — `dev/framework/devkit/` + an installer like ui-kit's; generic = console, tabs, Save/Copy for Claude, Color tab for kit colours, release-build switch (content/devkit.json), check:devkit; game-specific = the table-felt tab (becomes a "game tab" via a small tab API). Prove it by installing it back into Roll Better. Then: BMUZ setup gives every new web game the Dev Kit. After that: F48 drag polish with Muzzy (v1.6's last must).
+On branch `dev/v1.6` (not live): Roll Better now runs on the **framework Dev Kit 0.1.1** (table felt = game tab in `src/devkit-game/`) and **UI kit 0.2.2** (menu items in the game's order, Results dim, toasts via ToastStack place + side-room variables, Pinned = small adapter around kit PinnedBox, `npm run check:ui`). TDD/GDD slimmed (detail moved to design/). All checks + e2e green. Built autonomously 2026-09-29 — waiting for Muzzy's OK (framework Sprint 04).
+Next: Muzzy tries it (`/play`) → OK → F48 drag polish with Muzzy (v1.6's last must), then `/deliver`.
 Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: deliver   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none
-Doing: — released v0.3.0
-Branch: master   Version: 0.3.0.0
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none
+Doing: framework Dev Kit + kit 0.2.2 moved in (waiting for OK)
+Branch: dev/v1.6   Version: 0.3.0.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 
 ## Key facts
 **Run/deploy**
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
+- `npm run check:ui` (kit rules + game CSS restyling kit parts) · `npm run check:devkit` (release build with/without Dev Kit).
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
 - Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
 - Release: GitHub Pages + PartyKit — recipe `~/.claude/config/bmuz/release/github-pages.md`.
@@ -47,6 +48,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Framework Dev Kit 0.1.1 + UI kit 0.2.2 installed on dev/v1.6; TDD/GDD slimmed; all green, awaiting OK.
 - 2026-09-29 — Released v0.3.0 (beta): Cartoon UI everywhere (sprints 02–03 + look fixes B011–B019, kit 0.1.5→0.1.11), Dev Kit console + Color tool (sprint 04, in release builds until 1.0), B009 fixed (collision groups, 0 put-backs), review fixes (Save same-origin only, online Menu leave).
 - 2026-09-29 — Sprint 03 built (autonomous): framework kit 0.1.7 + 0.1.8, F57 pinning, F54 winners, F55 toasts + Round banner, F56 HUD, F58 PlayerChips; old HUD/TipBanner/Winners/3D badges deleted. All checks PASS.
 - 2026-09-29 — Sprint 02 built (autonomous): kit 0.1.5→0.1.6, F50 game box + en.json, F51 menu, F52 lobby + SeatPicker + reconnecting, F53 How to Play, old menu deleted (−963 lines), e2e:midgame added. Sprint 03 planned.
