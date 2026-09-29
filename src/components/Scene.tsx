@@ -6,6 +6,7 @@ import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
 import { RollingArea, DIE_SIZE, SPLIT_X } from './RollingArea';
+import { DropZoneHighlight } from './DropZoneHighlight';
 import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
@@ -486,6 +487,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
             color={player.color}
           />
         ))}
+
+        {/* F48: rolling area lights up while a dragged die is over it (drop will count) */}
+        <DropZoneHighlight />
 
         {/* Committed unlock dice — glowing dice sitting in the rolling zone */}
         {committedUnlocks.map((cu) => (

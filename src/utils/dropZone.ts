@@ -3,12 +3,19 @@ import { ROLLING_X_OFFSET, ARENA_HALF_X, ROLLING_Z_MIN, ROLLING_Z_MAX } from '..
 const PADDING = 0.5; // Tolerance inside edges for basic zone check
 const DROP_PADDING = 1.2; // Extra inset for drop positions — room for mitosis split targets near walls
 
+/** The drop zone: where a dragged die counts when you let go (RollingArea.tsx draws its outline highlight). */
+export function rollingZoneBounds() {
+  return {
+    minX: (ROLLING_X_OFFSET - ARENA_HALF_X) + PADDING,
+    maxX: (ROLLING_X_OFFSET + ARENA_HALF_X) - PADDING,
+    minZ: ROLLING_Z_MIN + PADDING,
+    maxZ: ROLLING_Z_MAX - PADDING,
+  };
+}
+
 export function isInRollingZone(position: [number, number, number]): boolean {
   const [x, , z] = position;
-  const minX = (ROLLING_X_OFFSET - ARENA_HALF_X) + PADDING;
-  const maxX = (ROLLING_X_OFFSET + ARENA_HALF_X) - PADDING;
-  const minZ = ROLLING_Z_MIN + PADDING;
-  const maxZ = ROLLING_Z_MAX - PADDING;
+  const { minX, maxX, minZ, maxZ } = rollingZoneBounds();
   return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
 }
 

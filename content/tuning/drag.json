@@ -1,0 +1,31 @@
+{
+  "_help": {
+    "zoneHighlight": "How the rolling area shows that letting go will count: \"tint\" = the felt glows brighter, \"outline\" = a glowing frame around the drop zone.",
+    "highlightColor": "Colour of the drop-zone highlight (tint glow or outline).",
+    "tintStrength": "How bright the felt glows in \"tint\" mode. 0 = no glow.",
+    "zoneOutlineWidth": "Thickness of the glowing frame in \"outline\" mode (table units; a die is 0.8).",
+    "zoneOutlineOpacity": "How solid the glowing frame is in \"outline\" mode. 0 = invisible, 1 = solid.",
+    "highlightFadeSpeed": "How fast the highlight fades in and out. Higher = snappier.",
+    "dragHeight": "How high a dragged die floats above the table, in die sizes.",
+    "followSmoothing": "How much the dragged die lags behind your finger, in seconds. 0 = glued to the finger.",
+    "keepGrabOffset": "1 = the die keeps the spot you grabbed it by under your finger. 0 = it jumps so its centre is under your finger."
+  },
+  "_ranges": {
+    "tintStrength": [0, 1, 0.05],
+    "zoneOutlineWidth": [0.02, 0.4, 0.02],
+    "zoneOutlineOpacity": [0, 1, 0.05],
+    "highlightFadeSpeed": [1, 40, 1],
+    "dragHeight": [1, 5, 0.1],
+    "followSmoothing": [0, 0.2, 0.01],
+    "keepGrabOffset": [0, 1, 0.1]
+  },
+  "zoneHighlight": "tint",
+  "highlightColor": "#ffffff",
+  "tintStrength": 0.15,
+  "zoneOutlineWidth": 0.12,
+  "zoneOutlineOpacity": 0.85,
+  "highlightFadeSpeed": 14,
+  "dragHeight": 2.5,
+  "followSmoothing": 0,
+  "keepGrabOffset": 1
+}

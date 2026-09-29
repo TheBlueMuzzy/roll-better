@@ -5,15 +5,24 @@ import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
 import type { GamePhase, UnlockAnimation } from '../types/game';
-import { Color, Plane, Vector3 } from 'three';
+import { Color, Plane, Vector3, type Ray } from 'three';
+import { drag } from '../tuning/drag';
 import { toast } from '../ui/kit';
 import { text, fill } from '../ui/words';
 import { MAX_DICE } from '../utils/diceCap';
 import { shouldShowCapToast } from '../utils/unlockTurn';
 import type { Group } from 'three';
 
-const _dragPlane = new Plane(new Vector3(0, 1, 0), 0); // Y=0 table plane
+// F48: the finger's ray is met at the height the dragged die floats at (not the table), so the die
+// is drawn right under the finger instead of drifting off it in perspective.
+const _dragPlane = new Plane(new Vector3(0, 1, 0), 0);
 const _dragIntersect = new Vector3();
+
+/** Where the finger's ray meets the dragged die's height (fills _dragIntersect). False if it never does. */
+function pointAtDragHeight(ray: Ray): boolean {
+  _dragPlane.constant = -DIE_SIZE * drag.dragHeight; // plane y = drag height
+  return ray.intersectPlane(_dragPlane, _dragIntersect) !== null;
+}
 
 interface PlayerRowProps {
   z?: number;
@@ -66,6 +75,7 @@ function UnlockableDie({
   const liftRef = useRef(0); // current lift amount, lerps toward target
   const isDragging = useRef(false);
   const dragPointerId = useRef<number | null>(null); // the finger (or mouse) holding this die
+  const grabOffset = useRef<[number, number]>([0, 0]); // die centre minus finger point (x, z), so it doesn't jump on pickup
   const wasDragging = useRef(false);
   const returnFromPos = useRef<[number, number, number] | null>(null);
 
@@ -143,9 +153,13 @@ function UnlockableDie({
 
     // Drag position override — world coords converted to local (subtract parent rowZ)
     if (isBeingDragged && dragUnlockState.currentPosition) {
-      groupRef.current.position.x = dragUnlockState.currentPosition[0];
-      groupRef.current.position.y = DIE_SIZE * 2.5;
-      groupRef.current.position.z = dragUnlockState.currentPosition[2] - rowZ;
+      const targetX = dragUnlockState.currentPosition[0];
+      const targetZ = dragUnlockState.currentPosition[2] - rowZ;
+      // followSmoothing 0 = glued to the finger; higher = the die trails a little (seconds)
+      const follow = drag.followSmoothing > 0 ? 1 - Math.exp(-delta / drag.followSmoothing) : 1;
+      groupRef.current.position.x += (targetX - groupRef.current.position.x) * follow;
+      groupRef.current.position.y = DIE_SIZE * drag.dragHeight;
+      groupRef.current.position.z += (targetZ - groupRef.current.position.z) * follow;
       return; // skip lift/pulse/shake while dragging
     }
 
@@ -212,12 +226,21 @@ function UnlockableDie({
           (e.target as Element).setPointerCapture?.(e.pointerId);
           isDragging.current = true;
           dragPointerId.current = e.pointerId;
+          // Remember where on the die the finger grabbed it (keepGrabOffset 0 = centre it under the finger)
+          grabOffset.current = [
+            (getSlotX(slotIndex) - e.point.x) * drag.keepGrabOffset,
+            (rowZ - e.point.z) * drag.keepGrabOffset,
+          ];
+          // Lift it straight up under the finger now, not on the first move
+          if (pointAtDragHeight(e.ray)) {
+            updateDragPosition([_dragIntersect.x + grabOffset.current[0], DIE_SIZE / 2, _dragIntersect.z + grabOffset.current[1]]);
+          }
         }}
         onPointerMove={(e) => {
           if (!isDragging.current || !selectable || e.pointerId !== dragPointerId.current) return;
           e.stopPropagation();
-          if (e.ray.intersectPlane(_dragPlane, _dragIntersect)) {
-            updateDragPosition([_dragIntersect.x, DIE_SIZE / 2, _dragIntersect.z]);
+          if (pointAtDragHeight(e.ray)) {
+            updateDragPosition([_dragIntersect.x + grabOffset.current[0], DIE_SIZE / 2, _dragIntersect.z + grabOffset.current[1]]);
           }
         }}
         onPointerUp={(e) => {
