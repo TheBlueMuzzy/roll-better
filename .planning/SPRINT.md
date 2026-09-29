@@ -5,8 +5,8 @@ Changes for Muzzy: main menu, Create/Join, online room, reconnecting overlay and
 
 ## F50 🧱 Kit screens sit inside the game's 16:9 box
 Done when: every kit screen (and its dim) stays inside the game frame at phone and desktop sizes; all kit words come from one editable file.
-- [ ] 🤖 1. Check: screenshot Settings/Credits at 844×390, 1280×720 and a tall 1000×800 window — do panel + dim stay inside `#root` (`src/App.css` #root 16:9 box, `src/ui/kit/ScreenStack.tsx` overlay)?
-- [ ] 🤖 2. Fix only if needed (keep it in `src/App.css` game layer, not the kit)
+- [x] 🤖 1. Check: screenshot Settings/Credits at 844×390, 1280×720 and a tall 1000×800 window — do panel + dim stay inside `#root` (`src/App.css` #root 16:9 box, `src/ui/kit/ScreenStack.tsx` overlay)?
+- [x] 🤖 2. Fix only if needed (keep it in `src/App.css` game layer, not the kit)
 - [ ] 🤖 3. `content/text/en.json` + `src/ui/words.ts` (loads it, `fill()` for `{n}` placeholders) — every screen's words live there from now on
 Check: screenshots at the three sizes.
 
@@ -34,4 +34,4 @@ Done when: How to Play is the kit screen with page dots, same 6 pages, words fro
 Check: tests + build; screenshots.
 
 Ask Muzzy: (answered) backdrop behind menu cards → Cartoon light blue (b). Colours are tweakable later with the Dev Kit Color tool (F59).
-Notes:
+Notes: F50 1–2 — panels were already inside, but `.kit-overlay` is `position: fixed; inset: 0` (whole window), so kit screens — and their corner slots — spanned the letterbox bars. Fix in `src/App.css`: `--game-w/--game-h` shared by `#root` and `.kit-overlay .kit-screen`; the dim still covers the whole window (looks right). Measured at 844×390, 1600×500, 1000×800: kit screen = game frame exactly.

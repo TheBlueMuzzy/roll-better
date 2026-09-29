@@ -22,10 +22,23 @@ body {
   background: #000;
 }
 
+/* The game's 16:9 box — #root AND kit screens use it, so kit corner slots (version, HUD) never
+   land in the letterbox bars (F50). The kit's dim still covers the whole window. */
+:root {
+  --game-w: min(100vw, calc(100dvh * 16 / 9));
+  --game-h: min(100dvh, calc(100vw * 9 / 16));
+}
+
+.kit-overlay .kit-screen {
+  width: var(--game-w);
+  height: var(--game-h);
+  margin: auto; /* centred: the kit makes screens absolute with inset 0 */
+}
+
 #root {
   /* 16:9 landscape aspect ratio */
-  width: min(100vw, calc(100dvh * 16 / 9));
-  height: min(100dvh, calc(100vw * 9 / 16));
+  width: var(--game-w);
+  height: var(--game-h);
   margin: auto;
   position: absolute;
   inset: 0;
