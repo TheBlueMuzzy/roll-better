@@ -10,6 +10,7 @@ import { presets } from '../../ui/kit/styles'
 import { applyStyle } from '../../ui/kit'
 import { tableColors } from '../../store/tableColors'
 import { copyText, saveContentFile } from '../saveContent'
+import { ColourBlindPreview } from './ColourBlindPreview'
 import {
   DIVIDER_OPACITY_NAME,
   TABLE_COLOURS,
@@ -99,6 +100,8 @@ export function ColorTab() {
       <p className="ct-legend">
         <span className="ct-dot" /> = changed, not saved yet · tap a swatch to pick a colour, or type a hex
       </p>
+
+      <ColourBlindPreview />
 
       <h3 className="ct-group">UI colours <small>content/ui/style.json · ↺ = back to the {presetTitle} preset</small></h3>
       {UI_COLOURS.map(({ token }) => (

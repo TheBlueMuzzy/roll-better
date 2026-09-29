@@ -73,3 +73,16 @@
 
 .ct-slider { width: 100%; grid-column: 2 / 3; min-width: 90px; }
 .ct-number { font-family: ui-monospace, Consolas, monospace; font-size: 12px; text-align: center; }
+
+/* Colour-blind preview picker */
+.ct-cb { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-weight: 600; }
+.ct-cb select {
+  flex: 1;
+  min-width: 0;
+  background: #0f1015;
+  border: 1px solid #3a3c4a;
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-weight: 400;
+}
+.ct-cb-defs { position: absolute; width: 0; height: 0; }
