@@ -16,6 +16,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not 
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
 - Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
+- Release: GitHub Pages + PartyKit — recipe `~/.claude/config/bmuz/release/github-pages.md`.
 - Server: `npx partykit deploy` by hand, only when `party/` changes — a front-end release doesn't update it.
 - Version lives in `version.json` AND `package.json` (keep both in step). Tags `vX.Y.Z`. Default branch `master`, remote `origin` = github.com/TheBlueMuzzy/roll-better.
 **Rules**
