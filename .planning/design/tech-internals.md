@@ -26,7 +26,11 @@ Hardcoded today — candidates for `content/tuning/physics.json`.
 - React StrictMode double-fires effects in dev: init logic must be idempotent; `hasFired` refs prevent duplicate callbacks.
 
 ## State shape
-Moved from old GDD §5.4 — partly stale: e.g. `selectedForUnlock` belongs to the old tap-to-unlock, and drag state `dragUnlockState` / `committedUnlocks` / `unlockTimerResetKey` is missing. `src/types/game.ts` + `gameStore.ts` are the truth.
+Moved from old GDD §5.4 — partly stale (`selectedForUnlock` belongs to the old tap-to-unlock). `src/types/game.ts` + `gameStore.ts` are the truth. Missing below — the drag-to-unlock state (F47/F48):
+- `dragUnlockState { active, slotIndex, value, originPosition, currentPosition }` — the ONE die being dragged. `currentPosition` is the die's centre (x, z) at drag height (`content/tuning/drag.json` → `dragHeight`), where the finger's ray meets that height plus the grab offset. `startDragUnlock` returns false (refused) while another die is dragged, for a die not in the row, or once the turn is closed (`canStartDrag`, unlockTurn.ts).
+- `committedUnlocks[] { slotIndex, value, position, dropPosition }` — dice dropped this turn, parked (glowing) in the rolling area until the split; cleared on leaving the unlock phase (`returnParkedDice`).
+- `unlockTimerResetKey` — restarts the 3 s unlock timer on every commit; `-1` = the timer fired and the turn is closed.
+- A drag ends in `completeDragUnlock` (release, lost finger, or timer) → commit or snap back by zone + 12-dice cap. The die's pointer handling (which finger, lost pointer) is in `PlayerRow.tsx`; the drop-zone glow is `DropZoneHighlight.tsx`.
 ```
 GameState {
   // Navigation
@@ -154,11 +158,13 @@ src/
 - **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
 
 ## E2E scripts (detail for TDD §4 Tests)
-Real game in headless Chromium (`playwright-core`, Playwright's own bundled Chromium — never the installed Chrome; install once with `npx playwright-core install chromium`), drags driven through the real store actions. Each script starts its own servers and kills them when done (Vite `:5199`, PartyKit `:2999` — not 1999, so a normal `npm run party:dev` can keep running; the scripts refuse to start if a port is taken). Exit code 0 = PASS.
+Real game in headless Chromium (`playwright-core`, Playwright's own bundled Chromium — never the installed Chrome; install once with `npx playwright-core install chromium`), drags driven through the real store actions (or real pointer events: `e2e:drag`, the race sweep). Each script starts its own servers and kills them when done (Vite `:5199`, PartyKit `:2999` — not 1999, so a normal `npm run party:dev` can keep running; the scripts refuse to start if a port is taken). Exit code 0 = PASS.
 - `npm run e2e:solo` → `e2e/solo-late-drag.mjs` (~1 min): B006 — drag over the locked zone at timer end snaps back, a drag right after the timer is refused, nothing left parked; drag over the rolling zone at timer end counts (pool +2, clear spot).
 - `npm run e2e:online` → `e2e/online-unlock.mjs` (~1 min): two players, one room — a held drag counts at timer end (ONE `unlock_request`, not AFK, plus `unlock_activity`), no new drag after the turn closes, the other player hears it and both agree on the dice.
 - `npm run e2e` runs both. Not in CI.
 - `e2e/unlock-race-sweep.mjs` (run with `node`): drops a locked die at many moments around the 3 s timer and checks it is either split this turn or back in its slot — never lost.
+- `npm run e2e:drag` → `e2e/drag-real.mjs` (~1.5 min): REAL pointer drags (Playwright's mouse, so pointer capture works like a finger; synthetic events only for a 2nd finger and pointercancel) at phone landscape 844×390, phone portrait 390×844 and desktop 1280×720 — normal drop counts, just inside / just outside the drop-zone edge, letting go at the screen edge or off the page, lost finger over the rolling area / the rows, a second finger ignored, the 12-dice cap (no drag + one "Max 12 dice" toast). Screen positions come from the live camera PLUS the canvas's letterbox offset on the page. Pass a folder to save a screenshot per size.
+- Driving drags through the real pointer path catches things store-driven scripts can't: page elements sitting over the dice (the pinned chips' layout boxes must never catch taps — `Pinned.tsx` sets `pointer-events: none` through drei Html's `style`, since its `pointerEvents` prop only works in transform mode).
 
 ## Decisions — full text (D17–D20)
 (Moved word for word from the TDD §8 Decisions log on 2026-09-29; the TDD keeps one line per decision.)

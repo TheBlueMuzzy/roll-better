@@ -36,7 +36,9 @@ export function Pinned({ position, ...box }: PinnedProps) {
   const pixelsPerUnit = (Math.abs(_b.x - _a.x) * size.width) / 2;
 
   return (
-    <Html position={position} zIndexRange={Z_RANGE} pointerEvents="none">
+    // drei's `pointerEvents` prop only works in its transform mode — the style is what stops the piece's
+    // (unscaled, invisible) layout box from catching taps meant for the dice under it (F48)
+    <Html position={position} zIndexRange={Z_RANGE} style={{ pointerEvents: 'none' }}>
       <PinnedBox pixelsPerUnit={pixelsPerUnit} {...box} />
     </Html>
   );
