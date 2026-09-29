@@ -1,7 +1,7 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-AUTONOMOUS overnight (Muzzy 2026-09-29: "auto complete all of those tasks"). Sprint 02 on `dev/v1-7-cartoon-ui`: F50 built (kit screens in the 16:9 box, kit 0.1.5, `content/text/en.json`). In progress: framework SeatPicker (kit 0.1.6) + menus/lobby/How to Play onto the kit. Then: install 0.1.6, seat picker (task 8), delete old menu (10), checks (11), docs (13). Stops before /deliver.
+AUTONOMOUS overnight (Muzzy 2026-09-29: "auto complete all of those tasks"; then: ~5 h to "completely revamp the look/UI" → all of v1.7 = sprint 02, then sprint 03 with F54–F58; collect game-ui/BMUZ improvement notes in ~/.claude/config/bmuz/BMUZ-PLAN.md). Context auto-hold at 65%. Sprint 02 on `dev/v1-7-cartoon-ui`: F50 built (kit screens in the 16:9 box, kit 0.1.5, `content/text/en.json`). In progress: framework SeatPicker (kit 0.1.6) + menus/lobby/How to Play onto the kit. Then: install 0.1.6, seat picker (task 8), delete old menu (10), checks (11), docs (13). Stops before /deliver.
 Muzzy (morning): look-check on phone + desktop (task 14) → "approved" · then `/deliver` if happy.
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
