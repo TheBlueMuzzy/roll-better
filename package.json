@@ -16,7 +16,7 @@
     "e2e:online": "node e2e/online-unlock.mjs",
     "e2e:midgame": "node e2e/midgame-join.mjs",
     "e2e:physics": "node e2e/roll-physics.mjs",
-    "check:devkit": "node e2e/devkit-not-in-build.mjs"
+    "check:devkit": "node e2e/devkit-release-check.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
