@@ -1,9 +1,11 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
 import { RollingCountdown } from './RollingCountdown';
 import type { SeatState } from '../types/protocol';
 import { shouldRunUnlockTimer } from '../utils/unlockTurn';
+import { toast } from '../ui/kit';
+import { text, fill } from '../ui/words';
 
 
 interface HUDProps {
@@ -32,43 +34,34 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
   const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
   const committedUnlocks = useGameStore((s) => s.committedUnlocks);
 
-  // --- Seat state change notifications ---
-  const [seatNotifications, setSeatNotifications] = useState<string[]>([]);
+  // --- Seat state change notifications (kit toasts, words in content/text/en.json hud.seat) ---
   const prevSeatStatesRef = useRef<Map<string, SeatState>>(new Map());
 
   useEffect(() => {
     if (!isOnlineGame) return;
     const localId = useGameStore.getState().onlinePlayerId;
     const prev = prevSeatStatesRef.current;
-    const newNotifications: string[] = [];
+    const seat = text.hud.seat;
 
     for (const p of players) {
       if (p.id === 'player-0' && localId) continue; // skip local player for notifications
       const prevState = prev.get(p.id);
       if (prevState && prevState !== p.seatState) {
         if (prevState === 'human-active' && p.seatState === 'human-afk') {
-          newNotifications.push(`${p.name} is on autopilot`);
+          toast(fill(seat.autopilot, { name: p.name }));
         } else if (prevState === 'human-afk' && p.seatState === 'bot') {
-          newNotifications.push(`Bot took over for ${p.name}`);
+          toast(fill(seat.botTookOver, { name: p.name }));
         } else if (prevState === 'human-afk' && p.seatState === 'human-active') {
-          newNotifications.push(`${p.name} is back`);
+          toast(fill(seat.back, { name: p.name }));
         } else if (prevState === 'bot' && p.seatState === 'human-active') {
           if (p.takeoverReason === 'reclaim') {
-            newNotifications.push(`${p.name} is back!`);
+            toast(fill(seat.reclaimed, { name: p.name }));
           } else {
-            newNotifications.push(`${p.name} joined the game`);
+            toast(fill(seat.joined, { name: p.name }));
           }
         }
       }
       prev.set(p.id, p.seatState);
-    }
-
-    if (newNotifications.length > 0) {
-      setSeatNotifications(curr => [...curr, ...newNotifications].slice(-2));
-      // Auto-dismiss after 3 seconds
-      setTimeout(() => {
-        setSeatNotifications(curr => curr.slice(newNotifications.length));
-      }, 3000);
     }
   }, [players, isOnlineGame]);
 
@@ -213,17 +206,6 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
         )}
 
       </div>
-
-      {/* Seat state change notifications */}
-      {seatNotifications.length > 0 && (
-        <div className="hud-notifications">
-          {seatNotifications.map((msg, i) => (
-            <div key={`${msg}-${i}`} className="hud-notification-item">
-              {msg}
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Settings gear button — bottom-right */}
       <button className="settings-gear" onClick={() => { playUIClick(); onOpenSettings(); }}>

@@ -51,6 +51,15 @@
   "toasts": {
     "reconnected": "{name} reconnected"
   },
+  "hud": {
+    "seat": {
+      "autopilot": "{name} is on autopilot",
+      "botTookOver": "Bot took over for {name}",
+      "back": "{name} is back",
+      "reclaimed": "{name} is back!",
+      "joined": "{name} joined the game"
+    }
+  },
   "tips": {
     "firstRoll": "Hold the rolling area to gather your dice, then release to roll",
     "firstLock": "Matched! Dice lock to the Goal row automatically",
