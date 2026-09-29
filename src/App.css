@@ -408,7 +408,15 @@ body {
   margin: -10px -12px -10px 0;
 }
 
-/* --- Main Menu overlay --- */
+/* --- Main menu (kit, src/ui/MainMenuScreen.tsx) ---
+   Fills the game's 16:9 box; the kit-page class paints it the style's own background
+   (Cartoon light blue) — the colour comes from content/ui/style.json, not from here. */
+.menu-page {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- Main Menu overlay (old src/components/MainMenu.tsx — unused, deleted in F52 task 10) --- */
 
 .menu-backdrop {
   position: absolute;

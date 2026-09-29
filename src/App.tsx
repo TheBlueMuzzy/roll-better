@@ -2,12 +2,14 @@ import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
-import { MainMenu } from './components/MainMenu';
 import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { ScreenStack, kitScreens, screens, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { CreditsScreen } from './ui/CreditsScreen';
+import { MainMenuScreen } from './ui/MainMenuScreen';
+import { LobbyScreen } from './ui/LobbyScreen';
+import { OnlineRoomProvider } from './ui/OnlineRoom';
 import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -31,11 +33,12 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  // Kit screens (Settings, its Confirm, Credits) — open with screens.push('settings')
+  // Kit screens (Settings, its Confirm, Credits, Play online) — open with screens.push('settings')
   const kitScreenList = useMemo(() => ({
     ...kitScreens,
     settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
     credits: CreditsScreen,
+    online: LobbyScreen,
   }), []);
   const settingsOpen = useScreens().includes('settings');
   const openSettings = useCallback(() => screens.push('settings'), []);
@@ -704,8 +707,8 @@ function App() {
   const fov = 55;
 
   return (
-    <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={openSettings} />
+    <OnlineRoomProvider onGameStart={handleOnlineGameStart}>
+      {screen === 'menu' && <MainMenuScreen version={version} onPlay={handlePlay} />}
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
@@ -748,8 +751,8 @@ function App() {
       <ScreenStack overlay screens={kitScreenList} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
-      <div className="build-version">{version}</div>
-    </>
+      {screen !== 'menu' && <div className="build-version">{version}</div>}
+    </OnlineRoomProvider>
   );
 }
 

@@ -27,8 +27,32 @@
     "leave": "Leave",
     "waitingHost": "Waiting for the host to start…",
     "needPlayers": "Need at least {n} players",
-    "waitingReady": "Waiting for everyone to be ready"
+    "waitingReady": "Waiting for everyone to be ready",
+    "back": "Back",
+    "copy": "Copy code",
+    "copied": "Code copied!",
+    "you": "{name} (you)"
   },
+  "seats": {
+    "title": "Game in progress — pick a seat",
+    "none": "No seats available",
+    "stats": "Score {score} · Locks {locks}/8",
+    "claimed": "Seat claimed! Joining next round…",
+    "reclaiming": "Reclaiming your seat… Joining next round",
+    "cancel": "Cancel"
+  },
+  "reconnecting": {
+    "title": "Reconnecting…",
+    "message": "Hold on, getting you back into the game."
+  },
+  "toasts": {
+    "reconnected": "{name} reconnected"
+  },
+  "playerNames": [
+    "Wobble", "Noodle", "Pickle", "Wombat", "Nugget", "Biscuit", "Muffin", "Waffle",
+    "Gremlin", "Goblin", "Pepper", "Taco", "Doodle", "Sprout", "Turnip", "Bonkers",
+    "Zippy", "Pudding", "Snooze", "Pebble", "Bumble", "Fizz", "Quirky", "Rascal"
+  ],
   "howToPlay": {
     "words": {
       "title": "How to play",
