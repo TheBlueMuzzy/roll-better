@@ -10,7 +10,7 @@ Release target: not set — must:next 5/6 done (+6 milestones shipped before con
 
 ## v1.6 — Drag-to-Unlock  ← current  (→ release stage not set)
 Goal: players unlock by dragging locked dice into the rolling area — offline and online — with no UNLOCK/SKIP buttons.
-Live now: v0.2.1 (hotfix 2026-09-28) has F44–F46 plus the core of F47; the rest of F47 + F49 wait on the work branch for /deliver.
+Live now: v0.2.2 (2026-09-29) has F44–F47 + F49, roll physics fixes (B007/B008), new scoring. Left for v1.6: F48 polish + UAT.
 - ✅ F44 🎮 Drag detection & drop zone — must:next
 - ✅ F45 🎮 Drop commit & highlight state — must:next · needs: F44
 - ✅ F46 🎮 Inactivity timer & batch mitosis — must:next · needs: F45

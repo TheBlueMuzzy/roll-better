@@ -1,17 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 01 done 2026-09-29 (archive/sprints/sprint-01.md): F47 + B006 late drag, roll physics B007/B008 (verified by Muzzy), F49 CI. Also new scoring 8/6/4/2/1. All on `dev/v1-6-drag-to-unlock`, not live yet.
-Open bugs are all P3 cosmetic: B005 old unlock tip text, B009 die pushed into left wall (safety net fixes it), B010 dragged die draws behind the profile UI.
-Next: `/deliver` v1.6 (recommended — ships the physics fixes; F48 polish can follow) · or a quick bug sweep of the 3 P3s first · then `/define` for the UI-kit rollout.
-Muzzy: new scoring (8/6/4/2/1) is on the work branch — reaches the live game at /deliver (needs `npx partykit deploy` too).
-Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
+Released v0.2.2 (2026-09-29): roll physics fixes, scoring 8/6/4/2/1, drag-to-unlock online fixes, B005/B010 text + draw-order fixes, Credits screen, server hardening from the pre-release review. Front end (GitHub Pages) + PartyKit server both deployed.
+Next: `/define` the UI-kit rollout (kit additions + Cartoon-vs-dark-table art call) → `/sprint`. v1.6 still has F48 (drag polish + UAT) open — fold into the next sprint or park it.
+Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: none (01 done)
-Doing: — (choose: /deliver or bug sweep)
-Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
+Stage: deliver   Milestone: v1.6 — Drag-to-Unlock   Sprint: none (01 done)
+Doing: — (released v0.2.2)
+Branch: master   Version: 0.2.2.0
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
 
 ## Key facts
 **Run/deploy**
@@ -46,6 +44,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Released v0.2.2: sprint 01 (F47, B006, B007/B008 physics, F49) + scoring 8/6/4/2/1 + bug sweep (B005, B010) + Credits screen + review fixes (45 s unlock limit, server-ended gather release, unlock_request validation).
 - 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
 - 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).
 - 2026-09-28 — Hotfix v0.2.1: B003 online drag-to-unlock fixed (one batched unlock_request, TDD D15) + B004 build type-check fixed; released. Converted planning to BMUZ-2.

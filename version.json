@@ -1,7 +1,7 @@
 {
   "name": "Roll Better",
-  "version": "0.2.1",
-  "build": 1,
+  "version": "0.2.2",
+  "build": 0,
   "history": [
     {
       "version": "0.2.0.92",
@@ -387,6 +387,11 @@
       "version": "0.2.1",
       "date": "2026-09-28",
       "summary": "Hotfix: online drag-to-unlock reaches the server again (B003); build type-check fixed (B004)"
+    },
+    {
+      "version": "0.2.2",
+      "date": "2026-09-29",
+      "summary": "Rolls never freeze, dice stay on the table, gather grabs every die, release fling is back; scoring 8/6/4/2/1; smoother drag-to-unlock online; Credits screen"
     }
   ]
 }
