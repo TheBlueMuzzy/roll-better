@@ -1,4 +1,6 @@
 {
   "preset": "cartoon",
-  "tweaks": {}
+  "tweaks": {
+    "accent": "#8fd8ff"
+  }
 }
