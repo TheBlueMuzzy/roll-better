@@ -2,10 +2,10 @@
 
 ## ▶ RESUME HERE
 v1.7 approved (not live). Now in parallel: B009 physics helper (research → fix dice escapes) + Sprint 04 (F60 Dev Kit console → F59 Color tool). Then `/deliver`, then F48 with Muzzy, then Obsidian setup (vault = Documents/dev — Muzzy wants a walkthrough).
-Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
+Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 04 — Tune the colours yourself
+Stage: develop   Milestone: v1.8 — Dev Kit: colours first   Sprint: 04 — Tune the colours yourself
 Doing: F60 Dev Kit console + B009 (helper)
 Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, beta
