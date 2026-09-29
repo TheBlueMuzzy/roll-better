@@ -76,6 +76,27 @@ body {
   --kit-overlay-z: 80;
 }
 
+/* --- Pinned kit UI (src/components/Pinned.tsx) ---
+   A kit piece stuck to a 3D point, scaled (--pin-scale, set by Pinned) to fit its box on the table.
+   Scale first, then shift so the anchor point lands on the piece's right-middle (or middle).
+   Hidden until its first measure, so it never flashes at the wrong size. Never catches taps. */
+.pinned {
+  width: max-content;
+  transform-origin: 0 0;
+  transform: scale(var(--pin-scale, 1)) translate(-100%, -50%);
+  visibility: hidden;
+}
+.pinned[data-anchor="center"] {
+  transform: scale(var(--pin-scale, 1)) translate(-50%, -50%);
+}
+.pinned[data-ready] {
+  visibility: visible;
+}
+.pinned,
+.pinned * {
+  pointer-events: none;
+}
+
 /* --- HUD overlay (HTML over Canvas) --- */
 
 .hud {

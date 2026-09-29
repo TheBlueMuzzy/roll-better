@@ -8,7 +8,7 @@ Order change (logged): F57 (pinning) moves first — the HUD status pins over th
 Done when: a kit PlayerChip exists in the framework (colour avatar + initial, name, star score, detail line, badge, faded state), and the game can pin any kit piece to a 3D point (drei `Html`) that follows the camera and resizes.
 - [x] 🤖 1. Framework kit 0.1.8 (`dev/framework/ui-kit`): `PlayerChip`; `Results` gets player colours, optional title/message/actions in one screen, entrance stagger, 1st-place trophy; `toast()` gets `dismissible` (tap to close); gallery + CATALOG + VERSION; checks
 - [x] 🤖 2. Install kit 0.1.8 in the game (+ 0.1.7: swap the lobby stitches in `src/ui/LobbyScreen.tsx` for Lobby's own Ready-optional / copy / onBack / colours; `--kit-frame-w/h` replaces the F50 rule in `src/App.css`)
-- [ ] 🤖 3. `src/components/Pinned.tsx`: drei `Html` wrapper that pins kit UI to a world point (kit classes inside, no per-frame React state), + a quick visual check
+- [x] 🤖 3. `src/components/Pinned.tsx`: drei `Html` wrapper that pins kit UI to a world point (kit classes inside, no per-frame React state), + a quick visual check
 
 ## F54 🎮 Winners → kit Results / Post-game
 Done when: the end-of-session screen is kit Results with colours, "You win!" / tie title, Play Again + Menu, same behaviour online and offline; words in en.json.
@@ -36,4 +36,4 @@ Done when: every row's badge is a kit PlayerChip pinned beside it (colour, initi
 - [ ] 🙋 16. Look check on phone + desktop — sprint 02's front door AND this sprint's table (`/play`)
 
 Ask Muzzy: (none yet — taste calls land as defaults in content/ui/style.json / en.json, tweakable)
-Notes: Task 1 — framework kit 0.1.7 (1459af8: Lobby optional Ready / copy / Back / colours, game box `--kit-frame-w/h`) + 0.1.8 (919e56a: PlayerChip, Results title/actions/colours/stagger/★, dismissible toasts, `.kit-scope`). Task 2 half — 0.1.7 installed, lobby stitches removed, game box via kit vars; e2e online + midgame PASS. Task 2 rest — kit 0.1.8 installed (7 kit files, motion.ts added); check-ui, tsc, tests pass.
+Notes: Task 1 — framework kit 0.1.7 (1459af8: Lobby optional Ready / copy / Back / colours, game box `--kit-frame-w/h`) + 0.1.8 (919e56a: PlayerChip, Results title/actions/colours/stagger/★, dismissible toasts, `.kit-scope`). Task 2 half — 0.1.7 installed, lobby stitches removed, game box via kit vars; e2e online + midgame PASS. Task 2 rest — kit 0.1.8 installed (7 kit files, motion.ts added); check-ui, tsc, tests pass. Task 3 — `Pinned.tsx`: drei Html + a `fit` box in world units (piece scales to fill it, measured with offsetWidth + ResizeObserver, scale written as a CSS variable — no React state per frame), `anchor` right/centre, kit-scope inside, never catches taps, z 5→0 so HUD (10) and kit screens sit above. drei's `distanceFactor` ignores window size, hence the own fit. Checked with two test chips at 844×390 + 1440×900: same size on the table at both.
