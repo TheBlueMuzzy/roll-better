@@ -8,11 +8,15 @@ import { DIE_SIZE } from './RollingArea';
 export const SLOT_SPACING = DIE_SIZE * 1.2;
 export const SLOT_COUNT = 8;
 
-/** Offset from slot 0 to profile group anchor (exported for reuse). */
-export const PROFILE_X_OFFSET = 0.65;
+/**
+ * Offset from slot 0 to the row chips' right edge (RowChips.tsx) — also where dice fly out of / into.
+ * Bigger than it looks (B017): the camera sees the dice's tops a little further out than their feet,
+ * so the first locked die reaches further left on screen than on the table.
+ */
+export const PROFILE_X_OFFSET = 1.25;
 
-/** X offset applied to all rows (shifts rows to left half of split layout). */
-export const ROW_X_OFFSET = -4;
+/** X offset applied to all rows: centre of the 8 slots, left of the divider (RollingArea.tsx SPLIT_X). */
+export const ROW_X_OFFSET = -3.4;
 
 /** Returns the X position for a given slot index (0-7), shifted left for split layout. */
 export function getSlotX(index: number): number {

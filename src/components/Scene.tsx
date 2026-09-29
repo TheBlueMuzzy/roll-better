@@ -3,7 +3,7 @@ import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
 import type { DicePoolHandle } from './DicePool';
-import { RollingArea, DIE_SIZE } from './RollingArea';
+import { RollingArea, DIE_SIZE, SPLIT_X } from './RollingArea';
 import type { RollingAreaHandle } from './RollingArea';
 import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
@@ -19,6 +19,9 @@ import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
+
+// Left edge of the rows' floor — past the left edge of the view (the view is about ±11 wide)
+const ROWS_FLOOR_LEFT_X = -12;
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -289,13 +292,13 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           </AccumulativeShadows>
         )}
 
-        {/* Placement zone floor — covers left side (rows area) */}
+        {/* Placement zone floor — covers left side (rows area), from past the left edge of the view up to the divider */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[-5, 0.001, 0]}
+          position={[(ROWS_FLOOR_LEFT_X + SPLIT_X) / 2, 0.001, 0]}
           receiveShadow
         >
-          <planeGeometry args={[12, 14]} />
+          <planeGeometry args={[SPLIT_X - ROWS_FLOOR_LEFT_X, 14]} />
           <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
         </mesh>
 
@@ -343,7 +346,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         {/* Subtle vertical divider between rows area and rolling area */}
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 0.01, 0]}
+          position={[SPLIT_X, 0.01, 0]}
         >
           <planeGeometry args={[0.02, 12]} />
           <meshBasicMaterial

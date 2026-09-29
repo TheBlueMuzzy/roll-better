@@ -3,11 +3,17 @@ import { RigidBody, CuboidCollider, type RapierRigidBody } from '@react-three/ra
 import { useFrame } from '@react-three/fiber';
 import { Plane, Vector3 } from 'three';
 
-// --- Rolling area X offset (right half of split layout) ---
-export const ROLLING_X_OFFSET = 5;
+// --- The table split (B017) ---
+// Left of SPLIT_X: the Goal row and player rows (GoalRow.tsx ROW_X_OFFSET keeps them clear of it).
+// Right of it: the rolling area. Its left and right walls are the ONLY hardcoded x numbers —
+// everything else (centre, half-width, rollBounds.ts, dropZone.ts, gather points, spawns) is derived.
+export const SPLIT_X = 0.7;                    // the faint divider line between rows and rolling area
+export const ROLLING_LEFT_X = SPLIT_X + 0.3;   // 1.0 — left wall (a small gap past the divider)
+export const ROLLING_RIGHT_X = 9.5;            // right wall
 
-// --- Arena bounds (exported for DicePool spawn positioning) ---
-export const ARENA_HALF_X = 4.5;
+// --- Rolling area X centre and half-width (derived from the walls above) ---
+export const ROLLING_X_OFFSET = (ROLLING_LEFT_X + ROLLING_RIGHT_X) / 2; // 5.25
+export const ARENA_HALF_X = (ROLLING_RIGHT_X - ROLLING_LEFT_X) / 2;     // 4.25 (8.5 wide — room for 12 dice)
 
 // DEPRECATED: rolling zone is now asymmetric (ROLLING_Z_MIN / ROLLING_Z_MAX).
 // Kept for backward compatibility — DicePool may still reference it.
@@ -39,8 +45,8 @@ const _intersectPoint = new Vector3();
 const WALL_NUDGE = DIE_SIZE / 4; // 0.2
 
 // Rest positions for walls
-const LEFT_X = ROLLING_X_OFFSET - ARENA_HALF_X;   // 0.5
-const RIGHT_X = ROLLING_X_OFFSET + ARENA_HALF_X;  // 9.5
+const LEFT_X = ROLLING_LEFT_X;
+const RIGHT_X = ROLLING_RIGHT_X;
 const FRONT_Z = ROLLING_Z_MAX;                      // 5
 const BACK_Z = ROLLING_Z_MIN;                       // -5
 

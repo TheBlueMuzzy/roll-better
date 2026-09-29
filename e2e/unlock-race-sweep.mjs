@@ -173,7 +173,12 @@ async function worker(id, browser, jobs, results) {
 
     const job = jobs.shift();
     const slot = st.locked[0];
-    const [dieXY, rollXY] = await store(page, PROJECT, [[-4 + (slot - 3.5) * 0.96, 0.4, -3.75], [5, 0.4, 1.5]]);
+    // The die's slot and a spot in the rolling area, from the game's own layout numbers
+    const [slotX, rollX] = await page.evaluate(async (i) => [
+      (await import('/src/components/GoalRow.tsx')).getSlotX(i),
+      (await import('/src/components/RollingArea.tsx')).ROLLING_X_OFFSET,
+    ], slot);
+    const [dieXY, rollXY] = await store(page, PROJECT, [[slotX, 0.4, -3.75], [rollX, 0.4, 1.5]]);
     const r = await store(page, TRIAL, { ...job, slot, die: dieXY, roll: rollXY });
     lastProgress = Date.now();
     const t = r.turn;

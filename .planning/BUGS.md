@@ -1,5 +1,5 @@
 # Roll Better — Bugs
-Open: 10 (P0 0 · P1 0 · P2 2 · P3 8)
+Open: 9 (P0 0 · P1 0 · P2 1 · P3 8)
 
 ## Open
 ### B011 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
@@ -32,11 +32,6 @@ Instruction text + its timers sit at the bottom
 Expected: move to the top, level with the Goal dice · Where: game: StatusPin.tsx placement
 Evidence: Muzzy screenshots 2026-09-29
 
-### B017 · P2 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
-Row chips cover the locked dice
-Expected: shift the whole locked-dice area right, shrinking the rolling area · Where: game: Scene/GoalRow ROW_X_OFFSET + RollingArea walls
-Evidence: Muzzy screenshots 2026-09-29
-
 ### B018 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Round badge + settings gear are tiny next to everything else
 Expected: larger (not huge) · Where: kit icon button / badge sizes (framework) + game HUD
@@ -67,6 +62,13 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B017 · P2 · fixed 2026-09-29 · Guarded by: `src/utils/tableLayout.test.ts` · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Row chips cover the locked dice
+Expected: shift the whole locked-dice area right, shrinking the rolling area · Where: game: Scene/GoalRow ROW_X_OFFSET + RollingArea walls
+Cause: the camera looks straight down from the middle, so a die's top face is drawn ~7% further out than its feet — the first die reached past the chip's right edge on screen.
+Fix: rows moved right (`ROW_X_OFFSET` −4 → −3.4), chips stay against the left edge of the view (`PROFILE_X_OFFSET` 0.65 → 1.25), divider + rows' floor at `SPLIT_X` 0.7, rolling area now 1.0 → 9.5 (was 0.5 → 9.5; 8.5 wide — 12 dice fit). Only the two walls are hardcoded (`RollingArea.tsx`); centre/half-width, `rollBounds.ts`, `dropZone.ts`, gather points and spawns derive from them. Race-sweep e2e reads slot x from the game.
+Evidence: Muzzy screenshots 2026-09-29 · after: chips end 201 px, first die starts ~225 px (1440×900)
+
 ### B010 · P3 · fixed 2026-09-29 · Guarded by: `node e2e/b010-drag-over-profile.mjs <folder>` (screenshots — visual check) · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
 Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
 Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
