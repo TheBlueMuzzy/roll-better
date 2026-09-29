@@ -20,10 +20,12 @@ const CORNER_SIZE_PX = 64 // the invisible top-right square you triple-tap on a 
 const TRIPLE_TAP_MS = 700 // all three taps must land within this time
 const GHOST_CLICK_MS = 500 // see closeFromButton
 
-// Is the player typing in a text box? Then ` is just a character, not the Dev Kit key.
+// Is the player typing in one of the game's text boxes? Then ` is just a character, not the Dev Kit key.
+// (The Dev Kit's own boxes never need a `, so there it still opens/closes the panel.)
 function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null
-  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+  if (!el || el.closest?.('.devkit')) return false
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
 }
 
 export function DevKit() {

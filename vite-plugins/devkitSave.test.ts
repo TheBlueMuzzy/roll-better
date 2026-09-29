@@ -17,7 +17,7 @@ describe('isAllowedContentPath — the Dev Kit may only write JSON inside conten
   it('refuses sneaking out with .. or backslashes', () => {
     expect(isAllowedContentPath('content/../package.json')).toBe(false)
     expect(isAllowedContentPath('content/ui/../../vite.config.json')).toBe(false)
-    expect(isAllowedContentPath('content\..\package.json')).toBe(false)
+    expect(isAllowedContentPath('content\\..\\package.json')).toBe(false)
     expect(isAllowedContentPath('content//ui.json')).toBe(false)
     expect(isAllowedContentPath('content/./ui.json')).toBe(false)
   })

@@ -2,14 +2,14 @@
 
 > How the game is built. Plain English first; code names in `backticks` only where they help.
 > Living document — /define writes it, /develop keeps it true, /tdd shows it.
-> Last updated: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
+> Last updated: 2026-09-29 (Dev Kit console + Color tool, D20). Before: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
 
 ## 1. At a glance
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
 - **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
-- **Dev Kit tools used:** none yet. `content/tuning/scoring.json` is the first tweakable moved out of code; `content/text/en.json` holds screen words (v1.7); `content/data` is empty (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
+- **Dev Kit tools used (v1.8):** **Console** (` key / triple-tap top-right; `src/devkit/`, dev builds only — loaded by a dynamic import behind `import.meta.env.DEV`, Save goes through the dev-server plugin `vite-plugins/devkitSave.ts`; `npm run check:devkit` proves the live build has none of it) and **Color** (the 15 UI kit colours + the table colours, live, colour-blind preview; writes `content/ui/style.json` tweaks + `content/ui/table.json`). `content/tuning/scoring.json`, `content/text/en.json` are the other data files (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
 ```mermaid
@@ -72,9 +72,9 @@ flowchart LR
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
 | `content/text/en.json` | every player-facing word, one section per screen (menu, lobby, How to Play, credits so far — the rest move in as screens go onto the kit); loaded by `src/ui/words.ts` | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
-| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
+| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` — tweaks override the preset (Color tool saves only colours that differ from it) | Dev Kit → Color / Obsidian |
 | `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
-| `content/ui/table.json` | Table colours: rows felt, rolling-area felt, divider line (B012) | Obsidian (Dev Kit Color tool later, F59) |
+| `content/ui/table.json` | Table colours: rows felt, rolling-area felt, divider line + opacity (B012); read through `src/store/tableColors.ts` so the Dev Kit can repaint the 3D table live | Dev Kit → Color / Obsidian |
 
 ## 4. Standards (so any engineer could pick this up)
 - **Folders:** `src/components` (React + 3D views), `src/store` (state), `src/hooks` (online + input), `src/utils` (pure logic + tests), `src/types` (game + message types), `src/ui` (game-ui kit), `party/` (server), `e2e/` (browser check scripts), `public/` (privacy page, icons), `proto/` (Python balance sims), `content/` (data, empty so far). Old file-by-file map + state shape: [design/tech-internals.md](design/tech-internals.md).
@@ -113,6 +113,14 @@ flowchart LR
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D20 · 2026-09-29 · Dev Kit (F60/F59): its own React root outside #root, loaded only in dev; saves through a dev-server-only Vite plugin
+  Options: Leva/tweakpane panel / our own panel / edit JSON by hand   Chose: our own small panel (`src/devkit/`) — plain styling, not the game's
+  kit, so restyling the game never restyles the tool. Dynamic import behind import.meta.env.DEV → zero bytes in the live build (checked by
+  npm run check:devkit). Save = POST /__devkit/save (apply: 'serve'; only content/**.json; keeps _help; skips the hot-reload for files it just
+  wrote so the game isn't reset). 3D table colours go through a tiny subscribe store (`tableColors`) that repaints materials — no React re-render.
+  Stop-gap: RollingArea.tsx (physics helper's file during B009) still reads table.json itself, so Scene finds that felt material by colour;
+  once B009 lands, RollingArea should read `tableColors` and `findRollingFelt` in Scene.tsx can go.
+
 D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
   Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
   Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
