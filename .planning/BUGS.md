@@ -1,15 +1,10 @@
 # Roll Better — Bugs
-Open: 9 (P0 0 · P1 0 · P2 1 · P3 8)
+Open: 8 (P0 0 · P1 0 · P2 1 · P3 7)
 
 ## Open
 ### B011 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Row chip too wide: gap between the avatar and the chip's left edge
 Expected: avatar sits flush at the chip's left edge · Where: kit PlayerChip (framework)
-Evidence: Muzzy screenshots 2026-09-29
-
-### B012 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
-Table is brown (light + dark) — doesn't fit the Cartoon UI colours
-Expected: a dark but fun table colour, editable in content/ui/table.json (Dev Kit Color tool later, F59) · Where: game: Scene.tsx table + background
 Evidence: Muzzy screenshots 2026-09-29
 
 ### B013 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
@@ -62,7 +57,13 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
-### B017 · P2 · fixed 2026-09-29 · Guarded by: `src/utils/tableLayout.test.ts` · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B012 · P3 · fixed 2026-09-29 · Guarded by: colours only live in `content/ui/table.json` (look check by Muzzy) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Table is brown (light + dark) — doesn't fit the Cartoon UI colours
+Expected: a dark but fun table colour, editable in content/ui/table.json (Dev Kit Color tool later, F59) · Where: game: Scene.tsx table + background
+Fix: deep indigo felt — rows `#2b2f63`, rolling area a touch darker `#252858`, divider white at 12 %. Read from `content/ui/table.json` by `Scene.tsx` + `RollingArea.tsx`. Lighting/HDRI untouched; empty-slot ghost squares still readable, left as they are. Letterbox bars stay black (outside the table).
+Evidence: Muzzy screenshots 2026-09-29
+
+### B017 · P2 · fixed 2026-09-29 in c050030 · Guarded by: `src/utils/tableLayout.test.ts` · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Row chips cover the locked dice
 Expected: shift the whole locked-dice area right, shrinking the rolling area · Where: game: Scene/GoalRow ROW_X_OFFSET + RollingArea walls
 Cause: the camera looks straight down from the middle, so a die's top face is drawn ~7% further out than its feet — the first die reached past the chip's right edge on screen.

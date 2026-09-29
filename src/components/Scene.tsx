@@ -19,6 +19,7 @@ import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
+import table from '../../content/ui/table.json';
 
 // Left edge of the rows' floor — past the left edge of the view (the view is about ±11 wide)
 const ROWS_FLOOR_LEFT_X = -12;
@@ -299,7 +300,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           receiveShadow
         >
           <planeGeometry args={[SPLIT_X - ROWS_FLOOR_LEFT_X, 14]} />
-          <meshStandardMaterial color="#4a3020" roughness={0.8} metalness={0.0} />
+          <meshStandardMaterial color={table.rows} roughness={0.8} metalness={0.0} />
         </mesh>
 
         {/* Goal row — dice at top of screen with transition animation (outside Physics) */}
@@ -350,9 +351,9 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         >
           <planeGeometry args={[0.02, 12]} />
           <meshBasicMaterial
-            color="#ffffff"
+            color={table.divider}
             transparent
-            opacity={0.12}
+            opacity={table.dividerOpacity}
             depthWrite={false}
           />
         </mesh>

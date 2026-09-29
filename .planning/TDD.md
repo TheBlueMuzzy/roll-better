@@ -74,6 +74,7 @@ flowchart LR
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
 | `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
 | `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
+| `content/ui/table.json` | Table colours: rows felt, rolling-area felt, divider line (B012) | Obsidian (Dev Kit Color tool later, F59) |
 
 ## 4. Standards (so any engineer could pick this up)
 - **Folders:** `src/components` (React + 3D views), `src/store` (state), `src/hooks` (online + input), `src/utils` (pure logic + tests), `src/types` (game + message types), `src/ui` (game-ui kit), `party/` (server), `e2e/` (browser check scripts), `public/` (privacy page, icons), `proto/` (Python balance sims), `content/` (data, empty so far). Old file-by-file map + state shape: [design/tech-internals.md](design/tech-internals.md).

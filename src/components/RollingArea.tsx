@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { RigidBody, CuboidCollider, type RapierRigidBody } from '@react-three/rapier';
 import { useFrame } from '@react-three/fiber';
 import { Plane, Vector3 } from 'three';
+import table from '../../content/ui/table.json';
 
 // --- The table split (B017) ---
 // Left of SPLIT_X: the Goal row and player rows (GoalRow.tsx ROW_X_OFFSET keeps them clear of it).
@@ -154,7 +155,7 @@ export const RollingArea = forwardRef<RollingAreaHandle, RollingAreaProps>(
             }}
           >
             <planeGeometry args={[24, 16]} />
-            <meshStandardMaterial color="#3d2517" roughness={0.7} metalness={0.0} />
+            <meshStandardMaterial color={table.rolling} roughness={0.7} metalness={0.0} />
           </mesh>
         </RigidBody>
 
