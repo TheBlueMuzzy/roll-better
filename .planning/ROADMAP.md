@@ -92,3 +92,4 @@ Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - Dice skins, tabletop textures, player profile art — could (#10–#12)
 
 ## Ideas
+- 2026-09-29 — Colour-blind: with Deuteranopia, red (B1) and green (B3) player chips look nearly the same (Dev Kit Color tool preview). Initials still differ; consider a colour-blind-safe player palette or a shape/pattern per player.
