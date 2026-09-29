@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
@@ -56,15 +56,40 @@ function UnlockableDie({
   const shakeStartRef = useRef<number | null>(null);
   const liftRef = useRef(0); // current lift amount, lerps toward target
   const isDragging = useRef(false);
+  const dragPointerId = useRef<number | null>(null); // the finger (or mouse) holding this die
   const wasDragging = useRef(false);
   const returnFromPos = useRef<[number, number, number] | null>(null);
 
   const dragUnlockState = useGameStore((s) => s.dragUnlockState);
   const startDragUnlock = useGameStore((s) => s.startDragUnlock);
   const updateDragPosition = useGameStore((s) => s.updateDragPosition);
-  const completeDragUnlock = useGameStore((s) => s.completeDragUnlock);
 
   const isBeingDragged = dragUnlockState.active && dragUnlockState.slotIndex === slotIndex;
+
+  // Let go of the die: the store decides commit vs snap-back (rolling zone, 12-dice cap, turn still
+  // open) from the last place the die was seen. If the timer already resolved this drag, this does nothing.
+  const endDrag = () => {
+    isDragging.current = false;
+    dragPointerId.current = null;
+    useGameStore.getState().completeDragUnlock();
+  };
+
+  // F48: the finger can be lost mid-drag without a normal release — the phone takes over the touch
+  // (pointercancel: a system gesture, a notification, the page scrolling) or the pointer capture is
+  // dropped (lostpointercapture). R3F doesn't pass either to the die, so listen on the page and
+  // resolve the drag right away, exactly like letting go at the last known spot.
+  useEffect(() => {
+    const onPointerLost = (e: PointerEvent) => {
+      if (!isDragging.current || e.pointerId !== dragPointerId.current) return;
+      endDrag();
+    };
+    window.addEventListener('pointercancel', onPointerLost, true);
+    window.addEventListener('lostpointercapture', onPointerLost, true);
+    return () => {
+      window.removeEventListener('pointercancel', onPointerLost, true);
+      window.removeEventListener('lostpointercapture', onPointerLost, true);
+    };
+  }, []);
 
   // Track shake start time
   if (shaking && shakeStartRef.current === null) {
@@ -168,6 +193,7 @@ function UnlockableDie({
           const originPosition: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, rowZ];
           startDragUnlock(slotIndex, value, originPosition);
           isDragging.current = true;
+          dragPointerId.current = e.pointerId;
         }}
         onPointerMove={(e) => {
           if (!isDragging.current || !selectable) return;
@@ -180,11 +206,8 @@ function UnlockableDie({
           // No `selectable` check here: the turn may have closed mid-drag — still let go cleanly
           if (!isDragging.current) return;
           e.stopPropagation();
+          endDrag(); // before releasing, so the lostpointercapture that follows is ignored
           (e.target as Element).releasePointerCapture?.(e.pointerId);
-          isDragging.current = false;
-          // The store decides commit vs snap-back (rolling zone, 12-dice cap, turn still open).
-          // If the timer already resolved this drag, this does nothing.
-          completeDragUnlock();
         }}
         onPointerOver={(e) => {
           if (!selectable) return;
