@@ -21,3 +21,13 @@ export function maxUnlocksAllowed(poolSize: number, lockedCount: number): number
   const roomLeft = MAX_DICE - poolSize - lockedCount; // each unlock adds one die overall
   return Math.max(0, Math.min(lockedCount, roomLeft));
 }
+
+/** How many more dice may be dragged out this turn. `lockedNow` = still in the row, `committed` = already dragged out. */
+export function unlocksLeft(poolSize: number, lockedNow: number, committed: number): number {
+  return maxUnlocksAllowed(poolSize, lockedNow + committed) - committed;
+}
+
+/** At the cap: the player still has locked dice, but unlocking any would take them past 12 (F48: they show dimmed). */
+export function isAtDiceCap(poolSize: number, lockedNow: number, committed: number): boolean {
+  return lockedNow > 0 && unlocksLeft(poolSize, lockedNow, committed) <= 0;
+}

@@ -100,3 +100,11 @@ export function returnParkedDice<T extends { goalSlotIndex: number; value: numbe
     .map((p) => ({ goalSlotIndex: p.slotIndex, value: p.value }));
   return back.length === 0 ? lockedDice : [...lockedDice, ...back];
 }
+
+/**
+ * F48: pressing a die at the 12-dice cap shows a "Max 12 dice" toast — but at most once every
+ * `cooldownSeconds`, however fast the player taps. `lastShownMs` = null if it hasn't shown yet.
+ */
+export function shouldShowCapToast(nowMs: number, lastShownMs: number | null, cooldownSeconds: number): boolean {
+  return lastShownMs === null || nowMs - lastShownMs >= cooldownSeconds * 1000;
+}

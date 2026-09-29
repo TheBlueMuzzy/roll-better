@@ -49,7 +49,8 @@
     "message": "Hold on, getting you back into the game."
   },
   "toasts": {
-    "reconnected": "{name} reconnected"
+    "reconnected": "{name} reconnected",
+    "maxDice": "Max {max} dice"
   },
   "hud": {
     "label": "Game",

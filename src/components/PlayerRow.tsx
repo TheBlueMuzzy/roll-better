@@ -1,11 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
 import type { GamePhase, UnlockAnimation } from '../types/game';
-import { Plane, Vector3 } from 'three';
+import { Color, Plane, Vector3 } from 'three';
+import { toast } from '../ui/kit';
+import { text, fill } from '../ui/words';
+import { MAX_DICE } from '../utils/diceCap';
+import { shouldShowCapToast } from '../utils/unlockTurn';
 import type { Group } from 'three';
 
 const _dragPlane = new Plane(new Vector3(0, 1, 0), 0); // Y=0 table plane
@@ -17,11 +21,11 @@ interface PlayerRowProps {
   lockedValues?: (number | null)[];
   phase?: GamePhase;
   selectedForUnlock?: number[];
-  shakingSlot?: number | null;
   animatingSlotIndices?: number[];
   unlockAnimations?: UnlockAnimation[];
   canUnlock?: boolean;
   maxUnlocks?: number;
+  atCap?: boolean; // F48: the 12-dice cap is reached — locked dice dim and can't be dragged
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
@@ -34,6 +38,11 @@ const SHAKE_DURATION = 0.15; // seconds
 const SHAKE_INTENSITY = 0.08; // world units
 const SHAKE_FREQ = 90; // oscillations per second
 
+const CAP_DIM = 0.55; // how far a die at the 12-dice cap fades toward dark grey (0 = normal look, 1 = grey)
+const CAP_DIM_TOWARD = new Color('#2b2b2b');
+const CAP_TOAST_COOLDOWN = 2; // seconds — "Max 12 dice" shows at most this often, however fast you tap
+let lastCapToastAt: number | null = null; // shared by every die: one toast for the whole row
+
 /** Animated wrapper for locked dice during unlock phase */
 function UnlockableDie({
   slotIndex,
@@ -41,7 +50,7 @@ function UnlockableDie({
   color,
   isSelected,
   selectable,
-  shaking,
+  capped,
   rowZ,
 }: {
   slotIndex: number;
@@ -49,7 +58,7 @@ function UnlockableDie({
   color: string;
   isSelected: boolean;
   selectable: boolean;
-  shaking: boolean;
+  capped: boolean;
   rowZ: number;
 }) {
   const groupRef = useRef<Group>(null);
@@ -91,12 +100,8 @@ function UnlockableDie({
     };
   }, []);
 
-  // Track shake start time
-  if (shaking && shakeStartRef.current === null) {
-    shakeStartRef.current = Date.now();
-  } else if (!shaking) {
-    shakeStartRef.current = null;
-  }
+  // At the 12-dice cap the die wears a dimmed colour
+  const dieColor = useMemo(() => (capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, CAP_DIM).getHexString() : color), [capped, color]);
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
@@ -187,6 +192,17 @@ function UnlockableDie({
         rotation={getRotationForFace(value)}
         scale={DIE_SIZE}
         onPointerDown={(e) => {
+          if (capped) {
+            // F48: can't drag at the 12-dice cap — a little shake + "Max 12 dice" (not once per tap)
+            e.stopPropagation();
+            shakeStartRef.current = Date.now();
+            const now = Date.now();
+            if (shouldShowCapToast(now, lastCapToastAt, CAP_TOAST_COOLDOWN)) {
+              lastCapToastAt = now;
+              toast(fill(text.toasts.maxDice, { max: MAX_DICE }));
+            }
+            return;
+          }
           if (!selectable) return;
           e.stopPropagation();
           // F48: one drag at a time — a second finger (on this die or another) is ignored
@@ -212,7 +228,7 @@ function UnlockableDie({
           (e.target as Element).releasePointerCapture?.(e.pointerId);
         }}
         onPointerOver={(e) => {
-          if (!selectable) return;
+          if (!selectable && !capped) return;
           e.stopPropagation();
           document.body.style.cursor = 'pointer';
         }}
@@ -223,7 +239,7 @@ function UnlockableDie({
         {/* B010: draw this die (body AND pips) after other no-depth-test table marks, so they never
             show through the pip holes when a lifted die passes over them. (The row badges beside
             each row are page-level kit chips since F58: they fade under a dragged die — RowChips.tsx.) */}
-        <Die3D color={color} renderOrder={30} />
+        <Die3D color={dieColor} renderOrder={30} />
       </group>
 
       {/* White outline ring — only visible when selectable or already selected */}
@@ -251,11 +267,11 @@ export function PlayerRow({
   lockedValues = Array(SLOT_COUNT).fill(null),
   phase,
   selectedForUnlock = [],
-  shakingSlot = null,
   animatingSlotIndices = [],
   unlockAnimations = [],
   canUnlock = true,
   maxUnlocks = 0,
+  atCap = false,
 }: PlayerRowProps) {
   const isUnlocking = phase === 'unlocking';
   const remainingSelections = maxUnlocks - selectedForUnlock.length;
@@ -287,7 +303,7 @@ export function PlayerRow({
                 color={color}
                 isSelected={isThisSelected}
                 selectable={isSelectable}
-                shaking={shakingSlot === i}
+                capped={atCap && !isThisSelected}
                 rowZ={z}
               />
             );
