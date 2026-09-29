@@ -1,15 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Roll physics bugs fixed on the work branch (2026-09-29): B007 hang + dice escaping, B008 gather missing dice (each die had 23 colliders). Proven: 68 tests, build, 4 × 50-roll `npm run e2e:physics` runs — 0 hangs, 0 misses. New small one logged: B009 (P3, die pushed into left wall, safety net puts it back).
-Next: Muzzy's feel check (sprint task 9b) → "approved" closes sprint 01 → `/sprint` (UI-kit rollout needs `/define` first) or `/deliver` (F48 is the last v1.6 must).
-Muzzy: feel check — `/play`, roll a lot on phone + desktop: does the revived release fling feel good or too wild? Dice roll the same? Any die teleporting?
+Sprint 01 done 2026-09-29 (archive/sprints/sprint-01.md): F47 + B006 late drag, roll physics B007/B008 (verified by Muzzy), F49 CI. Also new scoring 8/6/4/2/1. All on `dev/v1-6-drag-to-unlock`, not live yet.
+Open bugs are all P3 cosmetic: B005 old unlock tip text, B009 die pushed into left wall (safety net fixes it), B010 dragged die draws behind the profile UI.
+Next: `/deliver` v1.6 (recommended — ships the physics fixes; F48 polish can follow) · or a quick bug sweep of the 3 P3s first · then `/define` for the UI-kit rollout.
 Muzzy: new scoring (8/6/4/2/1) is on the work branch — reaches the live game at /deliver (needs `npx partykit deploy` too).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
-Doing: roll physics bugs B007 + B008 — built, waiting for Muzzy's feel check
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: none (01 done)
+Doing: — (choose: /deliver or bug sweep)
 Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 

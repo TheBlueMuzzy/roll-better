@@ -36,7 +36,7 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
-### B007 · P1 · fixed 2026-09-29 · fixed in 2c1846d · Guarded by: src/utils/rollBounds.test.ts + `npm run e2e:physics` · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
+### B007 · P1 · verified 2026-09-29 (Muzzy: "physics stuff looks good!") · fixed in 2c1846d · Guarded by: src/utils/rollBounds.test.ts + `npm run e2e:physics` · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
 Some dice fly out of the rolling area and the game hangs as if a die is still rolling, then recovers on its own
 Steps: 1. Roll (hold-to-gather-roll)  2. Some dice leave the rolling area
 Expected: walls keep every die inside; the roll ends when all dice settle · Actual: dice escape, the roll never finishes for a while, then resolves (unclear how — probably a safety timeout) · How often: sometimes
@@ -44,7 +44,7 @@ Possible return of ISS-005 "dice get stuck and never settle" (fixed Mar 2026, se
 Evidence: Muzzy playtest on live v0.2.1
 Cause: dice could "settle" mid-gather (results ignored → stuck in rolling; the 10 s timeout couldn't rescue it), and a sub-frame tap did the same; the gather pull ran once per drawn frame, so after a slow frame it overshot and flung dice (sensors while gathering) through the walls. Fix: no settling while gathering, release called directly, pull runs every physics step, live fling capped (`content/tuning/physics.json` maxReleaseSpeed 20), out-of-bounds safety net. 4 × 50 rolls: 0 hangs, 0 timeouts. Waiting for Muzzy's device check → verified.
 
-### B008 · P2 · fixed 2026-09-29 · fixed in 68447e0 (+ 5fea4b8) · Guarded by: `npm run e2e:physics` (every gather with 0.6 s+ of pull sweeps every die) · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop · existed before v1.6
+### B008 · P2 · verified 2026-09-29 (Muzzy) · fixed in 68447e0 (+ 5fea4b8) · Guarded by: `npm run e2e:physics` (every gather with 0.6 s+ of pull sweeps every die) · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop · existed before v1.6
 Gather-to-roll misses some dice — they flicker and scale as if grabbed, then get released and aren't swept into the spin
 Steps: 1. Have several dice in the rolling area  2. Press and hold to gather them for a roll
 Expected: every die in the rolling area is swept into the spin · Actual: some flicker/scale, then drop back and stay out of the spin · How often: sometimes
