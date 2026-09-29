@@ -7,9 +7,10 @@ import style from '../content/ui/style.json'
 
 applyStyle(style) // content/ui/style.json → the UI kit's look (Cartoon)
 
-// Dev Kit (` key) — dev builds only. The dynamic import sits behind import.meta.env.DEV, which the
-// live build replaces with false, so none of src/devkit/ ends up in the released game.
-if (import.meta.env.DEV) {
+// Dev Kit (` key) — always in local dev; in release builds only while content/devkit.json
+// "inReleaseBuilds" is true (prototype → beta). Both are replaced with true/false at build time, so when
+// they're both false the dynamic import is dead code and none of src/devkit/ ends up in the released game.
+if (import.meta.env.DEV || __DEVKIT_IN_RELEASE__) {
   import('./devkit/mount').then((m) => m.mountDevKit())
 }
 
