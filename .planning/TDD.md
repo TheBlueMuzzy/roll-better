@@ -9,7 +9,7 @@
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
 - **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
-- **Dev Kit tools used:** none yet. `content/tuning/scoring.json` is the first tweakable moved out of code; `content/text` and `content/data` are empty (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
+- **Dev Kit tools used:** none yet. `content/tuning/scoring.json` is the first tweakable moved out of code; `content/text/en.json` holds screen words (v1.7); `content/data` is empty (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
 ```mermaid
@@ -70,7 +70,7 @@ flowchart LR
 |---|---|---|
 | `content/tuning/*.json` | `scoring.json` (points per leftover die); physics + timer numbers (§2b) are next candidates | Dev Kit → Tuning |
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
-| `content/text/en.json` | (empty — player text lives in the components) | Obsidian / Dev Kit → Text |
+| `content/text/en.json` | every player-facing word, one section per screen (menu, lobby, How to Play, credits so far — the rest move in as screens go onto the kit); loaded by `src/ui/words.ts` | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
 | `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
 | `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
@@ -116,7 +116,7 @@ D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges 
   Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
   Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
   so a badge fades while a dragged die passes over it. New kit pieces (pinned label, seat-claim list) are built in this game
-  first, then copied back to dev/framework/ui-kit as Built. Every player-facing word goes to content/text/en.json as screens move.
+  in dev/framework/ui-kit first (the game-ui rule: never edit the game's kit copy), then installed with install-kit. Every player-facing word goes to content/text/en.json as screens move.
 
 D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
   Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content

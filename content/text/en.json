@@ -1,0 +1,54 @@
+{
+  "_help": "Every word players read, one section per screen. Edit freely — keep the {placeholders} (e.g. {code}, {n}) as they are. A missing word falls back to the kit's English default.",
+  "mainMenu": {
+    "title": "Roll Better",
+    "subtitle": "A dice-matching game",
+    "play": "Play",
+    "playOnline": "Play online",
+    "howToPlay": "How to play",
+    "settings": "Settings",
+    "upgrades": "Upgrades",
+    "comingSoon": "Coming soon",
+    "otherTab": "You're connected in another tab"
+  },
+  "lobby": {
+    "title": "Play online",
+    "create": "Create a room",
+    "or": "or join a friend",
+    "join": "Join",
+    "room": "Room {code}",
+    "share": "Share this code with your friends",
+    "host": "Host",
+    "ready": "Ready",
+    "notReady": "Not ready",
+    "imReady": "I'm ready",
+    "notYet": "Not ready yet",
+    "start": "Start game",
+    "leave": "Leave",
+    "waitingHost": "Waiting for the host to start…",
+    "needPlayers": "Need at least {n} players",
+    "waitingReady": "Waiting for everyone to be ready"
+  },
+  "howToPlay": {
+    "words": {
+      "title": "How to play",
+      "next": "Next",
+      "back": "Back",
+      "done": "Got it",
+      "page": "Page {n} of {total}"
+    },
+    "pages": [
+      { "title": "Roll Your Dice", "body": "Hold the rolling area to gather your dice, then release to roll. Every roll is unique!" },
+      { "title": "Match the Goal", "body": "The Goal row at the top shows 8 target dice. When your roll matches a Goal die, it locks automatically." },
+      { "title": "Unlock for More", "body": "Drag a locked die down into the rolling area to unlock it. When the timer runs out, each one splits in two — a bonus die!" },
+      { "title": "Score Big", "body": "Match all 8 Goal dice to win the round. Fewer dice in your pool means a higher score — up to 8 points!" },
+      { "title": "Stay Competitive", "body": "After each round, winners start with fewer dice and losers get more. Every round is anyone's game!" },
+      { "title": "Race to 20", "body": "First player to reach 20 points wins the session. Play smart — speed vs. efficiency is the core tension." }
+    ]
+  },
+  "credits": {
+    "title": "Credits",
+    "assets": "Fonts, art & sound",
+    "back": "Back"
+  }
+}

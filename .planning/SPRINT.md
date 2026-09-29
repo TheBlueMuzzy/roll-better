@@ -7,7 +7,7 @@ Changes for Muzzy: main menu, Create/Join, online room, reconnecting overlay and
 Done when: every kit screen (and its dim) stays inside the game frame at phone and desktop sizes; all kit words come from one editable file.
 - [x] 🤖 1. Check: screenshot Settings/Credits at 844×390, 1280×720 and a tall 1000×800 window — do panel + dim stay inside `#root` (`src/App.css` #root 16:9 box, `src/ui/kit/ScreenStack.tsx` overlay)?
 - [x] 🤖 2. Fix only if needed (keep it in `src/App.css` game layer, not the kit)
-- [ ] 🤖 3. `content/text/en.json` + `src/ui/words.ts` (loads it, `fill()` for `{n}` placeholders) — every screen's words live there from now on
+- [x] 🤖 3. `content/text/en.json` + `src/ui/words.ts` (loads it, `fill()` for `{n}` placeholders) — every screen's words live there from now on
 Check: screenshots at the three sizes.
 
 ## F51 🎮 Main menu + Create/Join on the kit
@@ -20,7 +20,7 @@ Check: `npm run e2e` passes; screenshots phone + desktop.
 ## F52 🎮 Online room lobby + reconnecting on the kit
 Done when: after Create/Join you land in a kit room screen; mid-game joiners pick a seat from a kit list; reconnecting uses the kit overlay + toast; the old MainMenu is gone.
 - [ ] 🤖 7. Room: kit `Lobby` with a code — tap-to-copy code, players with colour `Avatar`s, host badge, ready, Start; Play Again returns here (the old "auto-detect lobby return")
-- [ ] 🤖 8. New kit piece — seat picker for mid-game joins ("Game in progress — pick a seat", name, score, locks; waiting spinner + cancel; no seats / errors) built from kit parts (`ListRow`, `Avatar`, `Badge`, `Spinner`) in `src/ui/SeatPicker.tsx`; note it for copy-back to `dev/framework/ui-kit` as Built
+- [ ] 🤖 8. New kit piece — seat picker (built in `dev/framework/ui-kit` — game-ui rule — then installed) for mid-game joins ("Game in progress — pick a seat", name, score, locks; waiting spinner + cancel; no seats / errors) built from kit parts (`ListRow`, `Avatar`, `Badge`, `Spinner`) in `src/ui/SeatPicker.tsx`; note it for copy-back to `dev/framework/ui-kit` as Built
 - [ ] 🤖 9. Reconnecting overlay → kit `Reconnecting`; reconnect message → kit `toast()` (`src/App.tsx`)
 - [ ] 🤖 10. Delete `src/components/MainMenu.tsx` + its `menu-*` rules in `src/App.css`
 - [ ] 🤖 11. Check: `npm run e2e:online` + a by-hand mid-game join with two browsers (seat picker → takes over a bot)
@@ -34,4 +34,4 @@ Done when: How to Play is the kit screen with page dots, same 6 pages, words fro
 Check: tests + build; screenshots.
 
 Ask Muzzy: (answered) backdrop behind menu cards → Cartoon light blue (b). Colours are tweakable later with the Dev Kit Color tool (F59).
-Notes: F50 1–2 — panels were already inside, but `.kit-overlay` is `position: fixed; inset: 0` (whole window), so kit screens — and their corner slots — spanned the letterbox bars. Fix in `src/App.css`: `--game-w/--game-h` shared by `#root` and `.kit-overlay .kit-screen`; the dim still covers the whole window (looks right). Measured at 844×390, 1600×500, 1000×800: kit screen = game frame exactly.
+Notes: F50 1–2 — panels were already inside, but `.kit-overlay` is `position: fixed; inset: 0` (whole window), so kit screens — and their corner slots — spanned the letterbox bars. Fix in `src/App.css`: `--game-w/--game-h` shared by `#root` and `.kit-overlay .kit-screen`; the dim still covers the whole window (looks right). Measured at 844×390, 1600×500, 1000×800: kit screen = game frame exactly. Kit updated 0.1.3 → 0.1.5 first (6 review fixes). F50 3 — `content/text/en.json` + `src/ui/words.ts`; Credits already reads it. Plan fix: new kit pieces (seat picker, pinned labels) are built in the framework kit and installed, not in the game (game-ui rule) — TDD D19 updated.
