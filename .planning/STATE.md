@@ -1,8 +1,8 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 02 — The front door is Cartoon (F50 16:9 box, F51 main menu, F52 online lobby, F53 How to Play) on `dev/v1-7-cartoon-ui`. Menu backdrop = Cartoon light blue (Muzzy).
-Next: `/develop` → task 1 (check kit screens stay inside the 16:9 box).
+AUTONOMOUS overnight (Muzzy 2026-09-29: "auto complete all of those tasks"). Sprint 02 on `dev/v1-7-cartoon-ui`: F50 built (kit screens in the 16:9 box, kit 0.1.5, `content/text/en.json`). In progress: framework SeatPicker (kit 0.1.6) + menus/lobby/How to Play onto the kit. Then: install 0.1.6, seat picker (task 8), delete old menu (10), checks (11), docs (13). Stops before /deliver.
+Muzzy (morning): look-check on phone + desktop (task 14) → "approved" · then `/deliver` if happy.
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
