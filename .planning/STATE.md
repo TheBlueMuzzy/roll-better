@@ -1,14 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Housekeeping done 2026-09-28: GDD rebuilt on the BMUZ-2 template (~110 lines, detail moved word for word to `design/` + `research/audience.md`), TDD slimmed, VISION.md → `archive/vision.md` (ideas were already in ROADMAP Later). F47 approved ✅, F49 ✅.
-Next: sprint 01 still has the roll physics bugs — `/develop` task 7 (B007 dice escape + hang, P1), 8, 9 (B008 gather misses dice). Then the UI-kit rollout (ROADMAP Ideas) needs `/define` first: kit additions + the Cartoon-vs-dark-table art call.
+Roll physics bugs fixed on the work branch (2026-09-29): B007 hang + dice escaping, B008 gather missing dice (each die had 23 colliders). Proven: 68 tests, build, 4 × 50-roll `npm run e2e:physics` runs — 0 hangs, 0 misses. New small one logged: B009 (P3, die pushed into left wall, safety net puts it back).
+Next: Muzzy's feel check (sprint task 9b) → "approved" closes sprint 01 → `/sprint` (UI-kit rollout needs `/define` first) or `/deliver` (F48 is the last v1.6 must).
+Muzzy: feel check — `/play`, roll a lot on phone + desktop: does the revived release fling feel good or too wild? Dice roll the same? Any die teleporting?
 Muzzy: new scoring (8/6/4/2/1) is on the work branch — reaches the live game at /deliver (needs `npx partykit deploy` too).
 Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
 Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: 01 — Rolling and unlocking are solid
-Doing: housekeeping done; roll physics bugs (B007, B008) next
+Doing: roll physics bugs B007 + B008 — built, waiting for Muzzy's feel check
 Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
@@ -32,6 +33,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 **Don't re-break**
 - B003: HUD must run the unlock inactivity timer online too, and timer-end must send the drags to the server (`unlockTurn.ts` + test). No separate 20 s online unlock countdown.
 - B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`. Leaving the unlock phase: a still-parked die goes BACK to its slot (`returnParkedDice`), never dropped or carried over. Race check: `node e2e/unlock-race-sweep.mjs [passes] [pages] [step]`.
+- B007/B008 physics: dice have ONE cube collider (`colliders={false}` on the RigidBody, density 2) — never let Rapier auto-build colliders from the pip meshes. Gather pull runs in `useBeforePhysicsStep` (not useFrame); nothing may settle while gathering; release goes through `releaseGather`. Out-of-bounds safety net in PhysicsDie (`rollBounds.ts`). Check: `npm run e2e:physics` (headless runs ~3–6 fps — short taps aren't judged).
 - 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).
 - BUG-002: `setRollResults` must NOT clear `pendingLockReveals`/`pendingUnlockReveals` (only `initRound` + flush do); unlock value fallback is `goalValues[slot]`, never `1`; deferred phase polling keeps its 5 s timeout.
