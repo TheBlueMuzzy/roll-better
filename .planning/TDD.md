@@ -9,7 +9,7 @@
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
 - **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
-- **Dev Kit tools used (v1.8):** **Console** (` key / triple-tap top-right; `src/devkit/`, dev builds only — loaded by a dynamic import behind `import.meta.env.DEV`, Save goes through the dev-server plugin `vite-plugins/devkitSave.ts`; `npm run check:devkit` proves the live build has none of it) and **Color** (the 15 UI kit colours + the table colours, live, colour-blind preview; writes `content/ui/style.json` tweaks + `content/ui/table.json`). `content/tuning/scoring.json`, `content/text/en.json` are the other data files (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
+- **Dev Kit tools used (v1.8):** **Console** (` key / triple-tap top-right; `src/devkit/`, always in dev + in release builds while `content/devkit.json` `inReleaseBuilds` is true (through beta; off at 1.0 — D20 addendum); Save goes through the dev-server plugin `vite-plugins/devkitSave.ts`, release builds get Copy for Claude instead; `npm run check:devkit` proves both settings) and **Color** (the 15 UI kit colours + the table colours, live, colour-blind preview; writes `content/ui/style.json` tweaks + `content/ui/table.json`). `content/tuning/scoring.json`, `content/text/en.json` are the other data files (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
 ```mermaid
@@ -75,6 +75,7 @@ flowchart LR
 | `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` — tweaks override the preset (Color tool saves only colours that differ from it) | Dev Kit → Color / Obsidian |
 | `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
 | `content/ui/table.json` | Table colours: rows felt, rolling-area felt, divider line + opacity (B012); read through `src/store/tableColors.ts` so the Dev Kit can repaint the 3D table live | Dev Kit → Color / Obsidian |
+| `content/devkit.json` | `inReleaseBuilds`: is the Dev Kit in the live build? `true` through beta (friends can open it), `false` at 1.0 (/deliver sets it) — read at build time by `vite.config.ts` (D20 addendum) | Obsidian / /deliver |
 
 ## 4. Standards (so any engineer could pick this up)
 - **Folders:** `src/components` (React + 3D views), `src/store` (state), `src/hooks` (online + input), `src/utils` (pure logic + tests), `src/types` (game + message types), `src/ui` (game-ui kit), `party/` (server), `e2e/` (browser check scripts), `public/` (privacy page, icons), `proto/` (Python balance sims), `content/` (data, empty so far). Old file-by-file map + state shape: [design/tech-internals.md](design/tech-internals.md).
@@ -120,6 +121,14 @@ D20 · 2026-09-29 · Dev Kit (F60/F59): its own React root outside #root, loaded
   wrote so the game isn't reset). 3D table colours go through a tiny subscribe store (`tableColors`) that repaints materials — no React re-render.
   Stop-gap: RollingArea.tsx (physics helper's file during B009) still reads table.json itself, so Scene finds that felt material by colour;
   once B009 lands, RollingArea should read `tableColors` and `findRollingFelt` in Scene.tsx can go.
+  Addendum 2026-09-29 · Proposed by: Muzzy — the Dev Kit ships in release builds before 1.0, so friends testing the live link can use it.
+  content/devkit.json "inReleaseBuilds" (true through beta; /deliver sets false at 1.0) → vite.config.ts `define` bakes it into
+  __DEVKIT_IN_RELEASE__ (env DEVKIT_IN_RELEASE=true|false overrides for one build); main.tsx loads the Dev Kit when DEV || that flag, so
+  false = dead code = zero Dev Kit bytes. Release builds have no dev server, so no Save: CAN_SAVE (saveContent.ts) = DEV; the Color tool
+  shows Copy for Claude as the main button + a "changes last until you refresh" note; nothing persists (no localStorage). The save
+  plugin stays apply: 'serve'. npm run check:devkit builds both ways and checks each in a browser (off: nothing in dist, ` inert;
+  on: ` opens, no Save, save endpoint 404). Rule for future tools: anything that can affect play (force dice, level loader, cheats)
+  must be offline-only and disabled in online games.
 
 D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
   Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
