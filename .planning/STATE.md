@@ -1,13 +1,13 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 05 / F48 built (🎛️ tuning): lost finger + two fingers fixed, 12-cap dims + shake + "Max 12 dice" toast, rolling area tints under a dragged die, die stays under the finger, 27 drag numbers in content/tuning/drag.json, Dev Kit 0.2.0 Tuning tab (drag + physics tune live). New `npm run e2e:drag` (30/30 ×3) caught + fixed a pinned-chip tap trap. All checks green.
-Next: Muzzy's phone check (task 8) + tune drag feel together in the Dev Kit Tuning tab (task 9) → "approved" → F48 ✅ → `/deliver` v1.6.
-Muzzy: two-phone online check · confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
+F48 approved 2026-09-29 ("EXACTLY what I was looking for … all tuned") — v1.6 Drag-to-Unlock is complete on `dev/v1.6`, along with framework Dev Kit 0.2.0 (Tuning tab) + UI kit 0.2.2. Sprint 05 done.
+Next: `/deliver` v1.6 → merge dev/v1.6 to master (goes live on GitHub Pages).
+Muzzy: confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: 05
-Doing: F48 — tuning (waiting on Muzzy)
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none (05 done)
+Doing: — v1.6 ready to deliver
 Branch: dev/v1.6   Version: 0.3.0.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 
@@ -49,6 +49,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — F48 approved; Sprint 05 done; v1.6 complete on dev/v1.6.
 - 2026-09-29 — F48 built: drag fixes, cap feedback, zone tint, drag.json + Dev Kit Tuning tab, e2e:drag; waiting on Muzzy's phone check + tuning.
 - 2026-09-29 — Framework Dev Kit 0.1.1 + UI kit 0.2.2 installed on dev/v1.6; TDD/GDD slimmed; all green, approved.
 - 2026-09-29 — Released v0.3.0 (beta): Cartoon UI everywhere (sprints 02–03 + look fixes B011–B019, kit 0.1.5→0.1.11), Dev Kit console + Color tool (sprint 04, in release builds until 1.0), B009 fixed (collision groups, 0 put-backs), review fixes (Save same-origin only, online Menu leave).

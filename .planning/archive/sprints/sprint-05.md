@@ -12,8 +12,8 @@ why: dragging is the only way to unlock now → it must feel sure and readable �
 - [x] 🤖 5. Rolling area highlights while a dragged die is over it (RollingArea.tsx reads dragUnlockState); die stays under the finger (grab offset + lift-height ray fix) — try 2 highlight looks behind a tuning value
 - [x] 🤖 6. (done 2026-09-29: Dev Kit 0.2.0 installed; game part 2026-09-29: content/tuning/drag.json + src/tuning/drag.ts; Tuning tab = framework helper) Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
 - [x] 🤖 7. Real-pointer e2e: drags near edges, lost pointer, two fingers, 12-cap — phone portrait + landscape + desktop (new e2e script, run one at a time); update design/tech-internals.md drag state notes
-- [ ] 🙋 8. Two-phone online check (drag, cap, timer) on the dev link
-- [ ] 🤖 9. Tune drag feel with Muzzy in the Dev Kit Tuning tab (tuning)
+- [x] 🙋 8. Two-phone online check (drag, cap, timer) on the dev link
+- [x] 🤖 9. Tune drag feel with Muzzy in the Dev Kit Tuning tab (tuning)
 Check: new drag e2e + e2e:solo + e2e:online + unlock-race-sweep green; Muzzy's phone check
 Ask Muzzy: —
 Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approved (Muzzy 2026-09-29) — build in framework devkit first.
@@ -25,3 +25,4 @@ Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approv
 - Surprise (checks): `e2e/unlock-race-sweep.mjs` had silently stopped working since the kit 0.2.x Pinned change (7e8689a renamed `.pinned` → `.kit-pinned`): it waited forever for the timer bar and never dropped a die. Selector fixed; 204 drops, 0 FAIL.
 - Task 7: `npm run e2e:drag` (e2e/drag-real.mjs) — 10 checks × 3 sizes, ~90 s, 3 runs in a row all green. It CAUGHT a real bug: since kit 0.2 (7e8689a dropped the `.pinned { pointer-events: none }` CSS) the Goal chip's invisible layout box sat over the top of the first dice on a phone and swallowed presses there. Fixed in `Pinned.tsx` (drei Html `style={{ pointerEvents: 'none' }}` — its `pointerEvents` prop does nothing outside transform mode).
 - Task 6: Dev Kit 0.2.0 Tuning tab lists every content/tuning/*.json (sliders use drag.json's `_ranges`, `_help` shows under each row). drag + physics follow the sliders live without Save (drag.ts: `onTuning` → `Object.assign(drag, data)`; PhysicsDie.tsx + rollBounds.ts: `liveTuning('physics', …)`). scoring.json left unwired on purpose — party/server.ts shares it and must not import Dev Kit code.
+Muzzy approved F48 2026-09-29: "EXACTLY what I was looking for … all tuned." Tuning: defaults kept (no drag.json changes saved); zone highlight stays `tint`.
