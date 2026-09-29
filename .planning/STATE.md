@@ -1,8 +1,8 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Released v0.3.0 (beta) 2026-09-29: v1.7 Cartoon UI everywhere + v1.8 Dev Kit (Color tool; ` works on the live link for testers until 1.0) + B009 fix. Live: https://thebluemuzzy.github.io/roll-better/
-Next: extract the Dev Kit into the Game Framework as a BMUZ module (dev/framework/devkit + installer, table tab stays game-side) → then F48 drag polish with Muzzy (v1.6's last must).
+Released v0.3.0 (beta) 2026-09-29 — live: https://thebluemuzzy.github.io/roll-better/ (Cartoon UI everywhere, Dev Kit Color tool — ` works on the live link until 1.0, B009 fixed). BMUZ skills updated with this project's lessons (open kit gaps listed in ~/.claude/config/bmuz/BMUZ-PLAN.md → next framework kit pass).
+Next (Muzzy said "go" = start here): extract the Dev Kit into the Game Framework as a module — `dev/framework/devkit/` + an installer like ui-kit's; generic = console, tabs, Save/Copy for Claude, Color tab for kit colours, release-build switch (content/devkit.json), check:devkit; game-specific = the table-felt tab (becomes a "game tab" via a small tab API). Prove it by installing it back into Roll Better. Then: BMUZ setup gives every new web game the Dev Kit. After that: F48 drag polish with Muzzy (v1.6's last must).
 Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
