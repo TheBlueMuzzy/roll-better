@@ -1,9 +1,9 @@
 // PLAY ONLINE — the kit's Lobby block, opened with screens.push('online') from the main menu.
 //   No room yet → create a room, or type a friend's code and join.
 //   In a room   → the code (Copy code button), who's in (colour avatar, host badge, ready), Start / Leave.
-//   Game already going (mid-game join, late Play Again) → pick a seat (placeholder until task 8).
+//   Game already going (mid-game join, late Play Again) → pick a seat (kit SeatPicker).
 // All the online rules live in OnlineRoom.tsx; this screen only shows them.
-import { Avatar, Button, ListRow, Lobby, Panel, Row, Screen, ScrollArea, Spinner, Text, fill, toast } from './kit'
+import { Button, Lobby, Screen, SeatPicker, fill, toast } from './kit'
 import { useOnlineRoom } from './OnlineRoom'
 import { playUIClick } from '../utils/soundManager'
 import { text } from './words'
@@ -69,48 +69,27 @@ export function LobbyScreen() {
   )
 }
 
-// MID-GAME SEAT PICK — the old menu's seat claim (same room calls), built from kit parts.
-// TODO(task 8): SeatPicker — swap this whole component for the kit SeatPicker block; the
-// data it needs is room.seatList / room.claimedSeat / room.autoMatched / room.seatClaimError,
-// and the calls are room.claimSeat(seatIndex) / room.cancelClaim() / leave().
+// MID-GAME SEAT PICK — the kit's SeatPicker (kit 0.1.6): a game is already going, so pick a seat
+// (a bot's) to take over. Same room calls as the old menu: claimSeat / cancelClaim / leave.
 function SeatClaim() {
   const { room, leave } = useOnlineRoom()
   const w = text.seats
-  const seats = room.seatList ?? []
+  const seats = (room.seatList ?? []).map((seat) => ({
+    id: String(seat.seatIndex),
+    name: seat.name,
+    color: seat.color,
+    detail: fill(w.stats, { score: seat.score, locks: seat.lockedCount }),
+  }))
+  const waiting = room.claimedSeat !== null
 
   return (
-    <Screen label={w.title} topLeft={<Button variant="secondary" onClick={() => { playUIClick(); leave() }}>{text.lobby.back}</Button>}>
-      <Panel depth={2} gap="m" className="kit-modal">
-        {room.claimedSeat !== null ? (
-          <>
-            <Row gap="m" className="kit-nowrap">
-              <Spinner label={w.claimed} />
-              <Text>{room.autoMatched ? w.reclaiming : w.claimed}</Text>
-            </Row>
-            <Row justify="end">
-              <Button variant="secondary" onClick={() => { playUIClick(); room.cancelClaim() }}>{w.cancel}</Button>
-            </Row>
-          </>
-        ) : (
-          <>
-            <Text kind="title">{w.title}</Text>
-            {seats.length === 0 && <Text kind="caption">{w.none}</Text>}
-            {seats.length > 0 && (
-              <ScrollArea label={w.title} max="m">
-                {seats.map((seat) => (
-                  <ListRow
-                    key={seat.seatIndex}
-                    label={<Row gap="s" className="kit-nowrap"><Avatar name={seat.name} src={colourPicture(seat.color)} /><Text kind="label">{seat.name}</Text></Row>}
-                    detail={fill(w.stats, { score: seat.score, locks: seat.lockedCount })}
-                    onClick={() => { playUIClick(); room.claimSeat(seat.seatIndex) }}
-                  />
-                ))}
-              </ScrollArea>
-            )}
-            {room.seatClaimError && <Text kind="caption"><span className="kit-error">{room.seatClaimError}</span></Text>}
-          </>
-        )}
-      </Panel>
-    </Screen>
+    <SeatPicker
+      seats={seats}
+      waiting={waiting}
+      error={room.seatClaimError ?? undefined}
+      words={{ ...w, joining: room.autoMatched ? w.reclaiming : w.joining }}
+      onPick={(id) => { playUIClick(); room.claimSeat(Number(id)) }}
+      onCancel={() => { playUIClick(); if (waiting) room.cancelClaim(); else leave() }}
+    />
   )
 }

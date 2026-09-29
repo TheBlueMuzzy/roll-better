@@ -85,7 +85,7 @@ export function store(page, src, arg) {
 }
 
 // Button words come from the game's own text file, so renaming a button there doesn't break the checks
-const text = JSON.parse(readFileSync(new URL('../content/text/en.json', import.meta.url), 'utf8'));
+export const text = JSON.parse(readFileSync(new URL('../content/text/en.json', import.meta.url), 'utf8'));
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 
 /** Main menu → Play (a local game against the computer). */

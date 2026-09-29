@@ -14,6 +14,7 @@
     "e2e": "npm run e2e:solo && npm run e2e:online",
     "e2e:solo": "node e2e/solo-late-drag.mjs",
     "e2e:online": "node e2e/online-unlock.mjs",
+    "e2e:midgame": "node e2e/midgame-join.mjs",
     "e2e:physics": "node e2e/roll-physics.mjs"
   },
   "dependencies": {
