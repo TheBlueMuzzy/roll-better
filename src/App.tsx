@@ -2,7 +2,6 @@ import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
-import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { ScreenStack, ToastStack, kitScreens, screens, toast, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
@@ -12,6 +11,7 @@ import { LobbyScreen } from './ui/LobbyScreen';
 import { OnlineRoomProvider } from './ui/OnlineRoom';
 import { ReconnectingScreen } from './ui/ReconnectingScreen';
 import { HowToPlayScreen } from './ui/HowToPlayScreen';
+import { WinnersScreen } from './ui/WinnersScreen';
 import { text, fill } from './ui/words';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -746,7 +746,9 @@ function App() {
         </div>
       )}
       {screen === 'winners' && (
-        <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+        <div className="winners-layer">
+          <WinnersScreen onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
+        </div>
       )}
       <ScreenStack overlay screens={kitScreenList} />
       <ToastStack />

@@ -51,6 +51,17 @@
   "toasts": {
     "reconnected": "{name} reconnected"
   },
+  "winners": {
+    "youWin": "You win!",
+    "someoneWins": "{name} wins!",
+    "tie": "Tie!",
+    "rounds": "Rounds played: {n}",
+    "points": "{n} pts",
+    "you": "You",
+    "winner": "Winner",
+    "rematch": "Play again",
+    "quit": "Menu"
+  },
   "playerNames": [
     "Wobble",
     "Noodle",
