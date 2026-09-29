@@ -501,6 +501,12 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         rollStartTime.current = 0;
       }
 
+      // The gather was ended by something other than the player letting go (e.g. an online phase
+      // change mid-gather). Release anyway — otherwise the dice hover in orbit and the settle block
+      // above is never lifted, so the next roll would hang (B007). Normal releases call
+      // releaseGather() themselves, right after stopGathering(), so this never fires twice.
+      if (!gatherActive && wasGatheringRef.current) releaseGather();
+
       // Active velocity check — detect nearly-stopped dice faster than Rapier onSleep
       // Only runs after dice have been rolling for at least 0.5s (avoids firing at rest)
       if (!hasFired.current && rollStartTime.current > 0 && Date.now() - rollStartTime.current > 500) {

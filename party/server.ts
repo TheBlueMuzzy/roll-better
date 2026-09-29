@@ -21,6 +21,9 @@ const UNLOCK_BACKSTOP_MS = 25_000;
 // D16: when a player commits a drag (unlock_activity), make sure the backstop leaves them at least
 // this long — their own 3 s inactivity timer ends the turn well before, so an active player is never AFK'd.
 const UNLOCK_ACTIVITY_GRACE_MS = 10_000;
+// Hard limit on the whole unlock phase, however many unlock_activity messages arrive — so one player
+// (or a modified client pinging forever) can never hold the room in the unlock phase.
+const UNLOCK_MAX_PHASE_MS = 45_000;
 
 const AI_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 function randomDifficulty(): string {
@@ -107,6 +110,8 @@ export default class RollBetterServer implements Party.Server {
   // Track when the current phase timer was started and its duration,
   // so we can calculate remaining time for disconnect grace windows.
   private phaseTimerStartedAt: number | null = null;
+  // When the current unlock phase began (for UNLOCK_MAX_PHASE_MS)
+  private unlockPhaseStartedAt: number | null = null;
   private phaseTimerDuration: number | null = null;
 
   constructor(room: Party.Room) {
@@ -941,6 +946,13 @@ export default class RollBetterServer implements Party.Server {
    * Validates slot indices, stores the response, and checks if all have responded.
    */
   private handleUnlockRequest(sender: Party.Connection, slotIndices: number[], afk: boolean = false) {
+    // Messages come from the network — a bad one must not throw. Repeated slots count once.
+    if (!Array.isArray(slotIndices)) {
+      this.sendToConnection(sender, { type: "error", message: "Bad unlock request" });
+      return;
+    }
+    slotIndices = [...new Set(slotIndices)];
+
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -1190,6 +1202,7 @@ export default class RollBetterServer implements Party.Server {
 
       // Start the unlock backstop. Each phone ends its own turn with a 3 s drag inactivity timer
       // (TDD D15); this only catches players who are really gone. Extended by unlock_activity (D16).
+      this.unlockPhaseStartedAt = Date.now();
       this.startUnlockBackstop(UNLOCK_BACKSTOP_MS);
     }
   }
@@ -1217,10 +1230,14 @@ export default class RollBetterServer implements Party.Server {
     const player = this.gameState.players.find((p) => p.id === sender.id && p.isOnline);
     if (!player) return;
     if (!this.unlockTimeoutTimer || this.phaseTimerStartedAt === null || this.phaseTimerDuration === null) return;
-    const remaining = this.phaseTimerStartedAt + this.phaseTimerDuration - Date.now();
-    if (remaining >= UNLOCK_ACTIVITY_GRACE_MS) return;
-    this.log(`Unlock activity from ${player.name} — backstop extended (${remaining}ms → ${UNLOCK_ACTIVITY_GRACE_MS}ms)`);
-    this.startUnlockBackstop(UNLOCK_ACTIVITY_GRACE_MS);
+    const now = Date.now();
+    const remaining = this.phaseTimerStartedAt + this.phaseTimerDuration - now;
+    // Never past the hard limit for the whole phase
+    const phaseLeft = this.unlockPhaseStartedAt === null ? 0 : this.unlockPhaseStartedAt + UNLOCK_MAX_PHASE_MS - now;
+    const extendTo = Math.min(UNLOCK_ACTIVITY_GRACE_MS, phaseLeft);
+    if (remaining >= extendTo) return;
+    this.log(`Unlock activity from ${player.name} — backstop extended (${remaining}ms → ${extendTo}ms)`);
+    this.startUnlockBackstop(extendTo);
   }
 
   /**
