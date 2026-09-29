@@ -26,8 +26,14 @@ export function Pinned({ position, fit, anchor = 'right', children }: PinnedProp
   const size = useThree((s) => s.size);
   const camera = useThree((s) => s.camera);
   const viewport = useThree((s) => s.viewport);
-  // The piece's own box (inside drei's div). A callback ref, because drei draws it in its own root a moment later.
-  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  // The piece's own box (inside drei's div). drei draws it in its own React root a moment later,
+  // so a callback ref notes it and `mounted` tells the effect below it's there.
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const attachBox = useCallback((el: HTMLDivElement | null) => {
+    boxRef.current = el;
+    setMounted(el !== null);
+  }, []);
   const point = useRef(new Vector3());
 
   const [x, y, z] = position;
@@ -36,26 +42,27 @@ export function Pinned({ position, fit, anchor = 'right', children }: PinnedProp
   // Scale = how much the piece must grow or shrink to fill the fit box (whichever side is tighter).
   // offsetWidth/Height ignore the scale transform, so measuring never feeds back into itself.
   const applyScale = useCallback(() => {
+    const box = boxRef.current;
     if (!box || !box.offsetWidth || !box.offsetHeight) return;
     point.current.set(x, y, z);
     const pixelsPerUnit = viewport.getCurrentViewport(camera, point.current, size).factor;
     const scale = Math.min((fitW * pixelsPerUnit) / box.offsetWidth, (fitH * pixelsPerUnit) / box.offsetHeight);
     box.style.setProperty('--pin-scale', String(scale));
     box.dataset.ready = 'true';
-  }, [box, x, y, z, fitW, fitH, camera, viewport, size]);
+  }, [x, y, z, fitW, fitH, camera, viewport, size]);
 
   // Again on every window resize (size changes) and whenever the piece's content changes size
   useEffect(() => {
+    if (!mounted || !boxRef.current) return;
     applyScale();
-    if (!box) return;
     const watcher = new ResizeObserver(applyScale);
-    watcher.observe(box);
+    watcher.observe(boxRef.current);
     return () => watcher.disconnect();
-  }, [box, applyScale]);
+  }, [mounted, applyScale]);
 
   return (
     <Html position={position} zIndexRange={Z_RANGE} pointerEvents="none">
-      <div ref={setBox} className="kit-scope pinned" data-anchor={anchor}>
+      <div ref={attachBox} className="kit-scope pinned" data-anchor={anchor}>
         {children}
       </div>
     </Html>

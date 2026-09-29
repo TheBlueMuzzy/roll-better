@@ -257,6 +257,18 @@ body {
   transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
 }
 
+/* --- "Round N" banner (kit RoundIntro, src/ui/RoundBanner.tsx) ---
+   Over the table and HUD, under tips and screens. Shows only: every tap goes through to the game. */
+.round-banner-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+}
+.round-banner-layer,
+.round-banner-layer * {
+  pointer-events: none;
+}
+
 /* --- Winners (kit Results, src/ui/WinnersScreen.tsx) ---
    Over the game box: above the HUD (10), below kit screens like Reconnecting (--kit-overlay-z 80) */
 .winners-layer {

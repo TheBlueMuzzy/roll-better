@@ -1,0 +1,4 @@
+{
+  "_help": "In-game UI timing. roundBannerSeconds = how long the \"Round N\" banner stays up at the start of each round (it never blocks play; 0 = no banner).",
+  "roundBannerSeconds": 1.6
+}
