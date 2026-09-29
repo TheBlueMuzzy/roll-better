@@ -35,10 +35,10 @@ body {
 /* Kit toasts (tips, messages) sit at the BOTTOM of the rolling area — the right half of the game box
    (<ToastStack place="bottom" /> in App.tsx; the kit keeps them out of the letterbox bars).
    The top is taken by the instructions (level with the Goal dice, B016) and the left by the rows,
-   so the left half is kept clear, and the right edge clear of the gear. */
+   so the left half is kept clear, and the right edge clear of the gear (the kit adds one gap-m on each side). */
 :root {
-  --kit-toasts-start: calc(var(--game-w) / 2 + var(--gap-m));
-  --kit-toasts-end: calc(var(--gap-m) * 4);
+  --kit-toasts-start: calc(var(--game-w) / 2);
+  --kit-toasts-end: calc(var(--gap-m) * 3);
 }
 
 #root {
