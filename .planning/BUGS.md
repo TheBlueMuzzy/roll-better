@@ -1,7 +1,14 @@
 # Roll Better — Bugs
-Open: 2 (P0 0 · P1 0 · P2 0 · P3 2) · watching: 2
+Open: 3 (P0 0 · P1 0 · P2 0 · P3 3) · watching: 2
 
 ## Open
+### B010 · P3 · open · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
+Picked-up die from the farthest-left locked slot: its black pips turn white / look see-through
+Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
+Expected: pips stay black · Actual: pips look white/see-through while lifted over that slot; back to normal as soon as it's dragged away · Only the leftmost slot does it · How often: whenever tried (Muzzy)
+Likely: pip clearcoat reflecting a bright spot of the environment map at that one angle, or the lifted die clipping into something near the Goal profile group (star icon) — not related to the B007/B008 physics changes (visual meshes untouched).
+Evidence: Muzzy report
+
 ### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
 A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
 Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
