@@ -44,7 +44,7 @@ export function getRotationForFace(value: number): [number, number, number] {
 function easeIn(t: number): number { return t * t; }
 function easeOut(t: number): number { return 1 - (1 - t) * (1 - t); }
 
-// Star icon world X — same offset used by GoalProfileGroup in Scene.tsx
+// Where new Goal dice emerge from: beside the Goal chip (RowChips.tsx), the same anchor the rows' chips use
 const STAR_WORLD_X = getSlotX(0) - PROFILE_X_OFFSET;
 
 // --- Props ---

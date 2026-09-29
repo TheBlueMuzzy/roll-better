@@ -195,9 +195,9 @@ function UnlockableDie({
           document.body.style.cursor = 'default';
         }}
       >
-        {/* B010: draw this die (body AND pips) after the profile UI. The star/avatar icons skip the
-            depth test, so without this they could land between the pips and the body in the draw
-            order and show through the pip holes when a lifted die passes over them. */}
+        {/* B010: draw this die (body AND pips) after other no-depth-test table marks, so they never
+            show through the pip holes when a lifted die passes over them. (The row badges beside
+            each row are page-level kit chips since F58: they fade under a dragged die — RowChips.tsx.) */}
         <Die3D color={color} renderOrder={30} />
       </group>
 
