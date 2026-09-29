@@ -1,5 +1,5 @@
 # Roll Better — Roadmap
-Release target: not set — must:next 5/6 done (+6 milestones shipped before conversion)
+Release target: 1.0 — musts not set yet (/define) · live stage: beta (Muzzy 2026-09-29: "probably Beta since the art isn't final")
 
 ## v1.0 — MVP  ✅ shipped 2026-03-03
 ## v1.1 — Online Multiplayer  ✅ shipped 2026-03-05
