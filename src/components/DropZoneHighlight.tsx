@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, type Group, type MeshBasicMaterial } from 'three';
 import { useGameStore } from '../store/gameStore';
 import { isInRollingZone, rollingZoneBounds } from '../utils/dropZone';
-import { drag } from '../tuning/drag';
+import { drag, useDragTuningEdits } from '../tuning/drag';
 
 // F48: the rolling area lights up while a die you're dragging is over it — letting go there counts.
 // content/tuning/drag.json → zoneHighlight picks the look:
@@ -30,6 +30,7 @@ function outlineBars() {
 }
 
 export function DropZoneHighlight() {
+  useDragTuningEdits(); // zone size (zonePadding) + frame width are read while drawing — redraw on a Dev Kit edit
   const tintMat = useRef<MeshBasicMaterial>(null);
   const outlineGroup = useRef<Group>(null);
   const outlineMats = useRef<(MeshBasicMaterial | null)[]>([]);

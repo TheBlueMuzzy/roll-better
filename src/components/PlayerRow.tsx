@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
@@ -6,7 +6,7 @@ import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
 import type { GamePhase, UnlockAnimation } from '../types/game';
 import { Color, Plane, Vector3, type Ray } from 'three';
-import { drag } from '../tuning/drag';
+import { drag, useDragTuningEdits } from '../tuning/drag';
 import { toast } from '../ui/kit';
 import { text, fill } from '../ui/words';
 import { MAX_DICE } from '../utils/diceCap';
@@ -102,7 +102,9 @@ function UnlockableDie({
   }, []);
 
   // At the 12-dice cap the die wears a dimmed colour
-  const dieColor = useMemo(() => (capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, drag.capDim).getHexString() : color), [capped, color]);
+  // (colour, ring size and ring opacity are read while drawing — this redraws them when the Dev Kit edits drag.json)
+  useDragTuningEdits();
+  const dieColor = capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, drag.capDim).getHexString() : color;
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
