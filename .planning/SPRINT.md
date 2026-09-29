@@ -29,7 +29,7 @@ Check: e2e passes; two-browser mid-game join works; screenshots of room + seat p
 ## F53 🎮 How to Play on the kit
 Done when: How to Play is the kit screen with page dots, same 6 pages, words from `content/text/en.json`.
 - [x] 🤖 12. Kit `HowToPlay` with the 6 pages from `en.json`; replace `src/components/HowToPlay.tsx`; B005 text guard (`src/utils/playerText.test.ts`) reads `en.json` too
-- [ ] 🤖 13. Update `.planning/design/screens.md` (menu, lobby, How to Play now kit screens)
+- [x] 🤖 13. Update `.planning/design/screens.md` (menu, lobby, How to Play now kit screens)
 - [ ] 🙋 14. Look check on phone + desktop (`/play`)
 Check: tests + build; screenshots.
 

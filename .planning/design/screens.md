@@ -5,14 +5,15 @@
 
 **Landscape only (since v1.4).** Phones held sideways (either way round). Desktop uses the same landscape layout. The top-to-bottom breakdown below is from the portrait era — the pieces are the same (goal row, player rows with 3D profile groups, rolling area, HUD) but arranged for landscape; exact layout lives in the code (`Scene.tsx`).
 
-#### Main Menu
-- Game title "Roll Better"
-- **Offline**: Player count selector (2, 3, 4) + PLAY button. AI difficulty is randomized per bot (no selector).
-- **Online**: Inline CREATE / JOIN flow on the main menu (no separate lobby screen). CREATE shows room code + player list inline. JOIN shows code entry field inline. Host sees START GAME button when players are ready.
-- How to Play button → rules modal
-- Upgrades button (placeholder for future cosmetics)
-- Settings gear icon (bottom-right) → opens settings modal
-- Build version overlay in lower-left corner (`vX.Y.Z.B`)
+#### Main Menu, online and help (game-ui kit, Cartoon — v1.7 sprint 02)
+All front-door screens are kit screens on the Cartoon light-blue page (Muzzy's pick; colours in `content/ui/style.json`), inside the game's 16:9 box. Words: `content/text/en.json`.
+- **Main menu** (`src/ui/MainMenuScreen.tsx`, kit `MainMenu`): title + subtitle, then Play (local, you + 3 bots), Play online, Settings, How to play, Upgrades (disabled, "Coming soon"). Version in the bottom-left corner.
+- **Play online** (`src/ui/LobbyScreen.tsx`, kit `Lobby`; rules in `src/ui/OnlineRoom.tsx`): Create a room, or type a friend's 4-letter code and Join. Back / Esc / tapping the dim leaves.
+- **Room** (kit `Lobby` with a code): "Room ABCD", players with colour avatars, Host badge, Copy code, Leave, Start game (host). Players are ready as soon as they join. Play Again after a game returns here.
+- **Game in progress** (kit `SeatPicker`, kit 0.1.6): someone joining a running game picks a bot's seat (name, colour, score, locks) → "Seat claimed! Joining next round…" (Cancel) → in the game at the next round.
+- **Reconnecting** (kit `Reconnecting` dialog, blocks taps) and "X reconnected" (kit toast).
+- **How to Play** (kit `HowToPlay`): 6 pages with page dots, Back / Next / Got it — from the menu and in game.
+- **Settings / Credits** (kit, since v1.6/v0.2.2).
 
 #### Game Screen (Play Area) — top to bottom:
 
