@@ -1,15 +1,16 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-AUTONOMOUS overnight run (Muzzy 2026-09-29: all of v1.7 + game-ui lessons in ~/.claude/config/bmuz/BMUZ-PLAN.md; context auto-hold at 65%; stops before /deliver).
-Sprint 02 BUILT (archive/sprints/sprint-02.md): kit front door — main menu, Create/Join, room, seat picker (kit 0.1.6), reconnecting, How to Play; old menu deleted; e2e solo/online/midgame PASS. F50–F53 🎛️ awaiting Muzzy's look.
-Sprint 03 — The table is Cartoon too (SPRINT.md): F57 PlayerChip + pinning → F54 winners → F55 toasts + round banner → F56 HUD → F58 badges. Framework kit 0.1.7 (lobby fixes + game box) building; 0.1.8 (PlayerChip, Results upgrade, dismissible toast) next.
-Muzzy (morning): look-check front door + table on phone/desktop (`/play`) → "approved" · then `/deliver`.
+Overnight autonomous run DONE (2026-09-29): all of v1.7 "Cartoon UI everywhere" is built on `dev/v1-7-cartoon-ui` (not live).
+- Front door (sprint 02): kit main menu, Create/Join, room, SeatPicker, reconnecting, How to Play. Table (sprint 03): kit PlayerChips pinned beside every row + Goal (fade under a dragged die), status banner + timer bars pinned over the rolling area, Round badge, gear, "Round N" banner, tips/seat messages as toasts, winners on kit Results.
+- Framework kit 0.1.5 → 0.1.8 (SeatPicker, Lobby fixes, game box, PlayerChip, Results upgrade, dismissible toasts, .kit-scope) — pushed. Lessons for game-ui/BMUZ: ~/.claude/config/bmuz/BMUZ-PLAN.md (16 notes).
+- Checks: tests 71/71, build, check-ui, e2e solo/online/midgame, B010 script — all PASS; screenshots looked at.
+Muzzy (morning): `/play` → look at the menu, lobby, a game, a tip, the winners screen on phone + desktop → "approved" (or what's off) · Ask Muzzy (SPRINT Notes): chips are one line (no "Bot" badge — bots show "B2" in the avatar) because phone rows are only ~39 px apart; chip text is small on phone; status banner is big on desktop — all tweakable. Then `/deliver`.
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
 Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 03 — The table is Cartoon too
-Doing: F57 — kit PlayerChip + pinning (framework kit 0.1.7/0.1.8)
+Doing: — sprint 03 built; awaiting Muzzy look-check (task 16)
 Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
 
@@ -47,6 +48,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not 
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Sprint 03 built (autonomous): framework kit 0.1.7 + 0.1.8, F57 pinning, F54 winners, F55 toasts + Round banner, F56 HUD, F58 PlayerChips; old HUD/TipBanner/Winners/3D badges deleted. All checks PASS.
 - 2026-09-29 — Sprint 02 built (autonomous): kit 0.1.5→0.1.6, F50 game box + en.json, F51 menu, F52 lobby + SeatPicker + reconnecting, F53 How to Play, old menu deleted (−963 lines), e2e:midgame added. Sprint 03 planned.
 - 2026-09-29 — Released v0.2.2: sprint 01 (F47, B006, B007/B008 physics, F49) + scoring 8/6/4/2/1 + bug sweep (B005, B010) + Credits screen + review fixes (45 s unlock limit, server-ended gather release, unlock_request validation).
 - 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.

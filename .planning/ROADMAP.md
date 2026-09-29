@@ -41,14 +41,14 @@ Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, 
 - 🎛️ F52 🎮 Online room lobby + reconnecting on the kit — should · needs: F51 · sprint 2 · built, awaiting Muzzy look-check
   what: kit Lobby (room) + Reconnecting; kit addition: seat-claim list for mid-game joins (built in the framework kit, then installed)
 - 🎛️ F53 🎮 How to Play on the kit — should · needs: F50 · sprint 2 · built, awaiting Muzzy look-check
-- 🔨 F54 🎮 Winners → kit Results / Post-game — should · needs: F50 · sprint 3
+- 🎛️ F54 🎮 Winners → kit Results / Post-game — should · needs: F50 · sprint 3 · built, awaiting Muzzy look-check
   why: a big, readable finish → players see who won and hit Play Again → Fellowship
-- 🔨 F55 ✨ Tips + messages → kit toasts; round start → kit Countdown / Round intro — should · needs: F50 · sprint 3
-- 🔨 F56 🎮 In-game HUD on the kit (status banner, round, timer bars, gear) — should · needs: F50, ~F57 · sprint 3
+- 🎛️ F55 ✨ Tips + messages → kit toasts; round start → kit Countdown / Round intro — should · needs: F50 · sprint 3 · built, awaiting Muzzy look-check
+- 🎛️ F56 🎮 In-game HUD on the kit (status banner, round, timer bars, gear) — should · needs: F50, ~F57 · sprint 3 · built, awaiting Muzzy look-check
   why: status and timers readable at a glance without pulling the eye off the dice → Sensation
-- 🔨 F57 🧱 New kit piece: labels pinned to 3D — should · sprint 3
+- 🎛️ F57 🧱 New kit piece: labels pinned to 3D — should · sprint 3 · built, awaiting Muzzy look-check
   what: an HTML card anchored to a 3D point that follows the camera/resize (drei Html); built in the Game Framework kit (dev/framework/ui-kit) as Built, then installed here
-- 🔨 F58 🎮 Player + Goal badges rebuilt as kit UI — should · needs: F57, ~F56 · sprint 3
+- 🎛️ F58 🎮 Player + Goal badges rebuilt as kit UI — should · needs: F57, ~F56 · sprint 3 · built, awaiting Muzzy look-check
   what: kit Avatar + name + Score/Badge + start/turn, pinned beside each row; replaces the 3D profile groups (circle, star, "S2 | T2"). HTML draws above the table, so a badge fades while a dragged die passes over it (keeps the B010 promise: the die you hold is never hidden)
   why: who's who and who's ahead readable at a glance → Fellowship
 
@@ -57,10 +57,10 @@ flowchart LR
   F50[🎛️ F50 16:9 box] --> F51[🎛️ F51 Main menu]
   F51 --> F52[🎛️ F52 Lobby]
   F50 --> F53[🎛️ F53 How to Play]
-  F50 --> F54[🔨 F54 Winners]
-  F50 --> F55[🔨 F55 Toasts + round banner]
-  F50 --> F56[🔨 F56 HUD]
-  F57[🔨 F57 PlayerChip + pinning] --> F58[🔨 F58 Badges]
+  F50 --> F54[🎛️ F54 Winners]
+  F50 --> F55[🎛️ F55 Toasts + round banner]
+  F50 --> F56[🎛️ F56 HUD]
+  F57[🎛️ F57 PlayerChip + pinning] --> F58[🎛️ F58 Badges]
   F56 -.working.-> F58
   F57 -.working.-> F56
 ```
