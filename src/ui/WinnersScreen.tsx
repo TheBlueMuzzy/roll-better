@@ -2,8 +2,8 @@
 // Everyone best first in their dice colour, ★ on the winner, "You" on the local player, then
 // Play again / Menu. Same screen online and offline — App.tsx shows it while the store's screen is
 // 'winners' (offline: App's round flow; online: the store's applyOnlineSessionEnd).
-// The kit Results has no dim of its own, so it sits in a dialog Screen, which dims the table under it.
-import { Results, Screen } from './kit'
+// dim: the table stays visible behind it, darkened (kit Results dim).
+import { Results } from './kit'
 import { useGameStore } from '../store/gameStore'
 import { playUIClick } from '../utils/soundManager'
 import { text, fill } from './words'
@@ -35,16 +35,15 @@ export function WinnersScreen({ onPlayAgain, onMenu }: WinnersScreenProps) {
   const click = (then: () => void) => () => { playUIClick(); then() }
 
   return (
-    <Screen dialog label={title}>
-      <Results
-        players={players.map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color }))}
-        meId={me?.id}
-        title={title}
-        message={fill(w.rounds, { n: currentRound })}
-        onRematch={click(onPlayAgain)}
-        onQuit={click(toMenu)}
-        words={w}
-      />
-    </Screen>
+    <Results
+      players={players.map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color }))}
+      meId={me?.id}
+      title={title}
+      message={fill(w.rounds, { n: currentRound })}
+      onRematch={click(onPlayAgain)}
+      onQuit={click(toMenu)}
+      words={w}
+      dim
+    />
   )
 }
