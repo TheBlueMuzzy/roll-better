@@ -1,5 +1,5 @@
 # Roll Better — Bugs
-Open: 8 (P0 0 · P1 0 · P2 1 · P3 7)
+Open: 1 (P0 0 · P1 0 · P2 1 · P3 0) · watching: 2
 
 ## Open
 ### B011 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
