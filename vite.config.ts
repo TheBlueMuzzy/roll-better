@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { devkitSave } from './vite-plugins/devkitSave'
 // import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // https://vite.dev/config/
@@ -8,6 +9,7 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/roll-better/' : '/',
   plugins: [
     react(),
+    devkitSave(), // Dev Kit Save button → writes content/ JSON (dev server only, never in the live build)
     // basicSsl(),
     VitePWA({
       registerType: 'autoUpdate',
