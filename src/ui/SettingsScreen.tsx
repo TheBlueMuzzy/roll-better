@@ -37,6 +37,7 @@ export function SettingsScreen({ onUnstick }: { onUnstick: () => void }) {
 
   const onAction = (id: string) => {
     if (id === 'unstick') { onUnstick(); close() }
+    if (id === 'credits') screens.push('credits')
     if (id === 'mainMenu') { screens.pop(); useGameStore.getState().setScreen('menu') }
   }
 

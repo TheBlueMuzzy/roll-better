@@ -7,6 +7,7 @@ import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
 import { ScreenStack, kitScreens, screens, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
+import { CreditsScreen } from './ui/CreditsScreen';
 import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -30,10 +31,11 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  // Kit screens (Settings, its Confirm) — open with screens.push('settings')
+  // Kit screens (Settings, its Confirm, Credits) — open with screens.push('settings')
   const kitScreenList = useMemo(() => ({
     ...kitScreens,
     settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
+    credits: CreditsScreen,
   }), []);
   const settingsOpen = useScreens().includes('settings');
   const openSettings = useCallback(() => screens.push('settings'), []);

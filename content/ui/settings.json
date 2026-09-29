@@ -7,6 +7,7 @@
       { "id": "confirmationEnabled", "type": "toggle", "label": "Confirmation", "default": true },
       { "id": "unstick", "type": "button", "label": "Unstick Dice" },
       { "id": "mainMenu", "type": "destructive", "label": "Leave the game", "button": "Main Menu", "confirm": "Leave this game and go back to the main menu?" },
+      { "id": "credits", "type": "button", "label": "Credits" },
       { "id": "privacy", "type": "link", "label": "Privacy Policy", "url": "privacy.html" }
     ]}
   ]
