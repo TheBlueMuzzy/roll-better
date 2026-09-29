@@ -1,5 +1,5 @@
 # Roll Better — Dice physics, state shape and file map
-> Detail for TDD §2b Physics and §4 Standards — keep in step with TDD.md
+> Detail for TDD §2b Physics, §4 Standards and the D17–D20 decisions — keep in step with TDD.md
 
 (Moved from the TDD on 2026-09-28. Physics numbers re-checked against the code that day.)
 
@@ -148,9 +148,48 @@ src/
     └── haptics.ts                   # Vibration API wrapper
 ```
 
+## UI files (v1.7)
+(Moved from the TDD §2 on 2026-09-29.)
+- **In-game UI** — kit pieces: `src/ui/GameHud.tsx` (round badge + gear), `src/ui/RoundBanner.tsx`, `src/ui/WinnersScreen.tsx`, tips/messages as kit toasts. Pinned to the table with `src/components/Pinned.tsx` (drei Html, scaled to a world-size box): `RowChips.tsx` (a PlayerChip per row; fades under a dragged die) and `StatusPin.tsx` (status banner + the two AFK timers, via `src/hooks/useCountdown.ts`).
+- **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
+
 ## E2E scripts (detail for TDD §4 Tests)
 Real game in headless Chromium (`playwright-core`, Playwright's own bundled Chromium — never the installed Chrome; install once with `npx playwright-core install chromium`), drags driven through the real store actions. Each script starts its own servers and kills them when done (Vite `:5199`, PartyKit `:2999` — not 1999, so a normal `npm run party:dev` can keep running; the scripts refuse to start if a port is taken). Exit code 0 = PASS.
 - `npm run e2e:solo` → `e2e/solo-late-drag.mjs` (~1 min): B006 — drag over the locked zone at timer end snaps back, a drag right after the timer is refused, nothing left parked; drag over the rolling zone at timer end counts (pool +2, clear spot).
 - `npm run e2e:online` → `e2e/online-unlock.mjs` (~1 min): two players, one room — a held drag counts at timer end (ONE `unlock_request`, not AFK, plus `unlock_activity`), no new drag after the turn closes, the other player hears it and both agree on the dice.
 - `npm run e2e` runs both. Not in CI.
 - `e2e/unlock-race-sweep.mjs` (run with `node`): drops a locked die at many moments around the 3 s timer and checks it is either split this turn or back in its slot — never lost.
+
+## Decisions — full text (D17–D20)
+(Moved word for word from the TDD §8 Decisions log on 2026-09-29; the TDD keeps one line per decision.)
+```
+D20 · 2026-09-29 · Dev Kit (F60/F59): its own React root outside #root, loaded only in dev; saves through a dev-server-only Vite plugin
+  Options: Leva/tweakpane panel / our own panel / edit JSON by hand   Chose: our own small panel (`src/devkit/`) — plain styling, not the game's
+  kit, so restyling the game never restyles the tool. Dynamic import behind import.meta.env.DEV → zero bytes in the live build (checked by
+  npm run check:devkit). Save = POST /__devkit/save (apply: 'serve'; only content/**.json; keeps _help; skips the hot-reload for files it just
+  wrote so the game isn't reset). 3D table colours go through a tiny subscribe store (`tableColors`) that repaints materials — no React re-render.
+  Stop-gap: RollingArea.tsx (physics helper's file during B009) still reads table.json itself, so Scene finds that felt material by colour;
+  once B009 lands, RollingArea should read `tableColors` and `findRollingFelt` in Scene.tsx can go.
+  Addendum 2026-09-29 · Proposed by: Muzzy — the Dev Kit ships in release builds before 1.0, so friends testing the live link can use it.
+  content/devkit.json "inReleaseBuilds" (true through beta; /deliver sets false at 1.0) → vite.config.ts `define` bakes it into
+  __DEVKIT_IN_RELEASE__ (env DEVKIT_IN_RELEASE=true|false overrides for one build); main.tsx loads the Dev Kit when DEV || that flag, so
+  false = dead code = zero Dev Kit bytes. Release builds have no dev server, so no Save: CAN_SAVE (saveContent.ts) = DEV; the Color tool
+  shows Copy for Claude as the main button + a "changes last until you refresh" note; nothing persists (no localStorage). The save
+  plugin stays apply: 'serve'. npm run check:devkit builds both ways and checks each in a browser (off: nothing in dist, ` inert;
+  on: ` opens, no Save, save endpoint 404). Rule for future tools: anything that can affect play (force dice, level loader, cheats)
+  must be offline-only and disabled in online games.
+
+D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
+  Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
+  Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
+  so a badge fades while a dragged die passes over it. New kit pieces (pinned label, seat-claim list) are built in this game
+  in dev/framework/ui-kit first (the game-ui rule: never edit the game's kit copy), then installed with install-kit. Every player-facing word goes to content/text/en.json as screens move.
+
+D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
+  Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content
+  Chose: one list, read by `src/utils/scoring.ts` on the phone, the star preview and the server — was copy-pasted in 3 places
+
+D17 · 2026-09-28 · UI: game-ui kit, style Cartoon — Muzzy 2026-09-28; fits 'social by default' + 'juice everything'
+  First screen: Settings (F07 try-out of the framework's game-ui skill). Kit screens go through <ScreenStack overlay>
+  (the game isn't built from kit Screens and #root is a letterboxed 16:9 box, so the overlay covers the whole window).
+```

@@ -74,3 +74,7 @@ The 3D table, dice and rows stay as they were; everything you READ on it is a ki
 - **Settings**: Gear icon (bottom-right) opens settings modal
 
 Note: Shake-to-roll was implemented in v1.0 and removed in v1.2 (too unreliable across devices).
+
+## In-game kit pieces (sprint 03, v1.7)
+(Moved word for word from GDD §6 on 2026-09-29.)
+In game (sprint 03): a kit PlayerChip pinned beside each row (colour, initials, S | T, ★ score; fades under a dragged die), the status as a kit banner at the bottom of the rolling area with its timer bar, "Round N" flashed at each round start, tips and messages as toasts, the winners screen as kit Results. Pinned pieces keep their size on the table on any screen.

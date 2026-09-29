@@ -2,7 +2,7 @@
 
 > How the game is built. Plain English first; code names in `backticks` only where they help.
 > Living document — /define writes it, /develop keeps it true, /tdd shows it.
-> Last updated: 2026-09-29 (Dev Kit console + Color tool, D20). Before: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
+> Last updated: 2026-09-29 (slimmed again: D15–D20 write-ups + unlock-timer notes moved to `design/tech-online.md` / `design/tech-internals.md`). Before: 2026-09-29 (Dev Kit console + Color tool, D20); 2026-09-28 (BMUZ-2 shape; facts re-checked against the code — the code won wherever docs disagreed)
 
 ## 1. At a glance
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
@@ -24,8 +24,7 @@ flowchart LR
 - **Physics dice** — `PhysicsDie.tsx` (one die: rigid body, settle, snap flat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces), `RollingArea.tsx` (floor + walls).
 - **Turn flow / glue** — `src/App.tsx` (~860 lines): phase effects, roll, unlock timer expiry, batch mitosis, online unlock submit. Most "what happens next" logic lives here, not in the store.
 - **3D view** — `Scene.tsx` runs the goal row, player rows, pool and the animation dice (lock, mitosis, spawn, committed); the draggable locked die is `UnlockableDie` in `PlayerRow.tsx`; gather effects in `GatherVisuals.tsx`.
-- **In-game UI (v1.7)** — kit pieces: `src/ui/GameHud.tsx` (round badge + gear), `src/ui/RoundBanner.tsx`, `src/ui/WinnersScreen.tsx`, tips/messages as kit toasts. Pinned to the table with `src/components/Pinned.tsx` (drei Html, scaled to a world-size box): `RowChips.tsx` (a PlayerChip per row; fades under a dragged die) and `StatusPin.tsx` (status banner + the two AFK timers, via `src/hooks/useCountdown.ts`).
-- **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
+- **UI (game-ui kit, v1.7)** — `src/ui/` screens drawn over the whole window by `<ScreenStack overlay>` in App.tsx; on-table pieces (`RowChips`, `StatusPin`) pinned to 3D with `Pinned.tsx`. File-by-file: [design/tech-internals.md](design/tech-internals.md#ui-files-v17).
 - **Online** — phone side: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines); message types in `src/types/protocol.ts`.
 - **Pure logic (tested)** — `src/utils/`: `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap` (+ `.test.ts`); also `dropZone`, `diceUtils`.
 
@@ -38,26 +37,23 @@ flowchart LR
 
 ## 2b. Game-specific systems
 
-**Multiplayer** — full detail (turn flow, all ~35 messages, seats, sync): [design/tech-online.md](design/tech-online.md)
+**Multiplayer** — turn flow, all ~35 messages, seats, sync: [design/tech-online.md](design/tech-online.md)
 - **Who's in charge:** each phone rolls its own dice and reports the values; the server works out the locks itself, checks unlocks, moves phases on when everyone has acted, runs the AFK backstops and bots, and owns rooms and seats.
-- **Unlocking (D15/D16):** each phone runs its own 3 s drag timer, then sends ONE batched `unlock_request` (or `skip_unlock`); each drag also pings `unlock_activity` so the server never AFKs someone who's busy dragging.
-- **12-dice cap:** pool + still-locked + 2 per unlocked die ≤ 12 — one shared helper, `src/utils/diceCap.ts`, used by phone and server.
-- **Seats:** a per-tab id for the connection, a saved `persistentId` that owns the seat; rejoin gets a full snapshot; 2 auto-actions in a row → a bot takes the seat; host moves to the next active human.
+- **Unlocking (D15/D16):** each phone runs its own 3 s drag timer, then sends ONE batched `unlock_request` (or `skip_unlock`); each drag pings `unlock_activity` so a busy dragger is never AFK'd. **12-dice cap** (pool + still-locked + 2 per unlock ≤ 12) is one shared helper, `src/utils/diceCap.ts`. **Seats:** per-tab connection id + saved `persistentId` that owns the seat; 2 auto-actions in a row → bot.
 - **Deploys:** pushing `master` updates only the front end. Server changes need `npx partykit deploy` by hand.
 
-**Physics / simulation** — full number table, build notes: [design/tech-internals.md](design/tech-internals.md)
-- Numbers are hardcoded today (gravity [0, -50, 0], die bounce 0.35, friction 0.5, damping 0.3) — first candidates for `content/tuning/physics.json`.
+**Physics / simulation** — number table, build notes: [design/tech-internals.md](design/tech-internals.md)
+- Numbers are hardcoded today (gravity [0, -50, 0], die bounce 0.35, friction 0.5, damping 0.3) — first candidates for `content/tuning/physics.json`. Locked dice are pictures, not physics objects.
 - **Settled** = every die slower than 0.5 after 500 ms of rolling (or asleep), with a 10 s give-up. **Results** are read from which face points up; a tilted die is snapped flat first.
-- Locked dice are pictures, not physics objects — physics only runs in the rolling area.
 
-**Timers** — every timer in one table, so two timers never fight:
+**Timers** — every timer in one table, so two timers never fight (full notes for the unlock timers: [design/tech-online.md](design/tech-online.md#timers--full-notes)):
 | Timer | Length | Owned by | Starts when | On expiry |
 |---|---|---|---|---|
 | Roll AFK countdown | 20 s | client (`StatusPin` → `useCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
 | Roll backstop | 25 s (client's 20 s + 5 s margin) | server | first `roll_result` arrives (idle → rolling) | server auto-rolls non-responders |
 | Gather auto-release | 2.5 s | client (`DicePool`) | holding to gather | dice released (roll) |
-| Unlock inactivity | 3 s, restarts on every committed drag | client (`StatusPin` → `useCountdown`, offline + online; was HUD until v1.7) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
-| Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (`StatusPin`, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone, turn closed → mitosis; online: one `unlock_request`/`skip_unlock` (D15) |
+| Unlock backstop | 25 s; each `unlock_activity` tops it up to ≥ 10 s left (D16); hard limit 45 s per phase | server | unlocking phase starts | AFK unlock for non-responders, played through the drag path |
 | Scoring pause | 2 s | server | round won (scoring) | handicap applied, next round |
 | Round-end pause | 0.5 s | server | `roundEnd` | next round starts |
 | Deferred snapshot safety | 5 s (checked every 100 ms) | client | `phase_change` held behind animations | force-apply |
@@ -82,10 +78,8 @@ flowchart LR
 - **Naming:** PascalCase components, camelCase utils, protocol messages snake_case (`unlock_request`).
 - **Readable code:** plain names, small files, a one-line comment on anything non-obvious. No clever tricks. (App.tsx, gameStore.ts and server.ts are well past "small".)
 - **Tests:** rules and logic get tests; every fixed bug gets a test that guards it. Feel is judged by Muzzy, not tests.
-  - `npm test` — unit tests (vitest): `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap`. Nothing yet for the store, App flow or server.
-  - `npm run build` — `tsc -b && vite build` (type check + build). CI runs build + tests on every deploy since F49.
-  - `npm run e2e` / `npm run e2e:solo` — scripts in `e2e/` play the real game in a headless browser (solo late drag; two-player online unlock). Not in CI. Details: [design/tech-internals.md](design/tech-internals.md#e2e-scripts-detail-for-tdd-4-tests).
-  - Manual checks by hand: [design/playtest-checklist.md](design/playtest-checklist.md).
+  - `npm test` — unit tests (vitest): `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap`; nothing yet for the store, App flow or server. `npm run build` = `tsc -b && vite build`.
+  - `npm run e2e` / `npm run e2e:solo` — play the real game in a headless browser; not in CI ([details](design/tech-internals.md#e2e-scripts-detail-for-tdd-4-tests)). By hand: [design/playtest-checklist.md](design/playtest-checklist.md).
 - **Testable by design:** game rules live in small pure functions (no screen, no network) so they can be tested; big glue files stay thin. (`unlockTurn.ts` is the pattern: the B003 rule pulled out of HUD/App so it could be tested.)
 - **Same build everywhere:** the deploy (CI, `.github/workflows/deploy.yml`) runs the same `npm test` + `npm run build` as local, type check included (fixed in F49 — the old `npx vite build` is how B004 stayed hidden).
 - **Branches:** one work branch per delivery (`dev/<milestone>`), merged by /deliver. ⚠ `master` auto-deploys to the live site — never build straight on it.
@@ -113,50 +107,16 @@ flowchart LR
 
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
+Full write-ups (options, why, addenda): D15–D16 → [design/tech-online.md](design/tech-online.md#decisions--full-text-d15d16) · D17–D20 → [design/tech-internals.md](design/tech-internals.md#decisions--full-text-d17d20)
 ```
-D20 · 2026-09-29 · Dev Kit (F60/F59): its own React root outside #root, loaded only in dev; saves through a dev-server-only Vite plugin
-  Options: Leva/tweakpane panel / our own panel / edit JSON by hand   Chose: our own small panel (`src/devkit/`) — plain styling, not the game's
-  kit, so restyling the game never restyles the tool. Dynamic import behind import.meta.env.DEV → zero bytes in the live build (checked by
-  npm run check:devkit). Save = POST /__devkit/save (apply: 'serve'; only content/**.json; keeps _help; skips the hot-reload for files it just
-  wrote so the game isn't reset). 3D table colours go through a tiny subscribe store (`tableColors`) that repaints materials — no React re-render.
-  Stop-gap: RollingArea.tsx (physics helper's file during B009) still reads table.json itself, so Scene finds that felt material by colour;
-  once B009 lands, RollingArea should read `tableColors` and `findRollingFelt` in Scene.tsx can go.
-  Addendum 2026-09-29 · Proposed by: Muzzy — the Dev Kit ships in release builds before 1.0, so friends testing the live link can use it.
-  content/devkit.json "inReleaseBuilds" (true through beta; /deliver sets false at 1.0) → vite.config.ts `define` bakes it into
-  __DEVKIT_IN_RELEASE__ (env DEVKIT_IN_RELEASE=true|false overrides for one build); main.tsx loads the Dev Kit when DEV || that flag, so
-  false = dead code = zero Dev Kit bytes. Release builds have no dev server, so no Save: CAN_SAVE (saveContent.ts) = DEV; the Color tool
-  shows Copy for Claude as the main button + a "changes last until you refresh" note; nothing persists (no localStorage). The save
-  plugin stays apply: 'serve'. npm run check:devkit builds both ways and checks each in a browser (off: nothing in dist, ` inert;
-  on: ` opens, no Save, save endpoint 404). Rule for future tools: anything that can affect play (force dice, level loader, cheats)
-  must be offline-only and disabled in online games.
-
-D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
-  Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
-  Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
-  so a badge fades while a dragged die passes over it. New kit pieces (pinned label, seat-claim list) are built in this game
-  in dev/framework/ui-kit first (the game-ui rule: never edit the game's kit copy), then installed with install-kit. Every player-facing word goes to content/text/en.json as screens move.
-
-D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
-  Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content
-  Chose: one list, read by `src/utils/scoring.ts` on the phone, the star preview and the server — was copy-pasted in 3 places
-
-D17 · 2026-09-28 · UI: game-ui kit, style Cartoon — Muzzy 2026-09-28; fits 'social by default' + 'juice everything'
-  First screen: Settings (F07 try-out of the framework's game-ui skill). Kit screens go through <ScreenStack overlay>
-  (the game isn't built from kit Screens and #root is a letterboxed 16:9 box, so the overlay covers the whole window).
-D16 · 2026-09-28 · Unlock backstop vs the 3 s drag timer: each committed drag pings the server (unlock_activity)
-  Proposed by: Claude (F47 task 4)
-  Options: longer fixed backstop (turn can be ~7 windows × 3 s + lead-in ≈ 26 s, so 35 s+) /
-  per-player deadline worked out from the cap / activity ping that tops the backstop up
-  Chose: activity ping — on unlock_activity the server makes sure ≥ 10 s remain on the (room-wide) backstop.
-  Why: an actively dragging player can never be AFK'd however many dice they drag, real AFK is still
-  caught at 25 s, and it's one tiny message per drag (≤ 7 per turn). Cost: an active dragger can delay
-  AFK detection of someone else by a few seconds. Revisit if the backstop becomes per-player.
-D15 · 2026-09-28 · Online drag-to-unlock: each phone sends ONE batched unlock_request when its own inactivity timer ends
-  Proposed by: Claude (hotfix B003); Muzzy suggested the alternative
-  Options: server decides every player's unlocks itself at timer end / each phone owns its timer and sends one batch
-  Chose: per-phone batch — Muzzy's decision (he approved it over his own server-decides idea). Why: your own dice never wait
-  on a server round-trip and a drag near the deadline can't be lost; the server's 25 s backstop still catches real AFK.
-  Revisit if we ever go server-authoritative for anti-cheat.
+D20 · 2026-09-29 · Dev Kit (F60/F59): our own small panel (src/devkit/, own React root, plain styling); saves through a dev-server-only Vite plugin
+  Addendum · Proposed by: Muzzy — ships in release builds before 1.0 (content/devkit.json inReleaseBuilds; no Save there, Copy for Claude);
+  rule: any future tool that can affect play must be offline-only
+D19 · 2026-09-29 · Every screen on the game-ui kit; player badges become kit UI pinned to 3D (drei Html) — Proposed by: Muzzy
+D18 · 2026-09-28 · Scoring = one list in content/tuning/scoring.json (8, 6, 4, 2, 1), read by phone, star preview and server — Proposed by: Muzzy
+D17 · 2026-09-28 · UI: game-ui kit, style Cartoon — Muzzy; kit screens drawn through <ScreenStack overlay>
+D16 · 2026-09-28 · Each committed drag pings unlock_activity, topping the server backstop up to ≥ 10 s (45 s hard limit per phase) — Proposed by: Claude
+D15 · 2026-09-28 · Online unlock: each phone sends ONE batched unlock_request when its own timer ends — Proposed by: Claude; Muzzy's decision (over his own server-decides idea)
 D14 · 2026-03-30 · Unlock inactivity timer 3 s, restarts on each drag; skip = don't drag (from GSD 46)
   (46-01 planned 4 s for the first window — the code is 3 s throughout)
 D13 · 2026-03-30 · Drag commit is one-way; committed dice glow, then split together when the timer ends (batch mitosis, in place) (from GSD 45–46)
@@ -174,7 +134,6 @@ D03 · 2026-02-28 · Zustand over Context/Redux — works with R3F without re-re
 D02 · 2026-02-28 · MeshPhysicalMaterial + clearcoat + HDRI; Rapier over Cannon.js (from GSD)
 D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyKit bundle limitation (from GSD, tech debt)
 ```
-  2026-09-29 (pre-release review): the top-ups had no limit, so a client pinging every 9 s could hold the whole room in the unlock phase → added a 45 s hard limit per phase (a real turn is ≈ 26 s at most).
 
 ## 9. Third-party stuff
 | What | Used for | License | OK for commercial? |
