@@ -1,5 +1,5 @@
 # Roll Better — Bugs
-Open: 1 (P0 0 · P1 0 · P2 1 · P3 0) · watching: 2
+Open: 0 (P0 0 · P1 0 · P2 0 · P3 0) · watching: 2
 
 ## Open
 ### B011 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
@@ -37,13 +37,6 @@ Evidence: Muzzy screenshots 2026-09-29
 Expected: plain white text, left of the ★8 Goal chip · Where: game HUD
 Evidence: Muzzy screenshots 2026-09-29
 
-### B009 · P2 · open · found 2026-09-29 in B007 fix · dev build · e2e
-A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
-Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
-Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.
-Evidence: `npm run e2e:physics` put-back counts (1–3 per run), dev log `[PhysicsDie] out of bounds`
-Update 2026-09-29 (B017 check): the back wall does it too, mostly after the drag-off-area gesture (die at y≈2, z −5.0). Now and then the e2e frame check sees the die before the put-back and fails the run — 2 of 4 full runs after B017; the same before B017 (30 drag-off-area rolls: 18 put-backs / 1 caught before, 11 / 3 after). Not caused by the new split.
-
 ### B001 · P2 · watching · found 2026-03-01 · v0.1.0.51 · (old BUG-001)
 Dice that match the Goal sometimes don't lock — some matches silently dropped
 Steps: 1. Roll  2. Several dice show a Goal value (e.g. two 1s, Goal has three 1s)
@@ -58,6 +51,13 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B009 · P2 · fixed 2026-09-29 in 721fe24 · Guarded by: `src/utils/dieCollisionGroups.test.ts` + `npm run e2e:physics` (now FAILS if the safety net puts back even one die) · found 2026-09-29 in B007 fix · dev build · e2e
+A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
+Steps: 1. Hold-to-gather near the left wall (or drag off the rolling area → back wall)  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 mixed rolls (16 in 30 drag-off-area rolls) end up inside the wall, then teleport back · How often: occasional (e2e)
+Cause: while gathering, dice were made "ghosts" with `setSensor(true)`. Rapier decides whether a pair of colliders is sensor or solid when their boxes FIRST overlap — a die orbiting against a wall (the orbit ring sits right at the wall) kept that pair as a sensor pair after `setSensor(false)` at release, so the wall stopped nothing until the die fully left it. The logs showed it: every put-back was a die released touching the wall (gap ≤ 0), still growing back, drifting in at an unchanged 2–7 u/s over 7–21 physics steps — no bounce at all. Reproduced with plain Rapier (no React): sensor → solid slides in, even through a thick fixed wall; switching collision groups instead bounces. NOT tunnelling, not the collider growing, not kinematic walls, not thin walls (the first guess was wrong).
+Fix: ghost mode uses collision groups (`src/utils/dieCollisionGroups.ts`: GHOST → RELEASE → SOLID), never `setSensor` — Rapier re-checks groups every step. Same change for the unstick slide. Walls, fling strength, tumble, tuning numbers unchanged; safety net kept as last resort (dev log now says which wall / state / speed / size / steps since release).
+Evidence: before — 30 drag-off-area rolls: 16 put-backs, 2 caught out of bounds. After — 5 × 50 mixed rolls + 40 drag-to-wall + 40 drag-off-area (330 rolls): 0 put-backs, 0 out of bounds, 0 timeouts, 0 missed dice. Research: Rapier CCD only stops NEW impacts (https://rapier.rs/docs/user_guides/javascript/rigid_body_ccd/); common dice-box advice is thick walls with the inner face kept in place (https://github.com/laconicman/DiceLab/pull/1) — not needed here.
+
 ### B012 · P3 · fixed 2026-09-29 · Guarded by: colours only live in `content/ui/table.json` (look check by Muzzy) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Table is brown (light + dark) — doesn't fit the Cartoon UI colours
 Expected: a dark but fun table colour, editable in content/ui/table.json (Dev Kit Color tool later, F59) · Where: game: Scene.tsx table + background
