@@ -2,6 +2,8 @@
 // Modal, Confirm and RewardPopup are screens: open them through the screen stack, so Esc,
 // phone Back and "only the top screen takes taps" all work. Toasts and tooltips use the
 // browser's own popover, so they float above everything without any positioning code.
+// (The popover attributes go in as {...{ popover: 'auto' }} spreads: React 18's TypeScript types
+// don't list them yet, React 19's do, and both versions put them on the page the same way.)
 import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { Grid, Panel, Row, Screen, Stack } from '../layout'
 import { Button, Card, Text } from '../controls'
@@ -22,7 +24,8 @@ export function Modal({ title, children, actions }: ModalProps) {
 }
 
 // CONFIRM — "Are you sure?". danger paints the yes-button red (reset progress, quit, delete).
-// Either button closes it first, then calls your function.
+// Either button closes it first, then calls your function. Closing it any other way (Esc, phone
+// Back, tapping the dim) counts as Cancel. onCancel runs once at most, and never after onConfirm.
 export const confirmWords = { yes: 'OK', no: 'Cancel' }
 export type ConfirmProps = {
   title: string; message?: string; danger?: boolean
@@ -30,7 +33,23 @@ export type ConfirmProps = {
 }
 export function Confirm({ title, message, danger, onConfirm, onCancel, words }: ConfirmProps) {
   const w = { ...confirmWords, ...words }
-  const close = (then?: () => void) => { screens.pop(); then?.() }
+  const answered = useRef(false) // true once Yes or Cancel has run
+  const close = (then?: () => void) => { answered.current = true; screens.pop(); then?.() }
+
+  // Closed without an answer → that's a Cancel. Checked a moment after closing, because React's
+  // StrictMode (while developing) closes and reopens every screen once, which isn't a real close.
+  const isOpen = useRef(false)
+  useEffect(() => {
+    isOpen.current = true
+    return () => {
+      isOpen.current = false
+      queueMicrotask(() => {
+        if (isOpen.current || answered.current) return
+        answered.current = true
+        onCancel?.()
+      })
+    }
+  }, [onCancel])
   return (
     <Modal title={title} actions={<>
       <Button variant="secondary" onClick={() => close(onCancel)}>{w.no}</Button>
@@ -82,7 +101,7 @@ export function ToastStack({ label = 'Messages' }: { label?: string }) {
     if (!list.length && open) el.hidePopover()
   }, [list.length])
   return (
-    <div ref={box} popover="manual" className="kit-toasts" role="status" aria-label={label}>
+    <div ref={box} {...{ popover: 'manual' }} className="kit-toasts" role="status" aria-label={label}>
       {list.map((t) => (
         <Panel key={t.id} depth={2} gap="xs" className="kit-toast" data-variant={t.variant}>{t.text}</Panel>
       ))}
@@ -95,8 +114,8 @@ export function Tooltip({ text, label = 'More info', icon = 'ⓘ' }: { text: Rea
   const id = useId()
   return (
     <>
-      <Button variant="ghost" icon aria-label={label} popoverTarget={id} className="kit-tooltip-button">{icon}</Button>
-      <Panel id={id} popover="auto" role="tooltip" depth={2} gap="xs" className="kit-tooltip">{text}</Panel>
+      <Button variant="ghost" icon aria-label={label} {...{ popoverTarget: id }} className="kit-tooltip-button">{icon}</Button>
+      <Panel id={id} {...{ popover: 'auto' }} role="tooltip" depth={2} gap="xs" className="kit-tooltip">{text}</Panel>
     </>
   )
 }
