@@ -1,4 +1,6 @@
-import { useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useMemo, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
+import { Color, Mesh, MeshStandardMaterial, type MeshBasicMaterial, type Object3D } from 'three';
 import { OrbitControls, Environment, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { DicePool } from './DicePool';
@@ -20,6 +22,25 @@ import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
 import table from '../../content/ui/table.json';
+import { tableColors, type TableColors } from '../store/tableColors';
+
+// The rolling-area felt is drawn by RollingArea.tsx straight from table.json. To recolour it live
+// (Dev Kit Color tool) we find its material once — the standard material still wearing table.json's
+// rolling colour — and tag it. TODO: once B009 is merged, RollingArea can read tableColors itself.
+function findRollingFelt(root: Object3D, skip: unknown): MeshStandardMaterial[] {
+  const fileColor = new Color(table.rolling).getHex();
+  const tagged: MeshStandardMaterial[] = [];
+  const untagged: MeshStandardMaterial[] = [];
+  root.traverse((obj) => {
+    const mat = obj instanceof Mesh ? obj.material : null;
+    if (!(mat instanceof MeshStandardMaterial) || mat === skip) return;
+    if (mat.userData.rollingFelt) tagged.push(mat);
+    else if (mat.color.getHex() === fileColor) untagged.push(mat);
+  });
+  const found = tagged.length ? tagged : untagged;
+  found.forEach((mat) => { mat.userData.rollingFelt = true; });
+  return found;
+}
 
 // Left edge of the rows' floor — past the left edge of the view (the view is about ±11 wide)
 const ROWS_FLOOR_LEFT_X = -12;
@@ -41,6 +62,20 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
   function Scene({ onRollStart, onResults }, ref) {
     const dicePoolRef = useRef<DicePoolHandle>(null);
     const rollingAreaRef = useRef<RollingAreaHandle>(null);
+
+    // Table colours can change live (Dev Kit Color tool): repaint the materials, no re-render
+    const rowsFeltRef = useRef<MeshStandardMaterial>(null);
+    const dividerRef = useRef<MeshBasicMaterial>(null);
+    const threeScene = useThree((s) => s.scene);
+    useEffect(() => {
+      const paint = (c: TableColors) => {
+        rowsFeltRef.current?.color.set(c.rows);
+        dividerRef.current?.color.set(c.divider);
+        if (dividerRef.current) dividerRef.current.opacity = c.dividerOpacity;
+        findRollingFelt(threeScene, rowsFeltRef.current).forEach((mat) => mat.color.set(c.rolling));
+      };
+      return tableColors.subscribe(paint);
+    }, [threeScene]);
 
     // Read store values
     const phase = useGameStore((s) => s.phase);
@@ -300,7 +335,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           receiveShadow
         >
           <planeGeometry args={[SPLIT_X - ROWS_FLOOR_LEFT_X, 14]} />
-          <meshStandardMaterial color={table.rows} roughness={0.8} metalness={0.0} />
+          <meshStandardMaterial ref={rowsFeltRef} color={tableColors.get().rows} roughness={0.8} metalness={0.0} />
         </mesh>
 
         {/* Goal row — dice at top of screen with transition animation (outside Physics) */}
@@ -351,9 +386,10 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         >
           <planeGeometry args={[0.02, 12]} />
           <meshBasicMaterial
-            color={table.divider}
+            ref={dividerRef}
+            color={tableColors.get().divider}
             transparent
-            opacity={table.dividerOpacity}
+            opacity={tableColors.get().dividerOpacity}
             depthWrite={false}
           />
         </mesh>

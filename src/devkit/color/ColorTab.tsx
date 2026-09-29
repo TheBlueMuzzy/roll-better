@@ -3,10 +3,12 @@
 //   Table colours come from content/ui/table.json.
 // ↺ on a UI colour = back to the preset. ↺ on a table value = back to what's saved in table.json.
 // A dot next to a name = changed, not saved yet.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styleFile from '../../../content/ui/style.json'
 import tableFile from '../../../content/ui/table.json'
 import { presets } from '../../ui/kit/styles'
+import { applyStyle } from '../../ui/kit'
+import { tableColors } from '../../store/tableColors'
 import {
   DIVIDER_OPACITY_NAME,
   TABLE_COLOURS,
@@ -14,6 +16,7 @@ import {
   normalizeHex,
   sameColour,
   uiColoursFrom,
+  tweaksToSave,
   uiLabel,
   type ColourState,
 } from './colorLogic'
@@ -33,6 +36,15 @@ function fromFiles(): ColourState {
 export function ColorTab() {
   const [colours, setColours] = useState(fromFiles) // what the game shows right now
   const [saved] = useState(fromFiles) // what's in the files
+  const [savedTweaks] = useState(styleFile.tweaks as Record<string, unknown>) // style.json "tweaks" as saved
+
+  // Live preview: the UI restyles through the kit's style engine, the 3D table through tableColors
+  useEffect(() => {
+    applyStyle({ preset: presetName, tweaks: tweaksToSave(preset, colours.ui, savedTweaks) })
+  }, [colours.ui, savedTweaks])
+  useEffect(() => {
+    tableColors.set(colours.table)
+  }, [colours.table])
 
   const setUi = (token: string, value: string) => setColours((c) => ({ ...c, ui: { ...c.ui, [token]: value } }))
   const setTable = (key: string, value: string | number) => setColours((c) => ({ ...c, table: { ...c.table, [key]: value } }))
