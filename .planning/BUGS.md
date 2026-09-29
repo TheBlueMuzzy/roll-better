@@ -1,15 +1,7 @@
 # Roll Better — Bugs
-Open: 2 (P0 0 · P1 0 · P2 0 · P3 2) · watching: 2
+Open: 1 (P0 0 · P1 0 · P2 0 · P3 1) · watching: 2
 
 ## Open
-### B010 · P3 · open · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
-Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
-Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
-Expected: pips stay black · Actual: pips look white/see-through while lifted over that slot; back to normal as soon as it's dragged away · Only the leftmost slot does it · How often: whenever tried (Muzzy)
-Update (Muzzy, same day): dragging a die all the way left, it draws BEHIND the 3D profile UI (player icon etc.), and the pips are see-through — the UI shows through the pip holes. So it's draw order / depth, not reflection: the profile group likely renders on top (renderOrder / depthTest off / transparent), and the pip discs don't sort the same way as the die body. The leftmost slot is simply the only place a lifted die overlaps the profile group.
-Fix direction: the die being dragged (and its pips) should draw above the profile UI — check renderOrder/depthTest/transparent on the profile group + pip materials (`PlayerProfileGroup.tsx`, `PlayerIcon.tsx`, `Die3D.tsx`).
-Evidence: Muzzy report
-
 ### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
 A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
 Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
@@ -30,6 +22,15 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B010 · P3 · fixed 2026-09-29 · Guarded by: `node e2e/b010-drag-over-profile.mjs <folder>` (screenshots — visual check) · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
+Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
+Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
+Expected: pips stay black · Actual: pips look white/see-through while lifted over that slot; back to normal as soon as it's dragged away · Only the leftmost slot does it · How often: whenever tried (Muzzy)
+Update (Muzzy, same day): dragging a die all the way left, it draws BEHIND the 3D profile UI (player icon etc.), and the pips are see-through — the UI shows through the pip holes. So it's draw order / depth, not reflection: the profile group likely renders on top (renderOrder / depthTest off / transparent), and the pip discs don't sort the same way as the die body. The leftmost slot is simply the only place a lifted die overlaps the profile group.
+Fix direction: the die being dragged (and its pips) should draw above the profile UI — check renderOrder/depthTest/transparent on the profile group + pip materials (`PlayerProfileGroup.tsx`, `PlayerIcon.tsx`, `Die3D.tsx`).
+Evidence: Muzzy report
+Cause: the star/avatar icons draw with no depth test, and three.js sorts by distance — the icon landed AFTER the pips but BEFORE the die body, so it painted over the pips, then the body covered the icon everywhere except the pips (see-through holes). Fix: the draggable locked die draws after the profile UI (`Die3D renderOrder={30}` in PlayerRow). Note: three.js resets draw order at every nested group, so it has to be set on Die3D's own group, not a parent. Before/after screenshots checked.
+
 ### B005 · P3 · fixed 2026-09-29 · Guarded by: src/utils/playerText.test.ts · found 2026-09-28 in F46 · v0.2.1.0
 First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)
 Steps: 1. Start a new session with tips on  2. Reach the first turn where you must unlock

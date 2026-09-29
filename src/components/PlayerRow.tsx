@@ -195,7 +195,10 @@ function UnlockableDie({
           document.body.style.cursor = 'default';
         }}
       >
-        <Die3D color={color} />
+        {/* B010: draw this die (body AND pips) after the profile UI. The star/avatar icons skip the
+            depth test, so without this they could land between the pips and the body in the draw
+            order and show through the pip holes when a lifted die passes over them. */}
+        <Die3D color={color} renderOrder={30} />
       </group>
 
       {/* White outline ring — only visible when selectable or already selected */}
