@@ -65,6 +65,7 @@ flowchart LR
 | File | What's in it | Edited with |
 |---|---|---|
 | `content/tuning/*.json` | `scoring.json` (points per leftover die); physics + timer numbers (§2b) are next candidates | Dev Kit → Tuning |
+| `content/tuning/drag.json` | Drag feel (F48): drag height, finger follow + grab offset, snap-back, drop-zone highlight look (`zoneHighlight`: tint / outline) + colour, zone/drop paddings, pulse, ring, 'no' shake, 12-cap dim + toast throttle, parked-die hop + glow. `_help` per value, `_ranges` [min,max,step] for sliders. Read through `src/tuning/drag.ts` — one mutable `drag` object, so live edits just replace its fields | Dev Kit → Tuning / Obsidian |
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
 | `content/text/en.json` | every player-facing word, one section per screen (menu, lobby, How to Play, credits so far — the rest move in as screens go onto the kit); loaded by `src/ui/words.ts` | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |

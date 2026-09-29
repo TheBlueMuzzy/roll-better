@@ -1,15 +1,17 @@
 import { ROLLING_X_OFFSET, ARENA_HALF_X, ROLLING_Z_MIN, ROLLING_Z_MAX } from '../components/RollingArea';
+import { drag } from '../tuning/drag';
 
-const PADDING = 0.5; // Tolerance inside edges for basic zone check
-const DROP_PADDING = 1.2; // Extra inset for drop positions — room for mitosis split targets near walls
+// Paddings live in content/tuning/drag.json (read on every call, so live edits apply):
+//   zonePadding — tolerance inside the walls for "does this drop count?"
+//   dropPadding — extra inset for drop positions: room for the split (mitosis) targets near walls
 
 /** The drop zone: where a dragged die counts when you let go (RollingArea.tsx draws its outline highlight). */
 export function rollingZoneBounds() {
   return {
-    minX: (ROLLING_X_OFFSET - ARENA_HALF_X) + PADDING,
-    maxX: (ROLLING_X_OFFSET + ARENA_HALF_X) - PADDING,
-    minZ: ROLLING_Z_MIN + PADDING,
-    maxZ: ROLLING_Z_MAX - PADDING,
+    minX: (ROLLING_X_OFFSET - ARENA_HALF_X) + drag.zonePadding,
+    maxX: (ROLLING_X_OFFSET + ARENA_HALF_X) - drag.zonePadding,
+    minZ: ROLLING_Z_MIN + drag.zonePadding,
+    maxZ: ROLLING_Z_MAX - drag.zonePadding,
   };
 }
 
@@ -40,10 +42,10 @@ export function findNearestClearPosition(
   // Tighter bounds check — drop must be far enough from walls for split targets
   const isInDropBounds = (pos: [number, number, number]) => {
     const [x, , z] = pos;
-    const minX = (ROLLING_X_OFFSET - ARENA_HALF_X) + DROP_PADDING;
-    const maxX = (ROLLING_X_OFFSET + ARENA_HALF_X) - DROP_PADDING;
-    const minZ = ROLLING_Z_MIN + DROP_PADDING;
-    const maxZ = ROLLING_Z_MAX - DROP_PADDING;
+    const minX = (ROLLING_X_OFFSET - ARENA_HALF_X) + drag.dropPadding;
+    const maxX = (ROLLING_X_OFFSET + ARENA_HALF_X) - drag.dropPadding;
+    const minZ = ROLLING_Z_MIN + drag.dropPadding;
+    const maxZ = ROLLING_Z_MAX - drag.dropPadding;
     return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
   };
 

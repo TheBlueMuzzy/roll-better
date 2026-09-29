@@ -10,10 +10,15 @@ why: dragging is the only way to unlock now → it must feel sure and readable �
 - [x] 🤖 3. One drag at a time: a second finger is ignored while a drag is active — gameStore.startDragUnlock + PlayerRow isDragging + test
 - [x] 🤖 4. 12-dice cap: locked dice dim at the cap, and trying to drag one shakes it + toast "Max 12 dice" (text in content/text/en.json) — Scene.tsx L357, PlayerRow.tsx
 - [x] 🤖 5. Rolling area highlights while a dragged die is over it (RollingArea.tsx reads dragUnlockState); die stays under the finger (grab offset + lift-height ray fix) — try 2 highlight looks behind a tuning value
-- [ ] 🤖 6. Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
+- [ ] 🤖 6. (game part done 2026-09-29: content/tuning/drag.json + src/tuning/drag.ts; Tuning tab = framework helper) Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
 - [ ] 🤖 7. Real-pointer e2e: drags near edges, lost pointer, two fingers, 12-cap — phone portrait + landscape + desktop (new e2e script, run one at a time); update design/tech-internals.md drag state notes
 - [ ] 🙋 8. Two-phone online check (drag, cap, timer) on the dev link
 - [ ] 🤖 9. Tune drag feel with Muzzy in the Dev Kit Tuning tab (tuning)
 Check: new drag e2e + e2e:solo + e2e:online + unlock-race-sweep green; Muzzy's phone check
 Ask Muzzy: —
 Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approved (Muzzy 2026-09-29) — build in framework devkit first.
+- Surprise (task 2): R3F never calls a mesh's onPointerCancel / onLostPointerCapture (it only turns them into pointer-out), so the die listens for `pointercancel` + `lostpointercapture` on the page (matched by pointerId).
+- Surprise (task 5): RollingArea can't import the store (circular import RollingArea → store → GoalRow → RollingArea crashes on load: "DIE_SIZE before initialization"). The highlight is its own component, `DropZoneHighlight.tsx`, rendered by Scene.
+- Task 4: the old `shakingSlot` prop was never passed by anyone — replaced by the die starting its own shake when pressed at the cap.
+- Task 5: highlight default = "tint" (the whole drop zone brightens — reads at a glance on a phone even with a thumb over part of it); "outline" is one switch away in drag.json.
+- Store drag rules are now unit-tested against the real store: src/store/dragUnlock.test.ts.

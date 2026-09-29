@@ -38,18 +38,9 @@ interface PlayerRowProps {
 }
 
 const SLOT_VISUAL_SIZE = DIE_SIZE * 0.9;
-const OUTLINE_SIZE = DIE_SIZE * 1.15; // slightly larger than die for outline effect
-const LIFT_HEIGHT = 0.3; // Y offset when selected ("picked up")
-const PULSE_SPEED = 3; // scale pulse frequency
-const PULSE_AMOUNT = 0.03; // subtle pulse amplitude
+// Drag feel numbers (lift, pulse, shake, ring, snap-back, cap dim…) live in content/tuning/drag.json → `drag`
 
-const SHAKE_DURATION = 0.15; // seconds
-const SHAKE_INTENSITY = 0.08; // world units
-const SHAKE_FREQ = 90; // oscillations per second
-
-const CAP_DIM = 0.55; // how far a die at the 12-dice cap fades toward dark grey (0 = normal look, 1 = grey)
-const CAP_DIM_TOWARD = new Color('#2b2b2b');
-const CAP_TOAST_COOLDOWN = 2; // seconds — "Max 12 dice" shows at most this often, however fast you tap
+const CAP_DIM_TOWARD = new Color('#2b2b2b'); // a die at the 12-dice cap fades toward this (drag.capDim)
 let lastCapToastAt: number | null = null; // shared by every die: one toast for the whole row
 
 /** Animated wrapper for locked dice during unlock phase */
@@ -111,7 +102,7 @@ function UnlockableDie({
   }, []);
 
   // At the 12-dice cap the die wears a dimmed colour
-  const dieColor = useMemo(() => (capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, CAP_DIM).getHexString() : color), [capped, color]);
+  const dieColor = useMemo(() => (capped ? '#' + new Color(color).lerp(CAP_DIM_TOWARD, drag.capDim).getHexString() : color), [capped, color]);
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
@@ -134,7 +125,7 @@ function UnlockableDie({
       const targetX = getSlotX(slotIndex);
       const targetY = DIE_SIZE / 2;
       const targetZ = 0;
-      const speed = Math.min(1, delta * 12);
+      const speed = Math.min(1, delta * drag.snapBackSpeed);
       groupRef.current.position.x += (targetX - groupRef.current.position.x) * speed;
       groupRef.current.position.y += (targetY - groupRef.current.position.y) * speed;
       groupRef.current.position.z += (targetZ - groupRef.current.position.z) * speed;
@@ -167,9 +158,9 @@ function UnlockableDie({
     const baseX = getSlotX(slotIndex);
     if (shakeStartRef.current !== null) {
       const elapsed = (Date.now() - shakeStartRef.current) / 1000;
-      if (elapsed < SHAKE_DURATION) {
-        const decay = 1 - elapsed / SHAKE_DURATION;
-        const offset = Math.sin(elapsed * SHAKE_FREQ) * SHAKE_INTENSITY * decay;
+      if (elapsed < drag.shakeSeconds) {
+        const decay = 1 - elapsed / drag.shakeSeconds;
+        const offset = Math.sin(elapsed * drag.shakeSpeed) * drag.shakeDistance * decay;
         groupRef.current.position.x = baseX + offset;
       } else {
         groupRef.current.position.x = baseX;
@@ -183,13 +174,13 @@ function UnlockableDie({
     groupRef.current.position.z = 0;
 
     // Lift: translate Y up when selected, back down when deselected
-    const liftTarget = isSelected ? LIFT_HEIGHT : 0;
-    liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * 10);
+    const liftTarget = isSelected ? drag.liftHeight : 0;
+    liftRef.current += (liftTarget - liftRef.current) * Math.min(1, delta * drag.liftSpeed);
     groupRef.current.position.y = DIE_SIZE / 2 + liftRef.current;
 
     // Pulse: gentle scale pulse on selectable unselected dice (shows interactivity)
     if (!isSelected && selectable) {
-      const pulse = 1 + Math.sin(Date.now() * 0.001 * PULSE_SPEED) * PULSE_AMOUNT;
+      const pulse = 1 + Math.sin(Date.now() * 0.001 * drag.pulseSpeed) * drag.pulseAmount;
       groupRef.current.scale.setScalar(DIE_SIZE * pulse);
     } else {
       // Selected or unselectable dice stay at base scale
@@ -211,7 +202,7 @@ function UnlockableDie({
             e.stopPropagation();
             shakeStartRef.current = Date.now();
             const now = Date.now();
-            if (shouldShowCapToast(now, lastCapToastAt, CAP_TOAST_COOLDOWN)) {
+            if (shouldShowCapToast(now, lastCapToastAt, drag.capToastSeconds)) {
               lastCapToastAt = now;
               toast(fill(text.toasts.maxDice, { max: MAX_DICE }));
             }
@@ -271,11 +262,11 @@ function UnlockableDie({
           position={[getSlotX(slotIndex), 0.03, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <ringGeometry args={[OUTLINE_SIZE * 0.45, OUTLINE_SIZE * 0.55]} />
+          <ringGeometry args={[DIE_SIZE * drag.ringSize * 0.45, DIE_SIZE * drag.ringSize * 0.55]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
-            opacity={isSelected ? 1.0 : 0.5}
+            opacity={isSelected ? drag.ringSelectedOpacity : drag.ringOpacity}
             depthWrite={false}
           />
         </mesh>
