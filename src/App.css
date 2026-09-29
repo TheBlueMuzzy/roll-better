@@ -32,9 +32,15 @@ body {
   --kit-frame-h: var(--game-h);
 }
 
-/* Kit toasts start at the top of the game box, not the top of the window (never in a letterbox bar) */
+/* Kit toasts (tips, messages) start at the top of the game box, not the top of the window (never in a
+   letterbox bar), and sit over the rolling area — the right half of the game box — so they never cover
+   the Goal row. (Kit toasts have no placement option of their own: top centre of the window.) */
 .kit-toasts {
+  --side-bar: calc((100vw - var(--game-w)) / 2);
   margin-top: calc((100dvh - var(--game-h)) / 2 + var(--gap-m));
+  margin-left: calc(var(--side-bar) + var(--game-w) / 2 + var(--gap-m));
+  margin-right: calc(var(--side-bar) + var(--gap-m));
+  max-inline-size: none;
 }
 
 #root {
@@ -233,56 +239,6 @@ body {
 }
 
 /* --- Build version overlay --- */
-
-/* --- Tip banner --- */
-
-.tip-banner {
-  position: absolute;
-  top: var(--sp-lg);
-  left: 52%;
-  right: var(--sp-lg);
-  z-index: 20;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: var(--border-radius);
-  padding: var(--sp-sm) var(--sp-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: system-ui, sans-serif;
-  font-size: var(--fs-sm);
-  color: #ffffff;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
-  pointer-events: auto;
-}
-
-.tip-banner.tip-visible {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms ease-out, transform 300ms ease-out;
-}
-
-.tip-banner .tip-close {
-  flex-shrink: 0;
-  width: var(--touch-target);
-  height: var(--touch-target);
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0;
-  line-height: var(--touch-target);
-  text-align: center;
-  margin: -10px -12px -10px 0;
-}
 
 /* --- Main menu (kit, src/ui/MainMenuScreen.tsx) ---
    Fills the game's 16:9 box; the kit-page class paints it the style's own background

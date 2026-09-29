@@ -51,6 +51,12 @@
   "toasts": {
     "reconnected": "{name} reconnected"
   },
+  "tips": {
+    "firstRoll": "Hold the rolling area to gather your dice, then release to roll",
+    "firstLock": "Matched! Dice lock to the Goal row automatically",
+    "firstUnlock": "Drag locked dice into the rolling area to unlock them — each splits in two",
+    "mustUnlock": "No dice to roll — you must unlock at least one"
+  },
   "winners": {
     "youWin": "You win!",
     "someoneWins": "{name} wins!",

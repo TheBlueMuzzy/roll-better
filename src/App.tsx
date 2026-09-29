@@ -1,9 +1,9 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { HUD } from './components/HUD';
-import { ScreenStack, ToastStack, kitScreens, screens, toast, useScreens } from './ui/kit';
+import { ScreenStack, ToastStack, kitScreens, screens, toast, toasts, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { CreditsScreen } from './ui/CreditsScreen';
 import { MainMenuScreen } from './ui/MainMenuScreen';
@@ -13,7 +13,6 @@ import { ReconnectingScreen } from './ui/ReconnectingScreen';
 import { HowToPlayScreen } from './ui/HowToPlayScreen';
 import { WinnersScreen } from './ui/WinnersScreen';
 import { text, fill } from './ui/words';
-import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
 import { getGameSocket, setGameSocket, sendMessage } from './utils/partyClient';
@@ -47,19 +46,23 @@ function App() {
   const openScreens = useScreens();
   const settingsOpen = openScreens.includes('settings');
   const openSettings = useCallback(() => screens.push('settings'), []);
-  const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
   const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
 
   const audioInited = useRef(false);
   const showTip = useGameStore((s) => s.showTip);
 
-  /** Try to show a tip — only if tips enabled, not already shown, and no tip currently active */
-  const tryShowTip = useCallback((id: string, text: string) => {
-    if (activeTip) return; // one tip at a time
+  // Tips are kit toasts you can tap away (words in content/text/en.json "tips").
+  // One at a time: a new tip waits until the last one is gone (timed out or tapped).
+  const tipToastId = useRef<number | null>(null);
+  const tipShowing = useSyncExternalStore(toasts.subscribe, () => toasts.current.some((t) => t.id === tipToastId.current));
+
+  /** Try to show a tip — only if tips enabled, not already shown, no tip showing and Settings closed */
+  const tryShowTip = useCallback((id: string, tipText: string) => {
+    if (tipShowing || settingsOpen) return;
     if (!shouldShowTip(id)) return;
     showTip(id);
-    setActiveTip({ id, text });
-  }, [activeTip, showTip]);
+    tipToastId.current = toast(tipText, { dismissible: true, seconds: 4 });
+  }, [tipShowing, settingsOpen, showTip]);
 
   const screen = useGameStore((s) => s.screen);
   const setScreen = useGameStore((s) => s.setScreen);
@@ -234,17 +237,17 @@ function App() {
   // --- Contextual tips ---
   useEffect(() => {
     if (phase === 'idle' && currentRound === 1 && rollNumber === 0) {
-      tryShowTip('first-roll', 'Hold the rolling area to gather your dice, then release to roll');
+      tryShowTip('first-roll', text.tips.firstRoll);
     }
     if (phase === 'locking' && lastLockCount > 0) {
-      tryShowTip('first-lock', 'Matched! Dice lock to the Goal row automatically');
+      tryShowTip('first-lock', text.tips.firstLock);
     }
     if (phase === 'unlocking') {
       const mustUnlockNow = playerPoolSize === 0 && playerLockedCount < 8;
       if (mustUnlockNow && shownTips.includes('first-unlock')) {
-        tryShowTip('must-unlock', 'No dice to roll \u2014 you must unlock at least one');
+        tryShowTip('must-unlock', text.tips.mustUnlock);
       } else {
-        tryShowTip('first-unlock', 'Drag locked dice into the rolling area to unlock them — each splits in two');
+        tryShowTip('first-unlock', text.tips.firstUnlock);
       }
     }
   }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);
@@ -740,9 +743,6 @@ function App() {
             onUnlockTimerExpire={handleUnlockTimerExpire}
             onOpenSettings={openSettings}
           />
-          {activeTip && !settingsOpen && (
-            <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
-          )}
         </div>
       )}
       {screen === 'winners' && (
