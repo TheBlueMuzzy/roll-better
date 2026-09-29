@@ -63,7 +63,7 @@
 - **Save:** none beyond preferences (settings, player count) in local storage — no accounts.
 
 ## 6. Look & sound
-Premium tactile 3D dice (rounded bevels, clearcoat plastic, HDRI reflections) on a clean dark table; the dice are the only visual focus. Goal dice are cream, player dice are the same material tinted per player colour (8-colour palette). The UI is moving to the shared game-ui kit (Cartoon style; settings done) — open art question: bright Cartoon UI against the dark table. Audio is placeholder stubs; a full layered dice-sound pass waits until the look is settled. Full spec (geometry, materials, lighting, every animation timing, the per-roll anticipation arc, audio list): `design/look-and-sound.md`.
+Premium tactile 3D dice (rounded bevels, clearcoat plastic, HDRI reflections) on a clean dark table; the dice are the only visual focus. Goal dice are cream, player dice are the same material tinted per player colour (8-colour palette). Every screen and on-table label uses the shared game-ui kit in the Cartoon style — bright white cards with chunky outlines floating over the dark table (Muzzy 2026-09-29; ROADMAP v1.7). Player badges become kit cards pinned beside each row. Audio is placeholder stubs; a full layered dice-sound pass waits until the look is settled. Full spec (geometry, materials, lighting, every animation timing, the per-roll anticipation arc, audio list): `design/look-and-sound.md`.
 
 ## 7. Scope
 Draft made at the BMUZ-2 conversion — **Muzzy to confirm**. Release stages (alpha / beta / 1.0) not picked yet, so musts are for "the next release".
@@ -85,4 +85,3 @@ Release stages: prototype → alpha → beta → 1.0. **Done** for a stage = all
 ## 9. Open questions
 - What stage is the live game (alpha / beta / 1.0), and what's the next release? (sets `Release target:` in ROADMAP)
 - No skip-lock: players can't refuse a matching die. Deliberate simplification — revisit if unlock choices feel thin.
-- UI art direction for the game-ui kit rollout: bright Cartoon UI vs the dark table.

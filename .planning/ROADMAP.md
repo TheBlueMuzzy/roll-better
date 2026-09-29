@@ -8,7 +8,7 @@ Release target: not set — must:next 5/6 done (+6 milestones shipped before con
 ## v1.4 — Landscape  ✅ shipped 2026-03-26
 ## v1.5 — Hold-to-Gather-Roll  ✅ shipped 2026-03-27
 
-## v1.6 — Drag-to-Unlock  ← current  (→ release stage not set)
+## v1.6 — Drag-to-Unlock  (open: F48)  (→ release stage not set)
 Goal: players unlock by dragging locked dice into the rolling area — offline and online — with no UNLOCK/SKIP buttons.
 Live now: v0.2.2 (2026-09-29) has F44–F47 + F49, roll physics fixes (B007/B008), new scoring. Left for v1.6: F48 polish + UAT.
 - ✅ F44 🎮 Drag detection & drop zone — must:next
@@ -32,6 +32,38 @@ flowchart LR
   F49[✅ F49 CI same build]
 ```
 
+## v1.7 — Cartoon UI everywhere  ← current
+Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, lobby, How to Play, winners, HUD and player badges look like Settings/Credits; the dark table stays (Muzzy 2026-09-29, D19).
+- 🟢 F50 🧱 Kit screens sit inside the game's 16:9 box — should
+  what: kit screens/HUD use the game frame, not the letterbox bars; check first — may already be true
+- ⏳ F51 🎮 Main menu + Create/Join on the kit — should · needs: F50
+  why: one look from the first screen → the game reads as one finished thing → trust (Fair forever, Zero friction)
+- ⏳ F52 🎮 Online room lobby + reconnecting on the kit — should · needs: F51
+  what: kit Lobby (room) + Reconnecting; kit addition: seat-claim list for mid-game joins (build here, copy back to the framework)
+- ⏳ F53 🎮 How to Play on the kit — should · needs: F50
+- ⏳ F54 🎮 Winners → kit Results / Post-game — should · needs: F50
+  why: a big, readable finish → players see who won and hit Play Again → Fellowship
+- ⏳ F55 ✨ Tips + messages → kit toasts; round start → kit Countdown / Round intro — should · needs: F50
+- ⏳ F56 🎮 In-game HUD on the kit (status banner, round, timer bars, gear) — should · needs: F50
+  why: status and timers readable at a glance without pulling the eye off the dice → Sensation
+- 🟢 F57 🧱 New kit piece: labels pinned to 3D — should
+  what: an HTML card anchored to a 3D point that follows the camera/resize (drei Html); built here, then copied back to the Game Framework as Built
+- ⏳ F58 🎮 Player + Goal badges rebuilt as kit UI — should · needs: F57, ~F56
+  what: kit Avatar + name + Score/Badge + start/turn, pinned beside each row; replaces the 3D profile groups (circle, star, "S2 | T2"). HTML draws above the table, so a badge fades while a dragged die passes over it (keeps the B010 promise: the die you hold is never hidden)
+  why: who's who and who's ahead readable at a glance → Fellowship
+
+```mermaid
+flowchart LR
+  F50[🟢 F50 16:9 box] --> F51[⏳ F51 Main menu]
+  F51 --> F52[⏳ F52 Lobby]
+  F50 --> F53[⏳ F53 How to Play]
+  F50 --> F54[⏳ F54 Winners]
+  F50 --> F55[⏳ F55 Toasts + countdown]
+  F50 --> F56[⏳ F56 HUD]
+  F57[🟢 F57 Pinned labels] --> F58[⏳ F58 Badges]
+  F56 -.working.-> F58
+```
+
 ## Later
 Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - ✨ Clearer unlock timer (last-second warning) — could · parked for the art redesign (Muzzy 2026-09-28)
@@ -46,4 +78,3 @@ Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - Dice skins, tabletop textures, player profile art — could (#10–#12)
 
 ## Ideas
-- 2026-09-28 — Rest of the UI on the game-ui kit (Cartoon): main menu + online lobby first, then How to Play / Winners / countdown / tip banner, HUD last. Needs kit additions: game-box mode (16:9 frame), seat-claim list, labels pinned to 3D. Art question: bright Cartoon UI vs the dark table. Settings already done (kit 0.1.3).

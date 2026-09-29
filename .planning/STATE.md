@@ -1,13 +1,13 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Released v0.2.2 (2026-09-29): roll physics fixes, scoring 8/6/4/2/1, drag-to-unlock online fixes, B005/B010 text + draw-order fixes, Credits screen, server hardening from the pre-release review. Front end (GitHub Pages) + PartyKit server both deployed.
-Next: `/define` the UI-kit rollout (kit additions + Cartoon-vs-dark-table art call) → `/sprint`. v1.6 still has F48 (drag polish + UAT) open — fold into the next sprint or park it.
+v0.2.2 is live. Defined v1.7 — Cartoon UI everywhere (ROADMAP, TDD D19): F50–F58; ready now: F50 (16:9 box) and F57 (pinned-to-3D labels). Build order: F50 → F51 + F53 → F54 → F55 → F56 → F57 → F58 → F52.
+Next: `/sprint` to line up the first sprint.
 Muzzy: What stage is the live game (alpha/beta/1.0)? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: deliver   Milestone: v1.6 — Drag-to-Unlock   Sprint: none (01 done)
-Doing: — (released v0.2.2)
+Stage: define → develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: none (01 done)
+Doing: — (v1.7 defined; next /sprint)
 Branch: master   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, release stage not set
 

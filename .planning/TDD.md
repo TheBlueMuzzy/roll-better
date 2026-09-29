@@ -112,6 +112,12 @@ flowchart LR
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D19 · 2026-09-29 · UI rollout: every screen on the game-ui kit; player badges become HTML pinned to 3D
+  Proposed by: Muzzy (Cartoon over the dark table; rebuild badges as kit UI)   Options: restyle 3D badges in place / kit UI pinned to 3D / leave them
+  Chose: kit UI pinned to 3D (drei Html anchored to each row) — standard nameplate pattern. HTML always draws above the canvas,
+  so a badge fades while a dragged die passes over it. New kit pieces (pinned label, seat-claim list) are built in this game
+  first, then copied back to dev/framework/ui-kit as Built. Every player-facing word goes to content/text/en.json as screens move.
+
 D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
   Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content
   Chose: one list, read by `src/utils/scoring.ts` on the phone, the star preview and the server — was copy-pasted in 3 places
