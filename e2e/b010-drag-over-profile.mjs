@@ -1,7 +1,7 @@
 // B010 repro: a locked die dragged to the far left (over the player's profile group — avatar circle,
 // star score) should draw ON TOP of that UI, pips black. Screenshots the drag at a few distances left
 // of slot 0. Run: node e2e/b010-drag-over-profile.mjs <screenshot-folder>
-import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const OUT = process.argv[2] || '.';
 const ROW_Z = -3.75; // human player row (Scene.tsx default)
@@ -11,7 +11,7 @@ run(async () => {
   const browser = await launchBrowser();
   const page = await (await browser.newContext({ viewport: { width: 1000, height: 560 } })).newPage();
   await page.goto(GAME_URL);
-  await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+  await playLocal(page);
   await page.waitForTimeout(2000);
   await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false } });`);
 

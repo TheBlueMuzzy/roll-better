@@ -5,7 +5,8 @@
 //   - P2 hears P1's unlock (unlock_result), and once both are back to idle, P2's view of P1's dice
 //     matches P1's own (server and phone agree); nothing left parked on P1
 // Run: npm run e2e:online   (starts its own PartyKit :2999 + Vite :5199 and stops them afterwards)
-import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, PARTY_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, PARTY_PORT,
+  createRoom, joinRoom, startOnlineGame } from './lib.mjs';
 
 const MAX_MS = 240_000;
 
@@ -29,17 +30,10 @@ run(async () => {
   // --- Create + join a room ---
   await p1.goto(GAME_URL);
   await p2.goto(GAME_URL);
-  await p1.getByRole('button', { name: 'CREATE' }).click();
-  const codeEl = p1.locator('.menu-room-code');
-  await codeEl.waitFor({ timeout: 15000 });
-  const code = (await codeEl.innerText()).slice(0, 4);
-  log('room code', code);
-  await p2.getByRole('button', { name: 'JOIN' }).click();
-  const inputs = p2.locator('.menu-code-char');
-  for (let i = 0; i < 4; i++) await inputs.nth(i).fill(code[i]);
-  await p2.locator('.menu-online-row button', { hasText: 'START' }).click();
+  const code = await createRoom(p1);
+  await joinRoom(p2, code);
   await p1.waitForTimeout(1500);
-  await p1.locator('.menu-online-row button', { hasText: 'START' }).click();
+  await startOnlineGame(p1);
   log('game started');
   await p1.waitForTimeout(4000);
   for (const p of [p1, p2]) await store(p, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false } });`);

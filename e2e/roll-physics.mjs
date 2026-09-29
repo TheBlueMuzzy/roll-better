@@ -7,7 +7,7 @@
 //   PASS = no die ever out of bounds, the 10 s settle timeout never fires, and every gather
 //          log line says all dice were pulled into the spin.
 // Run: npm run e2e:physics [rolls]   (default 50; starts its own Vite on :5199, stops it after)
-import { startServer, launchBrowser, store, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const ROLLS = Number(process.argv[2] || 50);
 const ONLY = process.argv[3]; // optional: only this gesture (debugging)
@@ -50,7 +50,7 @@ run(async () => {
 
   async function startGame() {
     await page.goto(GAME_URL);
-    await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+    await playLocal(page);
     await page.waitForTimeout(2000);
     await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false } });`);
     // Every frame: is any die out of bounds? (uses the game's own helper)

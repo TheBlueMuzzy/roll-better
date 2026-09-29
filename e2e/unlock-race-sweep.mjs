@@ -19,7 +19,7 @@
 //
 // Run: node e2e/unlock-race-sweep.mjs [passes=2] [pages=3] [step=10]
 //   (starts its own Vite on :5199 and stops it afterwards)
-import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT } from './lib.mjs';
+import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, playLocal } from './lib.mjs';
 
 const PASSES = Number(process.argv[2] ?? 2);
 const PAGES = Number(process.argv[3] ?? 3);
@@ -141,7 +141,7 @@ const PROJECT = `
 
 async function newGame(page) {
   await page.goto(GAME_URL);
-  await page.getByRole('button', { name: 'PLAY LOCAL' }).click();
+  await playLocal(page);
   await page.waitForTimeout(2000);
   await store(page, `s.setState({ settings: { ...s.getState().settings, tipsEnabled: false }, sessionTargetScore: 99999 });`);
   await store(page, INSTALL);
