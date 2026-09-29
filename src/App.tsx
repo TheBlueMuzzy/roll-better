@@ -11,7 +11,7 @@ import { MainMenuScreen } from './ui/MainMenuScreen';
 import { LobbyScreen } from './ui/LobbyScreen';
 import { OnlineRoomProvider } from './ui/OnlineRoom';
 import { ReconnectingScreen } from './ui/ReconnectingScreen';
-import { HowToPlay } from './components/HowToPlay';
+import { HowToPlayScreen } from './ui/HowToPlayScreen';
 import { text, fill } from './ui/words';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -35,18 +35,18 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  // Kit screens (Settings, its Confirm, Credits, Play online, Reconnecting) — open with screens.push('settings')
+  // Kit screens (Settings, its Confirm, Credits, Play online, How to play, Reconnecting) — open with screens.push('settings')
   const kitScreenList = useMemo(() => ({
     ...kitScreens,
     settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
     credits: CreditsScreen,
     online: LobbyScreen,
     reconnecting: ReconnectingScreen,
+    howToPlay: HowToPlayScreen,
   }), []);
   const openScreens = useScreens();
   const settingsOpen = openScreens.includes('settings');
   const openSettings = useCallback(() => screens.push('settings'), []);
-  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
   const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
 
@@ -749,7 +749,6 @@ function App() {
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
       <ScreenStack overlay screens={kitScreenList} />
-      {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <ToastStack />
       <TouchIndicator />
       {screen !== 'menu' && <div className="build-version">{version}</div>}
