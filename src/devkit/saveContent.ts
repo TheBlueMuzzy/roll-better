@@ -7,7 +7,7 @@
  */
 export const CAN_SAVE = import.meta.env.DEV
 
-/** Write a content/ JSON file through the dev server (vite-plugins/devkitSave.ts). Throws with a plain reason. */
+/** Write a content/ JSON file through the dev server (vite-plugins/devkit/devkitVite.ts). Throws with a plain reason. */
 export async function saveContentFile(path: string, data: object): Promise<void> {
   let res: Response
   try {

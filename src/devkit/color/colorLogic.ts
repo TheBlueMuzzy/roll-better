@@ -1,5 +1,5 @@
-// The Color tool's thinking, kept apart from its looks so it can be tested (colorLogic.test.ts).
-// Nothing here touches the page or the files.
+// The Color tool's thinking, kept apart from its looks so it can be tested (colorLogic.test.ts, in the framework).
+// Nothing here touches the page or the files. normalizeHex / sameColour are handy for game tabs too.
 
 /** The 15 UI kit colours, in the order the panel lists them, with names Muzzy would use. */
 export const UI_COLOURS = [
@@ -16,21 +16,11 @@ export const UI_COLOURS = [
   { token: 'border', name: 'Outlines' },
   { token: 'focus', name: 'Keyboard focus' },
   { token: 'ink', name: 'Ink' },
-  { token: 'on-game', name: 'HUD text on the table' },
+  { token: 'on-game', name: 'HUD text on the game' },
   { token: 'game-shade', name: 'HUD text halo' },
 ] as const
 
-/** The 3D table's colours (content/ui/table.json). Divider opacity is a slider, not a colour. */
-export const TABLE_COLOURS = [
-  { key: 'rows', name: 'Rows felt' },
-  { key: 'rolling', name: 'Rolling area felt' },
-  { key: 'divider', name: 'Divider line' },
-] as const
-export const DIVIDER_OPACITY_NAME = 'Divider line opacity'
-
 export type UiColours = Record<string, string> // token → "#rrggbb"
-export type TableValues = { rows: string; rolling: string; divider: string; dividerOpacity: number }
-export type ColourState = { ui: UiColours; table: TableValues }
 export type Change = { name: string; from: string; to: string }
 
 /** "Main buttons (primary)" */
@@ -77,40 +67,36 @@ export function tweaksToSave(
   return out
 }
 
-/** Every value that differs between two states, with friendly names, in panel order. */
-export function listChanges(before: ColourState, after: ColourState): Change[] {
+/** Every UI colour that differs between two sets, with friendly names, in panel order. */
+export function listChanges(before: UiColours, after: UiColours): Change[] {
   const changes: Change[] = []
   for (const { token } of UI_COLOURS) {
-    if (!sameColour(before.ui[token], after.ui[token])) changes.push({ name: uiLabel(token), from: before.ui[token], to: after.ui[token] })
-  }
-  for (const { key, name } of TABLE_COLOURS) {
-    if (!sameColour(before.table[key], after.table[key])) changes.push({ name, from: before.table[key], to: after.table[key] })
-  }
-  if (before.table.dividerOpacity !== after.table.dividerOpacity) {
-    changes.push({ name: DIVIDER_OPACITY_NAME, from: String(before.table.dividerOpacity), to: String(after.table.dividerOpacity) })
+    if (!sameColour(before[token], after[token])) changes.push({ name: uiLabel(token), from: before[token], to: after[token] })
   }
   return changes
 }
 
-/** Does the table part differ? (decides whether Save needs to write table.json) */
-export const tableChanged = (a: TableValues, b: TableValues) =>
-  TABLE_COLOURS.some(({ key }) => !sameColour(a[key], b[key])) || a.dividerOpacity !== b.dividerOpacity
-
-/** Does the UI part differ? (decides whether Save needs to write style.json) */
+/** Does any UI colour differ? (decides whether Save has anything to write) */
 export const uiChanged = (a: UiColours, b: UiColours) => UI_COLOURS.some(({ token }) => !sameColour(a[token], b[token]))
 
 /**
- * The "Copy for Claude" text, e.g.
- *   Colour changes from the Dev Kit (Roll Better) — saved to content/ui/style.json and content/ui/table.json:
+ * The "Copy for Claude" text — any tool can use it, e.g.
+ *   Colour changes from the Dev Kit (Roll Better) — saved to content/ui/style.json:
  *   - Main buttons (primary): #ffc629 → #ff9f1c
+ * what = "Colour", files = "content/ui/style.json". liveBuild = a release build, which can't save.
  */
-export function copyForClaudeText(game: string, changes: Change[], allSaved: boolean, liveBuild = false): string {
-  if (changes.length === 0) return `No colour changes in the Dev Kit (${game}) since the game loaded.`
-  let status = allSaved
-    ? 'saved to content/ui/style.json and content/ui/table.json'
-    : 'NOT all saved yet (press Save in the Dev Kit to write them to content/)'
+export function copyForClaudeText(
+  game: string,
+  changes: Change[],
+  allSaved: boolean,
+  liveBuild = false,
+  what = 'Colour',
+  files = 'content/ui/style.json',
+): string {
+  if (changes.length === 0) return `No ${what.toLowerCase()} changes in the Dev Kit (${game}) since the game loaded.`
+  let status = allSaved ? `saved to ${files}` : 'NOT all saved yet (press Save in the Dev Kit to write them to content/)'
   // The live build can't save — these only exist in that browser tab until Claude writes them in
-  if (liveBuild) status = 'tried in the live build, NOT saved — please write them into content/ui/style.json and content/ui/table.json'
+  if (liveBuild) status = `tried in the live build, NOT saved — please write them into ${files}`
   const lines = changes.map((c) => `- ${c.name}: ${c.from} → ${c.to}`)
-  return [`Colour changes from the Dev Kit (${game}) — ${status}:`, ...lines].join('\n')
+  return [`${what} changes from the Dev Kit (${game}) — ${status}:`, ...lines].join('\n')
 }

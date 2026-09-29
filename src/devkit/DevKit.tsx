@@ -1,21 +1,25 @@
-// THE BMUZ DEV KIT — developer tools that live inside the game.
+// THE BMUZ DEV KIT — developer tools that live inside the game. From the Game Framework (devkit/):
+// copied into the game's src/devkit/ by install-devkit — don't edit it here, change it in the framework.
 // main.tsx loads it (via mount.tsx) with a dynamic import: always in dev; in release builds only while
 // content/devkit.json "inReleaseBuilds" is true (through beta). When it's false, the live build has none of it.
 // Release builds can't Save (no dev server) — tools offer Copy for Claude instead (CAN_SAVE in saveContent.ts).
 //   Open:  the ` key (desktop) or triple-tap the top-right corner (phone)
 //   Close: Esc, the ✕ button, or ` again
-// Tools are tabs across the top. To add a tool: make a component and add it to TABS below.
+// Tools are tabs across the top: the kit's own (KIT_TABS), then the game's own from src/devkit-game/tabs.ts.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
 import { useEffect, useRef, useState, type ComponentType } from 'react'
+import { gameTabs } from '../devkit-game/tabs'
 import { ColorTab } from './color/ColorTab'
 import { CAN_SAVE } from './saveContent'
 import './devkit.css'
 
-// Searched for by the live-build check (Sprint 04 task 3) — it must never appear in dist/
+// Searched for by the release check (check-devkit.mjs) — it must never appear in a build with the Dev Kit off
 const DEVKIT_MARKER = 'bmuz-devkit-console'
 
-type Tab = { id: string; label: string; Panel: ComponentType }
-const TABS: Tab[] = [
+/** One tool = one tab. A game adds its own in src/devkit-game/tabs.ts. */
+export type DevKitTab = { id: string; label: string; Panel: ComponentType }
+
+const KIT_TABS: DevKitTab[] = [
   { id: 'color', label: 'Color', Panel: ColorTab },
 ]
 
@@ -31,9 +35,9 @@ function isTyping(target: EventTarget | null) {
   return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
 }
 
-export function DevKit() {
+export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab[] }) {
   const [open, setOpen] = useState(false)
-  const [tabId, setTabId] = useState(TABS[0].id)
+  const [tabId, setTabId] = useState(tabs[0]?.id)
   const openRef = useRef(open) // the key handler below reads this (it's set up once)
   const panel = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -93,7 +97,7 @@ export function DevKit() {
       <header className="devkit-top">
         <strong className="devkit-title">Dev Kit</strong>
         <nav className="devkit-tabs" role="tablist">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               role="tab"
@@ -112,8 +116,8 @@ export function DevKit() {
       {!CAN_SAVE && (
         <p className="devkit-live-note">Live build: changes last until you refresh — copy them for Claude to keep.</p>
       )}
-      {TABS.map((t) => (
-        <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel">
+      {tabs.map((t) => (
+        <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel" aria-label={t.label}>
           <t.Panel />
         </section>
       ))}
