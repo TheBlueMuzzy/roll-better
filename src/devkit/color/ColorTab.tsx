@@ -1,4 +1,173 @@
-// Color tool (F59) — filled in by Sprint 04 tasks 4–7.
+// COLOR TOOL (F59) — every UI colour and table colour, with a picker each.
+//   UI colours come from content/ui/style.json: the preset's colours, with "tweaks" on top.
+//   Table colours come from content/ui/table.json.
+// ↺ on a UI colour = back to the preset. ↺ on a table value = back to what's saved in table.json.
+// A dot next to a name = changed, not saved yet.
+import { useState } from 'react'
+import styleFile from '../../../content/ui/style.json'
+import tableFile from '../../../content/ui/table.json'
+import { presets } from '../../ui/kit/styles'
+import {
+  DIVIDER_OPACITY_NAME,
+  TABLE_COLOURS,
+  UI_COLOURS,
+  normalizeHex,
+  sameColour,
+  uiColoursFrom,
+  uiLabel,
+  type ColourState,
+} from './colorLogic'
+import './color.css'
+
+const presetName = styleFile.preset
+const preset: Record<string, unknown> = presets[presetName] ?? presets.clean
+const presetTitle = presetName.charAt(0).toUpperCase() + presetName.slice(1) // "Cartoon"
+
+function fromFiles(): ColourState {
+  return {
+    ui: uiColoursFrom(preset, styleFile.tweaks as Record<string, unknown>),
+    table: { rows: tableFile.rows, rolling: tableFile.rolling, divider: tableFile.divider, dividerOpacity: tableFile.dividerOpacity },
+  }
+}
+
 export function ColorTab() {
-  return <p style={{ padding: 12 }}>Colour tool coming next.</p>
+  const [colours, setColours] = useState(fromFiles) // what the game shows right now
+  const [saved] = useState(fromFiles) // what's in the files
+
+  const setUi = (token: string, value: string) => setColours((c) => ({ ...c, ui: { ...c.ui, [token]: value } }))
+  const setTable = (key: string, value: string | number) => setColours((c) => ({ ...c, table: { ...c.table, [key]: value } }))
+
+  return (
+    <div className="ct">
+      <p className="ct-legend">
+        <span className="ct-dot" /> = changed, not saved yet · tap a swatch to pick a colour, or type a hex
+      </p>
+
+      <h3 className="ct-group">UI colours <small>content/ui/style.json · ↺ = back to the {presetTitle} preset</small></h3>
+      {UI_COLOURS.map(({ token }) => (
+        <ColourRow
+          key={token}
+          label={uiLabel(token)}
+          value={colours.ui[token]}
+          changed={!sameColour(colours.ui[token], saved.ui[token])}
+          resetTo={String(preset[token])}
+          resetHint={`Back to the ${presetTitle} preset`}
+          onChange={(v) => setUi(token, v)}
+        />
+      ))}
+
+      <h3 className="ct-group">Table (3D) <small>content/ui/table.json · ↺ = back to the saved file</small></h3>
+      {TABLE_COLOURS.map(({ key, name }) => (
+        <ColourRow
+          key={key}
+          label={name}
+          value={colours.table[key]}
+          changed={!sameColour(colours.table[key], saved.table[key])}
+          resetTo={saved.table[key]}
+          resetHint="Back to the saved file"
+          onChange={(v) => setTable(key, v)}
+        />
+      ))}
+      <div className="ct-row">
+        <span className="ct-label">
+          {colours.table.dividerOpacity !== saved.table.dividerOpacity && <span className="ct-dot" title="Changed, not saved yet" />}
+          {DIVIDER_OPACITY_NAME}
+        </span>
+        <input
+          className="ct-slider"
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={colours.table.dividerOpacity}
+          onChange={(e) => setTable('dividerOpacity', Number(e.target.value))}
+          aria-label={DIVIDER_OPACITY_NAME}
+        />
+        <span className="ct-number">{colours.table.dividerOpacity.toFixed(2)}</span>
+        <button
+          className="ct-reset"
+          disabled={colours.table.dividerOpacity === saved.table.dividerOpacity}
+          onClick={() => setTable('dividerOpacity', saved.table.dividerOpacity)}
+          title={`Back to the saved file: ${saved.table.dividerOpacity}`}
+          aria-label={`Reset ${DIVIDER_OPACITY_NAME} — back to the saved file`}
+        >
+          ↺
+        </button>
+      </div>
+    </div>
+  )
+}
+
+type RowProps = {
+  label: string
+  value: string
+  changed: boolean
+  resetTo: string
+  resetHint: string
+  onChange: (value: string) => void
+}
+
+/** One colour: [● name] [swatch = colour picker] [#hex] [↺] */
+function ColourRow({ label, value, changed, resetTo, resetHint, onChange }: RowProps) {
+  const hex = normalizeHex(value) // null for values like "transparent" — the picker can't show those
+  return (
+    <div className="ct-row">
+      <span className="ct-label">
+        {changed && <span className="ct-dot" title="Changed, not saved yet" />}
+        {label}
+      </span>
+      <input
+        className="ct-swatch"
+        type="color"
+        value={hex ?? '#000000'}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={`${label} — pick a colour`}
+        title="Pick a colour"
+      />
+      <HexField value={value} label={label} onChange={onChange} />
+      <button
+        className="ct-reset"
+        disabled={sameColour(value, resetTo)}
+        onClick={() => onChange(resetTo)}
+        title={`${resetHint}: ${resetTo}`}
+        aria-label={`Reset ${label} — ${resetHint.toLowerCase()} (${resetTo})`}
+      >
+        ↺
+      </button>
+    </div>
+  )
+}
+
+/** A text box for typing a hex colour. Only a valid colour is passed on; a bad one shows red. */
+function HexField({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
+  const [draft, setDraft] = useState(value)
+  // When the colour changes elsewhere (picker, ↺), the text box follows it
+  const [lastValue, setLastValue] = useState(value)
+  if (value !== lastValue) {
+    setLastValue(value)
+    setDraft(value)
+  }
+  const valid = normalizeHex(draft) !== null || draft.trim() === 'transparent'
+  const commit = () => {
+    const hex = normalizeHex(draft)
+    if (hex && hex !== value) onChange(hex)
+    else if (draft.trim() === 'transparent' && value !== 'transparent') onChange('transparent')
+  }
+  return (
+    <input
+      className={`ct-hex${valid ? '' : ' is-bad'}`}
+      value={draft}
+      spellCheck={false}
+      autoCapitalize="off"
+      onChange={(e) => {
+        setDraft(e.target.value)
+        // Apply as soon as a full 6-digit colour is typed, so the game updates while you type
+        const hex = normalizeHex(e.target.value)
+        if (hex && e.target.value.replace('#', '').length === 6) onChange(hex)
+      }}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && commit()}
+      aria-label={`${label} — hex`}
+    />
+  )
 }

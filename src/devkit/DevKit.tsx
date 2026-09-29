@@ -30,8 +30,15 @@ export function DevKit() {
   const [open, setOpen] = useState(false)
   const [tabId, setTabId] = useState(TABS[0].id)
   const openRef = useRef(open) // the key handler below reads this (it's set up once)
+  const panel = useRef<HTMLElement>(null)
   useEffect(() => {
     openRef.current = open
+    // The game's toasts and tooltips are browser popovers, which float above any z-index.
+    // Making the panel a popover too puts it on top of whatever is showing when it opens.
+    const el = panel.current
+    if (!el?.showPopover) return // older browsers: `hidden` alone shows/hides it
+    if (open && !el.matches(':popover-open')) el.showPopover()
+    if (!open && el.matches(':popover-open')) el.hidePopover()
   }, [open])
 
   // ` toggles, Esc closes
@@ -77,7 +84,7 @@ export function DevKit() {
 
   // The panel stays mounted while hidden, so unsaved edits survive closing and reopening it.
   return (
-    <aside className="devkit" data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
+    <aside ref={panel} {...{ popover: 'manual' }} className="devkit" data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
       <header className="devkit-top">
         <strong className="devkit-title">Dev Kit</strong>
         <nav className="devkit-tabs" role="tablist">

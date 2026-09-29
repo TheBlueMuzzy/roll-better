@@ -13,11 +13,18 @@
   flex-direction: column;
   background: #16171d;
   color: #e8e8ee;
+  border: none;
   border-left: 1px solid #34353f;
   box-shadow: -8px 0 24px rgb(0 0 0 / 0.35);
   font: 13px/1.35 system-ui, -apple-system, 'Segoe UI', sans-serif;
-  padding-right: env(safe-area-inset-right);
   touch-action: pan-y;
+  /* undo the browser's popover defaults (centred box) */
+  inset: 0 0 0 auto;
+  margin: 0;
+  padding: 0 env(safe-area-inset-right) 0 0;
+  height: auto;
+  max-height: none;
+  overflow: hidden;
 }
 .devkit[hidden] { display: none; }
 .devkit button, .devkit input, .devkit select { font: inherit; color: inherit; }
