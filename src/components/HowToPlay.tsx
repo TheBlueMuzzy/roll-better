@@ -22,7 +22,7 @@ const SLIDES: Slide[] = [
   {
     title: 'Unlock for More',
     icon: '\u{1F513}',
-    text: 'Tap locked dice to select them, then press UNLOCK. Each unlocked die returns to your pool with a bonus die!',
+    text: 'Drag a locked die down into the rolling area to unlock it. When the timer runs out, each one splits in two — a bonus die!',
   },
   {
     title: 'Score Big',

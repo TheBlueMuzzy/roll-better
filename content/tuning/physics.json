@@ -1,0 +1,5 @@
+{
+  "_help": "Dice physics safety numbers. maxReleaseSpeed = the fastest (units/second, sideways) a die can be flung when you let go of a hold-to-gather; higher = wilder throws, too high and dice can punch through the walls. outOfBoundsMargin = how far (units) past a wall's inside face a die's centre can be before it counts as escaped and is put back in the rolling area.",
+  "maxReleaseSpeed": 20,
+  "outOfBoundsMargin": 0.25
+}

@@ -2,13 +2,14 @@
 
 > How the game is built. Plain English first; code names in `backticks` only where they help.
 > Living document — /define writes it, /develop keeps it true, /tdd shows it.
-> Last updated: 2026-09-28 (created at the BMUZ-2 conversion from the old STATE Key Architecture, GDD §5.3/§5.4/§7, PROJECT.md decisions and a look at the code — the code won wherever docs disagreed)
+> Last updated: 2026-09-28 (slimmed to the BMUZ-2 shape; long detail moved to `design/tech-online.md` and `design/tech-internals.md`; facts re-checked against the code — the code won wherever docs disagreed)
 
 ## 1. At a glance
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
-- **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install (old docs said React 18; `package.json` says 19 — code wins)
+- **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
+- **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
 - **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
-- **Dev Kit tools used:** none yet. `content/tuning`, `content/text`, `content/data` folders exist but are empty — every tweakable is still hardcoded (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — before any netcode sprint; B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers in §2b → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
+- **Dev Kit tools used:** none yet. `content/tuning/scoring.json` is the first tweakable moved out of code; `content/text` and `content/data` are empty (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
 ```mermaid
@@ -20,12 +21,13 @@ flowchart LR
   Store <-->|useOnlineGame.ts| Net[PartyKit room server<br/>party/server.ts]
 ```
 - **Game state** — `src/store/gameStore.ts` (one Zustand store, ~1,370 lines): phases, players, locks, pool, animation queues, drag/commit state, online flags. Everyone reads it.
-- **Physics dice** — `PhysicsDie.tsx` (rigid body, settle + snapFlat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces with `getFaceUp`), `RollingArea.tsx` (floor + walls).
+- **Physics dice** — `PhysicsDie.tsx` (one die: rigid body, settle, snap flat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces), `RollingArea.tsx` (floor + walls).
 - **Turn flow / glue** — `src/App.tsx` (~860 lines): phase effects, roll, unlock timer expiry, batch mitosis, online unlock submit. Most "what happens next" logic lives here, not in the store.
-- **3D view** — `Scene.tsx` orchestrates goal row, player rows, pool and animation dice (`AnimatingDie`, `MitosisDie`, `SpawningDie`, `CommittedDie`); the draggable locked die is `UnlockableDie` inside `PlayerRow.tsx`; gather VFX in `GatherVisuals.tsx`.
-- **HUD** — `HUD.tsx`: status text + countdown bars (idle/roll AFK, unlock inactivity).
-- **Online** — client: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines: rooms, seats, AFK, host migration, locking, unlock relay); message types in `src/types/protocol.ts`.
-- **Pure logic (tested)** — `src/utils/matchDetection.ts`, `aiDecision.ts`, `unlockTurn.ts` (+ `.test.ts`); also `dropZone.ts`, `clearSpot.ts`, `diceUtils.ts`.
+- **3D view** — `Scene.tsx` runs the goal row, player rows, pool and the animation dice (lock, mitosis, spawn, committed); the draggable locked die is `UnlockableDie` in `PlayerRow.tsx`; gather effects in `GatherVisuals.tsx`.
+- **HUD** — `HUD.tsx`: status text + countdown bars (roll AFK, unlock inactivity).
+- **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
+- **Online** — phone side: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines); message types in `src/types/protocol.ts`.
+- **Pure logic (tested)** — `src/utils/`: `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap` (+ `.test.ts`); also `dropZone`, `diceUtils`.
 
 **Golden rules** (the few architecture rules that must never be broken):
 - R3F: never React state for per-frame updates — mutate refs in `useFrame`.
@@ -36,190 +38,54 @@ flowchart LR
 
 ## 2b. Game-specific systems
 
-**Multiplayer** (moved here from old GDD §5.3)
-- **Who's in charge:** each phone rolls its own physics and reports values (client-authoritative dice); the server runs `findAutoLocks` itself (server-authoritative locking), validates unlocks, advances phases when everyone has acted, runs AFK backstops and bots, owns rooms/seats.
-- **Rolling:** roll → your locks animate locally at once → `roll_result` to server → server relays `player_lock_result` to everyone else → others buffer it until they've locked themselves, then reveal with the profile-emerge animation → when all have rolled, `phase_change: unlocking`.
-- **Unlocking (since v0.2.1, D15):** you drag dice; your own 3 s inactivity timer ends your turn → your mitosis plays locally → ONE `unlock_request` (all dragged slots) or `skip_unlock` → server validates, applies, relays `unlock_result` to others (buffered until they've submitted) → when all responded, `phase_change: idle`.
-- **Deferred snapshot:** a `phase_change` that arrives mid-animation is held, polled every 100 ms, applied when animations clear (5 s force-apply).
-- **Watchdog:** 1 s heartbeat; stuck >5 s in `locking`/`scoring`/`roundEnd` → `phase_sync_request`; 3 stalls in a row → force `idle`.
-- **Messages** — client → server: `join`, `leave`, `start_game`, `roll_result`, `unlock_request`, `skip_unlock`, `rolling_timeout`, `play_again`, `phase_sync_request`, `seat_claim`. Server → client: `connected`, `room_state`, `player_joined`, `player_left`, `error` (with `code`, e.g. `room_full`), `game_starting` (server-made goal values), `roll_results`, `player_lock_result`, `phase_change`, `round_start`, `unlock_result`, `scoring`, `session_end`, `phase_sync`, `rejoin_state`, `player_reconnected`, `seat_state_changed`, `seat_list`, `seat_claim_result`, `seat_takeover`, `play_again_ack`, `room_closed`.
-- **Identity + seats:** `conn.id` (sessionStorage, per tab) for the socket; `persistentId` (localStorage) owns the seat. Seat states: `human-active` / `human-afk` / `bot`. Rejoin with the same id → `rejoin_state` full snapshot. Duplicate `persistentId` → old tab evicted (`connected_elsewhere`). Mid-game joiners claim bot seats at phase boundaries (first claim wins). Host migrates to the next active human; all-bot room → `room_closed`.
-- **AFK:** 2 consecutive auto-actions → bot takes the seat.
-- **What each deploy contains:** push to `master` → GitHub Actions builds the front end (with `VITE_PARTY_HOST`) → Pages. Server changes need `npx partykit deploy` by hand — a front-end release does NOT update the server.
+**Multiplayer** — full detail (turn flow, all ~35 messages, seats, sync): [design/tech-online.md](design/tech-online.md)
+- **Who's in charge:** each phone rolls its own dice and reports the values; the server works out the locks itself, checks unlocks, moves phases on when everyone has acted, runs the AFK backstops and bots, and owns rooms and seats.
+- **Unlocking (D15/D16):** each phone runs its own 3 s drag timer, then sends ONE batched `unlock_request` (or `skip_unlock`); each drag also pings `unlock_activity` so the server never AFKs someone who's busy dragging.
+- **12-dice cap:** pool + still-locked + 2 per unlocked die ≤ 12 — one shared helper, `src/utils/diceCap.ts`, used by phone and server.
+- **Seats:** a per-tab id for the connection, a saved `persistentId` that owns the seat; rejoin gets a full snapshot; 2 auto-actions in a row → a bot takes the seat; host moves to the next active human.
+- **Deploys:** pushing `master` updates only the front end. Server changes need `npx partykit deploy` by hand.
 
-**Physics / simulation** (hardcoded today — candidates for `content/tuning/physics.json`)
-| Parameter | Value | Notes |
-|---|---|---|
-| Gravity | [0, -50, 0] | faster than real — punchy |
-| Mass | 1 | |
-| Floor / wall restitution | 0.5 / 0.3 | |
-| Friction | 0.6 | |
-| Angular damping | 0.3 | 46-03 tried more damping, reverted |
-| Die size / bevel | 0.589 / 0.07 | bevel is critical for the premium look |
-| Settled | active check: speed < 0.5 after 500 ms of rolling (46-03), else Rapier sleep; 200 ms fallback; 10 s absolute timeout (ISS-005) | |
-| Reading results | `getFaceUp` dot-products face normals vs up; dot < 0.95 → `snapFlat` rotates the die flat; walls nudge out 0.2 u on settle (B001/B002 patches) | |
-
-**Build notes** (from old GDD §7.3 — still true)
-- Locked dice are visual only (not physics objects); physics runs only in the rolling area.
-- Roll impulse is applied at an offset point (not the center of mass) plus random spin, so dice tumble naturally.
-- `Die3D.tsx` makes pip geometry + material once at module level, shared by every die.
-- DicePool keys are `${generation}-${i}`; the generation bumps when the pool shrinks so dice remount with the right faces.
-- React StrictMode double-fires effects in dev: init logic must be idempotent; `hasFired` refs prevent duplicate callbacks.
-
-**State shape** (moved from old GDD §5.4 — partly stale: e.g. `selectedForUnlock` belongs to the old tap-to-unlock, and drag state `dragUnlockState` / `committedUnlocks` / `unlockTimerResetKey` is missing. `src/types/game.ts` + `gameStore.ts` are the truth.)
-```
-GameState {
-  // Navigation
-  screen: 'menu' | 'lobby' | 'game' | 'winners'
-  phase: 'lobby' | 'rolling' | 'locking' | 'unlocking' | 'idle' | 'scoring' | 'roundEnd' | 'sessionEnd'
-
-  // Game
-  players: Player[]
-  currentRound: number
-  sessionTargetScore: number         // Default 20
-
-  // Round state
-  roundState: {
-    goalValues: number[8]            // Sorted ascending
-    rollResults: number[] | null
-    rollNumber: number
-    lastLockCount: number
-    roundScore: number
-    lockAnimations: LockAnimation[]
-    unlockAnimations: UnlockAnimation[]
-    aiLockAnimations: LockAnimation[]
-    aiUnlockAnimations: AIUnlockAnimation[]
-    poolExiting: boolean
-    poolSpawning: boolean
-    goalTransition: 'none' | 'exiting' | 'entering'
-  }
-
-  // Player shape
-  Player {
-    id: string
-    name: string
-    color: string                    // Hex color from curated palette
-    isAI: boolean
-    isHost: boolean
-    poolSize: number                 // Dice in rolling pool
-    lockedDice: (number | null)[8]   // 8 slots, null if empty
-    startingDice: number             // Z value
-    score: number                    // Total session points
-    selectedForUnlock: boolean[8]    // Toggle state during unlock phase
-    isReady: boolean                 // Lobby ready state
-  }
-
-  // Settings
-  settings: {
-    audioVolume: number              // 0–100
-    performanceMode: 'advanced' | 'simple'
-    hapticsEnabled: boolean
-    tipsEnabled: boolean
-    confirmationEnabled: boolean
-  }
-
-  // Online
-  isOnlineGame: boolean
-  isOnlineHost: boolean
-  onlinePlayerId: string | null
-  onlinePlayerIds: string[]          // Maps server IDs to local player indices
-  pendingLockReveals: PlayerLockResultData[]
-  pendingUnlockReveals: UnlockRevealData[]
-  hasSubmittedUnlock: boolean
-}
-```
+**Physics / simulation** — full number table, build notes: [design/tech-internals.md](design/tech-internals.md)
+- Numbers are hardcoded today (gravity [0, -50, 0], die bounce 0.35, friction 0.5, damping 0.3) — first candidates for `content/tuning/physics.json`.
+- **Settled** = every die slower than 0.5 after 500 ms of rolling (or asleep), with a 10 s give-up. **Results** are read from which face points up; a tilted die is snapped flat first.
+- Locked dice are pictures, not physics objects — physics only runs in the rolling area.
 
 **Timers** — every timer in one table, so two timers never fight:
 | Timer | Length | Owned by | Starts when | On expiry |
 |---|---|---|---|---|
 | Roll AFK countdown | 20 s | client (`RollingCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
-| Roll backstop | 25 s | server | rolling phase starts | server auto-rolls non-responders |
-| Unlock inactivity | 3 s, restarts on every drag | client (HUD, offline + online) | `unlocking`, animations done | auto-commit mid-drag die → mitosis; online: send one `unlock_request`/`skip_unlock` (D15) |
-| Unlock backstop | 25 s | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock (still counts toward AFK escalation) |
-| Deferred snapshot safety | 5 s | client | `phase_change` held behind animations | force-apply |
-| Watchdog | 1 s tick, 5 s stall | client | always online | `phase_sync_request` |
-| Disconnect grace | remaining phase time (non-timed phases: none) | server | player drops | seat → bot |
+| Roll backstop | 25 s (client's 20 s + 5 s margin) | server | first `roll_result` arrives (idle → rolling) | server auto-rolls non-responders |
+| Gather auto-release | 2.5 s | client (`DicePool`) | holding to gather | dice released (roll) |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
+| Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
+| Scoring pause | 2 s | server | round won (scoring) | handicap applied, next round |
+| Round-end pause | 0.5 s | server | `roundEnd` | next round starts |
+| Deferred snapshot safety | 5 s (checked every 100 ms) | client | `phase_change` held behind animations | force-apply |
+| Watchdog | 1 s tick, 5 s stall | client | always online | `phase_sync_request`; 3 stalls → force `idle` |
+| Disconnect grace | remaining roll/unlock backstop time (other phases: none) | server | player drops | seat → bot |
 | Empty-room keepalive | 10 s | server | last connection closes | room closed |
-| Gather auto-release | 2.5 s | client | holding to gather | dice released (roll) |
-
-⚠ The unlock backstop's comment still says "client's 20 s + 5 s margin" — that 20 s client unlock countdown was removed in v0.2.1. A player who keeps dragging for 25 s gets backstopped mid-turn (see ROADMAP F47).
 
 ## 3. Data the game reads (editable by Muzzy — in Obsidian or the Dev Kit)
 | File | What's in it | Edited with |
 |---|---|---|
-| `content/tuning/*.json` | (empty — nothing extracted yet; §2b numbers are the first candidates) | Dev Kit → Tuning |
+| `content/tuning/*.json` | `scoring.json` (points per leftover die); physics + timer numbers (§2b) are next candidates | Dev Kit → Tuning |
 | `content/anim/*.json` | (none) | Dev Kit → Animation |
 | `content/text/en.json` | (empty — player text lives in the components) | Obsidian / Dev Kit → Text |
 | `content/data/*.json` | (empty) | Dev Kit → Content tables |
+| `content/ui/style.json` | UI kit look: `{ "preset": "cartoon", "tweaks": {} }` | Obsidian |
+| `content/ui/settings.json` | Settings rows (audio, performance, tips, confirmation, unstick, leave game, privacy) | Obsidian |
 
 ## 4. Standards (so any engineer could pick this up)
-- **Folders:** `src/components` (React + R3F views), `src/store` (state), `src/hooks` (online + input hooks), `src/utils` (pure logic + tests), `src/types` (game + protocol types), `party/` (server), `public/` (privacy.html, icons), `proto/` (Python balance sims), `content/` (data, empty so far).
-- **Project structure** (moved from old GDD §7.2 — partly stale: `LobbyScreen`, `GravityController`, `useAccelerometerGravity` were removed; `CommittedDie`, `GatherVisuals`, `gatherPoints.ts`, `dropZone.ts`, `unlockTurn.ts` are missing):
-```
-src/
-├── main.tsx                         # App entry point
-├── App.tsx                          # Screen router, phase effects, game event handlers
-├── App.css                          # All styles
-├── index.css                        # Base styles
-│
-├── store/
-│   └── gameStore.ts                 # Zustand store — all game state + actions
-│
-├── types/
-│   ├── game.ts                      # GamePhase, Player, RoundState, LockAnimation, etc.
-│   └── protocol.ts                  # WebSocket message types (client ↔ server)
-│
-├── components/
-│   ├── MainMenu.tsx                 # Offline setup: player count, difficulty, play button
-│   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start (merged into MainMenu inline flow)
-│   ├── WinnersScreen.tsx            # Final rankings, play again, menu
-│   ├── HUD.tsx                      # Status text, roll/unlock/skip buttons, AFK countdown
-│   ├── Settings.tsx                 # Audio, performance, haptics, tips toggles
-│   ├── HowToPlay.tsx                # In-game rules reference modal
-│   ├── TipBanner.tsx                # Contextual tutorial hints
-│   ├── RollingCountdown.tsx         # AFK countdown bar (rolling + unlock phases)
-│   ├── TouchIndicator.tsx           # Visual touch feedback
-│   │
-│   ├── Scene.tsx                    # Main R3F canvas — orchestrates all 3D components
-│   ├── RollingArea.tsx              # Physics arena: floor + 4 walls
-│   ├── DicePool.tsx                 # Pool management, physics dice, settle detection
-│   ├── PhysicsDie.tsx               # Single physics die: rigid body + settle events
-│   ├── Die3D.tsx                    # 3D die visual: RoundedBox + pip dots
-│   │
-│   ├── GoalRow.tsx                  # 8 Goal dice with entry/exit animations
-│   ├── GoalIndicators.tsx           # Colored wedges under Goal showing player locks
-│   ├── GoalProfileGroup.tsx         # Star icon + score display (far left of Goal)
-│   │
-│   ├── PlayerRow.tsx                # One player's 8 lock slots + icon
-│   ├── PlayerIcon.tsx               # Color swatch + score + X/Y/Z
-│   ├── PlayerProfileGroup.tsx       # AI/other player icon (scaled, positioned)
-│   │
-│   ├── AnimatingDie.tsx             # Lock animation: pool → slot lerp
-│   ├── MitosisDie.tsx               # Unlock animation: slot → 2 dice arc to pool
-│   ├── SpawningDie.tsx              # Pool spawn animation: icon → pool position
-│   └── GravityController.tsx        # Accelerometer-based gravity tilt
-│
-├── hooks/
-│   ├── useOnlineGame.ts             # Server message listener, phase sync, watchdog, buffering
-│   ├── useRoom.ts                   # Lobby: room creation/joining, game start detection
-│   └── useAccelerometerGravity.ts   # Tilt-based gravity for rolling dice
-│
-└── utils/
-    ├── matchDetection.ts            # findAutoLocks() — pure logic (7 unit tests)
-    ├── matchDetection.test.ts       # Unit tests for match detection
-    ├── aiDecision.ts                # AI unlock strategies (Easy/Medium/Hard)
-    ├── aiDecision.test.ts           # Unit tests for AI decisions
-    ├── diceUtils.ts                 # getFaceUp(), getFaceUpRotation()
-    ├── clearSpot.ts                 # Find empty pool positions for unlocking
-    ├── partyClient.ts               # PartySocket wrapper
-    ├── soundManager.ts              # Web Audio API sound effects
-    └── haptics.ts                   # Vibration API wrapper
-```
+- **Folders:** `src/components` (React + 3D views), `src/store` (state), `src/hooks` (online + input), `src/utils` (pure logic + tests), `src/types` (game + message types), `src/ui` (game-ui kit), `party/` (server), `e2e/` (browser check scripts), `public/` (privacy page, icons), `proto/` (Python balance sims), `content/` (data, empty so far). Old file-by-file map + state shape: [design/tech-internals.md](design/tech-internals.md).
 - **Naming:** PascalCase components, camelCase utils, protocol messages snake_case (`unlock_request`).
 - **Readable code:** plain names, small files, a one-line comment on anything non-obvious. No clever tricks. (App.tsx, gameStore.ts and server.ts are well past "small".)
-- **Tests:** rules and logic get tests (`npm test` → vitest); every fixed bug gets a test that guards it. Feel is judged by Muzzy, not tests. Tested today: `matchDetection`, `aiDecision`, `unlockTurn` — nothing for the store, App flow or server.
+- **Tests:** rules and logic get tests; every fixed bug gets a test that guards it. Feel is judged by Muzzy, not tests.
+  - `npm test` — unit tests (vitest): `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap`. Nothing yet for the store, App flow or server.
+  - `npm run build` — `tsc -b && vite build` (type check + build). CI runs build + tests on every deploy since F49.
+  - `npm run e2e` / `npm run e2e:solo` — scripts in `e2e/` play the real game in a headless browser (solo late drag; two-player online unlock). Not in CI. Details: [design/tech-internals.md](design/tech-internals.md#e2e-scripts-detail-for-tdd-4-tests).
+  - Manual checks by hand: [design/playtest-checklist.md](design/playtest-checklist.md).
 - **Testable by design:** game rules live in small pure functions (no screen, no network) so they can be tested; big glue files stay thin. (`unlockTurn.ts` is the pattern: the B003 rule pulled out of HUD/App so it could be tested.)
-- **Same build everywhere:** the deploy (CI) should run the same `npm run build` as local, type check included. ⚠ Today `.github/workflows/deploy.yml` runs `npx vite build`, which skips `tsc` — that's how B004 stayed hidden. Follow-up: ROADMAP F49.
+- **Same build everywhere:** the deploy (CI, `.github/workflows/deploy.yml`) runs the same `npm test` + `npm run build` as local, type check included (fixed in F49 — the old `npx vite build` is how B004 stayed hidden).
 - **Branches:** one work branch per delivery (`dev/<milestone>`), merged by /deliver. ⚠ `master` auto-deploys to the live site — never build straight on it.
 
 ## 5. Budgets
@@ -228,11 +94,11 @@ src/
 | Frame rate | 60 fps on a mid-range phone | Dev Kit → Perf (not built; never measured) |
 | First load | < 3 s on 4G; download < 3 MB (not measured yet) | /deliver quick check |
 | Memory | no growth over a 10-minute session | Dev Kit → Perf (not built) |
-| Network (online games) | ~1 message per player per phase (roll, unlock) + relays; PartyKit/Cloudflare free tier (~100k requests/day) | server logs |
+| Network (online games) | ~1 message per player per phase (roll, unlock) + relays + ≤ 7 `unlock_activity` pings per turn; PartyKit/Cloudflare free tier (~100k requests/day) | server logs |
 
 ## 6. Security & fairness
 - Clients report their own dice values (client-authoritative) — a cheater could fake rolls. Accepted: casual friends-with-room-codes game.
-- Server runs `findAutoLocks` itself, so a client can't lock dice that don't match; it validates unlock slot indices and caps unlocks (pool ≤ 12).
+- The server works out locks itself (`findAutoLocks`), so a client can't lock dice that don't match; it checks unlock slot numbers and applies the same 12-dice cap as the phone (`diceCap.ts`).
 - Secrets: API keys never in the repo or the built game; `.env` is gitignored. `VITE_PARTY_HOST` is not a secret.
 
 ## 7. Compliance & legal (general audience — not made for kids)
@@ -246,6 +112,21 @@ src/
 ## 8. Decisions log
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 ```
+D18 · 2026-09-28 · Scoring is a list in content/tuning/scoring.json: points for 0–4 leftover dice = 8, 6, 4, 2, 1
+  Proposed by: Muzzy (new numbers — a 4-leftover win used to score 0)   Options: keep 8 − 2×leftover in code / a list in content
+  Chose: one list, read by `src/utils/scoring.ts` on the phone, the star preview and the server — was copy-pasted in 3 places
+
+D17 · 2026-09-28 · UI: game-ui kit, style Cartoon — Muzzy 2026-09-28; fits 'social by default' + 'juice everything'
+  First screen: Settings (F07 try-out of the framework's game-ui skill). Kit screens go through <ScreenStack overlay>
+  (the game isn't built from kit Screens and #root is a letterboxed 16:9 box, so the overlay covers the whole window).
+D16 · 2026-09-28 · Unlock backstop vs the 3 s drag timer: each committed drag pings the server (unlock_activity)
+  Proposed by: Claude (F47 task 4)
+  Options: longer fixed backstop (turn can be ~7 windows × 3 s + lead-in ≈ 26 s, so 35 s+) /
+  per-player deadline worked out from the cap / activity ping that tops the backstop up
+  Chose: activity ping — on unlock_activity the server makes sure ≥ 10 s remain on the (room-wide) backstop.
+  Why: an actively dragging player can never be AFK'd however many dice they drag, real AFK is still
+  caught at 25 s, and it's one tiny message per drag (≤ 7 per turn). Cost: an active dragger can delay
+  AFK detection of someone else by a few seconds. Revisit if the backstop becomes per-player.
 D15 · 2026-09-28 · Online drag-to-unlock: each phone sends ONE batched unlock_request when its own inactivity timer ends
   Proposed by: Claude (hotfix B003); Muzzy suggested the alternative
   Options: server decides every player's unlocks itself at timer end / each phone owns its timer and sends one batch
@@ -255,7 +136,7 @@ D15 · 2026-09-28 · Online drag-to-unlock: each phone sends ONE batched unlock_
 D14 · 2026-03-30 · Unlock inactivity timer 3 s, restarts on each drag; skip = don't drag (from GSD 46)
   (46-01 planned 4 s for the first window — the code is 3 s throughout)
 D13 · 2026-03-30 · Drag commit is one-way; committed dice glow, then split together when the timer ends (batch mitosis, in place) (from GSD 45–46)
-D12 · 2026-03-27 · Scoring = max(0, 8 − 2 × dice left in pool) (from GSD 43-01; old GDD §4.5 table is stale)
+D12 · 2026-03-27 · Scoring = max(0, 8 − 2 × dice left in pool) (from GSD 43-01; old GDD §4.5 table is stale) — replaced by D18
 D11 · 2026-03-10 · play_again message + auto-match old seat by persistentId (from GSD 32)
 D10 · 2026-03-07 · Dual identity: conn.id (sessionStorage) per tab, persistentId (localStorage) owns the seat (from GSD 27)
 D09 · 2026-03-07 · AFK: 2 consecutive auto-actions → bot takes the seat (from GSD 28)
@@ -269,6 +150,7 @@ D03 · 2026-02-28 · Zustand over Context/Redux — works with R3F without re-re
 D02 · 2026-02-28 · MeshPhysicalMaterial + clearcoat + HDRI; Rapier over Cannon.js (from GSD)
 D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyKit bundle limitation (from GSD, tech debt)
 ```
+  2026-09-29 (pre-release review): the top-ups had no limit, so a client pinging every 9 s could hold the whole room in the unlock phase → added a 45 s hard limit per phase (a real turn is ≈ 26 s at most).
 
 ## 9. Third-party stuff
 | What | Used for | License | OK for commercial? |
@@ -277,12 +159,12 @@ D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyK
 | @react-three/rapier | physics wrapper | not stated in its package.json — verify (upstream repo is MIT) | verify |
 | @dimforge/rapier3d-compat | physics engine | Apache-2.0 | yes |
 | zustand, react, partykit, partysocket, vite-plugin-pwa | state, UI, online, PWA | MIT | yes |
+| playwright-core (dev only) | e2e browser checks | Apache-2.0 | yes |
 | drei `Environment preset="apartment"` | HDRI lighting (pmndrs CDN, Poly Haven source) | CC0 | yes |
 | Sounds | procedural Web Audio stubs | own | yes |
 
 ## 10. Risks & open questions
-- **Online unlock edge cases after the hotfix** (ROADMAP F47): committed dice aren't cleared if the server ends the phase first; the 25 s backstop can cut off a slow dragger; client and server use different 12-die cap rules (client: pool + locked + unlocks ≤ 12; server: pool ≤ 12 — client is stricter, so no desync today). Spike: two-browser test with local PartyKit.
-- CI skips the type check (F49) — a broken `npm run build` can go live unnoticed.
+- **Online unlock (ROADMAP F47, built, awaiting approval):** the old edge cases are handled in code — parked dice return to their slot when the phase ends, the activity ping (D16) stops the backstop cutting off a slow dragger, and phone + server share one cap rule. Still to prove on real phones in a live room.
 - Big files (App.tsx, gameStore.ts, server.ts) make flow bugs hard to test — no seams for unit tests outside `utils/`.
 - Rapier WASM on low-end phones — fps never measured (no Perf tool).
 - PartyKit free tier (~100k requests/day) — fine for friends, unknown for a real launch.

@@ -1,32 +1,12 @@
 # Roll Better — Bugs
-Open: 4 (P0 0 · P1 2 · P2 1 · P3 1) · watching: 2
+Open: 1 (P0 0 · P1 0 · P2 0 · P3 1) · watching: 2
 
 ## Open
-### B006 · P1 · open · found 2026-09-28 in F46 · v0.2.1.0 · solo vs AI · desktop
-A die dragged just after the unlock timer ends gets stuck in the rolling area, then splits a few rolls later
-Steps: 1. Reach the unlock phase  2. Let the 3 s timer run out  3. Drag a locked die into the rolling area right as it ends
-Expected: either the drag is refused (die snaps back to its slot) or it counts for this turn · Actual: the die sits in the rolling area uncounted, then registers and splits a few rolls later · How often: seen once (timing-dependent)
-Likely area: happens OFFLINE, so it's the F46 inactivity-timer flow itself (not the online fix) — a drag isn't blocked once the timer has ended/mitosis started, and a late-committed die (`committedUnlocks`) waits for the next unlock phase. Same family as the F47 leftover "stale committed dice"
-Evidence: Muzzy playtest on live v0.2.1
-
-### B007 · P1 · open · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
-Some dice fly out of the rolling area and the game hangs as if a die is still rolling, then recovers on its own
-Steps: 1. Roll (hold-to-gather-roll)  2. Some dice leave the rolling area
-Expected: walls keep every die inside; the roll ends when all dice settle · Actual: dice escape, the roll never finishes for a while, then resolves (unclear how — probably a safety timeout) · How often: sometimes
-Possible return of ISS-005 "dice get stuck and never settle" (fixed Mar 2026, see archive/gsd/ISSUES.md) — check the walls and the settle safety timeout
-Evidence: Muzzy playtest on live v0.2.1
-
-### B008 · P2 · open · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop · existed before v1.6
-Gather-to-roll misses some dice — they flicker and scale as if grabbed, then get released and aren't swept into the spin
-Steps: 1. Have several dice in the rolling area  2. Press and hold to gather them for a roll
-Expected: every die in the rolling area is swept into the spin · Actual: some flicker/scale, then drop back and stay out of the spin · How often: sometimes
-Evidence: Muzzy playtest on live v0.2.1 (also seen before drag-to-unlock)
-
-### B005 · P3 · open · found 2026-09-28 in F46 · v0.2.1.0
-First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)
-Steps: 1. Start a new session with tips on  2. Reach the first turn where you must unlock
-Expected: tip explains dragging a locked die into the rolling area · Actual: old tap/UNLOCK text · How often: every first must-unlock
-Evidence: `src/App.tsx` → `tryShowTip('first-unlock', …)`
+### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
+A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
+Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
+Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.
+Evidence: `npm run e2e:physics` put-back counts (1–3 per run), dev log `[PhysicsDie] out of bounds`
 
 ### B001 · P2 · watching · found 2026-03-01 · v0.1.0.51 · (old BUG-001)
 Dice that match the Goal sometimes don't lock — some matches silently dropped
@@ -42,13 +22,40 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
-### B003 · P0 · fixed 2026-09-28 · fixed in d535e6d · released v0.2.1 · Guarded by: src/utils/unlockTurn.test.ts
-Online: dragging dice to unlock never reached the server — the other players never saw your unlock, and the old 20 s AFK countdown then unlocked other dice for you and flagged you AFK (2nd time → bot took your seat). Live since the v1.6 drag work (phase 46).
-Cause: online, the drag inactivity timer was switched off (HUD gated it on `!isOnlineGame`) and the timer-end handler never sent the drags to the server.
-Fix: same 3 s timer online + ONE batched `unlock_request` (or `skip_unlock`) when it ends (TDD D15); old 20 s online unlock countdown removed; server 25 s backstop unchanged.
-Verified by: two-browser Playwright run vs local PartyKit (before: P1 sent nothing, P2 heard nothing; after: P1 sent `unlock_request` afk:false, P2 got `unlock_result`). Waiting for Muzzy's two-phone check → then `verified`.
+### B010 · P3 · fixed 2026-09-29 · Guarded by: `node e2e/b010-drag-over-profile.mjs <folder>` (screenshots — visual check) · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
+Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
+Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
+Expected: pips stay black · Actual: pips look white/see-through while lifted over that slot; back to normal as soon as it's dragged away · Only the leftmost slot does it · How often: whenever tried (Muzzy)
+Update (Muzzy, same day): dragging a die all the way left, it draws BEHIND the 3D profile UI (player icon etc.), and the pips are see-through — the UI shows through the pip holes. So it's draw order / depth, not reflection: the profile group likely renders on top (renderOrder / depthTest off / transparent), and the pip discs don't sort the same way as the die body. The leftmost slot is simply the only place a lifted die overlaps the profile group.
+Fix direction: the die being dragged (and its pips) should draw above the profile UI — check renderOrder/depthTest/transparent on the profile group + pip materials (`PlayerProfileGroup.tsx`, `PlayerIcon.tsx`, `Die3D.tsx`).
+Evidence: Muzzy report
+Cause: the star/avatar icons draw with no depth test, and three.js sorts by distance — the icon landed AFTER the pips but BEFORE the die body, so it painted over the pips, then the body covered the icon everywhere except the pips (see-through holes). Fix: the draggable locked die draws after the profile UI (`Die3D renderOrder={30}` in PlayerRow). Note: three.js resets draw order at every nested group, so it has to be set on Die3D's own group, not a parent. Before/after screenshots checked.
 
-### B004 · P2 · fixed 2026-09-28 · fixed in be1b92e · Guarded by: `npm run build` (tsc)
-`npm run build` failed its type check since 46-03 (`processAIUnlocks(true)` not in the store type; 2 unused vars in Scene.tsx). Live deploys never noticed — the deploy workflow runs `npx vite build`, which skips `tsc` (follow-up: ROADMAP F49).
+### B005 · P3 · fixed 2026-09-29 · Guarded by: src/utils/playerText.test.ts · found 2026-09-28 in F46 · v0.2.1.0
+First-unlock tip still says "Tap locked dice to select, then press UNLOCK" — the buttons are gone (you drag now)
+Steps: 1. Start a new session with tips on  2. Reach the first turn where you must unlock
+Expected: tip explains dragging a locked die into the rolling area · Actual: old tap/UNLOCK text · How often: every first must-unlock
+Evidence: `src/App.tsx` → `tryShowTip('first-unlock', …)`
+Fix: tip + How to Play page 3 now say to drag locked dice into the rolling area (each splits in two). How to Play had the same stale text.
 
-Older fixes (BUG-002 reveal buffering, ISS-003 goal sync, ISS-004 roll sync, ISS-005 stuck dice, ISS-001 slow settle) are in archive/gsd/ISSUES.md; their must-not rules are in STATE Key facts → Don't re-break.
+### B007 · P1 · verified 2026-09-29 (Muzzy: "physics stuff looks good!") · fixed in 2c1846d · Guarded by: src/utils/rollBounds.test.ts + `npm run e2e:physics` · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop
+Some dice fly out of the rolling area and the game hangs as if a die is still rolling, then recovers on its own
+Steps: 1. Roll (hold-to-gather-roll)  2. Some dice leave the rolling area
+Expected: walls keep every die inside; the roll ends when all dice settle · Actual: dice escape, the roll never finishes for a while, then resolves (unclear how — probably a safety timeout) · How often: sometimes
+Possible return of ISS-005 "dice get stuck and never settle" (fixed Mar 2026, see archive/gsd/ISSUES.md) — check the walls and the settle safety timeout
+Evidence: Muzzy playtest on live v0.2.1
+Cause: dice could "settle" mid-gather (results ignored → stuck in rolling; the 10 s timeout couldn't rescue it), and a sub-frame tap did the same; the gather pull ran once per drawn frame, so after a slow frame it overshot and flung dice (sensors while gathering) through the walls. Fix: no settling while gathering, release called directly, pull runs every physics step, live fling capped (`content/tuning/physics.json` maxReleaseSpeed 20), out-of-bounds safety net. 4 × 50 rolls: 0 hangs, 0 timeouts. Waiting for Muzzy's device check → verified.
+
+### B008 · P2 · verified 2026-09-29 (Muzzy) · fixed in 68447e0 (+ 5fea4b8) · Guarded by: `npm run e2e:physics` (every gather with 0.6 s+ of pull sweeps every die) · found 2026-09-28 · v0.2.1.0 · solo vs AI · desktop · existed before v1.6
+Gather-to-roll misses some dice — they flicker and scale as if grabbed, then get released and aren't swept into the spin
+Steps: 1. Have several dice in the rolling area  2. Press and hold to gather them for a roll
+Expected: every die in the rolling area is swept into the spin · Actual: some flicker/scale, then drop back and stay out of the spin · How often: sometimes
+Evidence: Muzzy playtest on live v0.2.1 (also seen before drag-to-unlock)
+Cause: each die had 23 colliders, not 1 — Rapier auto-built them from the die + 21 pip meshes, and the gather shrink/grow blew the pip ones up to full size; lumpy dice sank through the floor while being pulled. Fix: `colliders={false}` + one cube (density 2, same mass). Waiting for Muzzy's device check → verified. May also help B001/B002 — watch.
+
+### B006 · P1 · verified 2026-09-28 (Muzzy: "it's all working") · fixed in 58a54a6 (+ e5fa134) · not released · Guarded by: src/utils/unlockTurn.test.ts (B006 tests) + `npm run e2e:solo`
+A die dragged just after the unlock timer ended got stuck in the rolling area uncounted, then split a few rolls later.
+Cause: after the 3 s timer fired the phase stays `unlocking` while the split animations play, and nothing stopped a new drag from starting or committing; the late die sat in `committedUnlocks` (never cleared) until the next unlock turn's mitosis. The late commit also bumped the timer key from -1 back to 0.
+Fix (Muzzy's rule, F47): a drag in progress when the timer fires resolves by zone (rolling zone → counts at a clear spot; locked zone → snaps back), then the turn is closed — no new drags until the next unlock phase (`isUnlockTurnOpen` / `resolveDragRelease` / `nextUnlockTimerKey` in `unlockTurn.ts`). Leaving the unlock phase and `initRound` clear parked dice.
+Verified by: e2e solo script — before (6cd34d5): late drag accepted, die left parked, next turn pool +4; after: refused, nothing parked, pool +2. Waiting for Muzzy's desktop late-drag try (sprint task 6) → then `verified`.
+Reopened 2026-09-28 (Muzzy, desktop solo: one die dropped at almost exactly the moment the timer ended stayed in the rolling area, unsplit, and split next unlock phase). Follow-up: every ordering of pointerdown / pointerup vs the timer tick vs the mitosis snapshot vs the phase change was traced — all of them are synchronous store updates in one JS task, so a drop is decided atomically (commit before the snapshot, or refused). New `npm`-less sweep `node e2e/unlock-race-sweep.mjs` drops a die at −150…+150 ms around the expiring tick AND inside the same task just before/after it (real PointerEvents through R3F): ~90 drops across 3 runs, **0 reproduced** (every die either split that turn or went back to its slot; no commit after the turn closed, nothing parked at phase exit). Couldn't reproduce on this build — Muzzy's case may have been on a build without 58a54a6/e5fa134. Defensive fix anyway: leaving the unlock phase now puts any still-parked die back in its slot (`returnParkedDice`) — before, it was silently deleted (already off the locked row, never split). Guarded by: `returnParkedDice` tests + the sweep. Still waiting for Muzzy's desktop retry.

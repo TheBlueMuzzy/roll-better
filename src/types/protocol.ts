@@ -60,6 +60,11 @@ export interface SkipUnlockMessage {
   afk?: boolean;     // true when triggered by client's AFK countdown
 }
 
+/** D16: "I just committed a drag" — tells the server this player is active, not AFK. */
+export interface UnlockActivityMessage {
+  type: "unlock_activity";
+}
+
 export interface PlayAgainMessage {
   type: "play_again";
 }
@@ -85,6 +90,7 @@ export type ClientMessage =
   | RollResultMessage
   | UnlockRequestMessage
   | SkipUnlockMessage
+  | UnlockActivityMessage
   | PlayAgainMessage
   | RollingTimeoutMessage
   | PhaseSyncRequestMessage

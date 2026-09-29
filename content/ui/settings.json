@@ -1,0 +1,14 @@
+{
+  "tabs": [
+    { "id": "settings", "label": "Settings", "rows": [
+      { "id": "audioVolume", "type": "slider", "label": "Audio", "min": 0, "max": 100, "step": 1, "default": 80 },
+      { "id": "performanceMode", "type": "toggle", "label": "Performance", "detail": "On: best visuals. Off: better battery.", "default": true },
+      { "id": "tipsEnabled", "type": "toggle", "label": "Tips", "default": true },
+      { "id": "confirmationEnabled", "type": "toggle", "label": "Confirmation", "default": true },
+      { "id": "unstick", "type": "button", "label": "Unstick Dice" },
+      { "id": "mainMenu", "type": "destructive", "label": "Leave the game", "button": "Main Menu", "confirm": "Leave this game and go back to the main menu?" },
+      { "id": "credits", "type": "button", "label": "Credits" },
+      { "id": "privacy", "type": "link", "label": "Privacy Policy", "url": "privacy.html" }
+    ]}
+  ]
+}

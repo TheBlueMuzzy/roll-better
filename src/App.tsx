@@ -1,11 +1,13 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import type { SceneHandle } from './components/Scene';
 import { MainMenu } from './components/MainMenu';
 import { WinnersScreen } from './components/WinnersScreen';
 import { HUD } from './components/HUD';
-import { Settings } from './components/Settings';
+import { ScreenStack, kitScreens, screens, useScreens } from './ui/kit';
+import { SettingsScreen } from './ui/SettingsScreen';
+import { CreditsScreen } from './ui/CreditsScreen';
 import { HowToPlay } from './components/HowToPlay';
 import { TipBanner } from './components/TipBanner';
 import { TouchIndicator } from './components/TouchIndicator';
@@ -15,7 +17,6 @@ import { useOnlineGame } from './hooks/useOnlineGame';
 import { getSlotX, PROFILE_X_OFFSET } from './components/GoalRow';
 import { DIE_SIZE, ROLLING_X_OFFSET } from './components/RollingArea';
 import { getSpawnPositions } from './components/DicePool';
-import { findClearSpot } from './utils/clearSpot';
 import { isInRollingZone } from './utils/dropZone';
 import { buildUnlockSubmission } from './utils/unlockTurn';
 import { initAudio, setVolume, playWinFanfare, playRoundStart, playNoMatch } from './utils/soundManager';
@@ -30,7 +31,14 @@ import './App.css';
 function App() {
   const version = `v${versionData.version}.${versionData.build}`;
   const sceneRef = useRef<SceneHandle>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Kit screens (Settings, its Confirm, Credits) — open with screens.push('settings')
+  const kitScreenList = useMemo(() => ({
+    ...kitScreens,
+    settings: () => <SettingsScreen onUnstick={() => sceneRef.current?.unstickAll()} />,
+    credits: CreditsScreen,
+  }), []);
+  const settingsOpen = useScreens().includes('settings');
+  const openSettings = useCallback(() => screens.push('settings'), []);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [activeTip, setActiveTip] = useState<{ id: string; text: string } | null>(null);
   const isOnlineDisconnected = useGameStore((s) => s.isOnlineDisconnected);
@@ -65,7 +73,7 @@ function App() {
   // Online game hook — message routing + action senders
   const { sendUnlockRequest, sendSkipUnlock } = useOnlineGame();
 
-  // Read online mode flag (used by phase useEffects, handleRoll, handleConfirmUnlock)
+  // Read online mode flag (used by phase useEffects, handleRoll, unlock turn handlers)
   const isOnlineGame = useGameStore((s) => s.isOnlineGame);
 
   // Performance settings
@@ -222,7 +230,7 @@ function App() {
       if (mustUnlockNow && shownTips.includes('first-unlock')) {
         tryShowTip('must-unlock', 'No dice to roll \u2014 you must unlock at least one');
       } else {
-        tryShowTip('first-unlock', 'Tap locked dice to select, then press UNLOCK');
+        tryShowTip('first-unlock', 'Drag locked dice into the rolling area to unlock them — each splits in two');
       }
     }
   }, [phase, currentRound, rollNumber, lastLockCount, playerPoolSize, playerLockedCount, shownTips, tryShowTip]);
@@ -383,111 +391,6 @@ function App() {
       setPhase('idle');
     }
   }, [setPhase]);
-
-  // UNLOCK button: process unlocks with mitosis animation, then go to idle
-  const handleConfirmUnlock = useCallback(() => {
-    const state = useGameStore.getState();
-    if (state.phase !== 'unlocking') return;
-
-    // Guard: ignore if animation is already in progress
-    if (state.roundState.unlockAnimations.length > 0) return;
-    if (state.roundState.aiUnlockAnimations.length > 0) return;
-
-    const player = state.players[0];
-    const mustUnlock = player.poolSize === 0 && player.lockedDice.length < 8;
-
-    if (isOnlineGame && !state.hasSubmittedUnlock) {
-      // Only send to server if not already submitted (AFK auto-unlock sets this before triggering)
-      if (player.selectedForUnlock.length > 0) {
-        // Send to server immediately (server waits for all)
-        sendUnlockRequest(player.selectedForUnlock);
-        // Mark as submitted so HUD shows "Waiting..." and prevents re-interaction
-        useGameStore.getState().setHasSubmittedUnlock(true);
-        // Fall through to the animated path below (same as offline)
-      } else if (mustUnlock) {
-        return; // Can't skip — must select at least 1
-      } else {
-        sendSkipUnlock();
-        useGameStore.getState().skipUnlock(0);
-        useGameStore.getState().setHasSubmittedUnlock(true);
-        return; // Skip path: no animation, just wait for server
-      }
-    }
-
-    if (player.selectedForUnlock.length > 0) {
-      // --- ANIMATED PATH: mitosis animation before state change ---
-      const selectedSlots = [...player.selectedForUnlock];
-      const lockedDice = player.lockedDice;
-      const existingPoolPositions = [...state.roundState.remainingDicePositions];
-
-      // Build occupied list: current pool dice positions
-      const occupied: [number, number, number][] = [...existingPoolPositions];
-
-      const allAnimations: UnlockAnimation[] = [];
-
-      for (const slotIndex of selectedSlots) {
-        // Find the locked die value for this slot
-        const lockedEntry = lockedDice.find((ld) => ld.goalSlotIndex === slotIndex);
-        if (!lockedEntry) continue;
-
-        // Source position: player row slot
-        const fromPos: [number, number, number] = [getSlotX(slotIndex), DIE_SIZE / 2, -3.75];
-
-        // Find a clear spot (avoids existing pool dice + previously computed targets)
-        const { targetPos, splitTargets } = findClearSpot(occupied, DIE_SIZE);
-
-        // Add both split targets to occupied so subsequent unlocks don't overlap
-        occupied.push(splitTargets[0], splitTargets[1]);
-
-        const DEG30 = (30 * Math.PI) / 180;
-        // Stagger: each die starts 250–500ms after the previous
-        const prevDelay = allAnimations.length > 0
-          ? allAnimations[allAnimations.length - 1].delay
-          : 0;
-        const delay = allAnimations.length === 0
-          ? 0
-          : prevDelay + (0.25 + Math.random() * 0.25);
-
-        allAnimations.push({
-          slotIndex,
-          value: lockedEntry.value,
-          fromPos,
-          targetPos,
-          splitTargets,
-          splitYRotations: [
-            (Math.random() * 2 - 1) * DEG30,
-            (Math.random() * 2 - 1) * DEG30,
-          ],
-          delay,
-        });
-      }
-
-      // Trigger animations
-      useGameStore.getState().setUnlockAnimations(allAnimations);
-
-      // Wait for last animation's delay + full animation duration (1.7s) + buffer
-      const lastDelay = allAnimations.length > 0
-        ? allAnimations[allAnimations.length - 1].delay
-        : 0;
-      const totalWait = (lastDelay * 1000) + 1800;
-      setTimeout(() => {
-        useGameStore.getState().confirmUnlock(0);
-        useGameStore.getState().clearUnlockAnimations();
-        // Online: server handles AI unlocks and phase transition
-        if (!isOnlineGame) {
-          startAIUnlockAnimations();
-        }
-      }, totalWait);
-
-    } else if (mustUnlock) {
-      // Can't skip — player has 0 dice to roll, must unlock at least 1
-      return;
-    } else {
-      // SKIP path: no human animation, start AI unlock animations immediately
-      useGameStore.getState().skipUnlock(0);
-      startAIUnlockAnimations();
-    }
-  }, [setPhase, startAIUnlockAnimations, isOnlineGame, sendUnlockRequest, sendSkipUnlock]);
 
   // --- Batch mitosis: finalize state after animations complete ---
   const finalizeBatchUnlock = useCallback((animations: UnlockAnimation[]) => {
@@ -690,20 +593,13 @@ function App() {
     const state = useGameStore.getState();
     if (state.phase !== 'unlocking') return;
 
-    // If player is mid-drag, auto-commit or cancel before proceeding
-    const dragState = useGameStore.getState().dragUnlockState;
-    if (dragState.active && dragState.currentPosition) {
-      if (isInRollingZone(dragState.currentPosition)) {
-        useGameStore.getState().completeDragUnlock();
-      } else {
-        useGameStore.getState().cancelDragUnlock();
-      }
-    } else if (dragState.active) {
-      // Active but no position yet — cancel
-      useGameStore.getState().cancelDragUnlock();
-    }
+    // B006: a drag still in progress resolves by where the die is — over the rolling zone it
+    // counts for this turn (at a clear spot), over the locked zone it snaps back.
+    // Must run BEFORE the turn is closed below, or the drag would always snap back.
+    useGameStore.getState().completeDragUnlock();
 
-    // Mark timer as fired (sentinel -1) so the countdown bar won't flash back
+    // Close the turn: timer sentinel -1 = no new drags until the next unlock phase,
+    // and the countdown bar won't flash back
     useGameStore.setState({ unlockTimerResetKey: -1 });
 
     // Online: tell the server everything this player dragged — ONE message per turn (B003 / TDD D15).
@@ -738,7 +634,6 @@ function App() {
       } else {
         // No must-unlock — skip: go straight to AI unlocks
         reportToServer([]);
-        useGameStore.getState().skipUnlock(0);
         if (!isOnlineGame) {
           startAIUnlockAnimations();
         }
@@ -749,16 +644,16 @@ function App() {
     }
   }, [isOnlineGame, startAIUnlockAnimations, buildAndRunMitosis, sendUnlockRequest, sendSkipUnlock]);
 
-  // AFK auto-unlock: server chose slots for us — trigger same animation pipeline as manual unlock
+  // AFK auto-unlock: the server's backstop chose slots for us. The store already turned them into
+  // committed dice (applyOnlineUnlockResult) — play the same batch mitosis as a normal drag turn.
+  // If our own split animation is somehow still playing, wait for it; never drop the result.
   const pendingAfkUnlock = useGameStore((s) => s.pendingAfkUnlock);
+  const ownMitosisPlaying = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
   useEffect(() => {
-    if (!pendingAfkUnlock) return;
-    // Mark as submitted so handleConfirmUnlock skips sending to server (already processed)
-    useGameStore.getState().setHasSubmittedUnlock(true);
+    if (!pendingAfkUnlock || ownMitosisPlaying) return;
     useGameStore.getState().clearPendingAfkUnlock();
-    // Small delay to let React render the selectedForUnlock state first
-    setTimeout(() => handleConfirmUnlock(), 50);
-  }, [pendingAfkUnlock, handleConfirmUnlock]);
+    buildAndRunMitosis(useGameStore.getState().committedUnlocks);
+  }, [pendingAfkUnlock, ownMitosisPlaying, buildAndRunMitosis]);
 
   // AFK auto-roll: programmatic roll with rollAll (lift + impulse + torque).
   // Used by HUD idle timeout when player hasn't started gathering.
@@ -810,7 +705,7 @@ function App() {
 
   return (
     <>
-      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={() => setSettingsOpen(true)} />
+      <MainMenu visible={screen === 'menu'} onPlay={handlePlay} onGameStart={handleOnlineGameStart} onOpenHowToPlay={() => setHowToPlayOpen(true)} onOpenSettings={openSettings} />
       {gameVisible && (
         <div className={`game-container${gameVisible ? ' game-visible' : ''}`}>
           <Canvas
@@ -829,7 +724,7 @@ function App() {
             onRoll={handleRoll}
             onForceRelease={handleForceRelease}
             onUnlockTimerExpire={handleUnlockTimerExpire}
-            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenSettings={openSettings}
           />
           {activeTip && !settingsOpen && (
             <TipBanner text={activeTip.text} onDismiss={() => setActiveTip(null)} />
@@ -850,7 +745,7 @@ function App() {
       {screen === 'winners' && (
         <WinnersScreen visible={screen === 'winners'} onPlayAgain={handlePlayAgain} onMenu={handleMenu} />
       )}
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} onUnstick={() => sceneRef.current?.unstickAll()} />
+      <ScreenStack overlay screens={kitScreenList} />
       {howToPlayOpen && <HowToPlay onClose={() => setHowToPlayOpen(false)} />}
       <TouchIndicator />
       <div className="build-version">{version}</div>

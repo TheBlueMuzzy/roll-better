@@ -1,11 +1,13 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
+import { RigidBody, CuboidCollider, RapierRigidBody, useBeforePhysicsStep } from '@react-three/rapier';
 import { Euler, Quaternion, Vector3 } from 'three';
 import { Die3D } from './Die3D';
 import { getFaceUpConfidence, getFaceUpRotation } from '../utils/diceUtils';
 import { DIE_SIZE } from './RollingArea';
 import { playDiceImpact, playDiceSettle } from '../utils/soundManager';
+import { isOutOfRollBounds, putBackInRollBounds } from '../utils/rollBounds';
+import physics from '../../content/tuning/physics.json';
 
 // --- Helper: random float in [min, max] ---
 function randRange(min: number, max: number): number {
@@ -230,6 +232,14 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
               true,
             );
           }
+          // B007: cap the sideways fling so it can't punch through the walls
+          // (content/tuning/physics.json → maxReleaseSpeed)
+          const out = body.linvel();
+          const sideways = Math.sqrt(out.x * out.x + out.z * out.z);
+          if (sideways > physics.maxReleaseSpeed) {
+            const k = physics.maxReleaseSpeed / sideways;
+            body.setLinvel({ x: out.x * k, y: out.y, z: out.z * k }, true);
+          }
           // Start scale-up (collider + visual ramp together from current size)
           releaseStartScale.current = attractScaleRef.current;
           releaseElapsedRef.current = 0;
@@ -321,7 +331,7 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       },
     }));
 
-    // Attractor: velocity-controlled from the start, approach factor ramps for smooth pull-in
+    // Scale-up after release (per drawn frame — it's visual + collider size)
     useFrame((_, delta) => {
       const body = bodyRef.current;
       const dt = Math.min(delta, 0.05);
@@ -354,10 +364,36 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
         }
         // No return — let physics run normally during scale-up
       }
+    });
 
+    // Attractor + out-of-bounds safety net. Runs before EVERY physics step (fixed 1/60 s),
+    // not once per drawn frame: after a slow frame (shader compile, phone hiccup) Rapier
+    // catches up with several steps in a row, and a pull velocity sized for one short frame
+    // then overshot the orbit — the dice are sensors while gathering, so they flew straight
+    // through the walls (B007).
+    useBeforePhysicsStep((world) => {
+      const body = bodyRef.current;
+      if (!body) return;
+      const dt = world.timestep;
       const target = attractTargetRef.current;
-      if (!body || !target) return;
 
+      // B007 safety net: a die that got past a wall or through the floor is put back
+      // (while gathering: onto its orbit spot; otherwise just inside the walls, where it
+      // drops and settles) — so a roll never waits on a lost die.
+      const now = body.translation();
+      if (isOutOfRollBounds([now.x, now.y, now.z])) {
+        const back = target ?? putBackInRollBounds([now.x, now.y, now.z]);
+        if (import.meta.env.DEV) {
+          console.warn(`[PhysicsDie] out of bounds at [${now.x.toFixed(2)}, ${now.y.toFixed(2)}, ${now.z.toFixed(2)}] → put back at [${back.map((v) => v.toFixed(2)).join(', ')}]${target ? ' (gathering)' : ''}`);
+        }
+        body.setTranslation({ x: back[0], y: back[1], z: back[2] }, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
+
+      if (!target) return;
+
+      // Attractor: velocity-controlled from the start, approach factor ramps for smooth pull-in
       body.wakeUp();
       body.setGravityScale(0, true);
 
@@ -547,6 +583,11 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       <RigidBody
         ref={bodyRef}
         type="dynamic"
+        // B008: only the one cube collider below. Without this, Rapier also auto-built a
+        // collider for the die body mesh + all 21 pip meshes (23 in all), and every
+        // setHalfExtents loop blew the pip ones up to full die size, sitting on the faces —
+        // a lumpy shape that rested ~0.4 u too high and fought the gather pull.
+        colliders={false}
         position={position}
         rotation={rotation}
         ccd
@@ -591,7 +632,9 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           }
         }}
       >
-        <CuboidCollider args={[DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2]} />
+        {/* density 2 = same weight as before (the old body-mesh + cube pair weighed 1.024),
+            so every roll/fling impulse feels the same */}
+        <CuboidCollider args={[DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2]} density={2} />
         <group ref={visualGroupRef} scale={DIE_SIZE}>
           <Die3D color={color} />
         </group>

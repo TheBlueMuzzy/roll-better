@@ -1,24 +1,23 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Converted to BMUZ-2 on 2026-09-28 (old GSD files in `.planning/archive/gsd/`). Live v0.2.1 hotfix: online drag-to-unlock works again (B003 fixed, guarded by `src/utils/unlockTurn.test.ts`, checked in two browsers).
-Next: `/sprint` to plan what's left of F47 (stale glowing dice when the server ends the unlock phase, 25 s backstop vs slow draggers, server 12-die cap rule, AFK unlock path) plus F49 (CI runs `npm run build`). Then F48 polish + B005 tip text.
-Muzzy: check B003 on two real phones — both players drag dice in an online game and each sees the other's unlock — then tell Claude so B003 → verified.
-Muzzy: on the LAPTOP, first install BMUZ-2 — in Claude Code type `! cd ~/.claude-config && git pull && bash setup.sh`, then restart Claude Code (also in Google Tasks).
-Muzzy: What stage is the live game (alpha/beta/1.0), and what's next?
-Muzzy: confirm the draft scope in GDD §3b (musts / should / could / won't).
+Sprint 01 done 2026-09-29 (archive/sprints/sprint-01.md): F47 + B006 late drag, roll physics B007/B008 (verified by Muzzy), F49 CI. Also new scoring 8/6/4/2/1. All on `dev/v1-6-drag-to-unlock`, not live yet.
+Open bugs are all P3 cosmetic: B005 old unlock tip text, B009 die pushed into left wall (safety net fixes it), B010 dragged die draws behind the profile UI.
+Next: `/deliver` v1.6 (recommended — ships the physics fixes; F48 polish can follow) · or a quick bug sweep of the 3 P3s first · then `/define` for the UI-kit rollout.
+Muzzy: new scoring (8/6/4/2/1) is on the work branch — reaches the live game at /deliver (needs `npx partykit deploy` too).
+Muzzy: What stage is the live game (alpha/beta/1.0), and what's next? · Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: none
-Doing: between sprints (F47 mostly done by the hotfix)
-Branch: master   Version: 0.2.1.0
+Stage: develop   Milestone: v1.6 — Drag-to-Unlock   Sprint: none (01 done)
+Doing: — (choose: /deliver or bug sweep)
+Branch: dev/v1-6-drag-to-unlock   Version: 0.2.1.1
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not set
 
 ## Key facts
 **Run/deploy**
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
-- Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). ⚠ CI runs `npx vite build` (no type check) — F49. So: build on work branches, merge to master only via /deliver.
+- Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
 - Server: `npx partykit deploy` by hand, only when `party/` changes — a front-end release doesn't update it.
 - Version lives in `version.json` AND `package.json` (keep both in step). Tags `vX.Y.Z`. Default branch `master`, remote `origin` = github.com/TheBlueMuzzy/roll-better.
 **Rules**
@@ -26,13 +25,17 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - Physics decides the dice (`getFaceUp`), offline and online. No fake RNG.
 - Online = invisible layer: your own screen behaves like offline; nobody waits for another human. Others' results stay hidden until you've acted.
 - Unlock online = your own 3 s drag timer, then ONE `unlock_request`/`skip_unlock` (TDD D15 — Muzzy's decision, don't re-argue).
-- Scoring = max(0, 8 − 2 × dice left in pool) (43-01). Handicap every round, starting dice 1–12. Client cap: pool + locked + unlocks ≤ 12.
+- Scoring = points by dice left in pool, 8/6/4/2/1 (D18) — ONE list in `content/tuning/scoring.json`, used by phone, star preview AND server via `src/utils/scoring.ts`; never re-inline it. Handicap every round, starting dice 1–12. Client cap: pool + locked + unlocks ≤ 12.
 - AFK: 2 consecutive auto-actions → bot takes the seat. Timers table: TDD §2b.
 **Architecture** (detail in TDD §2/§2b)
 - Client-authoritative dice, server-authoritative locking (`findAutoLocks` on the server). Every `phase_change` carries a full snapshot, applied after animations (5 s safety).
 - Identity: `conn.id` (sessionStorage) per tab, `persistentId` (localStorage) owns the seat; rejoin → `rejoin_state`; host migrates, all-bot room dissolves.
 **Don't re-break**
 - B003: HUD must run the unlock inactivity timer online too, and timer-end must send the drags to the server (`unlockTurn.ts` + test). No separate 20 s online unlock countdown.
+- B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`. Leaving the unlock phase: a still-parked die goes BACK to its slot (`returnParkedDice`), never dropped or carried over. Race check: `node e2e/unlock-race-sweep.mjs [passes] [pages] [step]`.
+- B007/B008 physics: dice have ONE cube collider (`colliders={false}` on the RigidBody, density 2) — never let Rapier auto-build colliders from the pip meshes. Gather pull runs in `useBeforePhysicsStep` (not useFrame); nothing may settle while gathering; release goes through `releaseGather`. Out-of-bounds safety net in PhysicsDie (`rollBounds.ts`). Check: `npm run e2e:physics` (headless runs ~3–6 fps — short taps aren't judged).
+- Server input: `unlock_request` rejects non-arrays and de-duplicates slots; the unlock phase has a 45 s hard limit (`UNLOCK_MAX_PHASE_MS`) no matter how many `unlock_activity` pings. DicePool releases a gather ended by anything other than the player (fallback in useFrame) — don't remove it, or an online phase change mid-gather hangs the next roll.
+- 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).
 - BUG-002: `setRollResults` must NOT clear `pendingLockReveals`/`pendingUnlockReveals` (only `initRound` + flush do); unlock value fallback is `goalValues[slot]`, never `1`; deferred phase polling keeps its 5 s timeout.
 - ISS-003: the server generates goal values (in `game_starting`) — clients never roll their own goal.
@@ -41,11 +44,10 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.1, release stage not 
 - 46-03: `processAIUnlocks(true)` clears state + animations in one update (else AI unlock dice flash); don't re-add an early `clearAIUnlockAnimations`.
 - StrictMode double-fires effects in dev — init logic idempotent, `hasFired` refs guard callbacks.
 - 46-03 tried more angular damping — reverted; keep 0.3.
-**GDD out of date**
-- GDD out of date: §4.3/§4.4/§6.3/§12 (tap-to-roll, tap-to-unlock + UNLOCK/SKIP buttons, 20 s unlock timer → now hold-to-gather roll, drag-to-unlock, 3 s inactivity timer).
-- GDD out of date: §4.5 scoring table (code: 8 − 2 per leftover die); §6.1 portrait layout (landscape-only since v1.4); §10 known issues ("no drag-to-unlock").
 
 ## Log
+- 2026-09-28 — F47 built: late drag resolves by zone and the turn closes at timer end (B006), nothing left parked, server rules match the phone, AFK players see the split. F49: deploy now runs tests + type check. e2e scripts use their own browser.
+- 2026-09-28 — F47 tasks 1–5: B006 late drag fixed (turn closes at timer end), parked dice cleared, AFK unlocks via drag path, shared 12-dice cap, D16 unlock_activity, e2e scripts (`npm run e2e`). Removed dead tap-to-unlock code (`handleConfirmUnlock`, `toggleUnlockSelection`, `confirmUnlock`, `skipUnlock`, `clearSpot.ts`).
 - 2026-09-28 — Hotfix v0.2.1: B003 online drag-to-unlock fixed (one batched unlock_request, TDD D15) + B004 build type-check fixed; released. Converted planning to BMUZ-2.
 - 2026-09-26 — Docs: ISSUES + PRD refresh.
 - 2026-03-30 — Phase 46 done: inactivity timer, batch in-place mitosis, UNLOCK/SKIP removed, faster settle, AI unlock flash fixes (build 92).

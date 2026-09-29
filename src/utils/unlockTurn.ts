@@ -30,3 +30,58 @@ export function buildUnlockSubmission(committed: { slotIndex: number }[]): Unloc
   if (committed.length === 0) return { type: 'skip_unlock' };
   return { type: 'unlock_request', slotIndices: committed.map((c) => c.slotIndex) };
 }
+
+// --- B006: when can a locked die be dragged, and how does a drag end? ---
+
+export interface UnlockTurnState {
+  phase: GamePhase;
+  timerAlreadyFired: boolean;   // unlockTimerResetKey < 0 — the 3 s timer has ended this turn
+  hasSubmittedUnlock: boolean;  // online: this player's choice already went to the server
+}
+
+/** Can the player pick up (or drop) a locked die right now? */
+export function isUnlockTurnOpen(state: UnlockTurnState): boolean {
+  const { phase, timerAlreadyFired, hasSubmittedUnlock } = state;
+  if (phase !== 'unlocking') return false;
+  if (timerAlreadyFired) return false;   // the 3 s timer closed the turn (solo + online)
+  if (hasSubmittedUnlock) return false;  // online: choice already sent
+  return true;
+}
+
+export interface DragReleaseInput {
+  turnOpen: boolean;        // isUnlockTurnOpen() at the moment the drag ends
+  overRollingZone: boolean; // where the die is when the drag ends
+  withinCap: boolean;       // one more unlock keeps the player at 12 dice or fewer
+}
+
+/**
+ * How a drag ends — on finger release, or when the 3 s timer fires mid-drag.
+ * 'commit' = the die counts for this turn and stays in the rolling area.
+ * 'snap-back' = the die flies back to its slot.
+ */
+export function resolveDragRelease(input: DragReleaseInput): 'commit' | 'snap-back' {
+  const { turnOpen, overRollingZone, withinCap } = input;
+  if (!turnOpen) return 'snap-back'; // too late — the turn is already closed
+  return overRollingZone && withinCap ? 'commit' : 'snap-back';
+}
+
+/** The timer key after a die is committed — each commit restarts the 3 s timer. */
+export function nextUnlockTimerKey(current: number): number {
+  if (current < 0) return current; // -1 = timer already fired; never restart it
+  return current + 1;
+}
+
+/**
+ * Leaving the unlock phase: any die still parked in the rolling area (committed but never split)
+ * goes back to its slot. Its turn is over — it must never be carried into a later turn (B006) and
+ * never silently disappear either. Returns the player's new lockedDice.
+ */
+export function returnParkedDice<T extends { goalSlotIndex: number; value: number }>(
+  lockedDice: T[],
+  parked: { slotIndex: number; value: number }[],
+): { goalSlotIndex: number; value: number }[] {
+  const back = parked
+    .filter((p) => !lockedDice.some((l) => l.goalSlotIndex === p.slotIndex))
+    .map((p) => ({ goalSlotIndex: p.slotIndex, value: p.value }));
+  return back.length === 0 ? lockedDice : [...lockedDice, ...back];
+}

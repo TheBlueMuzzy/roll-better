@@ -1,9 +1,10 @@
 import { forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useBeforePhysicsStep } from '@react-three/rapier';
 import { PhysicsDie } from './PhysicsDie';
 import type { PhysicsDieHandle } from './PhysicsDie';
 import { Die3D } from './Die3D';
-import { getGatherPoints, getGatherRadius } from '../utils/gatherPoints';
+import { getGatherPoints, getGatherRadius, getGatherCenter } from '../utils/gatherPoints';
 import { useGameStore } from '../store/gameStore';
 import { DIE_SIZE, ROLLING_Z_MIN, ROLLING_Z_MAX, ROLLING_X_OFFSET } from './RollingArea';
 import type { Group } from 'three';
@@ -15,7 +16,7 @@ const ROLLING_Z_CENTER = (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2; // ≈ 1.85
 // --- Public API exposed via ref ---
 export interface DicePoolHandle {
   rollAll(): void;
-  releaseAll(): void;
+  releaseGather(): void;
   unstickAll(): void;
 }
 
@@ -90,6 +91,10 @@ function ExitingDie({ position, rotation, color }: {
   );
 }
 
+function distance(a: [number, number, number], b: [number, number, number]): number {
+  return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+}
+
 // --- Spawn position calculator (exported for reuse) ---
 // Lays dice out in a centered grid slightly above the floor
 export function getSpawnPositions(count: number): [number, number, number][] {
@@ -121,11 +126,21 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     );
 
     // Gather (orbit) state
-    const gatherActive = useGameStore((s) => s.gatherState.active);
-    const gatherTouchPosition = useGameStore((s) => s.gatherState.touchPosition);
     const gatherElapsedRef = useRef(0);
     const rotationOffsetRef = useRef(0);
     const wasGatheringRef = useRef(false);
+    // Centre the dice were orbiting on the last gather frame — the release fling spins
+    // them off around it. (The store clears touchPosition on release, so keep our own copy.)
+    const lastOrbitCentreRef = useRef<[number, number, number] | null>(null);
+    // Dev-only gather log (B008): each die's distance to its orbit spot when the pull
+    // started and its last orbit spot — checked at release to see if it was swept in
+    const gatherStartDistRef = useRef<(number | null)[]>([]);
+    const lastGoalsRef = useRef<[number, number, number][]>([]);
+    const gatherStartMsRef = useRef(0); // real clock (gatherElapsed is capped per frame)
+    const gatherPhysicsSecondsRef = useRef(0); // physics time the pull actually ran
+    useBeforePhysicsStep((world) => {
+      if (wasGatheringRef.current) gatherPhysicsSecondsRef.current += world.timestep;
+    });
     const rollStartTime = useRef(0);
 
     // Settle tracking — per-die booleans (handles dice bumping each other)
@@ -354,64 +369,143 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       [startFallbackTimer],
     );
 
+    // Dev-only gather log (B008): at release, was every die pulled toward its orbit spot?
+    // A die counts as swept in if it got at least 20% closer, or is already on its spot.
+    function logGatherRelease() {
+      if (lastGoalsRef.current.length === 0) {
+        console.log(`[Gather] released before the first pull frame — rolling all ${count} dice normally`);
+        return;
+      }
+      // The pull takes ~1 s to reach the ring — a quick tap can't be judged
+      const heldSeconds = (performance.now() - gatherStartMsRef.current) / 1000;
+      const pulledSeconds = gatherPhysicsSecondsRef.current;
+      if (heldSeconds < 0.6 || pulledSeconds < 0.6) {
+        console.log(`[Gather] quick tap (${heldSeconds.toFixed(2)}s held, ${pulledSeconds.toFixed(2)}s of pull) — too short to judge the pull`);
+        return;
+      }
+      const lines: string[] = [];
+      const missed: number[] = [];
+      for (let i = 0; i < count; i++) {
+        const pos = dieRefs.current[i]?.getTransform()?.position;
+        const goal = lastGoalsRef.current[i];
+        const startDist = gatherStartDistRef.current[i];
+        if (!pos || !goal || startDist == null) {
+          missed.push(i);
+          lines.push(`die ${i}: never pulled (${!pos ? 'no die' : 'no orbit spot'})`);
+          continue;
+        }
+        const endDist = distance(pos, goal);
+        const pulled = endDist < 0.3 || endDist < startDist * 0.8;
+        if (!pulled) missed.push(i);
+        lines.push(`die ${i}: ${startDist.toFixed(2)} → ${endDist.toFixed(2)} from its spot, y ${pos[1].toFixed(2)}${pulled ? '' : ' ← MISSED'}`);
+      }
+      const summary = missed.length === 0
+        ? `all ${count} dice swept in`
+        : `MISSED ${missed.length}/${count} dice [${missed.join(', ')}]`;
+      console.log(`[Gather] release after ${heldSeconds.toFixed(2)}s (${pulledSeconds.toFixed(2)}s of pull): ${summary} — ${lines.join(' | ')}`);
+    }
+
+    // Dev-only: lets e2e/roll-physics.mjs read where every die is (B007/B008 checks)
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__rbDice = () =>
+        dieRefs.current.slice(0, count).map((die) => ({
+          position: die?.getTransform()?.position ?? null,
+          speed: die?.getSpeed() ?? 0,
+        }));
+    }
+
+    // Release = the roll. Called straight from the pointer-up / auto-release / AFK code
+    // (Scene), not detected from React state a frame later: a quick tap could start and
+    // end the gather between two drawn frames, the pool never noticed, and the roll hung
+    // in 'rolling' forever with no timeout (B007).
+    function releaseGather() {
+      wasGatheringRef.current = false;
+      // The roll starts now — reset settle tracking for this roll
+      // (rollAll does this too, but gather-release skips rollAll)
+      if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
+      settled.current = Array.from({ length: count }, () => false);
+      results.current = Array.from({ length: count }, () => null);
+      positions.current = Array.from({ length: count }, () => null);
+      rotations.current = Array.from({ length: count }, () => null);
+      hasFired.current = false;
+      rollStartTime.current = Date.now();
+      if (import.meta.env.DEV) logGatherRelease();
+      // Compute tangential release velocity for each die, around the orbit centre
+      const center = lastOrbitCentreRef.current;
+      const speed = rotationOffsetRef.current > 0 ?
+        // Use last rotation speed — approximate from recent offset change
+        Math.min(gatherElapsedRef.current / 2.25, 1.0) : 0;
+      const countT2 = Math.max(0, Math.min(1, (count - 2) / 10));
+      const maxSpd = 45 - countT2 * 20;
+      const baseSpd = 7.5 - countT2 * 3.5;
+      const curvedSpd = speed * speed * speed;
+      const rotSpeed = baseSpd + curvedSpd * (maxSpd - baseSpd);
+
+      for (let i = 0; i < count; i++) {
+        const die = dieRefs.current[i];
+        if (!die) continue;
+        const transform = die.getTransform();
+        if (transform && center) {
+          // Radius vector from center to die (XZ plane)
+          const rx = transform.position[0] - center[0];
+          const rz = transform.position[2] - center[2];
+          const r = Math.sqrt(rx * rx + rz * rz);
+          if (r > 0.01) {
+            // Tangential direction: perpendicular to radius
+            const tx = -rz / r;
+            const tz = rx / r;
+            const tangentialSpeed = rotSpeed * r;
+            // Fling outward: tangential + some radial (outward push)
+            const radialPush = tangentialSpeed * 0.3;
+            die.setAttractTarget(null, [
+              tx * tangentialSpeed + (rx / r) * radialPush,
+              -2, // slight downward to start the fall
+              tz * tangentialSpeed + (rz / r) * radialPush,
+            ]);
+          } else {
+            die.setAttractTarget(null);
+          }
+        } else {
+          die.setAttractTarget(null);
+        }
+      }
+      // Released before the pull ever ran (tap quicker than one frame): roll them normally
+      if (lastGoalsRef.current.length === 0) {
+        for (let i = 0; i < count; i++) dieRefs.current[i]?.roll();
+      }
+      lastGoalsRef.current = [];
+      lastOrbitCentreRef.current = null;
+      gatherElapsedRef.current = 0;
+      rotationOffsetRef.current = 0;
+    }
+
     // Gather orbit: drive dice toward orbital positions around touch point
     useFrame((_, delta) => {
+      // Read the store directly (not React state) so the pool sees the gather this frame
+      const { active: gatherActive, touchPosition: gatherTouchPosition } = useGameStore.getState().gatherState;
       if (gatherActive && !wasGatheringRef.current) {
         gatherElapsedRef.current = 0;
         rotationOffsetRef.current = 0;
         wasGatheringRef.current = true;
-        // Reset settle tracking for this new roll cycle
-        // (rollAll does this too, but gather-release skips rollAll)
+        lastOrbitCentreRef.current = null;
+        gatherStartDistRef.current = Array.from({ length: count }, () => null);
+        lastGoalsRef.current = [];
+        gatherStartMsRef.current = performance.now();
+        gatherPhysicsSecondsRef.current = 0;
+        // B007: no roll is in flight while gathering — the roll starts at release.
+        // Block every settle path (speed check, fallback timer, 10 s timeout) until then,
+        // or dice sitting still before the pull (e.g. a pool that just spawned) would
+        // "settle" mid-gather, their results get ignored, and the roll hangs forever.
         if (settleTimer.current) { clearTimeout(settleTimer.current); settleTimer.current = null; }
-        settled.current = Array.from({ length: count }, () => false);
-        results.current = Array.from({ length: count }, () => null);
-        positions.current = Array.from({ length: count }, () => null);
-        rotations.current = Array.from({ length: count }, () => null);
-        hasFired.current = false;
-        rollStartTime.current = Date.now();
-      } else if (!gatherActive && wasGatheringRef.current) {
-        wasGatheringRef.current = false;
-        // Compute tangential release velocity for each die
-        const center = gatherTouchPosition;
-        const speed = rotationOffsetRef.current > 0 ?
-          // Use last rotation speed — approximate from recent offset change
-          Math.min(gatherElapsedRef.current / 2.25, 1.0) : 0;
-        const countT2 = Math.max(0, Math.min(1, (count - 2) / 10));
-        const maxSpd = 45 - countT2 * 20;
-        const baseSpd = 7.5 - countT2 * 3.5;
-        const curvedSpd = speed * speed * speed;
-        const rotSpeed = baseSpd + curvedSpd * (maxSpd - baseSpd);
-
-        for (let i = 0; i < count; i++) {
-          const die = dieRefs.current[i];
-          if (!die) continue;
-          const transform = die.getTransform();
-          if (transform && center) {
-            // Radius vector from center to die (XZ plane)
-            const rx = transform.position[0] - center[0];
-            const rz = transform.position[2] - center[2];
-            const r = Math.sqrt(rx * rx + rz * rz);
-            if (r > 0.01) {
-              // Tangential direction: perpendicular to radius
-              const tx = -rz / r;
-              const tz = rx / r;
-              const tangentialSpeed = rotSpeed * r;
-              // Fling outward: tangential + some radial (outward push)
-              const radialPush = tangentialSpeed * 0.3;
-              die.setAttractTarget(null, [
-                tx * tangentialSpeed + (rx / r) * radialPush,
-                -2, // slight downward to start the fall
-                tz * tangentialSpeed + (rz / r) * radialPush,
-              ]);
-            } else {
-              die.setAttractTarget(null);
-            }
-          } else {
-            die.setAttractTarget(null);
-          }
-        }
-        return;
+        hasFired.current = true;
+        rollStartTime.current = 0;
       }
+
+      // The gather was ended by something other than the player letting go (e.g. an online phase
+      // change mid-gather). Release anyway — otherwise the dice hover in orbit and the settle block
+      // above is never lifted, so the next roll would hang (B007). Normal releases call
+      // releaseGather() themselves, right after stopGathering(), so this never fires twice.
+      if (!gatherActive && wasGatheringRef.current) releaseGather();
 
       // Active velocity check — detect nearly-stopped dice faster than Rapier onSleep
       // Only runs after dice have been rolling for at least 0.5s (avoids firing at rest)
@@ -505,6 +599,17 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         radius,
         rotationOffsetRef.current
       );
+      lastOrbitCentreRef.current = getGatherCenter(gatherTouchPosition, radius);
+      lastGoalsRef.current = goals;
+      if (import.meta.env.DEV) {
+        // First frame each die is here to pull: remember how far it was from its spot
+        for (let i = 0; i < count && i < goals.length; i++) {
+          const pos = dieRefs.current[i]?.getTransform()?.position;
+          if (pos && gatherStartDistRef.current[i] == null) {
+            gatherStartDistRef.current[i] = distance(pos, goals[i]);
+          }
+        }
+      }
 
       for (let i = 0; i < count && i < goals.length; i++) {
         dieRefs.current[i]?.setAttractTarget(goals[i]);
@@ -534,12 +639,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         }
       },
 
-      releaseAll() {
-        // Imperative release for AFK mid-gather: sets attractTarget(null) on all dice
-        for (let i = 0; i < count; i++) {
-          dieRefs.current[i]?.setAttractTarget(null);
-        }
-      },
+      releaseGather,
 
       unstickAll() {
         const gridPositions = getSpawnPositions(count);

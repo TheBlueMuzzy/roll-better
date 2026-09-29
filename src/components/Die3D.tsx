@@ -108,11 +108,13 @@ interface Die3DProps {
   color?: string;
   emissive?: string;
   emissiveIntensity?: number;
+  /** Draw order for the whole die (body + pips). three.js resets draw order at every group, so it must be set here. */
+  renderOrder?: number;
 }
 
-export function Die3D({ position = [0, 0, 0], color = '#e8e0d4', emissive, emissiveIntensity }: Die3DProps) {
+export function Die3D({ position = [0, 0, 0], color = '#e8e0d4', emissive, emissiveIntensity, renderOrder = 0 }: Die3DProps) {
   return (
-    <group position={position}>
+    <group position={position} renderOrder={renderOrder}>
       {/* Die body */}
       <RoundedBox
         args={[1, 1, 1]}

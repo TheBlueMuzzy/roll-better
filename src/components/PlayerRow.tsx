@@ -4,7 +4,6 @@ import { Die3D } from './Die3D';
 import { DIE_SIZE } from './RollingArea';
 import { SLOT_COUNT, getSlotX, getRotationForFace } from './GoalRow';
 import { useGameStore } from '../store/gameStore';
-import { isInRollingZone } from '../utils/dropZone';
 import type { GamePhase, UnlockAnimation } from '../types/game';
 import { Plane, Vector3 } from 'three';
 import type { Group } from 'three';
@@ -63,7 +62,6 @@ function UnlockableDie({
   const dragUnlockState = useGameStore((s) => s.dragUnlockState);
   const startDragUnlock = useGameStore((s) => s.startDragUnlock);
   const updateDragPosition = useGameStore((s) => s.updateDragPosition);
-  const cancelDragUnlock = useGameStore((s) => s.cancelDragUnlock);
   const completeDragUnlock = useGameStore((s) => s.completeDragUnlock);
 
   const isBeingDragged = dragUnlockState.active && dragUnlockState.slotIndex === slotIndex;
@@ -179,19 +177,14 @@ function UnlockableDie({
           }
         }}
         onPointerUp={(e) => {
-          if (!isDragging.current || !selectable) return;
+          // No `selectable` check here: the turn may have closed mid-drag — still let go cleanly
+          if (!isDragging.current) return;
           e.stopPropagation();
           (e.target as Element).releasePointerCapture?.(e.pointerId);
           isDragging.current = false;
-          const currentPos = dragUnlockState.currentPosition;
-          if (currentPos === null) {
-            // Barely moved — cancel
-            cancelDragUnlock();
-          } else if (isInRollingZone(currentPos)) {
-            completeDragUnlock();
-          } else {
-            cancelDragUnlock();
-          }
+          // The store decides commit vs snap-back (rolling zone, 12-dice cap, turn still open).
+          // If the timer already resolved this drag, this does nothing.
+          completeDragUnlock();
         }}
         onPointerOver={(e) => {
           if (!selectable) return;
@@ -202,7 +195,10 @@ function UnlockableDie({
           document.body.style.cursor = 'default';
         }}
       >
-        <Die3D color={color} />
+        {/* B010: draw this die (body AND pips) after the profile UI. The star/avatar icons skip the
+            depth test, so without this they could land between the pips and the body in the draw
+            order and show through the pip holes when a lifted die passes over them. */}
+        <Die3D color={color} renderOrder={30} />
       </group>
 
       {/* White outline ring — only visible when selectable or already selected */}
