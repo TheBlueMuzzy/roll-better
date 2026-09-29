@@ -9,14 +9,19 @@ import tableFile from '../../../content/ui/table.json'
 import { presets } from '../../ui/kit/styles'
 import { applyStyle } from '../../ui/kit'
 import { tableColors } from '../../store/tableColors'
+import { copyText, saveContentFile } from '../saveContent'
 import {
   DIVIDER_OPACITY_NAME,
   TABLE_COLOURS,
   UI_COLOURS,
+  copyForClaudeText,
+  listChanges,
   normalizeHex,
   sameColour,
-  uiColoursFrom,
+  tableChanged,
   tweaksToSave,
+  uiChanged,
+  uiColoursFrom,
   uiLabel,
   type ColourState,
 } from './colorLogic'
@@ -35,8 +40,14 @@ function fromFiles(): ColourState {
 
 export function ColorTab() {
   const [colours, setColours] = useState(fromFiles) // what the game shows right now
-  const [saved] = useState(fromFiles) // what's in the files
-  const [savedTweaks] = useState(styleFile.tweaks as Record<string, unknown>) // style.json "tweaks" as saved
+  const [saved, setSaved] = useState(fromFiles) // what's in the files
+  const [savedTweaks, setSavedTweaks] = useState(styleFile.tweaks as Record<string, unknown>) // style.json "tweaks" as saved
+  const [loaded] = useState(fromFiles) // as the page loaded — Copy for Claude lists changes since then
+  const [status, setStatus] = useState<{ kind: 'ok' | 'error' | 'info'; text: string } | null>(null)
+  const [copyFallback, setCopyFallback] = useState<string | null>(null) // shown if the clipboard is blocked
+
+  const uiDirty = uiChanged(colours.ui, saved.ui)
+  const tableDirty = tableChanged(colours.table, saved.table)
 
   // Live preview: the UI restyles through the kit's style engine, the 3D table through tableColors
   useEffect(() => {
@@ -45,6 +56,40 @@ export function ColorTab() {
   useEffect(() => {
     tableColors.set(colours.table)
   }, [colours.table])
+
+  // Save: style.json gets only the colours that differ from the preset; table.json gets its 4 values
+  // (the dev server keeps table.json's _help note). Only files with changes are written.
+  async function save() {
+    setStatus({ kind: 'info', text: 'Saving…' })
+    try {
+      const written: string[] = []
+      if (uiDirty) {
+        const tweaks = tweaksToSave(preset, colours.ui, savedTweaks)
+        await saveContentFile('content/ui/style.json', { ...styleFile, tweaks })
+        setSavedTweaks(tweaks)
+        written.push('style.json')
+      }
+      if (tableDirty) {
+        await saveContentFile('content/ui/table.json', { ...colours.table })
+        written.push('table.json')
+      }
+      setSaved(colours)
+      setStatus({ kind: 'ok', text: `Saved ${written.join(' + ')} in content/ui/ — refresh and it stays.` })
+    } catch (e) {
+      setStatus({ kind: 'error', text: `Couldn't save: ${(e as Error).message}` })
+    }
+  }
+
+  async function copyForClaude() {
+    const text = copyForClaudeText(document.title, listChanges(loaded, colours), !uiDirty && !tableDirty)
+    if (await copyText(text)) {
+      setCopyFallback(null)
+      setStatus({ kind: 'ok', text: 'Copied — paste it into your chat with Claude.' })
+    } else {
+      setCopyFallback(text)
+      setStatus({ kind: 'error', text: 'The browser blocked copying — select the text below and copy it.' })
+    }
+  }
 
   const setUi = (token: string, value: string) => setColours((c) => ({ ...c, ui: { ...c.ui, [token]: value } }))
   const setTable = (key: string, value: string | number) => setColours((c) => ({ ...c, table: { ...c.table, [key]: value } }))
@@ -106,6 +151,20 @@ export function ColorTab() {
           ↺
         </button>
       </div>
+
+      <footer className="devkit-footer">
+        <button className="devkit-btn devkit-btn-main" disabled={!uiDirty && !tableDirty} onClick={save}>
+          Save
+        </button>
+        <button className="devkit-btn" onClick={copyForClaude}>
+          Copy for Claude
+        </button>
+        <button className="devkit-btn" disabled={!uiDirty && !tableDirty} onClick={() => setColours(saved)} title="Put every colour back to what's saved">
+          Undo unsaved
+        </button>
+        {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
+        {copyFallback && <textarea className="ct-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
+      </footer>
     </div>
   )
 }
