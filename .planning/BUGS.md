@@ -1,7 +1,52 @@
 # Roll Better — Bugs
-Open: 1 (P0 0 · P1 0 · P2 0 · P3 1) · watching: 2
+Open: 10 (P0 0 · P1 0 · P2 2 · P3 8)
 
 ## Open
+### B011 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Row chip too wide: gap between the avatar and the chip's left edge
+Expected: avatar sits flush at the chip's left edge · Where: kit PlayerChip (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B012 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Table is brown (light + dark) — doesn't fit the Cartoon UI colours
+Expected: a dark but fun table colour, editable in content/ui/table.json (Dev Kit Color tool later, F59) · Where: game: Scene.tsx table + background
+Evidence: Muzzy screenshots 2026-09-29
+
+### B013 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+B1–B4 avatar initials are bold and hard to read
+Expected: lighter weight (or regular) · Where: kit Avatar (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B014 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Green 'you' ring around the avatar touches the 'S2' text
+Expected: clears once the avatar is flush left (B011) · Where: kit PlayerChip (framework)
+Evidence: Muzzy screenshots 2026-09-29
+
+### B015 · P2 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Status text ('Hold to Roll', 'Locked 1!') looks like a button — it isn't one
+Expected: plain white text, no card. Rule: non-buttons never look like buttons · Where: kit: plain HUD text piece (framework) + StatusPin.tsx
+Evidence: Muzzy screenshots 2026-09-29
+
+### B016 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Instruction text + its timers sit at the bottom
+Expected: move to the top, level with the Goal dice · Where: game: StatusPin.tsx placement
+Evidence: Muzzy screenshots 2026-09-29
+
+### B017 · P2 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Row chips cover the locked dice
+Expected: shift the whole locked-dice area right, shrinking the rolling area · Where: game: Scene/GoalRow ROW_X_OFFSET + RollingArea walls
+Evidence: Muzzy screenshots 2026-09-29
+
+### B018 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+Round badge + settings gear are tiny next to everything else
+Expected: larger (not huge) · Where: kit icon button / badge sizes (framework) + game HUD
+Evidence: Muzzy screenshots 2026-09-29
+
+### B019 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+'Round 1' is a badge but it's only information
+Expected: plain white text, left of the ★8 Goal chip · Where: game HUD
+Evidence: Muzzy screenshots 2026-09-29
+
 ### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
 A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
 Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
