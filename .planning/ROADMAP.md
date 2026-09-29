@@ -94,3 +94,4 @@ Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 ## Ideas
 - 2026-09-29 — Dev Kit tabs next (Muzzy): **Spacing** (gaps/margins/radius from style.json), **Type** (fonts + sizes), game-specific **Tuning** tabs (e.g. power curves, timers, physics — content/tuning), a **Level loader**. And Dev Kit access on released builds — see the options discussed 2026-09-29 (test build vs passphrase; release can't Save to files; online fairness).
 - 2026-09-29 — Colour-blind: with Deuteranopia, red (B1) and green (B3) player chips look nearly the same (Dev Kit Color tool preview). Initials still differ; consider a colour-blind-safe player palette or a shape/pattern per player.
+- 2026-09-29 — Phone held upright: the whole game is a 390×219 letterboxed strip, so HUD text is ~9 px (readable but tiny). A real portrait layout, or a "turn your phone" hint? (seen in F48 e2e)

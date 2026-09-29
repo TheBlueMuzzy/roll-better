@@ -1,19 +1,20 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-Sprint 05 planned (F48 drag polish): no stuck/swapped dice, 12-cap dims + shake/toast, rolling-area highlight, drag numbers in content/tuning/drag.json + framework Dev Kit Tuning tab. Branch dev/v1.6 (framework Dev Kit 0.1.1 + UI kit 0.2.2 already approved on it).
-Next: `/develop` → F48 task 2 (lost pointer mid-drag).
-Muzzy: two-phone online check (task 8) · confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
+Sprint 05 / F48 built (🎛️ tuning): lost finger + two fingers fixed, 12-cap dims + shake + "Max 12 dice" toast, rolling area tints under a dragged die, die stays under the finger, 27 drag numbers in content/tuning/drag.json, Dev Kit 0.2.0 Tuning tab (drag + physics tune live). New `npm run e2e:drag` (30/30 ×3) caught + fixed a pinned-chip tap trap. All checks green.
+Next: Muzzy's phone check (task 8) + tune drag feel together in the Dev Kit Tuning tab (task 9) → "approved" → F48 ✅ → `/deliver` v1.6.
+Muzzy: two-phone online check · confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
 
 ## Where we are
 Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: 05
-Doing: F48 — building
+Doing: F48 — tuning (waiting on Muzzy)
 Branch: dev/v1.6   Version: 0.3.0.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 
 ## Key facts
 **Run/deploy**
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
+- `npm run e2e:drag` = real-pointer drag check (edges, lost finger, two fingers, cap × 3 sizes, ~90 s; runs alone).
 - `npm run check:ui` (kit rules + game CSS restyling kit parts) · `npm run check:devkit` (release build with/without Dev Kit).
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
 - Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
@@ -48,6 +49,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — F48 built: drag fixes, cap feedback, zone tint, drag.json + Dev Kit Tuning tab, e2e:drag; waiting on Muzzy's phone check + tuning.
 - 2026-09-29 — Framework Dev Kit 0.1.1 + UI kit 0.2.2 installed on dev/v1.6; TDD/GDD slimmed; all green, approved.
 - 2026-09-29 — Released v0.3.0 (beta): Cartoon UI everywhere (sprints 02–03 + look fixes B011–B019, kit 0.1.5→0.1.11), Dev Kit console + Color tool (sprint 04, in release builds until 1.0), B009 fixed (collision groups, 0 put-backs), review fixes (Save same-origin only, online Menu leave).
 - 2026-09-29 — Sprint 03 built (autonomous): framework kit 0.1.7 + 0.1.8, F57 pinning, F54 winners, F55 toasts + Round banner, F56 HUD, F58 PlayerChips; old HUD/TipBanner/Winners/3D badges deleted. All checks PASS.
