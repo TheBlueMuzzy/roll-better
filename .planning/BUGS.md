@@ -42,6 +42,7 @@ A released die sometimes ends up pushed into the left wall and is put back by th
 Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
 Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.
 Evidence: `npm run e2e:physics` put-back counts (1–3 per run), dev log `[PhysicsDie] out of bounds`
+Update 2026-09-29 (B017 check): the back wall does it too, mostly after the drag-off-area gesture (die at y≈2, z −5.0). Now and then the e2e frame check sees the die before the put-back and fails the run — 2 of 4 full runs after B017; the same before B017 (30 drag-off-area rolls: 18 put-backs / 1 caught before, 11 / 3 after). Not caused by the new split.
 
 ### B001 · P2 · watching · found 2026-03-01 · v0.1.0.51 · (old BUG-001)
 Dice that match the Goal sometimes don't lock — some matches silently dropped
