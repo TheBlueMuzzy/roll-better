@@ -3,10 +3,11 @@ Open: 3 (P0 0 · P1 0 · P2 0 · P3 3) · watching: 2
 
 ## Open
 ### B010 · P3 · open · found 2026-09-29 in sprint 01 feel check · dev build (dev/v1-6-drag-to-unlock) · desktop
-Picked-up die from the farthest-left locked slot: its black pips turn white / look see-through
+Dragged die renders behind the player icon / profile UI on the far left; the pips are see-through holes
 Steps: 1. Get a die locked in the leftmost Goal slot  2. Unlock turn: press on it to pick it up (it lifts)
 Expected: pips stay black · Actual: pips look white/see-through while lifted over that slot; back to normal as soon as it's dragged away · Only the leftmost slot does it · How often: whenever tried (Muzzy)
-Likely: pip clearcoat reflecting a bright spot of the environment map at that one angle, or the lifted die clipping into something near the Goal profile group (star icon) — not related to the B007/B008 physics changes (visual meshes untouched).
+Update (Muzzy, same day): dragging a die all the way left, it draws BEHIND the 3D profile UI (player icon etc.), and the pips are see-through — the UI shows through the pip holes. So it's draw order / depth, not reflection: the profile group likely renders on top (renderOrder / depthTest off / transparent), and the pip discs don't sort the same way as the die body. The leftmost slot is simply the only place a lifted die overlaps the profile group.
+Fix direction: the die being dragged (and its pips) should draw above the profile UI — check renderOrder/depthTest/transparent on the profile group + pip materials (`PlayerProfileGroup.tsx`, `PlayerIcon.tsx`, `Die3D.tsx`).
 Evidence: Muzzy report
 
 ### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
