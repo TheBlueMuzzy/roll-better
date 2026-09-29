@@ -76,6 +76,12 @@
       "joined": "{name} joined the game"
     }
   },
+  "chips": {
+    "detail": "S{s} | T{t}",
+    "score": "{n} points",
+    "goal": "Goal",
+    "goalScore": "{n} points if you finish the Goal now"
+  },
   "roundIntro": {
     "round": "Round {n}"
   },

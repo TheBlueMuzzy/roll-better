@@ -9,8 +9,7 @@ import { GoalRow, getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { GoalIndicators } from './GoalIndicators';
 import { getRotationForFace } from './GoalRow';
 import { PlayerRow } from './PlayerRow';
-import { PlayerProfileGroup } from './PlayerProfileGroup';
-import { GoalProfileGroup } from './GoalProfileGroup';
+import { RowChips } from './RowChips';
 import { GatherVisuals } from './GatherVisuals';
 import { AnimatingDie } from './AnimatingDie';
 import { MitosisDie } from './MitosisDie';
@@ -20,7 +19,6 @@ import { useGameStore } from '../store/gameStore';
 import { getGameSocket, sendMessage } from '../utils/partyClient';
 import { isUnlockTurnOpen } from '../utils/unlockTurn';
 import { maxUnlocksAllowed } from '../utils/diceCap';
-import { roundScore } from '../utils/scoring';
 
 // --- Public API exposed via ref ---
 export interface SceneHandle {
@@ -339,40 +337,8 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
           );
         })}
 
-        {/* Profile groups — avatar circle + star-score + stats, left of each row */}
-        <PlayerProfileGroup
-          name={player.name}
-          color={player.color}
-          score={player.score}
-          startingDice={player.startingDice}
-          totalDice={player.poolSize + player.lockedDice.length + committedUnlocks.length}
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75]}
-          isBot={player.seatState === 'bot'}
-        />
-
-        {/* AI player profile groups */}
-        {players.slice(1).map((aiPlayer, idx) => (
-          <PlayerProfileGroup
-            key={`profile-${aiPlayer.id}`}
-            name={aiPlayer.name}
-            color={aiPlayer.color}
-            score={aiPlayer.score}
-            startingDice={aiPlayer.startingDice}
-            totalDice={aiPlayer.poolSize + aiPlayer.lockedDice.length}
-            position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -3.75 + (idx + 1) * 1.25]}
-            isBot={aiPlayer.seatState === 'bot'}
-          />
-        ))}
-
-        {/* Goal profile group — star icon left of goal row, shows potential score */}
-        <GoalProfileGroup
-          position={[getSlotX(0) - PROFILE_X_OFFSET, 0, -5.0]}
-          potentialScore={(() => {
-            const totalDice = player.poolSize + player.lockedDice.length;
-            const projectedPool = Math.max(0, totalDice - 8);
-            return roundScore(projectedPool);
-          })()}
-        />
+        {/* Kit PlayerChips pinned left of each row: Goal (potential score), you, everyone else */}
+        <RowChips />
 
         {/* Subtle vertical divider between rows area and rolling area */}
         <mesh
