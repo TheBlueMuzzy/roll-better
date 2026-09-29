@@ -2,42 +2,42 @@
 Open: 8 (P0 0 · P1 0 · P2 1 · P3 7)
 
 ## Open
-### B011 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B011 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Row chip too wide: gap between the avatar and the chip's left edge
 Expected: avatar sits flush at the chip's left edge · Where: kit PlayerChip (framework)
 Evidence: Muzzy screenshots 2026-09-29
 
-### B013 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B013 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 B1–B4 avatar initials are bold and hard to read
 Expected: lighter weight (or regular) · Where: kit Avatar (framework)
 Evidence: Muzzy screenshots 2026-09-29
 
-### B014 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B014 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Green 'you' ring around the avatar touches the 'S2' text
 Expected: clears once the avatar is flush left (B011) · Where: kit PlayerChip (framework)
 Evidence: Muzzy screenshots 2026-09-29
 
-### B015 · P2 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B015 · P2 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Status text ('Hold to Roll', 'Locked 1!') looks like a button — it isn't one
 Expected: plain white text, no card. Rule: non-buttons never look like buttons · Where: kit: plain HUD text piece (framework) + StatusPin.tsx
 Evidence: Muzzy screenshots 2026-09-29
 
-### B016 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B016 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Instruction text + its timers sit at the bottom
 Expected: move to the top, level with the Goal dice · Where: game: StatusPin.tsx placement
 Evidence: Muzzy screenshots 2026-09-29
 
-### B018 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B018 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 Round badge + settings gear are tiny next to everything else
 Expected: larger (not huge) · Where: kit icon button / badge sizes (framework) + game HUD
 Evidence: Muzzy screenshots 2026-09-29
 
-### B019 · P3 · fixing · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
+### B019 · P3 · fixed 2026-09-29 (kit 0.1.9/0.1.10 + game) · found 2026-09-29 in F54–F58 look-check · dev build · Muzzy (phone + desktop)
 'Round 1' is a badge but it's only information
 Expected: plain white text, left of the ★8 Goal chip · Where: game HUD
 Evidence: Muzzy screenshots 2026-09-29
 
-### B009 · P3 · open · found 2026-09-29 in B007 fix · dev build · e2e
+### B009 · P2 · open · found 2026-09-29 in B007 fix · dev build · e2e
 A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
 Steps: 1. Hold-to-gather near the left wall  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 rolls get pushed into the wall, then teleport back inside · How often: occasional (e2e)
 Likely: a fast die's collider grows back to full size while it's touching the wall. Safety net keeps the game correct — cosmetic only.

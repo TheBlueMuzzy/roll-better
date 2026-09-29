@@ -12,7 +12,7 @@ import { playScoreComplete } from '../utils/soundManager';
 import { getSlotX, PROFILE_X_OFFSET } from './GoalRow';
 import { DIE_SIZE } from './RollingArea';
 import { Pinned } from './Pinned';
-import { GoalRowChip, PlayerRowChip } from '../ui/RowChip';
+import { GoalCorner, PlayerRowChip } from '../ui/RowChip';
 
 // Where the rows are (same numbers as Scene.tsx's rows): Goal row, then player rows 1.25 apart
 const GOAL_ROW_Z = -5.0;
@@ -92,7 +92,7 @@ export function RowChips() {
   return (
     <>
       <Pinned position={GOAL_CHIP_POSITION} fit={CHIP_FIT} rem={CHIP_REM} name="goal">
-        <GoalRowChip potentialScore={potentialScore} dim={dimmed.split(',').includes('goal')} />
+        <GoalCorner potentialScore={potentialScore} dim={dimmed.split(',').includes('goal')} />
       </Pinned>
       {players.map((p, i) => (
         <Pinned key={p.id} position={[CHIP_RIGHT_X, 0, FIRST_PLAYER_ROW_Z + i * ROW_SPACING]} fit={CHIP_FIT} rem={CHIP_REM} name={p.id}>

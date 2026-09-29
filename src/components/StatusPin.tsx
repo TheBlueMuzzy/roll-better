@@ -1,5 +1,5 @@
-// STATUS PIN — the in-game status line, a kit banner (src/ui/StatusBanner.tsx) pinned over the
-// bottom of the rolling area. Works out which words to show from the game store; the words
+// STATUS PIN — the in-game status line, plain kit text (src/ui/StatusBanner.tsx) pinned over the
+// top of the rolling area, level with the Goal dice. Works out which words to show from the game store; the words
 // themselves live in content/text/en.json (hud.status).
 // It also runs the two AFK timers (moved here from HUD.tsx, timing unchanged) and shows them as a bar:
 //   - online, idle: 20 s, then auto-roll (or force-release a gather in progress)
@@ -13,10 +13,11 @@ import { Pinned } from './Pinned';
 import { StatusBanner } from '../ui/StatusBanner';
 import { text, fill } from '../ui/words';
 
-// Centred on the strip below the rolling area's bottom wall (z = 5), so it covers as little
-// of the dice as it can. Fit box in world units (Pinned scales the banner to it).
-const STATUS_POSITION: [number, number, number] = [ROLLING_X_OFFSET, 0, 5.3];
-const STATUS_FIT: [number, number] = [8, 1.4];
+// Top of the rolling area, level with the Goal dice (Goal row z = -5, B016) — instructions read
+// next to what they're about, and the bottom of the table stays free for rolling.
+// Fit box in world units (Pinned scales the words to it).
+const STATUS_POSITION: [number, number, number] = [ROLLING_X_OFFSET, 0, -5.0];
+const STATUS_FIT: [number, number] = [8, 1.1];
 
 interface StatusPinProps {
   onRoll: () => void;              // AFK idle: roll for the player
