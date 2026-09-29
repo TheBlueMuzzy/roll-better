@@ -22,3 +22,4 @@ Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approv
 - Task 4: the old `shakingSlot` prop was never passed by anyone — replaced by the die starting its own shake when pressed at the cap.
 - Task 5: highlight default = "tint" (the whole drop zone brightens — reads at a glance on a phone even with a thumb over part of it); "outline" is one switch away in drag.json.
 - Store drag rules are now unit-tested against the real store: src/store/dragUnlock.test.ts.
+- Surprise (checks): `e2e/unlock-race-sweep.mjs` had silently stopped working since the kit 0.2.x Pinned change (7e8689a renamed `.pinned` → `.kit-pinned`): it waited forever for the timer bar and never dropped a die. Selector fixed; 204 drops, 0 FAIL.
