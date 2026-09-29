@@ -135,6 +135,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
     // started and its last orbit spot — checked at release to see if it was swept in
     const gatherStartDistRef = useRef<(number | null)[]>([]);
     const lastGoalsRef = useRef<[number, number, number][]>([]);
+    const gatherStartMsRef = useRef(0); // real clock (gatherElapsed is capped per frame)
     const rollStartTime = useRef(0);
 
     // Settle tracking — per-die booleans (handles dice bumping each other)
@@ -370,6 +371,12 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         console.log(`[Gather] released before the first pull frame — rolling all ${count} dice normally`);
         return;
       }
+      // The pull takes ~1 s to reach the ring — a quick tap can't be judged
+      const heldSeconds = (performance.now() - gatherStartMsRef.current) / 1000;
+      if (heldSeconds < 0.6) {
+        console.log(`[Gather] quick tap (${heldSeconds.toFixed(2)}s) — too short to judge the pull`);
+        return;
+      }
       const lines: string[] = [];
       const missed: number[] = [];
       for (let i = 0; i < count; i++) {
@@ -389,7 +396,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
       const summary = missed.length === 0
         ? `all ${count} dice swept in`
         : `MISSED ${missed.length}/${count} dice [${missed.join(', ')}]`;
-      console.log(`[Gather] release after ${gatherElapsedRef.current.toFixed(2)}s: ${summary} — ${lines.join(' | ')}`);
+      console.log(`[Gather] release after ${heldSeconds.toFixed(2)}s: ${summary} — ${lines.join(' | ')}`);
     }
 
     // Dev-only: lets e2e/roll-physics.mjs read where every die is (B007/B008 checks)
@@ -477,6 +484,7 @@ export const DicePool = forwardRef<DicePoolHandle, DicePoolProps>(
         lastOrbitCentreRef.current = null;
         gatherStartDistRef.current = Array.from({ length: count }, () => null);
         lastGoalsRef.current = [];
+        gatherStartMsRef.current = performance.now();
         // B007: no roll is in flight while gathering — the roll starts at release.
         // Block every settle path (speed check, fallback timer, 10 s timeout) until then,
         // or dice sitting still before the pull (e.g. a pool that just spawned) would

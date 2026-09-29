@@ -583,6 +583,11 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
       <RigidBody
         ref={bodyRef}
         type="dynamic"
+        // B008: only the one cube collider below. Without this, Rapier also auto-built a
+        // collider for the die body mesh + all 21 pip meshes (23 in all), and every
+        // setHalfExtents loop blew the pip ones up to full die size, sitting on the faces —
+        // a lumpy shape that rested ~0.4 u too high and fought the gather pull.
+        colliders={false}
         position={position}
         rotation={rotation}
         ccd
@@ -627,7 +632,9 @@ export const PhysicsDie = forwardRef<PhysicsDieHandle, PhysicsDieProps>(
           }
         }}
       >
-        <CuboidCollider args={[DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2]} />
+        {/* density 2 = same weight as before (the old body-mesh + cube pair weighed 1.024),
+            so every roll/fling impulse feels the same */}
+        <CuboidCollider args={[DIE_SIZE / 2, DIE_SIZE / 2, DIE_SIZE / 2]} density={2} />
         <group ref={visualGroupRef} scale={DIE_SIZE}>
           <Die3D color={color} />
         </group>
