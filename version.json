@@ -1,6 +1,6 @@
 {
   "name": "Roll Better",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "build": 0,
   "history": [
     {
@@ -392,6 +392,11 @@
       "version": "0.2.2",
       "date": "2026-09-29",
       "summary": "Rolls never freeze, dice stay on the table, gather grabs every die, release fling is back; scoring 8/6/4/2/1; smoother drag-to-unlock online; Credits screen"
+    },
+    {
+      "version": "0.3.0",
+      "date": "2026-09-29",
+      "summary": "Cartoon look everywhere (menus, lobby, table chips, HUD, winners), indigo table, dice never slip through walls, Round pop, Dev Kit colour panel for testers"
     }
   ]
 }

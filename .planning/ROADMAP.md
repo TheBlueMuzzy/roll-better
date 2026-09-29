@@ -8,9 +8,9 @@ Release target: 1.0 — musts not set yet (/define) · live stage: beta (Muzzy 2
 ## v1.4 — Landscape  ✅ shipped 2026-03-26
 ## v1.5 — Hold-to-Gather-Roll  ✅ shipped 2026-03-27
 
-## v1.6 — Drag-to-Unlock  (open: F48)  (→ release stage not set)
+## v1.6 — Drag-to-Unlock  ← current  (open: F48)  (→ release stage not set)
 Goal: players unlock by dragging locked dice into the rolling area — offline and online — with no UNLOCK/SKIP buttons.
-Live now: v0.2.2 (2026-09-29) has F44–F47 + F49, roll physics fixes (B007/B008), new scoring. Left for v1.6: F48 polish + UAT.
+Live now: v0.3.0 (2026-09-29) — everything except F48.
 - ✅ F44 🎮 Drag detection & drop zone — must:next
 - ✅ F45 🎮 Drop commit & highlight state — must:next · needs: F44
 - ✅ F46 🎮 Inactivity timer & batch mitosis — must:next · needs: F45
@@ -32,7 +32,7 @@ flowchart LR
   F49[✅ F49 CI same build]
 ```
 
-## v1.7 — Cartoon UI everywhere  ✅ approved 2026-09-29 (not released yet)
+## v1.7 — Cartoon UI everywhere  ✅ released v0.3.0 (beta) 2026-09-29
 Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, lobby, How to Play, winners, HUD and player badges look like Settings/Credits; the dark table stays (Muzzy 2026-09-29, D19).
 - ✅ F50 🧱 Kit screens sit inside the game's 16:9 box — should · sprint 2 · approved 2026-09-29
   what: kit screens/HUD use the game frame, not the letterbox bars; check first — may already be true
@@ -65,7 +65,7 @@ flowchart LR
   F57 -.working.-> F56
 ```
 
-## v1.8 — Dev Kit: colours first  ← current
+## v1.8 — Dev Kit: colours first  ✅ released v0.3.0 (beta) 2026-09-29
 Goal: Muzzy presses ` in the dev build, tweaks any UI or table colour with a picker, sees it live, and saves it into content/ — no more colour questions (Muzzy 2026-09-29: "fewer loops").
 - ✅ F60 🧱 Dev Kit console — should · sprint 4 · approved 2026-09-29
   what: ` / triple-tap opens a right-side panel with tabs, dev build only (never live); Save writes content/ JSON through a dev-server endpoint; Copy for Claude. Built here, then moved to the shared Dev Kit (dev/tools/bmuz-devkit)

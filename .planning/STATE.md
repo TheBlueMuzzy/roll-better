@@ -1,14 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-v1.7 approved (not live). Now in parallel: B009 physics helper (research → fix dice escapes) + Sprint 04 (F60 Dev Kit console → F59 Color tool). Then `/deliver`, then F48 with Muzzy, then Obsidian setup (vault = Documents/dev — Muzzy wants a walkthrough).
+Released v0.3.0 (beta) 2026-09-29: v1.7 Cartoon UI everywhere + v1.8 Dev Kit (Color tool; ` works on the live link for testers until 1.0) + B009 fix. Live: https://thebluemuzzy.github.io/roll-better/
+Next: extract the Dev Kit into the Game Framework as a BMUZ module (dev/framework/devkit + installer, table tab stays game-side) → then F48 drag polish with Muzzy (v1.6's last must).
 Muzzy: confirm the draft scope in GDD §7 (release target now 1.0) · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.8 — Dev Kit: colours first   Sprint: 04 — Tune the colours yourself
-Doing: F60 Dev Kit console + B009 (helper)
-Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, beta
+Stage: deliver   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none
+Doing: — released v0.3.0
+Branch: master   Version: 0.3.0.0
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 
 ## Key facts
 **Run/deploy**
@@ -46,6 +47,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Released v0.3.0 (beta): Cartoon UI everywhere (sprints 02–03 + look fixes B011–B019, kit 0.1.5→0.1.11), Dev Kit console + Color tool (sprint 04, in release builds until 1.0), B009 fixed (collision groups, 0 put-backs), review fixes (Save same-origin only, online Menu leave).
 - 2026-09-29 — Sprint 03 built (autonomous): framework kit 0.1.7 + 0.1.8, F57 pinning, F54 winners, F55 toasts + Round banner, F56 HUD, F58 PlayerChips; old HUD/TipBanner/Winners/3D badges deleted. All checks PASS.
 - 2026-09-29 — Sprint 02 built (autonomous): kit 0.1.5→0.1.6, F50 game box + en.json, F51 menu, F52 lobby + SeatPicker + reconnecting, F53 How to Play, old menu deleted (−963 lines), e2e:midgame added. Sprint 03 planned.
 - 2026-09-29 — Released v0.2.2: sprint 01 (F47, B006, B007/B008 physics, F49) + scoring 8/6/4/2/1 + bug sweep (B005, B010) + Credits screen + review fixes (45 s unlock limit, server-ended gather release, unlock_request validation).
