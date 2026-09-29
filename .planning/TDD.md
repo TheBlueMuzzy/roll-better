@@ -24,7 +24,7 @@ flowchart LR
 - **Physics dice** — `PhysicsDie.tsx` (one die: rigid body, settle, snap flat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces), `RollingArea.tsx` (floor + walls).
 - **Turn flow / glue** — `src/App.tsx` (~860 lines): phase effects, roll, unlock timer expiry, batch mitosis, online unlock submit. Most "what happens next" logic lives here, not in the store.
 - **3D view** — `Scene.tsx` runs the goal row, player rows, pool and the animation dice (lock, mitosis, spawn, committed); the draggable locked die is `UnlockableDie` in `PlayerRow.tsx`; gather effects in `GatherVisuals.tsx`.
-- **HUD** — `HUD.tsx`: status text + countdown bars (roll AFK, unlock inactivity).
+- **In-game UI (v1.7)** — kit pieces: `src/ui/GameHud.tsx` (round badge + gear), `src/ui/RoundBanner.tsx`, `src/ui/WinnersScreen.tsx`, tips/messages as kit toasts. Pinned to the table with `src/components/Pinned.tsx` (drei Html, scaled to a world-size box): `RowChips.tsx` (a PlayerChip per row; fades under a dragged die) and `StatusPin.tsx` (status banner + the two AFK timers, via `src/hooks/useCountdown.ts`).
 - **UI kit screens** — `src/ui/`: `<ScreenStack overlay>` in App.tsx draws kit screens over the whole window; Settings rows come from `content/ui/settings.json`. Old page-wide CSS sits in `@layer game-base` so it can't reach kit parts.
 - **Online** — phone side: `useOnlineGame.ts` (messages, buffered reveals, deferred snapshots, watchdog), `useRoom.ts` (lobby); server: `party/server.ts` (~2,000 lines); message types in `src/types/protocol.ts`.
 - **Pure logic (tested)** — `src/utils/`: `matchDetection`, `aiDecision`, `unlockTurn`, `diceCap` (+ `.test.ts`); also `dropZone`, `diceUtils`.
@@ -53,10 +53,10 @@ flowchart LR
 **Timers** — every timer in one table, so two timers never fight:
 | Timer | Length | Owned by | Starts when | On expiry |
 |---|---|---|---|---|
-| Roll AFK countdown | 20 s | client (`RollingCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
+| Roll AFK countdown | 20 s | client (`StatusPin` → `useCountdown`) | `idle`, online only | auto-roll / force-release gather, flagged `afk` |
 | Roll backstop | 25 s (client's 20 s + 5 s margin) | server | first `roll_result` arrives (idle → rolling) | server auto-rolls non-responders |
 | Gather auto-release | 2.5 s | client (`DicePool`) | holding to gather | dice released (roll) |
-| Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
+| Unlock inactivity | 3 s, restarts on every committed drag | client (`StatusPin` → `useCountdown`, offline + online; was HUD until v1.7) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
 | Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
 | Scoring pause | 2 s | server | round won (scoring) | handicap applied, next round |
 | Round-end pause | 0.5 s | server | `roundEnd` | next round starts |

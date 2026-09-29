@@ -108,12 +108,11 @@ src/
 ├── components/
 │   ├── MainMenu.tsx                 # Offline setup: player count, difficulty, play button
 │   ├── LobbyScreen.tsx              # Online: room code, player list, ready, start (merged into MainMenu inline flow)
-│   ├── WinnersScreen.tsx            # Final rankings, play again, menu
-│   ├── HUD.tsx                      # Status text, roll/unlock/skip buttons, AFK countdown
+│   ├── StatusPin.tsx                # Status banner + AFK timers, pinned over the rolling area (v1.7)
+│   ├── Pinned.tsx                   # Sticks kit UI to a 3D point, scaled to the table (v1.7)
+│   ├── RowChips.tsx                 # Kit PlayerChip beside every row + Goal chip; fades under a dragged die (v1.7)
 │   ├── Settings.tsx                 # Audio, performance, haptics, tips toggles
 │   ├── HowToPlay.tsx                # In-game rules reference modal
-│   ├── TipBanner.tsx                # Contextual tutorial hints
-│   ├── RollingCountdown.tsx         # AFK countdown bar (rolling + unlock phases)
 │   ├── TouchIndicator.tsx           # Visual touch feedback
 │   │
 │   ├── Scene.tsx                    # Main R3F canvas — orchestrates all 3D components
@@ -124,11 +123,8 @@ src/
 │   │
 │   ├── GoalRow.tsx                  # 8 Goal dice with entry/exit animations
 │   ├── GoalIndicators.tsx           # Colored wedges under Goal showing player locks
-│   ├── GoalProfileGroup.tsx         # Star icon + score display (far left of Goal)
 │   │
 │   ├── PlayerRow.tsx                # One player's 8 lock slots + icon
-│   ├── PlayerIcon.tsx               # Color swatch + score + X/Y/Z
-│   ├── PlayerProfileGroup.tsx       # AI/other player icon (scaled, positioned)
 │   │
 │   ├── AnimatingDie.tsx             # Lock animation: pool → slot lerp
 │   ├── MitosisDie.tsx               # Unlock animation: slot → 2 dice arc to pool
