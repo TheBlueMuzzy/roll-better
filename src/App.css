@@ -32,17 +32,13 @@ body {
   --kit-frame-h: var(--game-h);
 }
 
-/* Kit toasts (tips, messages) sit at the BOTTOM of the rolling area — the right half of the game box.
-   The top is taken by the instructions (level with the Goal dice, B016) and the left by the rows.
-   Never in a letterbox bar. (Kit toasts have no placement option of their own: top centre of the window.) */
-.kit-toasts {
-  --side-bar: calc((100vw - var(--game-w)) / 2);
-  inset: auto 0 0;
-  margin-top: 0;
-  margin-bottom: calc((100dvh - var(--game-h)) / 2 + var(--gap-m));
-  margin-left: calc(var(--side-bar) + var(--game-w) / 2 + var(--gap-m));
-  margin-right: calc(var(--side-bar) + var(--gap-m) * 4); /* clear of the gear */
-  max-inline-size: none;
+/* Kit toasts (tips, messages) sit at the BOTTOM of the rolling area — the right half of the game box
+   (<ToastStack place="bottom" /> in App.tsx; the kit keeps them out of the letterbox bars).
+   The top is taken by the instructions (level with the Goal dice, B016) and the left by the rows,
+   so the left half is kept clear, and the right edge clear of the gear. */
+:root {
+  --kit-toasts-start: calc(var(--game-w) / 2 + var(--gap-m));
+  --kit-toasts-end: calc(var(--gap-m) * 4);
 }
 
 #root {
