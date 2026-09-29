@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { Scene } from './components/Scene';
 import { StatusPin } from './components/StatusPin';
 import type { SceneHandle } from './components/Scene';
-import { HUD } from './components/HUD';
 import { ScreenStack, ToastStack, kitScreens, screens, toast, toasts, useScreens } from './ui/kit';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { CreditsScreen } from './ui/CreditsScreen';
@@ -14,6 +13,7 @@ import { ReconnectingScreen } from './ui/ReconnectingScreen';
 import { HowToPlayScreen } from './ui/HowToPlayScreen';
 import { WinnersScreen } from './ui/WinnersScreen';
 import { RoundBanner } from './ui/RoundBanner';
+import { GameHud } from './ui/GameHud';
 import { text, fill } from './ui/words';
 import { TouchIndicator } from './components/TouchIndicator';
 import { useGameStore, shouldShowTip } from './store/gameStore';
@@ -744,7 +744,9 @@ function App() {
               onUnlockTimerExpire={handleUnlockTimerExpire}
             />
           </Canvas>
-          <HUD onOpenSettings={openSettings} />
+          <div className="game-hud">
+            <GameHud onOpenSettings={openSettings} />
+          </div>
         </div>
       )}
       {/* Always mounted, so it sees the game start (shows only while playing) */}

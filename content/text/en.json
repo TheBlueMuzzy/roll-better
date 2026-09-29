@@ -52,6 +52,9 @@
     "reconnected": "{name} reconnected"
   },
   "hud": {
+    "label": "Game",
+    "round": "Round {n}",
+    "settings": "Settings",
     "timeLeft": "Time left",
     "status": {
       "starting": "Starting…",
