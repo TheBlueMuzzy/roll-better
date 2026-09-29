@@ -57,7 +57,7 @@ flowchart LR
 | Roll backstop | 25 s (client's 20 s + 5 s margin) | server | first `roll_result` arrives (idle → rolling) | server auto-rolls non-responders |
 | Gather auto-release | 2.5 s | client (`DicePool`) | holding to gather | dice released (roll) |
 | Unlock inactivity | 3 s, restarts on every committed drag | client (HUD, offline + online) | `unlocking`, animations done | mid-drag die resolves by zone (commit / snap back), turn closed → mitosis; online: send one `unlock_request`/`skip_unlock` (D15). All synchronous in the tick's task — a drop is either in the snapshot or refused; leaving `unlocking` returns any parked die to its slot. Race sweep: `e2e/unlock-race-sweep.mjs` |
-| Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
+| Unlock backstop | 25 s (`UNLOCK_BACKSTOP_MS`); each `unlock_activity` tops it up to ≥ 10 s left (`UNLOCK_ACTIVITY_GRACE_MS`, D16), never past 45 s from the phase start (`UNLOCK_MAX_PHASE_MS`, hard limit) | server | unlocking phase starts | `autoSkipUnresponsivePlayers` → client gets an AFK unlock, played through the drag path (still counts toward AFK escalation) |
 | Scoring pause | 2 s | server | round won (scoring) | handicap applied, next round |
 | Round-end pause | 0.5 s | server | `roundEnd` | next round starts |
 | Deferred snapshot safety | 5 s (checked every 100 ms) | client | `phase_change` held behind animations | force-apply |
@@ -150,6 +150,7 @@ D03 · 2026-02-28 · Zustand over Context/Redux — works with R3F without re-re
 D02 · 2026-02-28 · MeshPhysicalMaterial + clearcoat + HDRI; Rapier over Cannon.js (from GSD)
 D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyKit bundle limitation (from GSD, tech debt)
 ```
+  2026-09-29 (pre-release review): the top-ups had no limit, so a client pinging every 9 s could hold the whole room in the unlock phase → added a 45 s hard limit per phase (a real turn is ≈ 26 s at most).
 
 ## 9. Third-party stuff
 | What | Used for | License | OK for commercial? |
