@@ -129,7 +129,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
         if (useGameStore.getState().gatherState.active) {
           useGameStore.getState().stopGathering();
         }
-        dicePoolRef.current?.releaseAll();
+        dicePoolRef.current?.releaseGather();
         onRollStart?.();
       },
       unstickAll() {
@@ -217,6 +217,7 @@ export const Scene = forwardRef<SceneHandle, SceneProps>(
     function handleFloorPointerUp() {
       if (gatherState.active) {
         stopGathering();
+        dicePoolRef.current?.releaseGather();
         // Gather-release IS the roll — dice have orbital momentum + tumble.
         // Only need to transition to 'rolling' phase so settle→results pipeline fires.
         onRollStart?.();

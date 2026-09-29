@@ -16,6 +16,28 @@ export function getGatherRadius(count: number): number {
 }
 
 /**
+ * The centre the dice actually orbit: the touch point, pulled in from the walls so the
+ * whole ring (± radius) stays inside the arena. Also used to aim the release fling.
+ */
+export function getGatherCenter(
+  center: [number, number, number],
+  radius: number,
+): [number, number, number] {
+  // The ring extends ±radius from center, so center must stay
+  // radius + margin away from each wall.
+  const margin = radius + 0.5; // radius + wall clearance
+  const cMinX = ROLLING_X_OFFSET - ARENA_HALF_X + margin;
+  const cMaxX = ROLLING_X_OFFSET + ARENA_HALF_X - margin;
+  const cMinZ = ROLLING_Z_MIN + margin;
+  const cMaxZ = ROLLING_Z_MAX - margin;
+
+  // If arena is too small for the ring, just use the arena center
+  const cx = cMinX < cMaxX ? Math.max(cMinX, Math.min(cMaxX, center[0])) : ROLLING_X_OFFSET;
+  const cz = cMinZ < cMaxZ ? Math.max(cMinZ, Math.min(cMaxZ, center[2])) : (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2;
+  return [cx, center[1], cz];
+}
+
+/**
  * Calculate evenly-spaced positions in a circle around a center point.
  * Used to place goal markers where dice will gather before a roll.
  *
@@ -37,18 +59,7 @@ export function getGatherPoints(
   const offset = rotationOffset ?? 0;
   const y = 3.0; // float height — matches initial lift impulse
 
-  // Clamp the CENTER so the entire ring fits inside the arena.
-  // The ring extends ±radius from center, so center must stay
-  // radius + margin away from each wall.
-  const margin = r + 0.5; // radius + wall clearance
-  const cMinX = ROLLING_X_OFFSET - ARENA_HALF_X + margin;
-  const cMaxX = ROLLING_X_OFFSET + ARENA_HALF_X - margin;
-  const cMinZ = ROLLING_Z_MIN + margin;
-  const cMaxZ = ROLLING_Z_MAX - margin;
-
-  // If arena is too small for the ring, just use the arena center
-  const cx = cMinX < cMaxX ? Math.max(cMinX, Math.min(cMaxX, center[0])) : ROLLING_X_OFFSET;
-  const cz = cMinZ < cMaxZ ? Math.max(cMinZ, Math.min(cMaxZ, center[2])) : (ROLLING_Z_MIN + ROLLING_Z_MAX) / 2;
+  const [cx, , cz] = getGatherCenter(center, r);
 
   const points: [number, number, number][] = [];
 
