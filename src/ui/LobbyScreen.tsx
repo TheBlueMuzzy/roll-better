@@ -1,17 +1,12 @@
 // PLAY ONLINE — the kit's Lobby block, opened with screens.push('online') from the main menu.
 //   No room yet → create a room, or type a friend's code and join.
-//   In a room   → the code (Copy code button), who's in (colour avatar, host badge, ready), Start / Leave.
+//   In a room   → the code (kit Copy button), who's in (colour avatars, host badge), Start / Leave.
 //   Game already going (mid-game join, late Play Again) → pick a seat (kit SeatPicker).
 // All the online rules live in OnlineRoom.tsx; this screen only shows them.
-import { Button, Lobby, Screen, SeatPicker, fill, toast } from './kit'
+import { Lobby, SeatPicker, fill } from './kit'
 import { useOnlineRoom } from './OnlineRoom'
 import { playUIClick } from '../utils/soundManager'
 import { text } from './words'
-
-// A player's colour (their dice colour) as a tiny picture for the kit Avatar,
-// which draws a picture when it has one. The colour is game data, not a style.
-const colourPicture = (colour: string) =>
-  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="${colour}"/></svg>`)}`
 
 export function LobbyScreen() {
   const { room, mode, create, join, start, leave } = useOnlineRoom()
@@ -29,24 +24,11 @@ export function LobbyScreen() {
   const players = room.players.map((p) => ({
     id: p.id,
     name: p.id === room.playerId ? fill(w.you, { name: p.name }) : p.name,
-    ready: p.isReady,
-    avatar: colourPicture(p.color),
+    color: p.color, // their dice colour
   }))
 
-  const copyCode = async () => {
-    playUIClick()
-    if (!room.roomCode) return
-    try {
-      await navigator.clipboard.writeText(room.roomCode)
-      toast(w.copied)
-    } catch {
-      // No clipboard (e.g. not allowed): the code is on screen to read out
-    }
-  }
-
   return (
-    <>
-      <Lobby
+    <Lobby
         words={w}
         roomCode={roomCode}
         players={players}
@@ -57,15 +39,11 @@ export function LobbyScreen() {
         error={error}
         onCreate={click(create)}
         onJoin={(code) => { playUIClick(); join(code) }}
-        onReady={room.toggleReady} // players are readied on join, so this does nothing (as before)
+        // No onReady: players are ready as soon as they join, so the kit shows no Ready step (kit 0.1.7)
         onStart={click(start)}
         onLeave={click(leave)}
+        onBack={click(leave)}
       />
-      {/* Kit Lobby has no Back on the create / join card and no copy on the room card */}
-      {roomCode
-        ? <Screen topRight={<Button variant="secondary" onClick={copyCode}>{w.copy}</Button>} />
-        : <Screen topLeft={<Button variant="secondary" onClick={click(leave)}>{w.back}</Button>} />}
-    </>
   )
 }
 
