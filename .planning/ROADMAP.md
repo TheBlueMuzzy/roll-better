@@ -16,7 +16,7 @@ Live now: v0.3.0 (2026-09-29) — everything except F48.
 - ✅ F46 🎮 Inactivity timer & batch mitosis — must:next · needs: F45
 - ✅ F47a ❓ Decide online unlock messages: per-drag or one batch — Muzzy picked one batch per phone (TDD D15)
 - ✅ F47 🎮 Online play integration — must:next · needs: F46, F47a · sprint 1 (+B006) · approved 2026-09-28
-- 🔨 F48 ✨ Polish & UAT — must:next · needs: F46, ~F47 · sprint 5
+- 🎛️ F48 ✨ Polish & UAT — must:next · needs: F46, ~F47 · sprint 5
   what: 12-die cap feedback, drag near boundaries, fast multi-drag, drag feel tuning, full online + viewport UAT; fix B005 tip text
 - ✅ F49 🐞 CI builds the same way as local — must:next · sprint 1
   what: deploy workflow runs `npm run build` (type check included) instead of `npx vite build` — root cause of B004 staying hidden; 1 task
@@ -27,7 +27,7 @@ flowchart LR
   F45 --> F46[✅ F46 Timer + batch mitosis]
   F46 --> F47[✅ F47 Online integration]
   F47a[✅ F47a Batch or per-drag?] --> F47
-  F46 --> F48[🔨 F48 Polish + UAT]
+  F46 --> F48[🎛️ F48 Polish + UAT]
   F47 -.working.-> F48
   F49[✅ F49 CI same build]
 ```
