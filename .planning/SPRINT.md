@@ -10,7 +10,7 @@ why: dragging is the only way to unlock now → it must feel sure and readable �
 - [x] 🤖 3. One drag at a time: a second finger is ignored while a drag is active — gameStore.startDragUnlock + PlayerRow isDragging + test
 - [x] 🤖 4. 12-dice cap: locked dice dim at the cap, and trying to drag one shakes it + toast "Max 12 dice" (text in content/text/en.json) — Scene.tsx L357, PlayerRow.tsx
 - [x] 🤖 5. Rolling area highlights while a dragged die is over it (RollingArea.tsx reads dragUnlockState); die stays under the finger (grab offset + lift-height ray fix) — try 2 highlight looks behind a tuning value
-- [ ] 🤖 6. (game part done 2026-09-29: content/tuning/drag.json + src/tuning/drag.ts; Tuning tab = framework helper) Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
+- [x] 🤖 6. (done 2026-09-29: Dev Kit 0.2.0 installed; game part 2026-09-29: content/tuning/drag.json + src/tuning/drag.ts; Tuning tab = framework helper) Drag feel numbers (PlayerRow.tsx L28–35/97/117/143, CommittedDie.tsx, dropZone.ts paddings) → content/tuning/drag.json; framework-first Dev Kit "Tuning" tab (edits any content/tuning/*.json number with sliders) in framework/devkit, then install
 - [ ] 🤖 7. Real-pointer e2e: drags near edges, lost pointer, two fingers, 12-cap — phone portrait + landscape + desktop (new e2e script, run one at a time); update design/tech-internals.md drag state notes
 - [ ] 🙋 8. Two-phone online check (drag, cap, timer) on the dev link
 - [ ] 🤖 9. Tune drag feel with Muzzy in the Dev Kit Tuning tab (tuning)
@@ -23,3 +23,4 @@ Notes: Cap signal = BOTH dim + shake/toast (Muzzy 2026-09-29). Tuning tab approv
 - Task 5: highlight default = "tint" (the whole drop zone brightens — reads at a glance on a phone even with a thumb over part of it); "outline" is one switch away in drag.json.
 - Store drag rules are now unit-tested against the real store: src/store/dragUnlock.test.ts.
 - Surprise (checks): `e2e/unlock-race-sweep.mjs` had silently stopped working since the kit 0.2.x Pinned change (7e8689a renamed `.pinned` → `.kit-pinned`): it waited forever for the timer bar and never dropped a die. Selector fixed; 204 drops, 0 FAIL.
+- Task 6: Dev Kit 0.2.0 Tuning tab lists every content/tuning/*.json (sliders use drag.json's `_ranges`, `_help` shows under each row). drag + physics follow the sliders live without Save (drag.ts: `onTuning` → `Object.assign(drag, data)`; PhysicsDie.tsx + rollBounds.ts: `liveTuning('physics', …)`). scoring.json left unwired on purpose — party/server.ts shares it and must not import Dev Kit code.
