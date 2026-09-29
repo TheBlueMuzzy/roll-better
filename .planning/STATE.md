@@ -1,14 +1,12 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-v1.7 "Cartoon UI everywhere" APPROVED by Muzzy 2026-09-29 (F50–F58 ✅; sprints 02 + 03 archived). Kit 0.1.10 in the game. On `dev/v1-7-cartoon-ui`, not live.
-Next: fix B009 (P2 — die pushed into a wall, makes `e2e:physics` flaky) → `/deliver` (v1.6's F48 still open → deliver as an update).
-Open question for Muzzy: keep the "Round N" flash at round start, now that "Round 1" shows beside the Goal chip? (default: keep)
+v1.7 approved (not live). Now in parallel: B009 physics helper (research → fix dice escapes) + Sprint 04 (F60 Dev Kit console → F59 Color tool). Then `/deliver`, then F48 with Muzzy, then Obsidian setup (vault = Documents/dev — Muzzy wants a walkthrough).
 Confirm the draft scope in GDD §7. · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart). · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: none (03 done)
-Doing: — v1.7 approved; B009 then /deliver
+Stage: develop   Milestone: v1.7 — Cartoon UI everywhere   Sprint: 04 — Tune the colours yourself
+Doing: F60 Dev Kit console + B009 (helper)
 Branch: dev/v1-7-cartoon-ui   Version: 0.2.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.2.2, beta
 

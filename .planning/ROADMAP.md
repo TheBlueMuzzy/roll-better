@@ -32,7 +32,7 @@ flowchart LR
   F49[✅ F49 CI same build]
 ```
 
-## v1.7 — Cartoon UI everywhere  ← current
+## v1.7 — Cartoon UI everywhere  ✅ approved 2026-09-29 (not released yet)
 Goal: every screen and on-table label uses the game-ui kit (Cartoon) — menus, lobby, How to Play, winners, HUD and player badges look like Settings/Credits; the dark table stays (Muzzy 2026-09-29, D19).
 - ✅ F50 🧱 Kit screens sit inside the game's 16:9 box — should · sprint 2 · approved 2026-09-29
   what: kit screens/HUD use the game frame, not the letterbox bars; check first — may already be true
@@ -65,11 +65,23 @@ flowchart LR
   F57 -.working.-> F56
 ```
 
+## v1.8 — Dev Kit: colours first  ← current
+Goal: Muzzy presses ` in the dev build, tweaks any UI or table colour with a picker, sees it live, and saves it into content/ — no more colour questions (Muzzy 2026-09-29: "fewer loops").
+- 🔨 F60 🧱 Dev Kit console — should · sprint 4
+  what: ` / triple-tap opens a right-side panel with tabs, dev build only (never live); Save writes content/ JSON through a dev-server endpoint; Copy for Claude. Built here, then moved to the shared Dev Kit (dev/tools/bmuz-devkit)
+- 🔨 F59 🔧 Dev Kit Color tool — should · needs: F60 · sprint 4
+  what: every kit style colour (content/ui/style.json tweaks over the Cartoon preset) + table colours (content/ui/table.json) with swatch, picker, reset; live preview incl. the 3D table; colour-blind preview toggle
+  why: Muzzy tunes the look himself → fewer loops, faster taste calls
+
+```mermaid
+flowchart LR
+  F60[🔨 F60 Dev Kit console] --> F59[🔨 F59 Color tool]
+```
+
 ## Later
 Old idea numbers (#1–#12) point to the full write-ups in `archive/vision.md`.
 - ✨ Clearer unlock timer (last-second warning) — could · parked for the art redesign (Muzzy 2026-09-28)
 - Watch: B001 (matching dice sometimes don't lock), B002 (dice cant against walls) — patched in v1.5, see BUGS.md
-- F59 🔧 Dev Kit Color tool — could · every colour in `content/ui/style.json` listed with a swatch + picker, live preview, save → the file (Muzzy 2026-09-29: "fewer loops" on colour calls). First tool of the Dev Kit in this game, then moved to the shared kit.
 - 🔧 Dev Kit tools recommended by the TDD: Multiplayer (second player, lag/disconnect) before the next netcode sprint; Tuning (physics + timers → content/tuning); Bug capture
 - Tutorial system rework — should (#6)
 - Full audio pass — should (#7)
