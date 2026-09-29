@@ -1,6 +1,7 @@
 {
   "preset": "cartoon",
   "tweaks": {
-    "accent": "#8fd8ff"
+    "accent": "#41b5e6",
+    "on-game": "#41b5e6"
   }
 }

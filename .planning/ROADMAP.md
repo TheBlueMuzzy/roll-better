@@ -8,9 +8,9 @@ Release target: 1.0 — musts not set yet (/define) · live stage: beta (Muzzy 2
 ## v1.4 — Landscape  ✅ shipped 2026-03-26
 ## v1.5 — Hold-to-Gather-Roll  ✅ shipped 2026-03-27
 
-## v1.6 — Drag-to-Unlock  ← current  (all done — ready to /deliver)  (→ release stage not set)
+## v1.6 — Drag-to-Unlock  ✅ released v0.4.0 (beta) 2026-09-29
 Goal: players unlock by dragging locked dice into the rolling area — offline and online — with no UNLOCK/SKIP buttons.
-Live now: v0.3.0 (2026-09-29) — everything except F48 (done on dev/v1.6, approved 2026-09-29).
+Live: v0.4.0 (2026-09-29).
 - ✅ F44 🎮 Drag detection & drop zone — must:next
 - ✅ F45 🎮 Drop commit & highlight state — must:next · needs: F44
 - ✅ F46 🎮 Inactivity timer & batch mitosis — must:next · needs: F45

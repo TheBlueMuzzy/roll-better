@@ -1,15 +1,15 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-F48 approved 2026-09-29 ("EXACTLY what I was looking for … all tuned") — v1.6 Drag-to-Unlock is complete on `dev/v1.6`, along with framework Dev Kit 0.2.0 (Tuning tab) + UI kit 0.2.2. Sprint 05 done.
-Next: `/deliver` v1.6 → merge dev/v1.6 to master (goes live on GitHub Pages).
+Released v0.4.0 (beta) 2026-09-29 — v1.6 Drag-to-Unlock ✅ (drag polish, 12-dice cap feedback, zone tint, Dev Kit Tuning tab, UI kit 0.2.2, Muzzy's new accent colour). Live: https://thebluemuzzy.github.io/roll-better/
+Next: `/roadmap` — no milestone after v1.7 is planned yet (Ideas: portrait layout, clearer unlock timer). Roll Better is a testbed; next framework module is also an option.
 Muzzy: confirm the draft scope in GDD §7 · LAPTOP: install BMUZ-2 (`! cd ~/.claude-config && git pull && bash setup.sh`, restart) · Obsidian setup when there's 5 minutes.
 
 ## Where we are
-Stage: develop   Milestone: v1.6 — Drag-to-Unlock (F48 open)   Sprint: none (05 done)
-Doing: — v1.6 ready to deliver
-Branch: dev/v1.6   Version: 0.3.0.0
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
+Stage: deliver   Milestone: v1.6 — Drag-to-Unlock ✅   Sprint: none
+Doing: — released v0.4.0
+Branch: master   Version: 0.4.0.0
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.0, beta
 
 ## Key facts
 **Run/deploy**
@@ -49,6 +49,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.3.0, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Released v0.4.0 (beta): v1.6 Drag-to-Unlock ✅; server unchanged, not redeployed.
 - 2026-09-29 — F48 approved; Sprint 05 done; v1.6 complete on dev/v1.6.
 - 2026-09-29 — F48 built: drag fixes, cap feedback, zone tint, drag.json + Dev Kit Tuning tab, e2e:drag; waiting on Muzzy's phone check + tuning.
 - 2026-09-29 — Framework Dev Kit 0.1.1 + UI kit 0.2.2 installed on dev/v1.6; TDD/GDD slimmed; all green, approved.
