@@ -52,6 +52,7 @@
     "reconnected": "{name} reconnected"
   },
   "hud": {
+    "timeLeft": "Time left",
     "status": {
       "starting": "Starting…",
       "holdToRoll": "Hold to Roll",

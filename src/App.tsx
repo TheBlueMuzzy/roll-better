@@ -675,7 +675,7 @@ function App() {
   }, [pendingAfkUnlock, ownMitosisPlaying, buildAndRunMitosis]);
 
   // AFK auto-roll: programmatic roll with rollAll (lift + impulse + torque).
-  // Used by HUD idle timeout when player hasn't started gathering.
+  // Used by StatusPin's idle timeout when player hasn't started gathering.
   const handleRoll = useCallback(() => {
     if (useGameStore.getState().phase !== 'idle') return;
 
@@ -738,14 +738,13 @@ function App() {
               onRollStart={handleRollStart}
               onResults={handleResults}
             />
-            <StatusPin />
+            <StatusPin
+              onRoll={handleRoll}
+              onForceRelease={handleForceRelease}
+              onUnlockTimerExpire={handleUnlockTimerExpire}
+            />
           </Canvas>
-          <HUD
-            onRoll={handleRoll}
-            onForceRelease={handleForceRelease}
-            onUnlockTimerExpire={handleUnlockTimerExpire}
-            onOpenSettings={openSettings}
-          />
+          <HUD onOpenSettings={openSettings} />
         </div>
       )}
       {/* Always mounted, so it sees the game start (shows only while playing) */}

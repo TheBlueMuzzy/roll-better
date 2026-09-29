@@ -160,7 +160,7 @@ async function worker(id, browser, jobs, results) {
       cap: g.players[0].poolSize + g.players[0].lockedDice.length,
       anim: g.roundState.unlockAnimations.length + g.roundState.aiUnlockAnimations.length,
       lockAnim: g.roundState.lockAnimations.length + g.roundState.aiLockAnimations.length,
-      bar: !!document.querySelector('.rolling-countdown'), intervals: window.__rb.intervals.length };`);
+      bar: !!document.querySelector('.pinned [role="progressbar"]'), intervals: window.__rb.intervals.length };`);
     if (st.phase === 'sessionEnd' || st.screen === 'winners') { await newGame(page); continue; }
     if (st.phase === 'idle') { await holdToRoll(page); lastProgress = Date.now(); continue; }
     const ready = st.phase === 'unlocking' && st.key === 0 && st.anim === 0 && st.lockAnim === 0 && st.locked.length > 0 && st.bar;

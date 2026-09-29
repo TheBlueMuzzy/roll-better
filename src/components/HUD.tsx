@@ -1,21 +1,16 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playScoreTick, playScoreComplete, playUIClick } from '../utils/soundManager';
-import { RollingCountdown } from './RollingCountdown';
 import type { SeatState } from '../types/protocol';
-import { shouldRunUnlockTimer } from '../utils/unlockTurn';
 import { toast } from '../ui/kit';
 import { text, fill } from '../ui/words';
 
 
 interface HUDProps {
-  onRoll: () => void;
-  onForceRelease: () => void;
-  onUnlockTimerExpire: () => void;
   onOpenSettings: () => void;
 }
 
-export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSettings }: HUDProps) {
+export function HUD({ onOpenSettings }: HUDProps) {
   const phase = useGameStore((s) => s.phase);
   const currentRound = useGameStore((s) => s.currentRound);
   const sessionTargetScore = useGameStore((s) => s.sessionTargetScore);
@@ -25,11 +20,6 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
 
   const player = players[0];
   const score = player?.score ?? 0;
-  const unlockAnimating = useGameStore((s) => s.roundState.unlockAnimations.length > 0);
-  const aiUnlockAnimating = useGameStore((s) => s.roundState.aiUnlockAnimations.length > 0);
-  const animationsInProgress = unlockAnimating || aiUnlockAnimating;
-  const hasSubmittedUnlock = useGameStore((s) => s.hasSubmittedUnlock);
-  const unlockTimerResetKey = useGameStore((s) => s.unlockTimerResetKey);
 
   // --- Seat state change notifications (kit toasts, words in content/text/en.json hud.seat) ---
   const prevSeatStatesRef = useRef<Map<string, SeatState>>(new Map());
@@ -61,27 +51,6 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
       prev.set(p.id, p.seatState);
     }
   }, [players, isOnlineGame]);
-
-  // --- AFK countdown logic ---
-  const showIdleCountdown = isOnlineGame && phase === 'idle';
-  const timerAlreadyFired = unlockTimerResetKey < 0;
-  // Drag inactivity timer ends the unlock turn — offline AND online (B003 / TDD D15).
-  // Online there is no separate 20 s unlock countdown any more; the server's 25 s timer catches real AFK.
-  const showUnlockInactivityTimer = shouldRunUnlockTimer({ isOnlineGame, phase, animationsInProgress, timerAlreadyFired, hasSubmittedUnlock });
-
-  const handleIdleTimeout = useCallback(() => {
-    (window as unknown as Record<string, boolean>).__rbAfkRoll = true;
-    // If player is mid-gather, force-release dice (they have orbital momentum)
-    if (useGameStore.getState().gatherState.active) {
-      console.log('[HUD] AFK mid-gather timeout — force-releasing');
-      onForceRelease();
-    } else {
-      // Normal idle: use rollAll path (lift + random impulse + torque)
-      console.log('[HUD] AFK idle timeout — auto-rolling');
-      onRoll();
-    }
-  }, [onRoll, onForceRelease]);
-
 
   // --- Score counting animation ---
   const scoreRef = useRef<HTMLSpanElement>(null);
@@ -151,13 +120,7 @@ export function HUD({ onRoll, onForceRelease, onUnlockTimerExpire, onOpenSetting
 
       {/* Bottom area — status text + controls + pool stats */}
       <div className="hud-bottom">
-        <RollingCountdown active={showIdleCountdown} onTimeout={handleIdleTimeout} />
-        <RollingCountdown
-          active={showUnlockInactivityTimer}
-          onTimeout={onUnlockTimerExpire}
-          duration={3000}
-          resetKey={unlockTimerResetKey}
-        />
+        {/* AFK timers: run and shown by StatusPin.tsx (inside the Canvas), beside the status banner */}
         {/* Status words: a kit banner pinned over the rolling area (StatusPin.tsx, inside the Canvas) */}
       </div>
 
