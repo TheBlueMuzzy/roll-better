@@ -51,6 +51,10 @@ Patched v1.5 (wall nudge 0.2 u + snapFlat when face dot < 0.95). Preventative fi
 Evidence: archive/gsd/ISSUES.md → ISS-002
 
 ## Fixed (newest first)
+### B020 · P2 · verified 2026-09-29 · fixed in v0.4.1 · Guarded by: `npm run e2e:update` · found 2026-09-29 after v0.4.0 · live · Muzzy (desktop)
+Returning players saw an old version (v0.2.1 after v0.4.0 shipped) — the offline cache only swapped on the NEXT visit
+Fix: `registerSW({ immediate: true })` in src/main.tsx (vite-plugin-pwa autoUpdate now reloads onto the new version as soon as it's downloaded).
+
 ### B009 · P2 · fixed 2026-09-29 in 721fe24 · Guarded by: `src/utils/dieCollisionGroups.test.ts` + `npm run e2e:physics` (now FAILS if the safety net puts back even one die) · found 2026-09-29 in B007 fix · dev build · e2e
 A released die sometimes ends up pushed into the left wall and is put back by the safety net (a small visible jump)
 Steps: 1. Hold-to-gather near the left wall (or drag off the rolling area → back wall)  2. Release  · Expected: dice bounce off the wall · Actual: 1–3 per 50 mixed rolls (16 in 30 drag-off-area rolls) end up inside the wall, then teleport back · How often: occasional (e2e)

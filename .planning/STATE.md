@@ -1,18 +1,19 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-🗄️ ON THE SHELF (Muzzy, 2026-09-29) — released v0.4.0 (beta), v1.6 Drag-to-Unlock ✅. Live: https://thebluemuzzy.github.io/roll-better/ . Nothing in progress; don't suggest work on it unless Muzzy brings it back.
+🗄️ ON THE SHELF (Muzzy, 2026-09-29) — released v0.4.1 (beta; v0.4.1 = returning players get new releases at once), v1.6 Drag-to-Unlock ✅. Live: https://thebluemuzzy.github.io/roll-better/ . Nothing in progress; don't suggest work on it unless Muzzy brings it back.
 If it comes back: `/roadmap` (Ideas: portrait layout, clearer unlock timer). It stays the testbed for framework modules (UI kit, Dev Kit) when one needs proving.
 
 ## Where we are
 Stage: deliver   Milestone: v1.6 — Drag-to-Unlock ✅   Sprint: none
 Doing: — on the shelf
-Branch: master   Version: 0.4.0.0
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.0, beta
+Branch: master   Version: 0.4.1.0
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.1, beta
 
 ## Key facts
 **Run/deploy**
 - Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
+- `npm run e2e:update` = returning player gets a new release on the first visit (offline cache; runs alone, :5193).
 - `npm run e2e:drag` = real-pointer drag check (edges, lost finger, two fingers, cap × 3 sizes, ~90 s; runs alone).
 - `npm run check:ui` (kit rules + game CSS restyling kit parts) · `npm run check:devkit` (release build with/without Dev Kit).
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
@@ -48,6 +49,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.0, beta
 - 46-03 tried more angular damping — reverted; keep 0.3.
 
 ## Log
+- 2026-09-29 — Released v0.4.1: offline cache swaps to a new release on the first visit (B020, e2e:update).
 - 2026-09-29 — Put on the shelf by Muzzy after v0.4.0 ("an incredible upgrade … bonus of testing and improving BMUZ").
 - 2026-09-29 — Released v0.4.0 (beta): v1.6 Drag-to-Unlock ✅; server unchanged, not redeployed.
 - 2026-09-29 — F48 approved; Sprint 05 done; v1.6 complete on dev/v1.6.

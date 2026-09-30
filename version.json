@@ -1,8 +1,13 @@
 {
   "name": "Roll Better",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "build": 0,
   "history": [
+    {
+      "version": "0.4.1",
+      "date": "2026-09-29",
+      "summary": "Returning players see the newest version straight away (no more stale copy from the offline cache)"
+    },
     {
       "version": "0.4.0",
       "date": "2026-09-29",
