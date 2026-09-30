@@ -1,4 +1,5 @@
 # Roll Better — Roadmap
+🗄️ On the shelf since 2026-09-29 (after v0.4.0) — Muzzy's call.
 Release target: 1.0 — musts not set yet (/define) · live stage: beta (Muzzy 2026-09-29: "probably Beta since the art isn't final")
 
 ## v1.0 — MVP  ✅ shipped 2026-03-03
