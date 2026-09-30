@@ -18,6 +18,7 @@
     "e2e:menu": "node e2e/menu-after-online.mjs",
     "e2e:physics": "node e2e/roll-physics.mjs",
     "e2e:drag": "node e2e/drag-real.mjs",
+    "e2e:update": "node e2e/sw-update.mjs",
     "check:devkit": "node src/devkit/check-devkit.mjs",
     "check:ui": "node src/ui/kit/check-ui.mjs src/ui --css src"
   },

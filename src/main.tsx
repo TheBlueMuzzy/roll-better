@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { applyStyle } from './ui/kit'
 import style from '../content/ui/style.json'
+import { registerSW } from 'virtual:pwa-register'
 
 applyStyle(style) // content/ui/style.json → the UI kit's look (Cartoon)
 
@@ -13,6 +14,10 @@ applyStyle(style) // content/ui/style.json → the UI kit's look (Cartoon)
 if (import.meta.env.DEV || __DEVKIT_IN_RELEASE__) {
   import('./devkit/mount').then((m) => m.mountDevKit())
 }
+
+// Offline cache: when a new release is out, the new version downloads in the background and the page
+// swaps to it straight away — returning players never see the old version (was: only on the next visit).
+registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
