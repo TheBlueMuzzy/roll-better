@@ -1,10 +1,10 @@
 // Check: leaving an ONLINE game from the winners screen (Menu), then starting a SOLO game, must not
 // show the "Reconnecting…" dialog (the old leave closed the socket in a way that looked like a drop).
-// Run: npm run e2e:menu   (starts its own PartyKit + Vite and stops them afterwards)
+// Run: npm run e2e:menu   (starts its own room server + Vite and stops them afterwards)
 import { startServer, launchBrowser, store, run, log, GAME_URL, VITE_PORT, PARTY_PORT, createRoom, joinRoom, startOnlineGame, text } from './lib.mjs';
 
 run(async () => {
-  await startServer('partykit', `npx partykit dev --port ${PARTY_PORT}`, PARTY_PORT);
+  await startServer('party', `npx wrangler dev --port ${PARTY_PORT}`, PARTY_PORT);
   await startServer('vite', `npx vite --port ${VITE_PORT} --strictPort`, VITE_PORT, { VITE_PARTY_HOST: `localhost:${PARTY_PORT}` });
   const browser = await launchBrowser();
   const page = async () => (await browser.newContext({ viewport: { width: 1000, height: 560 } })).newPage();

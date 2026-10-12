@@ -11,7 +11,7 @@
 - **Platform:** Web, landscape (phones held sideways + desktop). **Players:** 2–4 offline (you + AI), 2–8 online (AI fills empty seats).
 - **Audience:** general (not made for kids) · casual players of Wordle, Yahtzee and board games with friends — quick thrilling rounds, no app download. Personas + competitor table: `research/audience.md`.
 - **References:** Balatro (the "bend your luck" fantasy) · Dice Forge (dice as objects you invest in) · King of Tokyo (social spectacle of shared rolls) · Knucklebones (simple rules, fast rounds) · Wordle (daily ritual, shareable). Anti: MONOPOLY GO / Yahtzee with Buddies (predatory, pay-to-win).
-- **Constraints:** free hosting only (GitHub Pages + PartyKit free tier) · zero data collection, no accounts · smooth on iPhone Safari + Android Chrome · physics decides every die (no fake RNG) · premium dice look (clearcoat + HDRI) · no monetization of any kind.
+- **Constraints:** free hosting only (GitHub Pages + Cloudflare Workers free plan) · zero data collection, no accounts · smooth on iPhone Safari + Android Chrome · physics decides every die (no fake RNG) · premium dice look (clearcoat + HDRI) · no monetization of any kind.
 
 ## 2. Experience targets  (MDA — confirmed by Muzzy 2026-09-28)
 | | Target | In players' words | We'll know when… (watchable) | Seen? |
@@ -58,7 +58,7 @@
 
 ## 5. Systems
 - **AI opponents:** Easy / Medium / Hard unlock strategies, randomly assigned per bot (no difficulty picker). AI dice use the same physics — no cheating. → `design/online-and-ai.md`
-- **Online multiplayer:** PartyKit rooms with 4-letter codes (no I or O), inline Create/Join on the main menu, AI fills seats, drop-in/drop-out (a bot holds your seat, you can reclaim it), AFK → bot after 2 auto-actions. Rule of thumb: online is an invisible layer — your screen behaves exactly like offline and you never wait on anyone. → `design/online-and-ai.md`; netcode in `TDD.md`.
+- **Online multiplayer:** Online rooms (PartyServer on Cloudflare) with 4-letter codes (no I or O), inline Create/Join on the main menu, AI fills seats, drop-in/drop-out (a bot holds your seat, you can reclaim it), AFK → bot after 2 auto-actions. Rule of thumb: online is an invisible layer — your screen behaves exactly like offline and you never wait on anyone. → `design/online-and-ai.md`; netcode in `TDD.md`.
 - **Tips:** one-time contextual hints as kit toasts you can tap away (toggle in settings). A full tutorial rework is a Should (ROADMAP Later).
 - **Save:** none beyond preferences (settings, player count) in local storage — no accounts.
 

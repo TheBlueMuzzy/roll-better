@@ -29,7 +29,7 @@ Types live in `src/types/protocol.ts`.
 **AFK:** 2 consecutive auto-actions → bot takes the seat.
 
 ## What each deploy contains
-Push to `master` → GitHub Actions runs `npm test` + `npm run build` (with `VITE_PARTY_HOST`) → Pages. Server changes need `npx partykit deploy` (or `npm run party:deploy`) by hand — a front-end release does NOT update the server.
+Push to `master` → GitHub Actions runs `npm test` + `npm run build` (with `VITE_PARTY_HOST`) → Pages. Server changes need `npm run party:deploy` (wrangler → roll-better.joebrogno.workers.dev) by hand, BEFORE the site — a front-end release does NOT update the server.
 
 ## Timers — full notes
 (Moved from the TDD §2b Timers table on 2026-09-29; the table there keeps one short line per timer.)

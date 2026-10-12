@@ -7,19 +7,19 @@ If it comes back: `/roadmap` (Ideas: portrait layout, clearer unlock timer). It 
 ## Where we are
 Stage: deliver   Milestone: v1.6 — Drag-to-Unlock ✅   Sprint: none
 Doing: — on the shelf
-Branch: master   Version: 0.4.1.0
+Branch: master   Version: 0.4.2.0
 Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.1, beta
 
 ## Key facts
 **Run/deploy**
-- Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + PartyKit `npm run party:dev` on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
+- Dev: Vite `http://localhost:5173` (`--host` for phones on LAN) + room server `npm run party:dev` (wrangler) on `localhost:1999`. `.env` must NOT set `VITE_PARTY_HOST` for local dev.
 - `npm run e2e:update` = returning player gets a new release on the first visit (offline cache; runs alone, :5193).
 - `npm run e2e:drag` = real-pointer drag check (edges, lost finger, two fingers, cap × 3 sizes, ~90 s; runs alone).
 - `npm run check:ui` (kit rules + game CSS restyling kit parts) · `npm run check:devkit` (release build with/without Dev Kit).
 - `npm test` (vitest) · `npm run build` = `tsc -b && vite build` — must pass before any release.
 - Front end auto-deploys to GitHub Pages on every push to `master` (workflow sets `VITE_PARTY_HOST`). CI now runs `npm run build` + `npm test` (F49). Build on work branches, merge to master only via /deliver.
-- Release: GitHub Pages + PartyKit — recipe `~/.claude/config/bmuz/release/github-pages.md`.
-- Server: `npx partykit deploy` by hand, only when `party/` changes — a front-end release doesn't update it.
+- Release: GitHub Pages + PartyServer on Muzzy's Cloudflare — recipe `~/.claude/config/bmuz/release/github-pages.md`.
+- Server: `npm run party:deploy` (wrangler; logged in on the PC — `npx wrangler login` once per machine) → roll-better.joebrogno.workers.dev, by hand, only when `party/` changes, BEFORE the site — a front-end release doesn't update it. Moved off PartyKit 2026-10-12 (TDD D21).
 - Version lives in `version.json` AND `package.json` (keep both in step). Tags `vX.Y.Z`. Default branch `master`, remote `origin` = github.com/TheBlueMuzzy/roll-better.
 **Rules**
 - R3F: never React state for per-frame updates — mutate refs in `useFrame`.
@@ -36,7 +36,7 @@ Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.1, beta
 - B006: once the timer fires (`unlockTimerResetKey` -1) the turn is closed — no new drags; `handleUnlockTimerExpire` must call `completeDragUnlock` BEFORE setting -1 (held drag resolves by zone). `setPhase` (leaving unlocking) + `initRound` clear `committedUnlocks`. Guarded by `unlockTurn.test.ts` + `npm run e2e:solo`. Leaving the unlock phase: a still-parked die goes BACK to its slot (`returnParkedDice`), never dropped or carried over. Race check: `node e2e/unlock-race-sweep.mjs [passes] [pages] [step]`.
 - B007/B008 physics: dice have ONE cube collider (`colliders={false}` on the RigidBody, density 2) — never let Rapier auto-build colliders from the pip meshes. Gather pull runs in `useBeforePhysicsStep` (not useFrame); nothing may settle while gathering; release goes through `releaseGather`. B009: dice pass through things by switching collision groups (`dieCollisionGroups.ts`), NEVER `setSensor` — a sensor flipped back to solid while touching a wall doesn't collide with it. Out-of-bounds safety net in PhysicsDie (`rollBounds.ts`) is the last resort and should never fire. Check: `npm run e2e:physics` (fails on any put-back; headless runs ~3–6 fps — short taps aren't judged).
 - Server input: `unlock_request` rejects non-arrays and de-duplicates slots; the unlock phase has a 45 s hard limit (`UNLOCK_MAX_PHASE_MS`) no matter how many `unlock_activity` pings. DicePool releases a gather ended by anything other than the player (fallback in useFrame) — don't remove it, or an online phase change mid-gather hangs the next roll.
-- e2e scripts share ports (Vite 5199, PartyKit 2999): run them ONE AT A TIME — two at once crash each other (a crashed run is not a game bug).
+- e2e scripts share ports (Vite 5199, room server 2999): run them ONE AT A TIME — two at once crash each other (a crashed run is not a game bug).
 - Online → Menu must leave through `useRoom.leave()` (intentional close) — a bare socket.close() looks like a dropped connection and a "Reconnecting" dialog sticks over the next solo game. Guarded by `npm run e2e:menu`.
 - 12-dice cap lives in `src/utils/diceCap.ts` — phone AND server use it; don't re-inline it. Server backstop is topped up by `unlock_activity` (D16).
 - B004: `npm run build` must stay green (CI won't tell you).

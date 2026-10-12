@@ -1,4 +1,4 @@
-import type * as Party from "partykit/server";
+import type { Connection, Room } from "./room";
 import type {
   RoomPlayer,
   RoomStatus,
@@ -64,8 +64,8 @@ interface ServerGameState {
   unlockResponses: Map<string, { type: "unlock" | "skip"; slotIndices?: number[] }>;
 }
 
-export default class RollBetterServer implements Party.Server {
-  readonly room: Party.Room;
+export default class RollBetterServer {
+  readonly room: Room;
 
   // ─── Room State (in-memory, per room instance) ─────────────────────
   players: Map<string, RoomPlayer> = new Map();
@@ -114,7 +114,7 @@ export default class RollBetterServer implements Party.Server {
   private unlockPhaseStartedAt: number | null = null;
   private phaseTimerDuration: number | null = null;
 
-  constructor(room: Party.Room) {
+  constructor(room: Room) {
     this.room = room;
   }
 
@@ -131,7 +131,7 @@ export default class RollBetterServer implements Party.Server {
 
   // ─── Connection Lifecycle ──────────────────────────────────────────
 
-  onConnect(conn: Party.Connection) {
+  onConnect(conn: Connection) {
     this.log(`[CONNECT] id=${conn.id.slice(0, 8)} players=${this.players.size} status=${this.status as string} hasGame=${!!this.gameState}`);
 
     // ─── Rejoin Detection ──────────────────────────────────────────────
@@ -264,7 +264,7 @@ export default class RollBetterServer implements Party.Server {
     });
   }
 
-  onMessage(message: string, sender: Party.Connection) {
+  onMessage(message: string, sender: Connection) {
     let parsed: ClientMessage;
 
     try {
@@ -348,7 +348,7 @@ export default class RollBetterServer implements Party.Server {
     }
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(conn: Connection) {
     this.log(`[CLOSE] id=${conn.id.slice(0, 8)} players=${this.players.size} hasGame=${!!this.gameState}`);
     this.removePlayer(conn.id);
 
@@ -373,7 +373,7 @@ export default class RollBetterServer implements Party.Server {
 
   // ─── Message Handlers ─────────────────────────────────────────────
 
-  private handleJoin(conn: Party.Connection, name: string, _color: string, persistentId?: string) {
+  private handleJoin(conn: Connection, name: string, _color: string, persistentId?: string) {
     // Duplicate join — already in players map
     if (this.players.has(conn.id)) {
       this.sendRoomState(conn);
@@ -487,7 +487,7 @@ export default class RollBetterServer implements Party.Server {
     this.sendRoomState(conn);
   }
 
-  private handleReady(conn: Party.Connection) {
+  private handleReady(conn: Connection) {
     const player = this.players.get(conn.id);
     if (!player) return;
 
@@ -497,7 +497,7 @@ export default class RollBetterServer implements Party.Server {
   }
 
   private handleStartGame(
-    conn: Party.Connection,
+    conn: Connection,
     targetPlayers: number
   ) {
     // Only the host can start the game
@@ -626,7 +626,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle a play_again request. Transitions from sessionEnd → lobby,
    * or marks player ready if already in lobby, or defers to mid-game join.
    */
-  private handlePlayAgain(conn: Party.Connection) {
+  private handlePlayAgain(conn: Connection) {
     // Guard: player must be in the room OR be an unready player from game start
     if (!this.players.has(conn.id) && !this.unreadyPlayers.has(conn.id)) return;
 
@@ -778,7 +778,7 @@ export default class RollBetterServer implements Party.Server {
    * Client sends its physics-determined dice values after they settle.
    * Server computes locks and relays to other clients (per-player, no batching).
    */
-  private handleRollResult(sender: Party.Connection, values: number[], afk: boolean = false) {
+  private handleRollResult(sender: Connection, values: number[], afk: boolean = false) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -945,7 +945,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle an unlock request from an online player.
    * Validates slot indices, stores the response, and checks if all have responded.
    */
-  private handleUnlockRequest(sender: Party.Connection, slotIndices: number[], afk: boolean = false) {
+  private handleUnlockRequest(sender: Connection, slotIndices: number[], afk: boolean = false) {
     // Messages come from the network — a bad one must not throw. Repeated slots count once.
     if (!Array.isArray(slotIndices)) {
       this.sendToConnection(sender, { type: "error", message: "Bad unlock request" });
@@ -1039,7 +1039,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle a skip-unlock from an online player.
    * Validates the must-unlock guard, stores the response, checks completion.
    */
-  private handleSkipUnlock(sender: Party.Connection, afk: boolean = false) {
+  private handleSkipUnlock(sender: Connection, afk: boolean = false) {
     if (!this.gameState) {
       this.sendToConnection(sender, { type: "error", message: "No active game" });
       return;
@@ -1224,7 +1224,7 @@ export default class RollBetterServer implements Party.Server {
    * D16: a player just committed a drag, so they're actively unlocking — not AFK.
    * Make sure the backstop leaves them at least UNLOCK_ACTIVITY_GRACE_MS to send their choice.
    */
-  private handleUnlockActivity(sender: Party.Connection) {
+  private handleUnlockActivity(sender: Connection) {
     if (!this.gameState || this.gameState.phase !== "unlocking") return;
     if (this.gameState.unlockResponses.has(sender.id)) return;
     const player = this.gameState.players.find((p) => p.id === sender.id && p.isOnline);
@@ -1364,7 +1364,7 @@ export default class RollBetterServer implements Party.Server {
    * Handle a rolling_timeout message from the host client.
    * The host's countdown bar reached zero — auto-roll any AFK players.
    */
-  private handleRollingTimeout(sender: Party.Connection) {
+  private handleRollingTimeout(sender: Connection) {
     if (!this.gameState || this.gameState.phase !== "rolling") return;
 
     // Only the host can trigger this
@@ -1905,15 +1905,15 @@ export default class RollBetterServer implements Party.Server {
     this.log(`[KEEPALIVE] Room empty — waiting 10s for rejoin`);
   }
 
-  private sendToConnection(conn: Party.Connection, message: ServerMessage) {
+  private sendToConnection(conn: Connection, message: ServerMessage) {
     conn.send(JSON.stringify(message));
   }
 
-  private sendRoomState(conn: Party.Connection) {
+  private sendRoomState(conn: Connection) {
     this.sendToConnection(conn, this.buildRoomStateMessage());
   }
 
-  private handleSeatClaim(conn: Party.Connection, seatIndex: number) {
+  private handleSeatClaim(conn: Connection, seatIndex: number) {
     if (!this.gameState) {
       this.sendToConnection(conn, { type: "seat_claim_result", success: false, seatIndex, reason: "no_game" } as any);
       return;
@@ -1958,7 +1958,7 @@ export default class RollBetterServer implements Party.Server {
     this.log(`[SEAT CLAIM] ${conn.id.slice(0, 8)} claimed seat ${seatIndex} (${targetPlayer.name}) — pending takeover at phase boundary`);
   }
 
-  private sendSeatList(conn: Party.Connection) {
+  private sendSeatList(conn: Connection) {
     if (!this.gameState) return;
     const botSeats = this.gameState.players
       .filter(p => p.seatState === 'bot')
@@ -1983,7 +1983,7 @@ export default class RollBetterServer implements Party.Server {
    * If their persistentId maps to a bot-held seat that isn't already claimed, auto-claim it.
    * Returns true if auto-matched, false otherwise (player must manually select).
    */
-  private tryAutoMatchSeat(conn: Party.Connection): boolean {
+  private tryAutoMatchSeat(conn: Connection): boolean {
     if (!this.gameState) return false;
 
     const joinerInfo = this.midGameJoiners.get(conn.id);

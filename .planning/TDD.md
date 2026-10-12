@@ -8,7 +8,7 @@
 - **Platforms:** web — desktop + phone browsers, landscape only (since v1.4), installable PWA
 - **Stack:** Vite 7 + TypeScript + React 19 + React Three Fiber 9 + Rapier physics + drei + Zustand 5 — why: real 3D physics dice in a browser, no install
 - **UI:** Muzzy's game-ui kit from `dev/framework`, style Cartoon (`src/ui/kit`, `content/ui/`); Settings is the first screen on it. Update with `node ~/Documents/dev/framework/ui-kit/scripts/install-kit.mjs <this folder>`; never edit `src/ui/kit` here.
-- **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyKit room server on Cloudflare (`party/server.ts`, deployed by hand with `npx partykit deploy`)
+- **Where it runs online:** GitHub Pages (front end, auto-deploys on every push to `master`) + PartyServer room server on Muzzy's own Cloudflare (`party/worker.ts` → `party/server.ts`, deployed by hand with `npm run party:deploy` → roll-better.joebrogno.workers.dev)
 - **Dev Kit tools used (v1.8):** **Console** (` key / triple-tap top-right; `src/devkit/` = the Game Framework's `devkit/` module (kit 0.1.0, installed with `framework/devkit/scripts/install-devkit.mjs` — don't edit it here), always in dev + in release builds while `content/devkit.json` `inReleaseBuilds` is true (through beta; off at 1.0 — D20 addendum); Save goes through the dev-server plugin `vite-plugins/devkit/devkitVite.ts`, release builds get Copy for Claude instead; `npm run check:devkit` proves both settings) **Color** (the 15 UI kit colours, live, colour-blind preview; writes `content/ui/style.json` tweaks) and Roll Better's own game tab **Table** (`src/devkit-game/TableTab.tsx`, listed in `src/devkit-game/tabs.ts`; writes `content/ui/table.json`). `content/tuning/scoring.json`, `content/text/en.json` are the other data files (catalog: `~/.claude/config/bmuz/DEVKIT.md`) — **recommended next:** **Multiplayer** (open a second player, simulate lag/disconnect — B003 hid for months because online wasn't tested every change), **Tuning** (physics + timer numbers → `content/tuning/`), **Bug capture** (online bugs are hard to describe from a phone).
 
 ## 2. How it fits together
@@ -18,7 +18,7 @@ flowchart LR
   Physics[Rapier dice<br/>PhysicsDie / DicePool] -->|settled face values| Store
   Input --> Physics
   Store --> View[3D scene + HUD<br/>Scene.tsx, PlayerRow, HUD]
-  Store <-->|useOnlineGame.ts| Net[PartyKit room server<br/>party/server.ts]
+  Store <-->|useOnlineGame.ts| Net[PartyServer on Cloudflare<br/>party/worker.ts → server.ts]
 ```
 - **Game state** — `src/store/gameStore.ts` (one Zustand store, ~1,370 lines): phases, players, locks, pool, animation queues, drag/commit state, online flags. Everyone reads it.
 - **Physics dice** — `PhysicsDie.tsx` (one die: rigid body, settle, snap flat), `DicePool.tsx` (spawns the pool, waits for all dice to settle, reads faces), `RollingArea.tsx` (floor + walls).
@@ -40,7 +40,7 @@ flowchart LR
 **Multiplayer** — turn flow, all ~35 messages, seats, sync: [design/tech-online.md](design/tech-online.md)
 - **Who's in charge:** each phone rolls its own dice and reports the values; the server works out the locks itself, checks unlocks, moves phases on when everyone has acted, runs the AFK backstops and bots, and owns rooms and seats.
 - **Unlocking (D15/D16):** each phone runs its own 3 s drag timer, then sends ONE batched `unlock_request` (or `skip_unlock`); each drag pings `unlock_activity` so a busy dragger is never AFK'd. **12-dice cap** (pool + still-locked + 2 per unlock ≤ 12) is one shared helper, `src/utils/diceCap.ts`. **Seats:** per-tab connection id + saved `persistentId` that owns the seat; 2 auto-actions in a row → bot.
-- **Deploys:** pushing `master` updates only the front end. Server changes need `npx partykit deploy` by hand.
+- **Deploys:** pushing `master` updates only the front end. Server changes need `npm run party:deploy` by hand (before the site).
 
 **Physics / simulation** — number table, build notes: [design/tech-internals.md](design/tech-internals.md)
 - Numbers are hardcoded today (gravity [0, -50, 0], die bounce 0.35, friction 0.5, damping 0.3) — first candidates for `content/tuning/physics.json`. Locked dice are pictures, not physics objects.
@@ -91,7 +91,7 @@ flowchart LR
 | Frame rate | 60 fps on a mid-range phone | Dev Kit → Perf (not built; never measured) |
 | First load | < 3 s on 4G; download < 3 MB (not measured yet) | /deliver quick check |
 | Memory | no growth over a 10-minute session | Dev Kit → Perf (not built) |
-| Network (online games) | ~1 message per player per phase (roll, unlock) + relays + ≤ 7 `unlock_activity` pings per turn; PartyKit/Cloudflare free tier (~100k requests/day) | server logs |
+| Network (online games) | ~1 message per player per phase (roll, unlock) + relays + ≤ 7 `unlock_activity` pings per turn; Cloudflare Workers free plan (100k requests/day; each WebSocket message counts a fraction) | server logs |
 
 ## 6. Security & fairness
 - Clients report their own dice values (client-authoritative) — a cheater could fake rolls. Accepted: casual friends-with-room-codes game.
@@ -110,6 +110,12 @@ flowchart LR
 Newest first. Every real "how should we build this" choice — including Muzzy's ideas.
 Full write-ups (options, why, addenda): D15–D16 → [design/tech-online.md](design/tech-online.md#decisions--full-text-d15d16) · D17–D20 → [design/tech-internals.md](design/tech-internals.md#decisions--full-text-d17d20)
 ```
+D21 · 2026-10-12 · Online server moved from PartyKit to PartyServer on Muzzy's own Cloudflare
+  Why: PartyKit's hosted platform shuts down 23 Oct 2026 (deploys off 16 Oct). PartyServer is its official successor and the BMUZ standard (Glyphtender, rooms kit 0.6.0).
+  Chose: party/worker.ts (class Main → /parties/main/<code>, PartySocket's default, so the client is unchanged) hands each room to the
+  same RollBetterServer through party/room.ts (id, broadcast, getConnection(s)); party/liveConnections.ts keeps the live sockets
+  (PartyServer drops a reconnected phone's new socket when the old one closes late). Rooms were in memory only — no data to move.
+  Proven: e2e:online, e2e:midgame, e2e:menu pass on wrangler dev.
 D20 · 2026-09-29 · Dev Kit (F60/F59): our own small panel (src/devkit/, own React root, plain styling); saves through a dev-server-only Vite plugin
   Addendum · Proposed by: Muzzy — ships in release builds before 1.0 (content/devkit.json inReleaseBuilds; no Save there, Copy for Claude);
   rule: any future tool that can affect play must be offline-only
@@ -142,7 +148,7 @@ D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyK
 | three, @react-three/fiber, @react-three/drei | 3D rendering | MIT | yes |
 | @react-three/rapier | physics wrapper | not stated in its package.json — verify (upstream repo is MIT) | verify |
 | @dimforge/rapier3d-compat | physics engine | Apache-2.0 | yes |
-| zustand, react, partykit, partysocket, vite-plugin-pwa | state, UI, online, PWA | MIT | yes |
+| zustand, react, partyserver, partysocket, wrangler, vite-plugin-pwa | state, UI, online, PWA | MIT | yes |
 | playwright-core (dev only) | e2e browser checks | Apache-2.0 | yes |
 | drei `Environment preset="apartment"` | HDRI lighting (pmndrs CDN, Poly Haven source) | CC0 | yes |
 | Sounds | procedural Web Audio stubs | own | yes |
@@ -151,4 +157,4 @@ D01 · 2026-03-06 · randomDifficulty() duplicated in client + server — PartyK
 - **Online unlock (ROADMAP F47, built, awaiting approval):** the old edge cases are handled in code — parked dice return to their slot when the phase ends, the activity ping (D16) stops the backstop cutting off a slow dragger, and phone + server share one cap rule. Still to prove on real phones in a live room.
 - Big files (App.tsx, gameStore.ts, server.ts) make flow bugs hard to test — no seams for unit tests outside `utils/`.
 - Rapier WASM on low-end phones — fps never measured (no Perf tool).
-- PartyKit free tier (~100k requests/day) — fine for friends, unknown for a real launch.
+- Cloudflare Workers free plan (100k requests/day) — fine for friends, unknown for a real launch.

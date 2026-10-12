@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 export const VITE_PORT = 5199;
-// Own PartyKit port (not the usual 1999) so a normal `npm run party:dev` can keep running
+// Own party-server port (not the usual 1999) so a normal `npm run party:dev` can keep running
 export const PARTY_PORT = 2999;
 export const GAME_URL = `http://localhost:${VITE_PORT}/`;
 

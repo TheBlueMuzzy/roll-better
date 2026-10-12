@@ -1,6 +1,6 @@
 // The 12-dice cap for unlocking — shared by the phone (drag-to-unlock) and the server (party/server.ts)
 // so both always agree on how many dice a player may unlock.
-// Pure functions, no imports, so the PartyKit server can bundle it too.
+// Pure functions, no imports, so the room server can bundle it too.
 
 export const MAX_DICE = 12;
 

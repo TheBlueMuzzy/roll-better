@@ -20,7 +20,7 @@
 - **Gather**: Holding in the rolling area to pull your dice into an orbit before releasing them as a roll.
 - **AI takeover**: When a player disconnects or times out, AI seamlessly controls their dice until they reconnect
 - **AI backfill**: AI opponents that fill empty player slots when the host starts the game
-- **PartyKit**: WebSocket room server running on Cloudflare's edge network
+- **PartyServer**: WebSocket room server on Muzzy's own Cloudflare account (free plan); replaced PartyKit's hosted platform, which shut down 23 Oct 2026
 - **Deferred snapshot**: Pattern where server state is buffered until client animations finish, preventing visual glitches
 - **Watchdog**: Heartbeat that detects phase stalls and requests state sync from server
 - **Profile-emerge**: Animation pattern where other players' dice scale from 0→1 and fly from their profile icon to their row slots

@@ -1,7 +1,7 @@
 {
   "name": "roll-better",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,8 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "party:dev": "partykit dev",
-    "party:deploy": "partykit deploy",
+    "party:dev": "wrangler dev --persist-to .wrangler/state-dev",
+    "party:deploy": "wrangler deploy",
     "e2e": "npm run e2e:solo && npm run e2e:online",
     "e2e:solo": "node e2e/solo-late-drag.mjs",
     "e2e:online": "node e2e/online-unlock.mjs",
@@ -26,7 +26,7 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@react-three/rapier": "^2.2.0",
-    "partykit": "^0.0.115",
+    "partyserver": "^0.5.10",
     "partysocket": "^1.1.16",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -50,6 +50,7 @@
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "wrangler": "^4.149.0"
   }
 }

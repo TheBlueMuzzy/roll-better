@@ -6,7 +6,7 @@
 ### 5.1 Multiplayer Architecture
 Both modes are fully implemented:
 - **Offline**: AI opponents only (local game logic, AI makes unlock decisions). Selectable from main menu with player count (2–4). AI difficulty is randomized per bot.
-- **Online**: Room-based multiplayer via PartyKit WebSocket server with room codes. Create/Join flow is inline on the main menu (no separate lobby screen).
+- **Online**: Room-based multiplayer via a PartyServer WebSocket server on Cloudflare with room codes. Create/Join flow is inline on the main menu (no separate lobby screen).
 
 **Room Codes:**
 - Format: 4-letter alphabetic code (excludes I and O for readability, e.g., `QRPD`)
@@ -15,7 +15,7 @@ Both modes are fully implemented:
 - Zero friction: no accounts, no downloads — just enter a code
 
 **Room Flow (Jackbox-style):**
-1. **Create**: Host taps "CREATE ROOM" → PartyKit room created → 4-letter code displayed prominently
+1. **Create**: Host taps "CREATE ROOM" → room created on the server → 4-letter code displayed prominently
 2. **Join**: Player enters code on lobby screen → taps "JOIN" → enters room lobby
 3. **Lobby**: Player list with names/colors, "READY" toggle per player, host sees "START GAME" button
 4. **Start conditions**: Host clicks "START GAME" (host can configure target player count and AI difficulty)

@@ -3,13 +3,13 @@
 //   - P3 sees the seat picker ("Game in progress") listing the bot seats
 //   - picking one shows the joining state, and P3 ends up in the game at the next round
 // Screenshots go to the folder given as the first argument (optional).
-// Run: npm run e2e:midgame   (starts its own PartyKit :2999 + Vite :5199 and stops them afterwards)
+// Run: npm run e2e:midgame   (starts its own room server :2999 + Vite :5199 and stops them afterwards)
 import { startServer, launchBrowser, run, log, GAME_URL, VITE_PORT, PARTY_PORT, createRoom, joinRoom, startOnlineGame, store, text } from './lib.mjs';
 
 const SHOTS = process.argv[2];
 
 run(async () => {
-  await startServer('partykit', `npx partykit dev --port ${PARTY_PORT}`, PARTY_PORT);
+  await startServer('party', `npx wrangler dev --port ${PARTY_PORT}`, PARTY_PORT);
   await startServer('vite', `npx vite --port ${VITE_PORT} --strictPort`, VITE_PORT, { VITE_PARTY_HOST: `localhost:${PARTY_PORT}` });
   const browser = await launchBrowser();
   const page = async () => (await browser.newContext({ viewport: { width: 844, height: 390 } })).newPage();

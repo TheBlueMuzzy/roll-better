@@ -1,17 +1,17 @@
-// Online check for F47 (+ B003 guard) — two players in one room on a local PartyKit server.
+// Online check for F47 (+ B003 guard) — two players in one room on a local room server (wrangler dev).
 // P1 holds a drag over the rolling area until their own 3 s timer ends the turn. Checks:
 //   - the held die counts: P1 sends ONE unlock_request with it (not flagged AFK) + unlock_activity (D16)
 //   - after the turn closed, P1 can't start a new drag
 //   - P2 hears P1's unlock (unlock_result), and once both are back to idle, P2's view of P1's dice
 //     matches P1's own (server and phone agree); nothing left parked on P1
-// Run: npm run e2e:online   (starts its own PartyKit :2999 + Vite :5199 and stops them afterwards)
+// Run: npm run e2e:online   (starts its own room server :2999 + Vite :5199 and stops them afterwards)
 import { startServer, launchBrowser, store, holdToRoll, run, log, GAME_URL, VITE_PORT, PARTY_PORT,
   createRoom, joinRoom, startOnlineGame } from './lib.mjs';
 
 const MAX_MS = 240_000;
 
 run(async () => {
-  await startServer('partykit', `npx partykit dev --port ${PARTY_PORT}`, PARTY_PORT);
+  await startServer('party', `npx wrangler dev --port ${PARTY_PORT}`, PARTY_PORT);
   await startServer('vite', `npx vite --port ${VITE_PORT} --strictPort`, VITE_PORT, { VITE_PARTY_HOST: `localhost:${PARTY_PORT}` });
 
   const browser = await launchBrowser();
