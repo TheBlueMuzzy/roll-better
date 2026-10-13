@@ -1,14 +1,14 @@
 # Roll Better — State
 
 ## ▶ RESUME HERE
-🗄️ ON THE SHELF (Muzzy, 2026-09-29) — released v0.4.1 (beta; v0.4.1 = returning players get new releases at once), v1.6 Drag-to-Unlock ✅. Live: https://thebluemuzzy.github.io/roll-better/ . Nothing in progress; don't suggest work on it unless Muzzy brings it back.
+🗄️ ON THE SHELF (Muzzy, 2026-09-29) — released v0.4.2 (beta; v0.4.2 = online server moved off PartyKit to PartyServer on Muzzy's Cloudflare, live-checked 2026-10-12), v1.6 Drag-to-Unlock ✅. Live: https://thebluemuzzy.github.io/roll-better/ . Nothing in progress; don't suggest work on it unless Muzzy brings it back.
 If it comes back: `/roadmap` (Ideas: portrait layout, clearer unlock timer). It stays the testbed for framework modules (UI kit, Dev Kit) when one needs proving.
 
 ## Where we are
 Stage: deliver   Milestone: v1.6 — Drag-to-Unlock ✅   Sprint: none
 Doing: — on the shelf
 Branch: master   Version: 0.4.2.0
-Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.1, beta
+Live: https://thebluemuzzy.github.io/roll-better/ — v0.4.2, beta
 
 ## Key facts
 **Run/deploy**
